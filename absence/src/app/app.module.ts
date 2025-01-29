@@ -26,6 +26,7 @@ import { ExamensListComponent } from './examens-list/examens-list.component';
 import { ListExamenItemComponent } from './list-examen-item/list-examen-item.component';
 import { DropdownModule } from 'primeng/dropdown';
 import { AuthticatedLayoutComponent } from './components/authticated-layout/authticated-layout.component';
+import { RouterModule } from '@angular/router';
 
 @NgModule({
   declarations: [
@@ -55,6 +56,7 @@ import { AuthticatedLayoutComponent } from './components/authticated-layout/auth
     ToastModule,
     CommonModule,
     DropdownModule,
+    RouterModule
   ],
   providers: [MessageService],
   bootstrap: [AppComponent],
