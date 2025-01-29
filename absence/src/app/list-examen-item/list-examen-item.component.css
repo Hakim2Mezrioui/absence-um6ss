@@ -1,0 +1,30 @@
+.examen {
+    background-color: #D1FFD1;
+    width: fit-content;
+    margin: auto;
+    margin-top: 1em;
+    padding: .5em 1em;
+    border-radius: .5em;
+    border-left: 2px #074173 solid;
+}
+
+h3 {
+    color: rgb(0, 59, 0);
+}
+
+.examen h6 {
+    font-size: .8em;
+}
+
+.examen p {
+    font-size: .8em;
+}
+
+.explorer {
+    font-size: .5em;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+
+.statut {
+    background-color: #074173;
+}

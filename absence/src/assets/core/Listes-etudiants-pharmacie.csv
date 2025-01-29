@@ -1,0 +1,592 @@
+Nom;Prenom;Promotion;Groupe;faculte
+AZOUADELLY;YOANN-CHRISTIAN KYLE;1 ere;1;pharmacie
+ADA ETOUGHE;Grace Prunelle;1 ere;1;pharmacie
+AIT IRHLI;JAD;1 ere;1;pharmacie
+ABBASSI;Houssam;1 ere;1;pharmacie
+ABDELLAOUI MAANE;Selma;1 ere;1;pharmacie
+ADDI;Ismail;1 ere;1;pharmacie
+ADERDOUR;NOUR EL HOUDA;1 ere;1;pharmacie
+ADNANE;Samia;1 ere;1;pharmacie
+AFIFI;Nour;1 ere;1;pharmacie
+EL JANAN;Layla;1 ere;1;pharmacie
+AGOURI;Chaimaa;1 ere;1;pharmacie
+AKKARI;Ayman;1 ere;1;pharmacie
+ARRACHIDI;amira;1 ere;1;pharmacie
+ASSAKKACH;Malak;1 ere;1;pharmacie
+BADRI;yousra;1 ere;1;pharmacie
+BEKKARI;HIBA;1 ere;1;pharmacie
+BELKOUCHI;Amira;1 ere;1;pharmacie
+BELLAHCEN;Radia;1 ere;1;pharmacie
+BEN ABBOU;DOHA;1 ere;1;pharmacie
+BENBRAHIM;Safoua;1 ere;1;pharmacie
+BENYAHYA;RIM;1 ere;1;pharmacie
+BOUAJAJA;HIBAT ALLAH;1 ere;1;pharmacie
+BOUBAKRI;Ghita;1 ere;1;pharmacie
+BOUKRIM;Jihane;1 ere;1;pharmacie
+BOUMKOUK;Lina;1 ere;2;pharmacie
+CHABI;Fatimazahra;1 ere;2;pharmacie
+CHARIF;Hafsa;1 ere;2;pharmacie
+CHOKAIRY;fatima zahra;1 ere;2;pharmacie
+DAMANE;douaa;1 ere;2;pharmacie
+DOUMAJD;OUMNIA;1 ere;2;pharmacie
+DRISSI EL BOUZAIDI;Ghita;1 ere;2;pharmacie
+ECHARIF CHEFCHAOUNI ESSOUNNI;Abla;1 ere;2;pharmacie
+EL ALAMI;Hiba;1 ere;2;pharmacie
+EL BOUCHTAOUI;Meryem;1 ere;2;pharmacie
+EL BOURKADI;Fahd;1 ere;2;pharmacie
+EL IDRISSI;Tasnime;1 ere;2;pharmacie
+ELHAYBA;ATIKA;1 ere;2;pharmacie
+ELRHERBI;Zineb;1 ere;2;pharmacie
+ERRADI;Marwa;1 ere;2;pharmacie
+EZZAKI;ikram;1 ere;2;pharmacie
+EZZIRARI;INASS;1 ere;2;pharmacie
+FARES;amani;1 ere;2;pharmacie
+FASSI FIHRI;Abla;1 ere;2;pharmacie
+GHAZZALI;RANIA;1 ere;2;pharmacie
+GHELFANE;MALAK;1 ere;2;pharmacie
+GUERBAZ;Lina;1 ere;2;pharmacie
+HADDIOUI;NASREDDINE;1 ere;2;pharmacie
+HADDIOUI;yassmine;1 ere;2;pharmacie
+HAJBAOUI;yasmine;1 ere;2;pharmacie
+HANINE;Taha;1 ere;3;pharmacie
+HAZZAZ ABOUAMAL;Hamza;1 ere;3;pharmacie
+IDOULAHIANE;Rayhana;1 ere;3;pharmacie
+JABRANE;soukaina;1 ere;3;pharmacie
+JENNANE;Nada;1 ere;3;pharmacie
+KHALIL;Lina;1 ere;3;pharmacie
+KHLAFA;rania;1 ere;3;pharmacie
+KOUNSSANE;Khadija;1 ere;3;pharmacie
+KOURSAOUI;RANYA;1 ere;3;pharmacie
+LACHGUAR;Houria;1 ere;3;pharmacie
+LACHKAR;ILYAS;1 ere;3;pharmacie
+LAHNIN;Maryam;1 ere;3;pharmacie
+LAMALEM;houssam;1 ere;3;pharmacie
+LEKBOURI;Jawhara;1 ere;3;pharmacie
+LEKNIZI;Salwa;1 ere;3;pharmacie
+LOTFI;Fatima zahra;1 ere;3;pharmacie
+MOUJOUD;ABDELHAMID;1 ere;3;pharmacie
+MOUNFALOTI;DINA;1 ere;3;pharmacie
+MAAMAR;Sara;1 ere;3;pharmacie
+MAJDOUBI;Fatima zahra;1 ere;3;pharmacie
+MALIHI;Khawla;1 ere;3;pharmacie
+MANSOURI;khadija;1 ere;3;pharmacie
+MAZIGHI;manar;1 ere;3;pharmacie
+MAZOUZ;NADA;1 ere;4;pharmacie
+MECHTALY;JAD;1 ere;4;pharmacie
+MELLOUK;sirine;1 ere;4;pharmacie
+MONTASSIR;FATIMA-ZAHRA;1 ere;4;pharmacie
+MOUFID;Amira;1 ere;4;pharmacie
+NABIL;SANA;1 ere;4;pharmacie
+NACIRI;Malak;1 ere;4;pharmacie
+NAJAH IDRISSI;Ghita;1 ere;4;pharmacie
+OUSMANE SANI;SAIDA;1 ere;4;pharmacie
+OUARZAZI;Yousra;1 ere;4;pharmacie
+OUASSIFA;SARA;1 ere;4;pharmacie
+RGUITI;yassir;1 ere;4;pharmacie
+RJILA;SAFAE;1 ere;4;pharmacie
+SAMANI;Meryem;1 ere;4;pharmacie
+SANA;Rhalem;1 ere;4;pharmacie
+SAOUAF;Lina;1 ere;4;pharmacie
+SEBTI;Yasmine;1 ere;4;pharmacie
+SEFIANI;Inasse;1 ere;4;pharmacie
+TALHA NACIRI;Rita;1 ere;4;pharmacie
+TALIH;Mohamed Ali;1 ere;4;pharmacie
+TAZI;Fatima Azzahrae;1 ere;4;pharmacie
+TEBBAA;Safae;1 ere;4;pharmacie
+TERRO;Salwa;1 ere;4;pharmacie
+ZEROUAL;Amine;1 ere;4;pharmacie
+ABOUZAID;Abdelkader;2 eme;1;pharmacie
+AIT BEN ALI;SARA;2 eme;1;pharmacie
+AKDI;Nada;2 eme;1;pharmacie
+AKHARRAZ;LINA;2 eme;1;pharmacie
+AKHETTAB;yassmine;2 eme;1;pharmacie
+ALAOUI;zineb;2 eme;1;pharmacie
+ALID;Rania;2 eme;1;pharmacie
+AMAR;Jihane;2 eme;1;pharmacie
+BAYAZID;oumaima;2 eme;1;pharmacie
+BELGHMI;mohamed;2 eme;1;pharmacie
+BELKADI;Mohamed;2 eme;1;pharmacie
+BELMAL;zayd;2 eme;1;pharmacie
+BENCHADLI;Zakaria;2 eme;1;pharmacie
+BENRARHRHAYE;Aya;2 eme;1;pharmacie
+BOUKSASSE;OUMAIMA;2 eme;1;pharmacie
+BRIH;fatima;2 eme;1;pharmacie
+CHARAF;Chorouk;2 eme;1;pharmacie
+CHARRAFI;Fatima Ezzahraa;2 eme;1;pharmacie
+CHERIF D'OUEZZAN;Soulaimane;2 eme;1;pharmacie
+CODJO ;CELESTE ;2 eme;1;pharmacie
+DAD;SARA;2 eme;1;pharmacie
+DERRABI;Lina;2 eme;1;pharmacie
+DOU-NASSRE;yasmine;2 eme;2;pharmacie
+EL BADOURI;SAAD;2 eme;2;pharmacie
+EL BOUSSAIRI;Lina;2 eme;2;pharmacie
+EL FAIZE;LINA;2 eme;2;pharmacie
+EL HAJEB;Douae;2 eme;2;pharmacie
+EL IDRISSI;NOHA;2 eme;2;pharmacie
+EL KHATABI;Khadija;2 eme;2;pharmacie
+EL MBARKI;HOUSSAME;2 eme;2;pharmacie
+EL OUAHMANI;SARAH;2 eme;2;pharmacie
+ELARCHI;Hiba;2 eme;2;pharmacie
+ELBAIDEK;Douaa;2 eme;2;pharmacie
+ELFAHLI;Riham;2 eme;2;pharmacie
+ELKASITI;Fatimazahra;2 eme;2;pharmacie
+ELLOUXE;Aya;2 eme;2;pharmacie
+ENNAJI;Siham;2 eme;2;pharmacie
+ETTOUATI;MOHAMED;2 eme;2;pharmacie
+FALAHI;CAMELIA;2 eme;2;pharmacie
+FARID;Hiba;2 eme;2;pharmacie
+FENNANE;ismail;2 eme;2;pharmacie
+FOUAD;Assia;2 eme;2;pharmacie
+GUENOUN;Hajar;2 eme;2;pharmacie
+HAFIDI;AYA;2 eme;2;pharmacie
+HAMDADE;DALAL;2 eme;3;pharmacie
+HAMDI;Ghalia;2 eme;3;pharmacie
+HIDOUNE;Imane;2 eme;3;pharmacie
+HILALOU;narjisse;2 eme;3;pharmacie
+ICHADROUIN;NOUR EL HOUDA;2 eme;3;pharmacie
+IDGHARNANE;Lina;2 eme;3;pharmacie
+ISPIKEN;Imane;2 eme;3;pharmacie
+JROUNDI;RANIA;2 eme;3;pharmacie
+KABBAJ;Ghali;2 eme;3;pharmacie
+KABBAJ;Mohamed amine;2 eme;3;pharmacie
+KHALID;Maria;2 eme;3;pharmacie
+LAASRI;Taha;2 eme;3;pharmacie
+LAKHDARI;ISRAA;2 eme;3;pharmacie
+LAMJABBAR;adil;2 eme;3;pharmacie
+LIMOURAT;Fatima-zahra;2 eme;3;pharmacie
+LYAZGHI;MALAK;2 eme;3;pharmacie
+MASDOURI;SALSABIL;2 eme;3;pharmacie
+MEDICHE;Omar;2 eme;3;pharmacie
+MOUNADIL;HAMZA;2 eme;3;pharmacie
+MOUAFIK;hiba;2 eme;3;pharmacie
+MRIOUD;LINA;2 eme;3;pharmacie
+NAZIR;ANAS;2 eme;3;pharmacie
+NOUBIR;Aya;2 eme;3;pharmacie
+OUADRHIRI;MARIA;2 eme;4;pharmacie
+OUDGHIRI KAOUACHE;Mohamed jalil;2 eme;4;pharmacie
+OULD CHHAIBA;douae;2 eme;4;pharmacie
+OUSSAMA;MOHAMED TAHA;2 eme;4;pharmacie
+RADI;Yasmine;2 eme;4;pharmacie
+RAHALI;Douae;2 eme;4;pharmacie
+RAMDANI;RAYAN;2 eme;4;pharmacie
+REDWANE;Meryem;2 eme;4;pharmacie
+SAANANE;ELGHALIA;2 eme;4;pharmacie
+SABRI;Ines;2 eme;4;pharmacie
+SAOUI;Nouhaila;2 eme;4;pharmacie
+SBAAI;WIJDANE;2 eme;4;pharmacie
+TAZI;Adam;2 eme;4;pharmacie
+WADIH;HIBA;2 eme;4;pharmacie
+WAHBI;Nada;2 eme;4;pharmacie
+WEQQASSE;MOHAMED AMINE;2 eme;4;pharmacie
+YOUMELAHNA;Houda;2 eme;4;pharmacie
+ZAHID;IBRAHIM;2 eme;4;pharmacie
+ZEKRI;Salma;2 eme;4;pharmacie
+ZENOBI;Rayane;2 eme;4;pharmacie
+ZIDANI;Yakout;2 eme;4;pharmacie
+ZOUMI;KENZA;2 eme;4;pharmacie
+ABOULYAZID;Ilyas;3 eme;1;pharmacie
+ADIL;nouhaila;3 eme;1;pharmacie
+AHEDDOUN;safae;3 eme;1;pharmacie
+LAHLOU;MAHA;3 eme;1;pharmacie
+AIT HAMMOU;Safae;3 eme;1;pharmacie
+AKDI;KHADIJA;3 eme;1;pharmacie
+AKASBI;Fatima-zahra;3 eme;1;pharmacie
+ALHIANE;SAFAE;3 eme;1;pharmacie
+AGBALU;DOUAE;3 eme;1;pharmacie
+AMRANI;Rim;3 eme;1;pharmacie
+ANSARI;Rachida;3 eme;1;pharmacie
+ASRI;Mohammed Yahya;3 eme;1;pharmacie
+ATTAR;Fatima Zahra;3 eme;1;pharmacie
+AZZOUZI;Yazid;3 eme;1;pharmacie
+BALLOUK;Hamza;3 eme;1;pharmacie
+BARAZOUKI;MERIEME;3 eme;1;pharmacie
+BAZIR;HANAA;3 eme;1;pharmacie
+BEKKAOUI;Maria;3 eme;1;pharmacie
+BALQUIS;Mohamed;3 eme;1;pharmacie
+BELASRI;RANIA AHLAM;3 eme;1;pharmacie
+BENNANI;Hiba;3 eme;1;pharmacie
+BENNANI;Selma;3 eme;1;pharmacie
+BOUGOTAYA;INASSE;3 eme;1;pharmacie
+BENRAIHANE;Amina;3 eme;2;pharmacie
+BENFAIDA;AHMED;3 eme;2;pharmacie
+BENTASSIL;Aya;3 eme;2;pharmacie
+BOUHAIR;FATIMA EZZAHRA;3 eme;2;pharmacie
+BOUHLALI;Alae;3 eme;2;pharmacie
+BOULAARACH;Dina;3 eme;2;pharmacie
+BOUZAZIA;ABDELMOUHAIMIN;3 eme;2;pharmacie
+CABRANE;Mohamed Anouar;3 eme;2;pharmacie
+CHIKER;HAFSSA;3 eme;2;pharmacie
+CHARRATI;FATIMA;3 eme;2;pharmacie
+CHAKIR;Haytem;3 eme;2;pharmacie
+CHARIT;Boutayna;3 eme;2;pharmacie
+CHEBCHOUB;SAMY;3 eme;2;pharmacie
+CHEFAOUI;ilyas;3 eme;2;pharmacie
+DAFAL;Hiba;3 eme;2;pharmacie
+DJAZI ;MOHAMED AYMEN;3 eme;2;pharmacie
+DOUICH;Fatima-Ezzahrae;3 eme;2;pharmacie
+EL ABBADI;Wahiba;3 eme;2;pharmacie
+ELBAKAY;AYA;3 eme;2;pharmacie
+EL BARDI;Imane;3 eme;2;pharmacie
+EL FAROUK;riham;3 eme;2;pharmacie
+EL FAKRI;Wissal;3 eme;3;pharmacie
+EL BOUZIDI;Radia;3 eme;3;pharmacie
+EL GHAZLANI;ALAE;3 eme;3;pharmacie
+EL GHIFARI;Manal;3 eme;3;pharmacie
+EL JAY;KHADIJA;3 eme;3;pharmacie
+EL MERS;AYA;3 eme;3;pharmacie
+EL MOQRI;Sanae;3 eme;3;pharmacie
+EL OUAHABI;Douae;3 eme;3;pharmacie
+EL OUAZZANI;HIBA;3 eme;3;pharmacie
+EL KHALFAOUI HASSANI;WISSAL;3 eme;3;pharmacie
+ELKHOMSI;HIBA;3 eme;3;pharmacie
+ELBEHJA;Asmae;3 eme;3;pharmacie
+ELFERNANI;Abdelhadi;3 eme;3;pharmacie
+ELGDAH;Yahya;3 eme;3;pharmacie
+ELGHRIBI;saad;3 eme;3;pharmacie
+ELIMADI;Nissrine;3 eme;3;pharmacie
+ESSABIRI;adam;3 eme;3;pharmacie
+EZZOUBAIHI;Safae;3 eme;3;pharmacie
+FARAJ;Nouha;3 eme;3;pharmacie
+FARID;Sofia;3 eme;3;pharmacie
+FICHTALI;Fatima zahraa;3 eme;4;pharmacie
+GALUIA;YASSINE;3 eme;4;pharmacie
+Ghazaoui;Soukaina;3 eme;4;pharmacie
+HAJAMA;Aya;3 eme;4;pharmacie
+HARTI;Alaa-eddine;3 eme;4;pharmacie
+HARTI;Aya;3 eme;4;pharmacie
+HASSI;BASMA;3 eme;4;pharmacie
+IKRAM;AYA;3 eme;4;pharmacie
+IDALI;Safouane;3 eme;4;pharmacie
+IFKIREN;Ikram;3 eme;4;pharmacie
+JAWHARY;Nada;3 eme;4;pharmacie
+JERROUDI;Ouafae;3 eme;4;pharmacie
+KABBAJ;Sara;3 eme;4;pharmacie
+KAMAL;imane;3 eme;4;pharmacie
+KATFY;AYA;3 eme;4;pharmacie
+KESBAOUI;MOHAMED-ZAID;3 eme;4;pharmacie
+KHAMLACH;Ghita;3 eme;4;pharmacie
+KOUSSA;AYA;3 eme;4;pharmacie
+KRICHEN;YASMINE;3 eme;4;pharmacie
+LAITI;Hajar;3 eme;5;pharmacie
+LAMLIH;rania;3 eme;5;pharmacie
+MAAROUF;mouna;3 eme;5;pharmacie
+MAHIR;Salma;3 eme;5;pharmacie
+MAZHAR;HADIL;3 eme;5;pharmacie
+MFADDEL;Mohamed;3 eme;5;pharmacie
+MIFTAH;AYA;3 eme;5;pharmacie
+MOTYA;Ikram;3 eme;5;pharmacie
+MOUATARIF;AYA;3 eme;5;pharmacie
+MOUSSADDAK ;FADOUA;3 eme;5;pharmacie
+MOUNIB;OMar;3 eme;5;pharmacie
+MOUNJI;IMANE;3 eme;5;pharmacie
+NAIR;Hamza;3 eme;5;pharmacie
+OUAHIDI;Ahlem;3 eme;5;pharmacie
+OUCHKIR;KENZA;3 eme;5;pharmacie
+OULEHRI;ARWA;3 eme;5;pharmacie
+RAHMOUNI;ZAINAB;3 eme;5;pharmacie
+RAJAB BACHA;MARWA;3 eme;5;pharmacie
+RHILANE;ISMAIL;3 eme;5;pharmacie
+SAAIDI;Nour;3 eme;6;pharmacie
+SABBAR;yasser;3 eme;6;pharmacie
+SABOUR;ADAM;3 eme;6;pharmacie
+SABIR;AMAL;3 eme;6;pharmacie
+SABRI;Ayyoub;3 eme;6;pharmacie
+SAFOUHI;JIHANE;3 eme;6;pharmacie
+SAFRI;Douae;3 eme;6;pharmacie
+SAHRAOU;Yassine;3 eme;6;pharmacie
+SAID ALAOUI;Amine;3 eme;6;pharmacie
+Samih;Mostafa Yassine;3 eme;6;pharmacie
+SGHIR;Zainab;3 eme;6;pharmacie
+TAKHSSAOUI;Aymane;3 eme;6;pharmacie
+TALEB-ELHOUDA;Mohamed-Yassine;3 eme;6;pharmacie
+TAOUNI;SARAH;3 eme;6;pharmacie
+TARASS;Zineb;3 eme;6;pharmacie
+TLEMSANI BENHATTAL;Lina;3 eme;6;pharmacie
+ZAIKH;ISMAIL;3 eme;6;pharmacie
+ZAOUI;MOATASSIM BILLAH;3 eme;6;pharmacie
+ZARIOH;chaymae;3 eme;6;pharmacie
+ZRIERA;YOUNES;3 eme;6;pharmacie
+AASSILA;Meryem;4 eme;1;pharmacie
+ABBADI;NIZAR;4 eme;1;pharmacie
+ABOUZAID;Nisrine;4 eme;1;pharmacie
+ACHOR ZYAD;FATIMA ZAHRA;4 eme;1;pharmacie
+ADAM CHABI;RAOUDATOU;4 eme;1;pharmacie
+AGARDI;MOHAMED NAJIB;4 eme;1;pharmacie
+AIT DAOUD;FATIMA ZOHRA;4 eme;1;pharmacie
+AIT SALAH;Houria;4 eme;1;pharmacie
+AIT ZEMZAMI;Merieme;4 eme;1;pharmacie
+ALAFARI;Abdoul kader;4 eme;1;pharmacie
+ALLOUCHE;Rime;4 eme;1;pharmacie
+AMMOR;HIBA;4 eme;1;pharmacie
+AMOR;JIHANE;4 eme;1;pharmacie
+AMZAZI;latifa;4 eme;1;pharmacie
+AYOUCH;Lina;4 eme;1;pharmacie
+AZMANI;ichrak;4 eme;1;pharmacie
+AZZAT;Aya;4 eme;1;pharmacie
+BACHIR;Salma;4 eme;1;pharmacie
+BAHADDOU;Hicham;4 eme;1;pharmacie
+BAIYA;Amina;4 eme;1;pharmacie
+BELAYATE;Hajar;4 eme;2;pharmacie
+BELGHALI;Aymane;4 eme;2;pharmacie
+BELKEBIR;FATINE;4 eme;2;pharmacie
+BELMEKKI;Mehdi;4 eme;2;pharmacie
+BENCHEKROUN;sara;4 eme;2;pharmacie
+BENJELLOUN;WIAM;4 eme;2;pharmacie
+BENJILALI;HIBA;4 eme;2;pharmacie
+BENYAHIA;ghita;4 eme;2;pharmacie
+BENZIANE;Marwan;4 eme;2;pharmacie
+BERRADA;Chaimae;4 eme;2;pharmacie
+BITARI;Mohammed Yassine;4 eme;2;pharmacie
+BOUANANE;Mohamed Yassine;4 eme;2;pharmacie
+BOUHAMIDI;Wafaa;4 eme;2;pharmacie
+BOUKILI MAKHOUKHI;Cha�mae;4 eme;2;pharmacie
+BOUNAGUI;Chaimaa;4 eme;2;pharmacie
+BOUROUAINE;Yasmine;4 eme;2;pharmacie
+BOUTAZARZAIT;Romayssae;4 eme;2;pharmacie
+CHAFIK;Soukaina;4 eme;2;pharmacie
+CHAHBY;AHMED TAHA;4 eme;2;pharmacie
+CHARI;Mohammed;4 eme;3;pharmacie
+CHOUGRAD;Nouhaila;4 eme;3;pharmacie
+DAFAL;Lina;4 eme;3;pharmacie
+DAKHCH;MARWA;4 eme;3;pharmacie
+DERKAOUI;LINA;4 eme;3;pharmacie
+ECHANBOURA;Sara;4 eme;3;pharmacie
+EL BAIHI;elhoussein;4 eme;3;pharmacie
+EL BAKKOURI;Maroua;4 eme;3;pharmacie
+EL BARDI;Samia;4 eme;3;pharmacie
+EL HADDAJI;Mohamed reda;4 eme;3;pharmacie
+EL HAITOUT;Houda;4 eme;3;pharmacie
+EL HIMDY;Rita;4 eme;3;pharmacie
+EL IDRISSI;Sara;4 eme;3;pharmacie
+EL KHALQI;AMINA;4 eme;3;pharmacie
+EL KHAYAT;Khaoula;4 eme;3;pharmacie
+EL MANSOURI;Hiba;4 eme;3;pharmacie
+EL MENNANI;Soufiane;4 eme;3;pharmacie
+EL MOUMNI;ZINEB;4 eme;3;pharmacie
+ELAJOUADY;Mariam;4 eme;3;pharmacie
+EL OTMANI;RACHA;4 eme;4;pharmacie
+ELFAHLI;salma;4 eme;4;pharmacie
+ELFAHM;Maryem;4 eme;4;pharmacie
+ELFATIHY;Khadija;4 eme;4;pharmacie
+ELGAMRI;Ilias;4 eme;4;pharmacie
+ENNAKI;Hajar;4 eme;4;pharmacie
+ESSERTI;MOHAMED-TAHA;4 eme;4;pharmacie
+FETICH;soukaina;4 eme;4;pharmacie
+FILALI ANSSARI;ADNANE;4 eme;4;pharmacie
+FTOUHI;Yasmine;4 eme;4;pharmacie
+GALZIM;GHALI;4 eme;4;pharmacie
+GHOUZAILI;Kawtar;4 eme;4;pharmacie
+GHRIB;MOHAMED AMINE;4 eme;4;pharmacie
+GUELZIM;Hamza;4 eme;4;pharmacie
+HICHAR;Nouhaila;4 eme;4;pharmacie
+HUSSEIN;Taha;4 eme;4;pharmacie
+IDRISSI;Sofia;4 eme;4;pharmacie
+JAID;Soukaina;4 eme;4;pharmacie
+KABBAJ;zineb;4 eme;4;pharmacie
+KADRI HASSANI;Ghita;4 eme;4;pharmacie
+KAMAL;Yasser;4 eme;5;pharmacie
+KAZOUZ;SARRA;4 eme;5;pharmacie
+KHABAMOU;Hajar;4 eme;5;pharmacie
+LAAROUS;Zineb;4 eme;5;pharmacie
+LAAROUSSI;SALMA;4 eme;5;pharmacie
+LAHLIL;Taoufik;4 eme;5;pharmacie
+LASRY;Douaa;4 eme;5;pharmacie
+lazrak;Mohamed;4 eme;5;pharmacie
+LAZREQ;Elmehdi;4 eme;5;pharmacie
+LAZZOUZI;Khadija;4 eme;5;pharmacie
+LIKRAM;farah;4 eme;5;pharmacie
+LOUALI;Camelia;4 eme;5;pharmacie
+MAHFOUD;Rhita;4 eme;5;pharmacie
+MBOU INTCHALEY;Amanda Denise;4 eme;5;pharmacie
+MEDARHRI;Hiba;4 eme;5;pharmacie
+MENNANE;Nidale;4 eme;5;pharmacie
+MOKHLIS;MOHAMMED AMINE;4 eme;5;pharmacie
+MOUJIB;Meryem;4 eme;5;pharmacie
+MOUTAA;Malak;4 eme;5;pharmacie
+MIQDAM;Malak;4 eme;6;pharmacie
+N'AIT HAMMOU;HOUDA;4 eme;6;pharmacie
+NEDAM;Lina;4 eme;6;pharmacie
+OUADRHIRI;Basma;4 eme;6;pharmacie
+OUAFIK;Ali;4 eme;6;pharmacie
+OULDSAIDIA;Kawtar;4 eme;6;pharmacie
+OUZEROUAL;omar;4 eme;6;pharmacie
+RHAYOUR;Nora;4 eme;6;pharmacie
+RHISSASSI;Samia;4 eme;6;pharmacie
+SADIK;ANASS;4 eme;6;pharmacie
+SADOUQI;Kenza;4 eme;6;pharmacie
+SAID;Lina;4 eme;6;pharmacie
+SAYEH;israa;4 eme;6;pharmacie
+SBAI;Abla;4 eme;6;pharmacie
+SEIDA;Chaima;4 eme;6;pharmacie
+SOUIZI;Aya;4 eme;6;pharmacie
+TAKI IMRANI;yasmine;4 eme;6;pharmacie
+TOGHASSI;Imane;4 eme;6;pharmacie
+TOUZANI;Yassmine;4 eme;6;pharmacie
+ZOHRY;Youssef;4 eme;6;pharmacie
+ZOUINE;Hamza;4 eme;6;pharmacie
+ACH-CHAK;Afafe;5 eme;1;pharmacie
+ADNANE JAZOULI;Soukaina;5 eme;1;pharmacie
+AITISSIMOUR;GHITA;5 eme;1;pharmacie
+AMMOR;SALMA;5 eme;1;pharmacie
+BABA AHMED;Mouad;5 eme;1;pharmacie
+BALLA;ASMA;5 eme;1;pharmacie
+BASSIR;oussama;5 eme;1;pharmacie
+BEN FARAH;KHADIJA;5 eme;1;pharmacie
+BENTAMER;ali;5 eme;1;pharmacie
+BERRADA FATHI;WIAM;5 eme;1;pharmacie
+BLAGHEN;Aya;5 eme;1;pharmacie
+BOUCHGHOUL;Bahia;5 eme;1;pharmacie
+BOUDAD;Israa;5 eme;1;pharmacie
+BOUGHABA;Malak;5 eme;1;pharmacie
+BOUGREA;Aya;5 eme;1;pharmacie
+BOUKZANI;MARYAM;5 eme;1;pharmacie
+BOULLI;Soukaina;5 eme;1;pharmacie
+CHAABANI;Meryem;5 eme;1;pharmacie
+CHAFIK;walid;5 eme;1;pharmacie
+CHAKIR;Zineb;5 eme;1;pharmacie
+CHBOUKI;rim;5 eme;1;pharmacie
+CHDID;Yasmine;5 eme;2;pharmacie
+DERHMAIN;Hanane;5 eme;2;pharmacie
+DERHMAIN;Nadia;5 eme;2;pharmacie
+DIAB;Imane;5 eme;2;pharmacie
+ECHLAIHI;IBTISSAM;5 eme;2;pharmacie
+EL AKKARI;Yassine;5 eme;2;pharmacie
+EL BAIR;afaf;5 eme;2;pharmacie
+EL FADI;Rehab;5 eme;2;pharmacie
+EL MALTI;Mohamed Othmane;5 eme;2;pharmacie
+EL MBARKI;Maryam;5 eme;2;pharmacie
+EL MOUMNI;Aya;5 eme;2;pharmacie
+EL OMARI;HAKIMA;5 eme;2;pharmacie
+EL YASSAMI;AYOUB;5 eme;2;pharmacie
+ELALAOUI ISMAILI;Imane;5 eme;2;pharmacie
+ELKABBAJ;Siham;5 eme;2;pharmacie
+ELOUELDRHIRI;YASMINE;5 eme;2;pharmacie
+ESSAFI;mehdi;5 eme;2;pharmacie
+ETTABAGHI;Hiba;5 eme;2;pharmacie
+ETTABAGHI;SARA;5 eme;2;pharmacie
+FADILI;Kaoutar;5 eme;2;pharmacie
+FAHIM;Salma;5 eme;2;pharmacie
+FETHI;Yasmine;5 eme;3;pharmacie
+FRAOUSSY;Hiba;5 eme;3;pharmacie
+GUENNANI;MERYEM;5 eme;3;pharmacie
+HABBARI;SALSABIL;5 eme;3;pharmacie
+HALFYA;aya;5 eme;3;pharmacie
+HASSANI;BOTEINA;5 eme;3;pharmacie
+HAYAR;Hajar;5 eme;3;pharmacie
+JAAD;zineb;5 eme;3;pharmacie
+KARKOURI;Douaa;5 eme;3;pharmacie
+KHYATI;Sara;5 eme;3;pharmacie
+KRAFESS;rim;5 eme;3;pharmacie
+LAHLAFI;Kenza;5 eme;3;pharmacie
+LAHLOU MIMI;Ismail Aymane;5 eme;3;pharmacie
+LAMTARQI;AYA;5 eme;3;pharmacie
+LAZAAR;YASMINE;5 eme;3;pharmacie
+LOK-AYBA;aya;5 eme;3;pharmacie
+MA�CHE;Kawtar;5 eme;3;pharmacie
+MAJD;MARYEM;5 eme;3;pharmacie
+MANDARISS;Hiba;5 eme;3;pharmacie
+MEDAGHRI ALAOUI;Rania;5 eme;3;pharmacie
+MEHBI;meryam;5 eme;3;pharmacie
+MEKOUAR;Lina;5 eme;3;pharmacie
+MEZOUAR;YASMINE;5 eme;4;pharmacie
+MOUAKKIR;ismail;5 eme;4;pharmacie
+OQAIDI;HAJAR;5 eme;4;pharmacie
+OUAHMANE;Rihabe;5 eme;4;pharmacie
+OUAIS;Nassima;5 eme;4;pharmacie
+OUAZZANI TOUHAMI;Mohamed Yacine;5 eme;4;pharmacie
+OUBAHA;fatima zahra;5 eme;4;pharmacie
+OUHADDOU;yasmine;5 eme;4;pharmacie
+OUICHOUANI;wissal;5 eme;4;pharmacie
+OURIEMCHI;YOUSRA;5 eme;4;pharmacie
+QANI;Abir;5 eme;4;pharmacie
+RAMI;Amina;5 eme;4;pharmacie
+SABIL;Meryem;5 eme;4;pharmacie
+SAHMANE;FAIZA;5 eme;4;pharmacie
+SAMIR;haitam;5 eme;4;pharmacie
+SEBBAR;Abdelhadi;5 eme;4;pharmacie
+SRIJ;Safae;5 eme;4;pharmacie
+TAHIRI;El Mehdi;5 eme;4;pharmacie
+TARZI;Badr eddine;5 eme;4;pharmacie
+TASSINE;Safaa;5 eme;4;pharmacie
+ZAKARI;ILIANA;5 eme;4;pharmacie
+ZITI;AYMAN;5 eme;4;pharmacie
+ZOUHRY;Rabea;5 eme;4;pharmacie
+ACHAGRI;HAJER;6 eme;1;pharmacie
+AFENDI;LAMIA;6 eme;1;pharmacie
+AGAZZARA;OMAR;6 eme;1;pharmacie
+AGUNAOU;IKRAM;6 eme;1;pharmacie
+ALLANI;KHADIJA;6 eme;1;pharmacie
+ALNOUNO;KAOUTHAR;6 eme;1;pharmacie
+ALTIT;GHIZLAN;6 eme;1;pharmacie
+ARSALANE;SAMIA;6 eme;1;pharmacie
+AZIZ ALAOUI;HOUDA;6 eme;1;pharmacie
+BADR EDDINE;AHLAM;6 eme;1;pharmacie
+BALADI;SARA;6 eme;1;pharmacie
+BELEGCHOUR;KHADIJA;6 eme;1;pharmacie
+BELLAHBIB;AIDA;6 eme;1;pharmacie
+BENCHERKI;RADIA;6 eme;1;pharmacie
+BENDI;INES;6 eme;1;pharmacie
+BENHAIOUN;Khaoula;6 eme;1;pharmacie
+BENJELLOUN JBINA;YAHYA;6 eme;1;pharmacie
+BENMANSOUR;NADA;6 eme;1;pharmacie
+BENNIS;NADA;6 eme;1;pharmacie
+BOUBCHER;NIHAL;6 eme;1;pharmacie
+BOURAS;HOUDA;6 eme;1;pharmacie
+BOUZERAA;OUMAIMA;6 eme;1;pharmacie
+CHAKIB;IQBAL;6 eme;1;pharmacie
+CHAMI;KARIM;6 eme;1;pharmacie
+CHARRA;YASSINE;6 eme;1;pharmacie
+CHBOUBI;OMAR;6 eme;1;pharmacie
+CHERKAOUI;OMAR;6 eme;2;pharmacie
+DALIL;FATIMA ZAHRA;6 eme;2;pharmacie
+DJDIAA;MERYEM;6 eme;2;pharmacie
+EL AMILE;NOUR;6 eme;2;pharmacie
+EL ARCHI;HIND;6 eme;2;pharmacie
+EL AROUI;ILYASS;6 eme;2;pharmacie
+EL BARDI;EL GHALI;6 eme;2;pharmacie
+EL HADDAD;IMANE;6 eme;2;pharmacie
+EL HARTI;SOUFIANE;6 eme;2;pharmacie
+EL IDRISSI;Salima;6 eme;2;pharmacie
+EL MAHBOUBI;ASSALA;6 eme;2;pharmacie
+EL MIR;HAJAR;6 eme;2;pharmacie
+ELHADI;Chaimaa;6 eme;2;pharmacie
+ELKIMYA;RADIA;6 eme;2;pharmacie
+ESSAFI;HAFSA;6 eme;2;pharmacie
+FALLAH;FATIMA EZZAHRA;6 eme;2;pharmacie
+HAMDAOUI;NADA;6 eme;2;pharmacie
+HAMMADI;RANIA;6 eme;2;pharmacie
+HARTI;SALMA;6 eme;2;pharmacie
+HMAMA;LOUBABA;6 eme;3;pharmacie
+IBORK;MALAK;6 eme;2;pharmacie
+IMAD;KAWTAR;6 eme;2;pharmacie
+KARIME;KENZA;6 eme;2;pharmacie
+KERTAOUI;YOUSSEF;6 eme;2;pharmacie
+KHANOUACH;SANAA;6 eme;2;pharmacie
+KHOUIDER;DOUAA;6 eme;2;pharmacie
+LAHYANI;CHAIMAE;6 eme;3;pharmacie
+LARINI;Sara;6 eme;3;pharmacie
+LEBBAR;YASSINE;6 eme;3;pharmacie
+LOUKILI;rida;6 eme;3;pharmacie
+MAAZOUZI;Ibtihal;6 eme;3;pharmacie
+MAHASSIN;ZINEB;6 eme;3;pharmacie
+MAZID;NADA;6 eme;3;pharmacie
+MERBOUHI;MERYEM;6 eme;3;pharmacie
+MFADDEL;ZAINEB;6 eme;3;pharmacie
+MORTAKI;MERYEM;6 eme;3;pharmacie
+MOUHADI;ZAKARIA;6 eme;3;pharmacie
+MOUNIR;MERYEM;6 eme;3;pharmacie
+NABIH;KAWTAR;6 eme;3;pharmacie
+OUAZZANI TOUHAMI;Asmae;6 eme;3;pharmacie
+OUBOUHOU;RIM;6 eme;3;pharmacie
+OURTI;LOUBNA;6 eme;3;pharmacie
+RAGADI;MARYAM;6 eme;3;pharmacie
+REDDAD;NOUR;6 eme;3;pharmacie
+REJILA;HIBA;6 eme;3;pharmacie
+SAKKAL;AMAL;6 eme;3;pharmacie
+SAKKAT;MOHAMED ALI;6 eme;3;pharmacie
+SALAMI;MAROUANE;6 eme;3;pharmacie
+SIJILMASSI;SELMA;6 eme;3;pharmacie
+TAHIRI;LINA;6 eme;3;pharmacie
+WAHBI;DEYAA;6 eme;3;pharmacie
+ZAKI;HALA;6 eme;3;pharmacie
+ZARIOH;KAOUTHAR;6 eme;3;pharmacie

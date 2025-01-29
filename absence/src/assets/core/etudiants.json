@@ -1,0 +1,4730 @@
+[
+  {
+    "Nom": "AZOUADELLY",
+    "prenom": "YOANN-CHRISTIAN KYLE",
+    "promotion": "1 ere",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "AZOUADELLY YOANN-CHRISTIAN KYLE"
+  },
+  {
+    "Nom": "ADA ETOUGHE",
+    "prenom": "Grace Prunelle",
+    "promotion": "1 ere",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "ADA ETOUGHE Grace Prunelle"
+  },
+  {
+    "Nom": "AIT IRHLI",
+    "prenom": "JAD",
+    "promotion": "1 ere",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "AIT IRHLI JAD"
+  },
+  {
+    "Nom": "ABBASSI",
+    "prenom": "Houssam",
+    "promotion": "1 ere",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "ABBASSI Houssam"
+  },
+  {
+    "Nom": "ABDELLAOUI MAANE",
+    "prenom": "Selma",
+    "promotion": "1 ere",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "ABDELLAOUI MAANE Selma"
+  },
+  {
+    "Nom": "ADDI",
+    "prenom": "Ismail",
+    "promotion": "1 ere",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "ADDI Ismail"
+  },
+  {
+    "Nom": "ADERDOUR",
+    "prenom": "NOUR EL HOUDA",
+    "promotion": "1 ere",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "ADERDOUR NOUR EL HOUDA"
+  },
+  {
+    "Nom": "ADNANE",
+    "prenom": "Samia",
+    "promotion": "1 ere",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "ADNANE Samia"
+  },
+  {
+    "Nom": "AFIFI",
+    "prenom": "Nour",
+    "promotion": "1 ere",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "AFIFI Nour"
+  },
+  {
+    "Nom": "EL JANAN",
+    "prenom": "Layla",
+    "promotion": "1 ere",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "EL JANAN Layla"
+  },
+  {
+    "Nom": "AGOURI",
+    "prenom": "Chaimaa",
+    "promotion": "1 ere",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "AGOURI Chaimaa"
+  },
+  {
+    "Nom": "AKKARI",
+    "prenom": "Ayman",
+    "promotion": "1 ere",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "AKKARI Ayman"
+  },
+  {
+    "Nom": "ARRACHIDI",
+    "prenom": "amira",
+    "promotion": "1 ere",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "ARRACHIDI amira"
+  },
+  {
+    "Nom": "ASSAKKACH",
+    "prenom": "Malak",
+    "promotion": "1 ere",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "ASSAKKACH Malak"
+  },
+  {
+    "Nom": "BADRI",
+    "prenom": "yousra",
+    "promotion": "1 ere",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BADRI yousra"
+  },
+  {
+    "Nom": "BEKKARI",
+    "prenom": "HIBA",
+    "promotion": "1 ere",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BEKKARI HIBA"
+  },
+  {
+    "Nom": "BELKOUCHI",
+    "prenom": "Amira",
+    "promotion": "1 ere",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BELKOUCHI Amira"
+  },
+  {
+    "Nom": "BELLAHCEN",
+    "prenom": "Radia",
+    "promotion": "1 ere",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BELLAHCEN Radia"
+  },
+  {
+    "Nom": "BEN ABBOU",
+    "prenom": "DOHA",
+    "promotion": "1 ere",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BEN ABBOU DOHA"
+  },
+  {
+    "Nom": "BENBRAHIM",
+    "prenom": "Safoua",
+    "promotion": "1 ere",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BENBRAHIM Safoua"
+  },
+  {
+    "Nom": "BENYAHYA",
+    "prenom": "RIM",
+    "promotion": "1 ere",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BENYAHYA RIM"
+  },
+  {
+    "Nom": "BOUAJAJA",
+    "prenom": "HIBAT ALLAH",
+    "promotion": "1 ere",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BOUAJAJA HIBAT ALLAH"
+  },
+  {
+    "Nom": "BOUBAKRI",
+    "prenom": "Ghita",
+    "promotion": "1 ere",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BOUBAKRI Ghita"
+  },
+  {
+    "Nom": "BOUKRIM",
+    "prenom": "Jihane",
+    "promotion": "1 ere",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BOUKRIM Jihane"
+  },
+  {
+    "Nom": "BOUMKOUK",
+    "prenom": "Lina",
+    "promotion": "1 ere",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "BOUMKOUK Lina"
+  },
+  {
+    "Nom": "CHABI",
+    "prenom": "Fatimazahra",
+    "promotion": "1 ere",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "CHABI Fatimazahra"
+  },
+  {
+    "Nom": "CHARIF",
+    "prenom": "Hafsa",
+    "promotion": "1 ere",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "CHARIF Hafsa"
+  },
+  {
+    "Nom": "CHOKAIRY",
+    "prenom": "fatima zahra",
+    "promotion": "1 ere",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "CHOKAIRY fatima zahra"
+  },
+  {
+    "Nom": "DAMANE",
+    "prenom": "douaa",
+    "promotion": "1 ere",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "DAMANE douaa"
+  },
+  {
+    "Nom": "DOUMAJD",
+    "prenom": "OUMNIA",
+    "promotion": "1 ere",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "DOUMAJD OUMNIA"
+  },
+  {
+    "Nom": "DRISSI EL BOUZAIDI",
+    "prenom": "Ghita",
+    "promotion": "1 ere",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "DRISSI EL BOUZAIDI Ghita"
+  },
+  {
+    "Nom": "ECHARIF CHEFCHAOUNI ESSOUNNI",
+    "prenom": "Abla",
+    "promotion": "1 ere",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "ECHARIF CHEFCHAOUNI ESSOUNNI Abla"
+  },
+  {
+    "Nom": "EL ALAMI",
+    "prenom": "Hiba",
+    "promotion": "1 ere",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "EL ALAMI Hiba"
+  },
+  {
+    "Nom": "EL BOUCHTAOUI",
+    "prenom": "Meryem",
+    "promotion": "1 ere",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "EL BOUCHTAOUI Meryem"
+  },
+  {
+    "Nom": "EL BOURKADI",
+    "prenom": "Fahd",
+    "promotion": "1 ere",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "EL BOURKADI Fahd"
+  },
+  {
+    "Nom": "EL IDRISSI",
+    "prenom": "Tasnime",
+    "promotion": "1 ere",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "EL IDRISSI Tasnime"
+  },
+  {
+    "Nom": "ELHAYBA",
+    "prenom": "ATIKA",
+    "promotion": "1 ere",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "ELHAYBA ATIKA"
+  },
+  {
+    "Nom": "ELRHERBI",
+    "prenom": "Zineb",
+    "promotion": "1 ere",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "ELRHERBI Zineb"
+  },
+  {
+    "Nom": "ERRADI",
+    "prenom": "Marwa",
+    "promotion": "1 ere",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "ERRADI Marwa"
+  },
+  {
+    "Nom": "EZZAKI",
+    "prenom": "ikram",
+    "promotion": "1 ere",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "EZZAKI ikram"
+  },
+  {
+    "Nom": "EZZIRARI",
+    "prenom": "INASS",
+    "promotion": "1 ere",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "EZZIRARI INASS"
+  },
+  {
+    "Nom": "FARES",
+    "prenom": "amani",
+    "promotion": "1 ere",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "FARES amani"
+  },
+  {
+    "Nom": "FASSI FIHRI",
+    "prenom": "Abla",
+    "promotion": "1 ere",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "FASSI FIHRI Abla"
+  },
+  {
+    "Nom": "GHAZZALI",
+    "prenom": "RANIA",
+    "promotion": "1 ere",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "GHAZZALI RANIA"
+  },
+  {
+    "Nom": "GHELFANE",
+    "prenom": "MALAK",
+    "promotion": "1 ere",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "GHELFANE MALAK"
+  },
+  {
+    "Nom": "GUERBAZ",
+    "prenom": "Lina",
+    "promotion": "1 ere",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "GUERBAZ Lina"
+  },
+  {
+    "Nom": "HADDIOUI",
+    "prenom": "NASREDDINE",
+    "promotion": "1 ere",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "HADDIOUI NASREDDINE"
+  },
+  {
+    "Nom": "HADDIOUI",
+    "prenom": "yassmine",
+    "promotion": "1 ere",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "HADDIOUI yassmine"
+  },
+  {
+    "Nom": "HAJBAOUI",
+    "prenom": "yasmine",
+    "promotion": "1 ere",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "HAJBAOUI yasmine"
+  },
+  {
+    "Nom": "HANINE",
+    "prenom": "Taha",
+    "promotion": "1 ere",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "HANINE Taha"
+  },
+  {
+    "Nom": "HAZZAZ ABOUAMAL",
+    "prenom": "Hamza",
+    "promotion": "1 ere",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "HAZZAZ ABOUAMAL Hamza"
+  },
+  {
+    "Nom": "IDOULAHIANE",
+    "prenom": "Rayhana",
+    "promotion": "1 ere",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "IDOULAHIANE Rayhana"
+  },
+  {
+    "Nom": "JABRANE",
+    "prenom": "soukaina",
+    "promotion": "1 ere",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "JABRANE soukaina"
+  },
+  {
+    "Nom": "JENNANE",
+    "prenom": "Nada",
+    "promotion": "1 ere",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "JENNANE Nada"
+  },
+  {
+    "Nom": "KHALIL",
+    "prenom": "Lina",
+    "promotion": "1 ere",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "KHALIL Lina"
+  },
+  {
+    "Nom": "KHLAFA",
+    "prenom": "rania",
+    "promotion": "1 ere",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "KHLAFA rania"
+  },
+  {
+    "Nom": "KOUNSSANE",
+    "prenom": "Khadija",
+    "promotion": "1 ere",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "KOUNSSANE Khadija"
+  },
+  {
+    "Nom": "KOURSAOUI",
+    "prenom": "RANYA",
+    "promotion": "1 ere",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "KOURSAOUI RANYA"
+  },
+  {
+    "Nom": "LACHGUAR",
+    "prenom": "Houria",
+    "promotion": "1 ere",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "LACHGUAR Houria"
+  },
+  {
+    "Nom": "LACHKAR",
+    "prenom": "ILYAS",
+    "promotion": "1 ere",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "LACHKAR ILYAS"
+  },
+  {
+    "Nom": "LAHNIN",
+    "prenom": "Maryam",
+    "promotion": "1 ere",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "LAHNIN Maryam"
+  },
+  {
+    "Nom": "LAMALEM",
+    "prenom": "houssam",
+    "promotion": "1 ere",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "LAMALEM houssam"
+  },
+  {
+    "Nom": "LEKBOURI",
+    "prenom": "Jawhara",
+    "promotion": "1 ere",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "LEKBOURI Jawhara"
+  },
+  {
+    "Nom": "LEKNIZI",
+    "prenom": "Salwa",
+    "promotion": "1 ere",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "LEKNIZI Salwa"
+  },
+  {
+    "Nom": "LOTFI",
+    "prenom": "Fatima zahra",
+    "promotion": "1 ere",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "LOTFI Fatima zahra"
+  },
+  {
+    "Nom": "MOUJOUD",
+    "prenom": "ABDELHAMID",
+    "promotion": "1 ere",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "MOUJOUD ABDELHAMID"
+  },
+  {
+    "Nom": "MOUNFALOTI",
+    "prenom": "DINA",
+    "promotion": "1 ere",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "MOUNFALOTI DINA"
+  },
+  {
+    "Nom": "MAAMAR",
+    "prenom": "Sara",
+    "promotion": "1 ere",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "MAAMAR Sara"
+  },
+  {
+    "Nom": "MAJDOUBI",
+    "prenom": "Fatima zahra",
+    "promotion": "1 ere",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "MAJDOUBI Fatima zahra"
+  },
+  {
+    "Nom": "MALIHI",
+    "prenom": "Khawla",
+    "promotion": "1 ere",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "MALIHI Khawla"
+  },
+  {
+    "Nom": "MANSOURI",
+    "prenom": "khadija",
+    "promotion": "1 ere",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "MANSOURI khadija"
+  },
+  {
+    "Nom": "MAZIGHI",
+    "prenom": "manar",
+    "promotion": "1 ere",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "MAZIGHI manar"
+  },
+  {
+    "Nom": "MAZOUZ",
+    "prenom": "NADA",
+    "promotion": "1 ere",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "MAZOUZ NADA"
+  },
+  {
+    "Nom": "MECHTALY",
+    "prenom": "JAD",
+    "promotion": "1 ere",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "MECHTALY JAD"
+  },
+  {
+    "Nom": "MELLOUK",
+    "prenom": "sirine",
+    "promotion": "1 ere",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "MELLOUK sirine"
+  },
+  {
+    "Nom": "MONTASSIR",
+    "prenom": "FATIMA-ZAHRA",
+    "promotion": "1 ere",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "MONTASSIR FATIMA-ZAHRA"
+  },
+  {
+    "Nom": "MOUFID",
+    "prenom": "Amira",
+    "promotion": "1 ere",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "MOUFID Amira"
+  },
+  {
+    "Nom": "NABIL",
+    "prenom": "SANA",
+    "promotion": "1 ere",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "NABIL SANA"
+  },
+  {
+    "Nom": "NACIRI",
+    "prenom": "Malak",
+    "promotion": "1 ere",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "NACIRI Malak"
+  },
+  {
+    "Nom": "NAJAH IDRISSI",
+    "prenom": "Ghita",
+    "promotion": "1 ere",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "NAJAH IDRISSI Ghita"
+  },
+  {
+    "Nom": "OUSMANE SANI",
+    "prenom": "SAIDA",
+    "promotion": "1 ere",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "OUSMANE SANI SAIDA"
+  },
+  {
+    "Nom": "OUARZAZI",
+    "prenom": "Yousra",
+    "promotion": "1 ere",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "OUARZAZI Yousra"
+  },
+  {
+    "Nom": "OUASSIFA",
+    "prenom": "SARA",
+    "promotion": "1 ere",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "OUASSIFA SARA"
+  },
+  {
+    "Nom": "RGUITI",
+    "prenom": "yassir",
+    "promotion": "1 ere",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "RGUITI yassir"
+  },
+  {
+    "Nom": "RJILA",
+    "prenom": "SAFAE",
+    "promotion": "1 ere",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "RJILA SAFAE"
+  },
+  {
+    "Nom": "SAMANI",
+    "prenom": "Meryem",
+    "promotion": "1 ere",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "SAMANI Meryem"
+  },
+  {
+    "Nom": "SANA",
+    "prenom": "Rhalem",
+    "promotion": "1 ere",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "SANA Rhalem"
+  },
+  {
+    "Nom": "SAOUAF",
+    "prenom": "Lina",
+    "promotion": "1 ere",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "SAOUAF Lina"
+  },
+  {
+    "Nom": "SEBTI",
+    "prenom": "Yasmine",
+    "promotion": "1 ere",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "SEBTI Yasmine"
+  },
+  {
+    "Nom": "SEFIANI",
+    "prenom": "Inasse",
+    "promotion": "1 ere",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "SEFIANI Inasse"
+  },
+  {
+    "Nom": "TALHA NACIRI",
+    "prenom": "Rita",
+    "promotion": "1 ere",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "TALHA NACIRI Rita"
+  },
+  {
+    "Nom": "TALIH",
+    "prenom": "Mohamed Ali",
+    "promotion": "1 ere",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "TALIH Mohamed Ali"
+  },
+  {
+    "Nom": "TAZI",
+    "prenom": "Fatima Azzahrae",
+    "promotion": "1 ere",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "TAZI Fatima Azzahrae"
+  },
+  {
+    "Nom": "TEBBAA",
+    "prenom": "Safae",
+    "promotion": "1 ere",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "TEBBAA Safae"
+  },
+  {
+    "Nom": "TERRO",
+    "prenom": "Salwa",
+    "promotion": "1 ere",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "TERRO Salwa"
+  },
+  {
+    "Nom": "ZEROUAL",
+    "prenom": "Amine",
+    "promotion": "1 ere",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "ZEROUAL Amine"
+  },
+  {
+    "Nom": "ABOUZAID",
+    "prenom": "Abdelkader",
+    "promotion": "2 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "ABOUZAID Abdelkader"
+  },
+  {
+    "Nom": "AIT BEN ALI",
+    "prenom": "SARA",
+    "promotion": "2 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "AIT BEN ALI SARA"
+  },
+  {
+    "Nom": "AKDI",
+    "prenom": "Nada",
+    "promotion": "2 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "AKDI Nada"
+  },
+  {
+    "Nom": "AKHARRAZ",
+    "prenom": "LINA",
+    "promotion": "2 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "AKHARRAZ LINA"
+  },
+  {
+    "Nom": "AKHETTAB",
+    "prenom": "yassmine",
+    "promotion": "2 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "AKHETTAB yassmine"
+  },
+  {
+    "Nom": "ALAOUI",
+    "prenom": "zineb",
+    "promotion": "2 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "ALAOUI zineb"
+  },
+  {
+    "Nom": "ALID",
+    "prenom": "Rania",
+    "promotion": "2 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "ALID Rania"
+  },
+  {
+    "Nom": "AMAR",
+    "prenom": "Jihane",
+    "promotion": "2 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "AMAR Jihane"
+  },
+  {
+    "Nom": "BAYAZID",
+    "prenom": "oumaima",
+    "promotion": "2 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BAYAZID oumaima"
+  },
+  {
+    "Nom": "BELGHMI",
+    "prenom": "mohamed",
+    "promotion": "2 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BELGHMI mohamed"
+  },
+  {
+    "Nom": "BELKADI",
+    "prenom": "Mohamed",
+    "promotion": "2 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BELKADI Mohamed"
+  },
+  {
+    "Nom": "BELMAL",
+    "prenom": "zayd",
+    "promotion": "2 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BELMAL zayd"
+  },
+  {
+    "Nom": "BENCHADLI",
+    "prenom": "Zakaria",
+    "promotion": "2 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BENCHADLI Zakaria"
+  },
+  {
+    "Nom": "BENRARHRHAYE",
+    "prenom": "Aya",
+    "promotion": "2 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BENRARHRHAYE Aya"
+  },
+  {
+    "Nom": "BOUKSASSE",
+    "prenom": "OUMAIMA",
+    "promotion": "2 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BOUKSASSE OUMAIMA"
+  },
+  {
+    "Nom": "BRIH",
+    "prenom": "fatima",
+    "promotion": "2 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BRIH fatima"
+  },
+  {
+    "Nom": "CHARAF",
+    "prenom": "Chorouk",
+    "promotion": "2 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "CHARAF Chorouk"
+  },
+  {
+    "Nom": "CHARRAFI",
+    "prenom": "Fatima Ezzahraa",
+    "promotion": "2 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "CHARRAFI Fatima Ezzahraa"
+  },
+  {
+    "Nom": "CHERIF D'OUEZZAN",
+    "prenom": "Soulaimane",
+    "promotion": "2 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "CHERIF D'OUEZZAN Soulaimane"
+  },
+  {
+    "Nom": "CODJO",
+    "prenom": "CELESTE",
+    "promotion": "2 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "CODJO  CELESTE"
+  },
+  {
+    "Nom": "DAD",
+    "prenom": "SARA",
+    "promotion": "2 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "DAD SARA"
+  },
+  {
+    "Nom": "DERRABI",
+    "prenom": "Lina",
+    "promotion": "2 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "DERRABI Lina"
+  },
+  {
+    "Nom": "DOU-NASSRE",
+    "prenom": "yasmine",
+    "promotion": "2 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "DOU-NASSRE yasmine"
+  },
+  {
+    "Nom": "EL BADOURI",
+    "prenom": "SAAD",
+    "promotion": "2 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "EL BADOURI SAAD"
+  },
+  {
+    "Nom": "EL BOUSSAIRI",
+    "prenom": "Lina",
+    "promotion": "2 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "EL BOUSSAIRI Lina"
+  },
+  {
+    "Nom": "EL FAIZE",
+    "prenom": "LINA",
+    "promotion": "2 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "EL FAIZE LINA"
+  },
+  {
+    "Nom": "EL HAJEB",
+    "prenom": "Douae",
+    "promotion": "2 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "EL HAJEB Douae"
+  },
+  {
+    "Nom": "EL IDRISSI",
+    "prenom": "NOHA",
+    "promotion": "2 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "EL IDRISSI NOHA"
+  },
+  {
+    "Nom": "EL KHATABI",
+    "prenom": "Khadija",
+    "promotion": "2 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "EL KHATABI Khadija"
+  },
+  {
+    "Nom": "EL MBARKI",
+    "prenom": "HOUSSAME",
+    "promotion": "2 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "EL MBARKI HOUSSAME"
+  },
+  {
+    "Nom": "EL OUAHMANI",
+    "prenom": "SARAH",
+    "promotion": "2 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "EL OUAHMANI SARAH"
+  },
+  {
+    "Nom": "ELARCHI",
+    "prenom": "Hiba",
+    "promotion": "2 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "ELARCHI Hiba"
+  },
+  {
+    "Nom": "ELBAIDEK",
+    "prenom": "Douaa",
+    "promotion": "2 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "ELBAIDEK Douaa"
+  },
+  {
+    "Nom": "ELFAHLI",
+    "prenom": "Riham",
+    "promotion": "2 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "ELFAHLI Riham"
+  },
+  {
+    "Nom": "ELKASITI",
+    "prenom": "Fatimazahra",
+    "promotion": "2 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "ELKASITI Fatimazahra"
+  },
+  {
+    "Nom": "ELLOUXE",
+    "prenom": "Aya",
+    "promotion": "2 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "ELLOUXE Aya"
+  },
+  {
+    "Nom": "ENNAJI",
+    "prenom": "Siham",
+    "promotion": "2 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "ENNAJI Siham"
+  },
+  {
+    "Nom": "ETTOUATI",
+    "prenom": "MOHAMED",
+    "promotion": "2 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "ETTOUATI MOHAMED"
+  },
+  {
+    "Nom": "FALAHI",
+    "prenom": "CAMELIA",
+    "promotion": "2 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "FALAHI CAMELIA"
+  },
+  {
+    "Nom": "FARID",
+    "prenom": "Hiba",
+    "promotion": "2 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "FARID Hiba"
+  },
+  {
+    "Nom": "FENNANE",
+    "prenom": "ismail",
+    "promotion": "2 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "FENNANE ismail"
+  },
+  {
+    "Nom": "FOUAD",
+    "prenom": "Assia",
+    "promotion": "2 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "FOUAD Assia"
+  },
+  {
+    "Nom": "GUENOUN",
+    "prenom": "Hajar",
+    "promotion": "2 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "GUENOUN Hajar"
+  },
+  {
+    "Nom": "HAFIDI",
+    "prenom": "AYA",
+    "promotion": "2 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "HAFIDI AYA"
+  },
+  {
+    "Nom": "HAMDADE",
+    "prenom": "DALAL",
+    "promotion": "2 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "HAMDADE DALAL"
+  },
+  {
+    "Nom": "HAMDI",
+    "prenom": "Ghalia",
+    "promotion": "2 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "HAMDI Ghalia"
+  },
+  {
+    "Nom": "HIDOUNE",
+    "prenom": "Imane",
+    "promotion": "2 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "HIDOUNE Imane"
+  },
+  {
+    "Nom": "HILALOU",
+    "prenom": "narjisse",
+    "promotion": "2 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "HILALOU narjisse"
+  },
+  {
+    "Nom": "ICHADROUIN",
+    "prenom": "NOUR EL HOUDA",
+    "promotion": "2 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "ICHADROUIN NOUR EL HOUDA"
+  },
+  {
+    "Nom": "IDGHARNANE",
+    "prenom": "Lina",
+    "promotion": "2 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "IDGHARNANE Lina"
+  },
+  {
+    "Nom": "ISPIKEN",
+    "prenom": "Imane",
+    "promotion": "2 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "ISPIKEN Imane"
+  },
+  {
+    "Nom": "JROUNDI",
+    "prenom": "RANIA",
+    "promotion": "2 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "JROUNDI RANIA"
+  },
+  {
+    "Nom": "KABBAJ",
+    "prenom": "Ghali",
+    "promotion": "2 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "KABBAJ Ghali"
+  },
+  {
+    "Nom": "KABBAJ",
+    "prenom": "Mohamed amine",
+    "promotion": "2 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "KABBAJ Mohamed amine"
+  },
+  {
+    "Nom": "KHALID",
+    "prenom": "Maria",
+    "promotion": "2 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "KHALID Maria"
+  },
+  {
+    "Nom": "LAASRI",
+    "prenom": "Taha",
+    "promotion": "2 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "LAASRI Taha"
+  },
+  {
+    "Nom": "LAKHDARI",
+    "prenom": "ISRAA",
+    "promotion": "2 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "LAKHDARI ISRAA"
+  },
+  {
+    "Nom": "LAMJABBAR",
+    "prenom": "adil",
+    "promotion": "2 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "LAMJABBAR adil"
+  },
+  {
+    "Nom": "LIMOURAT",
+    "prenom": "Fatima-zahra",
+    "promotion": "2 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "LIMOURAT Fatima-zahra"
+  },
+  {
+    "Nom": "LYAZGHI",
+    "prenom": "MALAK",
+    "promotion": "2 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "LYAZGHI MALAK"
+  },
+  {
+    "Nom": "MASDOURI",
+    "prenom": "SALSABIL",
+    "promotion": "2 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "MASDOURI SALSABIL"
+  },
+  {
+    "Nom": "MEDICHE",
+    "prenom": "Omar",
+    "promotion": "2 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "MEDICHE Omar"
+  },
+  {
+    "Nom": "MOUNADIL",
+    "prenom": "HAMZA",
+    "promotion": "2 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "MOUNADIL HAMZA"
+  },
+  {
+    "Nom": "MOUAFIK",
+    "prenom": "hiba",
+    "promotion": "2 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "MOUAFIK hiba"
+  },
+  {
+    "Nom": "MRIOUD",
+    "prenom": "LINA",
+    "promotion": "2 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "MRIOUD LINA"
+  },
+  {
+    "Nom": "NAZIR",
+    "prenom": "ANAS",
+    "promotion": "2 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "NAZIR ANAS"
+  },
+  {
+    "Nom": "NOUBIR",
+    "prenom": "Aya",
+    "promotion": "2 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "NOUBIR Aya"
+  },
+  {
+    "Nom": "OUADRHIRI",
+    "prenom": "MARIA",
+    "promotion": "2 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "OUADRHIRI MARIA"
+  },
+  {
+    "Nom": "OUDGHIRI KAOUACHE",
+    "prenom": "Mohamed jalil",
+    "promotion": "2 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "OUDGHIRI KAOUACHE Mohamed jalil"
+  },
+  {
+    "Nom": "OULD CHHAIBA",
+    "prenom": "douae",
+    "promotion": "2 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "OULD CHHAIBA douae"
+  },
+  {
+    "Nom": "OUSSAMA",
+    "prenom": "MOHAMED TAHA",
+    "promotion": "2 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "OUSSAMA MOHAMED TAHA"
+  },
+  {
+    "Nom": "RADI",
+    "prenom": "Yasmine",
+    "promotion": "2 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "RADI Yasmine"
+  },
+  {
+    "Nom": "RAHALI",
+    "prenom": "Douae",
+    "promotion": "2 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "RAHALI Douae"
+  },
+  {
+    "Nom": "RAMDANI",
+    "prenom": "RAYAN",
+    "promotion": "2 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "RAMDANI RAYAN"
+  },
+  {
+    "Nom": "REDWANE",
+    "prenom": "Meryem",
+    "promotion": "2 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "REDWANE Meryem"
+  },
+  {
+    "Nom": "SAANANE",
+    "prenom": "ELGHALIA",
+    "promotion": "2 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "SAANANE ELGHALIA"
+  },
+  {
+    "Nom": "SABRI",
+    "prenom": "Ines",
+    "promotion": "2 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "SABRI Ines"
+  },
+  {
+    "Nom": "SAOUI",
+    "prenom": "Nouhaila",
+    "promotion": "2 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "SAOUI Nouhaila"
+  },
+  {
+    "Nom": "SBAAI",
+    "prenom": "WIJDANE",
+    "promotion": "2 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "SBAAI WIJDANE"
+  },
+  {
+    "Nom": "TAZI",
+    "prenom": "Adam",
+    "promotion": "2 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "TAZI Adam"
+  },
+  {
+    "Nom": "WADIH",
+    "prenom": "HIBA",
+    "promotion": "2 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "WADIH HIBA"
+  },
+  {
+    "Nom": "WAHBI",
+    "prenom": "Nada",
+    "promotion": "2 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "WAHBI Nada"
+  },
+  {
+    "Nom": "WEQQASSE",
+    "prenom": "MOHAMED AMINE",
+    "promotion": "2 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "WEQQASSE MOHAMED AMINE"
+  },
+  {
+    "Nom": "YOUMELAHNA",
+    "prenom": "Houda",
+    "promotion": "2 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "YOUMELAHNA Houda"
+  },
+  {
+    "Nom": "ZAHID",
+    "prenom": "IBRAHIM",
+    "promotion": "2 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "ZAHID IBRAHIM"
+  },
+  {
+    "Nom": "ZEKRI",
+    "prenom": "Salma",
+    "promotion": "2 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "ZEKRI Salma"
+  },
+  {
+    "Nom": "ZENOBI",
+    "prenom": "Rayane",
+    "promotion": "2 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "ZENOBI Rayane"
+  },
+  {
+    "Nom": "ZIDANI",
+    "prenom": "Yakout",
+    "promotion": "2 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "ZIDANI Yakout"
+  },
+  {
+    "Nom": "ZOUMI",
+    "prenom": "KENZA",
+    "promotion": "2 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "ZOUMI KENZA"
+  },
+  {
+    "Nom": "ABOULYAZID",
+    "prenom": "Ilyas",
+    "promotion": "3 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "ABOULYAZID Ilyas"
+  },
+  {
+    "Nom": "ADIL",
+    "prenom": "nouhaila",
+    "promotion": "3 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "ADIL nouhaila"
+  },
+  {
+    "Nom": "AHEDDOUN",
+    "prenom": "safae",
+    "promotion": "3 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "AHEDDOUN safae"
+  },
+  {
+    "Nom": "LAHLOU",
+    "prenom": "MAHA",
+    "promotion": "3 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "LAHLOU MAHA"
+  },
+  {
+    "Nom": "AIT HAMMOU",
+    "prenom": "Safae",
+    "promotion": "3 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "AIT HAMMOU Safae"
+  },
+  {
+    "Nom": "AKDI",
+    "prenom": "KHADIJA",
+    "promotion": "3 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "AKDI KHADIJA"
+  },
+  {
+    "Nom": "AKASBI",
+    "prenom": "Fatima-zahra",
+    "promotion": "3 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "AKASBI Fatima-zahra"
+  },
+  {
+    "Nom": "ALHIANE",
+    "prenom": "SAFAE",
+    "promotion": "3 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "ALHIANE SAFAE"
+  },
+  {
+    "Nom": "AGBALU",
+    "prenom": "DOUAE",
+    "promotion": "3 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "AGBALU DOUAE"
+  },
+  {
+    "Nom": "AMRANI",
+    "prenom": "Rim",
+    "promotion": "3 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "AMRANI Rim"
+  },
+  {
+    "Nom": "ANSARI",
+    "prenom": "Rachida",
+    "promotion": "3 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "ANSARI Rachida"
+  },
+  {
+    "Nom": "ASRI",
+    "prenom": "Mohammed Yahya",
+    "promotion": "3 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "ASRI Mohammed Yahya"
+  },
+  {
+    "Nom": "ATTAR",
+    "prenom": "Fatima Zahra",
+    "promotion": "3 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "ATTAR Fatima Zahra"
+  },
+  {
+    "Nom": "AZZOUZI",
+    "prenom": "Yazid",
+    "promotion": "3 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "AZZOUZI Yazid"
+  },
+  {
+    "Nom": "BALLOUK",
+    "prenom": "Hamza",
+    "promotion": "3 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BALLOUK Hamza"
+  },
+  {
+    "Nom": "BARAZOUKI",
+    "prenom": "MERIEME",
+    "promotion": "3 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BARAZOUKI MERIEME"
+  },
+  {
+    "Nom": "BAZIR",
+    "prenom": "HANAA",
+    "promotion": "3 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BAZIR HANAA"
+  },
+  {
+    "Nom": "BEKKAOUI",
+    "prenom": "Maria",
+    "promotion": "3 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BEKKAOUI Maria"
+  },
+  {
+    "Nom": "BALQUIS",
+    "prenom": "Mohamed",
+    "promotion": "3 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BALQUIS Mohamed"
+  },
+  {
+    "Nom": "BELASRI",
+    "prenom": "RANIA AHLAM",
+    "promotion": "3 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BELASRI RANIA AHLAM"
+  },
+  {
+    "Nom": "BENNANI",
+    "prenom": "Hiba",
+    "promotion": "3 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BENNANI Hiba"
+  },
+  {
+    "Nom": "BENNANI",
+    "prenom": "Selma",
+    "promotion": "3 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BENNANI Selma"
+  },
+  {
+    "Nom": "BOUGOTAYA",
+    "prenom": "INASSE",
+    "promotion": "3 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BOUGOTAYA INASSE"
+  },
+  {
+    "Nom": "BENRAIHANE",
+    "prenom": "Amina",
+    "promotion": "3 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "BENRAIHANE Amina"
+  },
+  {
+    "Nom": "BENFAIDA",
+    "prenom": "AHMED",
+    "promotion": "3 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "BENFAIDA AHMED"
+  },
+  {
+    "Nom": "BENTASSIL",
+    "prenom": "Aya",
+    "promotion": "3 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "BENTASSIL Aya"
+  },
+  {
+    "Nom": "BOUHAIR",
+    "prenom": "FATIMA EZZAHRA",
+    "promotion": "3 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "BOUHAIR FATIMA EZZAHRA"
+  },
+  {
+    "Nom": "BOUHLALI",
+    "prenom": "Alae",
+    "promotion": "3 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "BOUHLALI Alae"
+  },
+  {
+    "Nom": "BOULAARACH",
+    "prenom": "Dina",
+    "promotion": "3 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "BOULAARACH Dina"
+  },
+  {
+    "Nom": "BOUZAZIA",
+    "prenom": "ABDELMOUHAIMIN",
+    "promotion": "3 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "BOUZAZIA ABDELMOUHAIMIN"
+  },
+  {
+    "Nom": "CABRANE",
+    "prenom": "Mohamed Anouar",
+    "promotion": "3 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "CABRANE Mohamed Anouar"
+  },
+  {
+    "Nom": "CHIKER",
+    "prenom": "HAFSSA",
+    "promotion": "3 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "CHIKER HAFSSA"
+  },
+  {
+    "Nom": "CHARRATI",
+    "prenom": "FATIMA",
+    "promotion": "3 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "CHARRATI FATIMA"
+  },
+  {
+    "Nom": "CHAKIR",
+    "prenom": "Haytem",
+    "promotion": "3 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "CHAKIR Haytem"
+  },
+  {
+    "Nom": "CHARIT",
+    "prenom": "Boutayna",
+    "promotion": "3 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "CHARIT Boutayna"
+  },
+  {
+    "Nom": "CHEBCHOUB",
+    "prenom": "SAMY",
+    "promotion": "3 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "CHEBCHOUB SAMY"
+  },
+  {
+    "Nom": "CHEFAOUI",
+    "prenom": "ilyas",
+    "promotion": "3 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "CHEFAOUI ilyas"
+  },
+  {
+    "Nom": "DAFAL",
+    "prenom": "Hiba",
+    "promotion": "3 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "DAFAL Hiba"
+  },
+  {
+    "Nom": "DJAZI",
+    "prenom": "MOHAMED AYMEN",
+    "promotion": "3 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "DJAZI  MOHAMED AYMEN"
+  },
+  {
+    "Nom": "DOUICH",
+    "prenom": "Fatima-Ezzahrae",
+    "promotion": "3 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "DOUICH Fatima-Ezzahrae"
+  },
+  {
+    "Nom": "EL ABBADI",
+    "prenom": "Wahiba",
+    "promotion": "3 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "EL ABBADI Wahiba"
+  },
+  {
+    "Nom": "ELBAKAY",
+    "prenom": "AYA",
+    "promotion": "3 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "ELBAKAY AYA"
+  },
+  {
+    "Nom": "EL BARDI",
+    "prenom": "Imane",
+    "promotion": "3 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "EL BARDI Imane"
+  },
+  {
+    "Nom": "EL FAROUK",
+    "prenom": "riham",
+    "promotion": "3 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "EL FAROUK riham"
+  },
+  {
+    "Nom": "EL FAKRI",
+    "prenom": "Wissal",
+    "promotion": "3 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "EL FAKRI Wissal"
+  },
+  {
+    "Nom": "EL BOUZIDI",
+    "prenom": "Radia",
+    "promotion": "3 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "EL BOUZIDI Radia"
+  },
+  {
+    "Nom": "EL GHAZLANI",
+    "prenom": "ALAE",
+    "promotion": "3 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "EL GHAZLANI ALAE"
+  },
+  {
+    "Nom": "EL GHIFARI",
+    "prenom": "Manal",
+    "promotion": "3 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "EL GHIFARI Manal"
+  },
+  {
+    "Nom": "EL JAY",
+    "prenom": "KHADIJA",
+    "promotion": "3 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "EL JAY KHADIJA"
+  },
+  {
+    "Nom": "EL MERS",
+    "prenom": "AYA",
+    "promotion": "3 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "EL MERS AYA"
+  },
+  {
+    "Nom": "EL MOQRI",
+    "prenom": "Sanae",
+    "promotion": "3 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "EL MOQRI Sanae"
+  },
+  {
+    "Nom": "EL OUAHABI",
+    "prenom": "Douae",
+    "promotion": "3 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "EL OUAHABI Douae"
+  },
+  {
+    "Nom": "EL OUAZZANI",
+    "prenom": "HIBA",
+    "promotion": "3 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "EL OUAZZANI HIBA"
+  },
+  {
+    "Nom": "EL KHALFAOUI HASSANI",
+    "prenom": "WISSAL",
+    "promotion": "3 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "EL KHALFAOUI HASSANI WISSAL"
+  },
+  {
+    "Nom": "ELKHOMSI",
+    "prenom": "HIBA",
+    "promotion": "3 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "ELKHOMSI HIBA"
+  },
+  {
+    "Nom": "ELBEHJA",
+    "prenom": "Asmae",
+    "promotion": "3 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "ELBEHJA Asmae"
+  },
+  {
+    "Nom": "ELFERNANI",
+    "prenom": "Abdelhadi",
+    "promotion": "3 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "ELFERNANI Abdelhadi"
+  },
+  {
+    "Nom": "ELGDAH",
+    "prenom": "Yahya",
+    "promotion": "3 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "ELGDAH Yahya"
+  },
+  {
+    "Nom": "ELGHRIBI",
+    "prenom": "saad",
+    "promotion": "3 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "ELGHRIBI saad"
+  },
+  {
+    "Nom": "ELIMADI",
+    "prenom": "Nissrine",
+    "promotion": "3 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "ELIMADI Nissrine"
+  },
+  {
+    "Nom": "ESSABIRI",
+    "prenom": "adam",
+    "promotion": "3 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "ESSABIRI adam"
+  },
+  {
+    "Nom": "EZZOUBAIHI",
+    "prenom": "Safae",
+    "promotion": "3 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "EZZOUBAIHI Safae"
+  },
+  {
+    "Nom": "FARAJ",
+    "prenom": "Nouha",
+    "promotion": "3 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "FARAJ Nouha"
+  },
+  {
+    "Nom": "FARID",
+    "prenom": "Sofia",
+    "promotion": "3 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "FARID Sofia"
+  },
+  {
+    "Nom": "FICHTALI",
+    "prenom": "Fatima zahraa",
+    "promotion": "3 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "FICHTALI Fatima zahraa"
+  },
+  {
+    "Nom": "GALUIA",
+    "prenom": "YASSINE",
+    "promotion": "3 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "GALUIA YASSINE"
+  },
+  {
+    "Nom": "Ghazaoui",
+    "prenom": "Soukaina",
+    "promotion": "3 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "Ghazaoui Soukaina"
+  },
+  {
+    "Nom": "HAJAMA",
+    "prenom": "Aya",
+    "promotion": "3 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "HAJAMA Aya"
+  },
+  {
+    "Nom": "HARTI",
+    "prenom": "Alaa-eddine",
+    "promotion": "3 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "HARTI Alaa-eddine"
+  },
+  {
+    "Nom": "HARTI",
+    "prenom": "Aya",
+    "promotion": "3 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "HARTI Aya"
+  },
+  {
+    "Nom": "HASSI",
+    "prenom": "BASMA",
+    "promotion": "3 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "HASSI BASMA"
+  },
+  {
+    "Nom": "IKRAM",
+    "prenom": "AYA",
+    "promotion": "3 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "IKRAM AYA"
+  },
+  {
+    "Nom": "IDALI",
+    "prenom": "Safouane",
+    "promotion": "3 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "IDALI Safouane"
+  },
+  {
+    "Nom": "IFKIREN",
+    "prenom": "Ikram",
+    "promotion": "3 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "IFKIREN Ikram"
+  },
+  {
+    "Nom": "JAWHARY",
+    "prenom": "Nada",
+    "promotion": "3 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "JAWHARY Nada"
+  },
+  {
+    "Nom": "JERROUDI",
+    "prenom": "Ouafae",
+    "promotion": "3 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "JERROUDI Ouafae"
+  },
+  {
+    "Nom": "KABBAJ",
+    "prenom": "Sara",
+    "promotion": "3 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "KABBAJ Sara"
+  },
+  {
+    "Nom": "KAMAL",
+    "prenom": "imane",
+    "promotion": "3 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "KAMAL imane"
+  },
+  {
+    "Nom": "KATFY",
+    "prenom": "AYA",
+    "promotion": "3 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "KATFY AYA"
+  },
+  {
+    "Nom": "KESBAOUI",
+    "prenom": "MOHAMED-ZAID",
+    "promotion": "3 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "KESBAOUI MOHAMED-ZAID"
+  },
+  {
+    "Nom": "KHAMLACH",
+    "prenom": "Ghita",
+    "promotion": "3 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "KHAMLACH Ghita"
+  },
+  {
+    "Nom": "KOUSSA",
+    "prenom": "AYA",
+    "promotion": "3 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "KOUSSA AYA"
+  },
+  {
+    "Nom": "KRICHEN",
+    "prenom": "YASMINE",
+    "promotion": "3 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "KRICHEN YASMINE"
+  },
+  {
+    "Nom": "LAITI",
+    "prenom": "Hajar",
+    "promotion": "3 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "LAITI Hajar"
+  },
+  {
+    "Nom": "LAMLIH",
+    "prenom": "rania",
+    "promotion": "3 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "LAMLIH rania"
+  },
+  {
+    "Nom": "MAAROUF",
+    "prenom": "mouna",
+    "promotion": "3 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "MAAROUF mouna"
+  },
+  {
+    "Nom": "MAHIR",
+    "prenom": "Salma",
+    "promotion": "3 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "MAHIR Salma"
+  },
+  {
+    "Nom": "MAZHAR",
+    "prenom": "HADIL",
+    "promotion": "3 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "MAZHAR HADIL"
+  },
+  {
+    "Nom": "MFADDEL",
+    "prenom": "Mohamed",
+    "promotion": "3 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "MFADDEL Mohamed"
+  },
+  {
+    "Nom": "MIFTAH",
+    "prenom": "AYA",
+    "promotion": "3 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "MIFTAH AYA"
+  },
+  {
+    "Nom": "MOTYA",
+    "prenom": "Ikram",
+    "promotion": "3 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "MOTYA Ikram"
+  },
+  {
+    "Nom": "MOUATARIF",
+    "prenom": "AYA",
+    "promotion": "3 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "MOUATARIF AYA"
+  },
+  {
+    "Nom": "MOUSSADDAK",
+    "prenom": "FADOUA",
+    "promotion": "3 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "MOUSSADDAK  FADOUA"
+  },
+  {
+    "Nom": "MOUNIB",
+    "prenom": "OMar",
+    "promotion": "3 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "MOUNIB OMar"
+  },
+  {
+    "Nom": "MOUNJI",
+    "prenom": "IMANE",
+    "promotion": "3 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "MOUNJI IMANE"
+  },
+  {
+    "Nom": "NAIR",
+    "prenom": "Hamza",
+    "promotion": "3 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "NAIR Hamza"
+  },
+  {
+    "Nom": "OUAHIDI",
+    "prenom": "Ahlem",
+    "promotion": "3 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "OUAHIDI Ahlem"
+  },
+  {
+    "Nom": "OUCHKIR",
+    "prenom": "KENZA",
+    "promotion": "3 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "OUCHKIR KENZA"
+  },
+  {
+    "Nom": "OULEHRI",
+    "prenom": "ARWA",
+    "promotion": "3 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "OULEHRI ARWA"
+  },
+  {
+    "Nom": "RAHMOUNI",
+    "prenom": "ZAINAB",
+    "promotion": "3 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "RAHMOUNI ZAINAB"
+  },
+  {
+    "Nom": "RAJAB BACHA",
+    "prenom": "MARWA",
+    "promotion": "3 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "RAJAB BACHA MARWA"
+  },
+  {
+    "Nom": "RHILANE",
+    "prenom": "ISMAIL",
+    "promotion": "3 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "RHILANE ISMAIL"
+  },
+  {
+    "Nom": "SAAIDI",
+    "prenom": "Nour",
+    "promotion": "3 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "SAAIDI Nour"
+  },
+  {
+    "Nom": "SABBAR",
+    "prenom": "yasser",
+    "promotion": "3 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "SABBAR yasser"
+  },
+  {
+    "Nom": "SABOUR",
+    "prenom": "ADAM",
+    "promotion": "3 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "SABOUR ADAM"
+  },
+  {
+    "Nom": "SABIR",
+    "prenom": "AMAL",
+    "promotion": "3 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "SABIR AMAL"
+  },
+  {
+    "Nom": "SABRI",
+    "prenom": "Ayyoub",
+    "promotion": "3 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "SABRI Ayyoub"
+  },
+  {
+    "Nom": "SAFOUHI",
+    "prenom": "JIHANE",
+    "promotion": "3 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "SAFOUHI JIHANE"
+  },
+  {
+    "Nom": "SAFRI",
+    "prenom": "Douae",
+    "promotion": "3 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "SAFRI Douae"
+  },
+  {
+    "Nom": "SAHRAOU",
+    "prenom": "Yassine",
+    "promotion": "3 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "SAHRAOU Yassine"
+  },
+  {
+    "Nom": "SAID ALAOUI",
+    "prenom": "Amine",
+    "promotion": "3 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "SAID ALAOUI Amine"
+  },
+  {
+    "Nom": "Samih",
+    "prenom": "Mostafa Yassine",
+    "promotion": "3 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "Samih Mostafa Yassine"
+  },
+  {
+    "Nom": "SGHIR",
+    "prenom": "Zainab",
+    "promotion": "3 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "SGHIR Zainab"
+  },
+  {
+    "Nom": "TAKHSSAOUI",
+    "prenom": "Aymane",
+    "promotion": "3 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "TAKHSSAOUI Aymane"
+  },
+  {
+    "Nom": "TALEB-ELHOUDA",
+    "prenom": "Mohamed-Yassine",
+    "promotion": "3 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "TALEB-ELHOUDA Mohamed-Yassine"
+  },
+  {
+    "Nom": "TAOUNI",
+    "prenom": "SARAH",
+    "promotion": "3 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "TAOUNI SARAH"
+  },
+  {
+    "Nom": "TARASS",
+    "prenom": "Zineb",
+    "promotion": "3 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "TARASS Zineb"
+  },
+  {
+    "Nom": "TLEMSANI BENHATTAL",
+    "prenom": "Lina",
+    "promotion": "3 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "TLEMSANI BENHATTAL Lina"
+  },
+  {
+    "Nom": "ZAIKH",
+    "prenom": "ISMAIL",
+    "promotion": "3 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "ZAIKH ISMAIL"
+  },
+  {
+    "Nom": "ZAOUI",
+    "prenom": "MOATASSIM BILLAH",
+    "promotion": "3 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "ZAOUI MOATASSIM BILLAH"
+  },
+  {
+    "Nom": "ZARIOH",
+    "prenom": "chaymae",
+    "promotion": "3 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "ZARIOH chaymae"
+  },
+  {
+    "Nom": "ZRIERA",
+    "prenom": "YOUNES",
+    "promotion": "3 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "ZRIERA YOUNES"
+  },
+  {
+    "Nom": "AASSILA",
+    "prenom": "Meryem",
+    "promotion": "4 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "AASSILA Meryem"
+  },
+  {
+    "Nom": "ABBADI",
+    "prenom": "NIZAR",
+    "promotion": "4 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "ABBADI NIZAR"
+  },
+  {
+    "Nom": "ABOUZAID",
+    "prenom": "Nisrine",
+    "promotion": "4 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "ABOUZAID Nisrine"
+  },
+  {
+    "Nom": "ACHOR ZYAD",
+    "prenom": "FATIMA ZAHRA",
+    "promotion": "4 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "ACHOR ZYAD FATIMA ZAHRA"
+  },
+  {
+    "Nom": "ADAM CHABI",
+    "prenom": "RAOUDATOU",
+    "promotion": "4 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "ADAM CHABI RAOUDATOU"
+  },
+  {
+    "Nom": "AGARDI",
+    "prenom": "MOHAMED NAJIB",
+    "promotion": "4 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "AGARDI MOHAMED NAJIB"
+  },
+  {
+    "Nom": "AIT DAOUD",
+    "prenom": "FATIMA ZOHRA",
+    "promotion": "4 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "AIT DAOUD FATIMA ZOHRA"
+  },
+  {
+    "Nom": "AIT SALAH",
+    "prenom": "Houria",
+    "promotion": "4 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "AIT SALAH Houria"
+  },
+  {
+    "Nom": "AIT ZEMZAMI",
+    "prenom": "Merieme",
+    "promotion": "4 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "AIT ZEMZAMI Merieme"
+  },
+  {
+    "Nom": "ALAFARI",
+    "prenom": "Abdoul kader",
+    "promotion": "4 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "ALAFARI Abdoul kader"
+  },
+  {
+    "Nom": "ALLOUCHE",
+    "prenom": "Rime",
+    "promotion": "4 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "ALLOUCHE Rime"
+  },
+  {
+    "Nom": "AMMOR",
+    "prenom": "HIBA",
+    "promotion": "4 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "AMMOR HIBA"
+  },
+  {
+    "Nom": "AMOR",
+    "prenom": "JIHANE",
+    "promotion": "4 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "AMOR JIHANE"
+  },
+  {
+    "Nom": "AMZAZI",
+    "prenom": "latifa",
+    "promotion": "4 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "AMZAZI latifa"
+  },
+  {
+    "Nom": "AYOUCH",
+    "prenom": "Lina",
+    "promotion": "4 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "AYOUCH Lina"
+  },
+  {
+    "Nom": "AZMANI",
+    "prenom": "ichrak",
+    "promotion": "4 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "AZMANI ichrak"
+  },
+  {
+    "Nom": "AZZAT",
+    "prenom": "Aya",
+    "promotion": "4 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "AZZAT Aya"
+  },
+  {
+    "Nom": "BACHIR",
+    "prenom": "Salma",
+    "promotion": "4 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BACHIR Salma"
+  },
+  {
+    "Nom": "BAHADDOU",
+    "prenom": "Hicham",
+    "promotion": "4 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BAHADDOU Hicham"
+  },
+  {
+    "Nom": "BAIYA",
+    "prenom": "Amina",
+    "promotion": "4 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BAIYA Amina"
+  },
+  {
+    "Nom": "BELAYATE",
+    "prenom": "Hajar",
+    "promotion": "4 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "BELAYATE Hajar"
+  },
+  {
+    "Nom": "BELGHALI",
+    "prenom": "Aymane",
+    "promotion": "4 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "BELGHALI Aymane"
+  },
+  {
+    "Nom": "BELKEBIR",
+    "prenom": "FATINE",
+    "promotion": "4 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "BELKEBIR FATINE"
+  },
+  {
+    "Nom": "BELMEKKI",
+    "prenom": "Mehdi",
+    "promotion": "4 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "BELMEKKI Mehdi"
+  },
+  {
+    "Nom": "BENCHEKROUN",
+    "prenom": "sara",
+    "promotion": "4 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "BENCHEKROUN sara"
+  },
+  {
+    "Nom": "BENJELLOUN",
+    "prenom": "WIAM",
+    "promotion": "4 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "BENJELLOUN WIAM"
+  },
+  {
+    "Nom": "BENJILALI",
+    "prenom": "HIBA",
+    "promotion": "4 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "BENJILALI HIBA"
+  },
+  {
+    "Nom": "BENYAHIA",
+    "prenom": "ghita",
+    "promotion": "4 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "BENYAHIA ghita"
+  },
+  {
+    "Nom": "BENZIANE",
+    "prenom": "Marwan",
+    "promotion": "4 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "BENZIANE Marwan"
+  },
+  {
+    "Nom": "BERRADA",
+    "prenom": "Chaimae",
+    "promotion": "4 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "BERRADA Chaimae"
+  },
+  {
+    "Nom": "BITARI",
+    "prenom": "Mohammed Yassine",
+    "promotion": "4 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "BITARI Mohammed Yassine"
+  },
+  {
+    "Nom": "BOUANANE",
+    "prenom": "Mohamed Yassine",
+    "promotion": "4 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "BOUANANE Mohamed Yassine"
+  },
+  {
+    "Nom": "BOUHAMIDI",
+    "prenom": "Wafaa",
+    "promotion": "4 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "BOUHAMIDI Wafaa"
+  },
+  {
+    "Nom": "BOUKILI MAKHOUKHI",
+    "prenom": "Chaimae",
+    "promotion": "4 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "BOUKILI MAKHOUKHI Chaimae"
+  },
+  {
+    "Nom": "BOUNAGUI",
+    "prenom": "Chaimea",
+    "promotion": "4 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "BOUNAGUI Chaimea"
+  },
+  {
+    "Nom": "BOUROUAINE",
+    "prenom": "Yasmine",
+    "promotion": "4 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "BOUROUAINE Yasmine"
+  },
+  {
+    "Nom": "BOUTAZARZAIT",
+    "prenom": "Romayssae",
+    "promotion": "4 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "BOUTAZARZAIT Romayssae"
+  },
+  {
+    "Nom": "CHAFIK",
+    "prenom": "Soukaina",
+    "promotion": "4 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "CHAFIK Soukaina"
+  },
+  {
+    "Nom": "CHAHBY",
+    "prenom": "AHMED TAHA",
+    "promotion": "4 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "CHAHBY AHMED TAHA"
+  },
+  {
+    "Nom": "CHARI",
+    "prenom": "Mohammed",
+    "promotion": "4 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "CHARI Mohammed"
+  },
+  {
+    "Nom": "CHOUGRAD",
+    "prenom": "Nouhaila",
+    "promotion": "4 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "CHOUGRAD Nouhaila"
+  },
+  {
+    "Nom": "DAFAL",
+    "prenom": "Lina",
+    "promotion": "4 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "DAFAL Lina"
+  },
+  {
+    "Nom": "DAKHCH",
+    "prenom": "MARWA",
+    "promotion": "4 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "DAKHCH MARWA"
+  },
+  {
+    "Nom": "DERKAOUI",
+    "prenom": "LINA",
+    "promotion": "4 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "DERKAOUI LINA"
+  },
+  {
+    "Nom": "ECHANBOURA",
+    "prenom": "Sara",
+    "promotion": "4 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "ECHANBOURA Sara"
+  },
+  {
+    "Nom": "EL BAIHI",
+    "prenom": "elhoussein",
+    "promotion": "4 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "EL BAIHI elhoussein"
+  },
+  {
+    "Nom": "EL BAKKOURI",
+    "prenom": "Maroua",
+    "promotion": "4 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "EL BAKKOURI Maroua"
+  },
+  {
+    "Nom": "EL BARDI",
+    "prenom": "Samia",
+    "promotion": "4 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "EL BARDI Samia"
+  },
+  {
+    "Nom": "EL HADDAJI",
+    "prenom": "Mohamed reda",
+    "promotion": "4 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "EL HADDAJI Mohamed reda"
+  },
+  {
+    "Nom": "EL HAITOUT",
+    "prenom": "Houda",
+    "promotion": "4 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "EL HAITOUT Houda"
+  },
+  {
+    "Nom": "EL HIMDY",
+    "prenom": "Rita",
+    "promotion": "4 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "EL HIMDY Rita"
+  },
+  {
+    "Nom": "EL IDRISSI",
+    "prenom": "Sara",
+    "promotion": "4 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "EL IDRISSI Sara"
+  },
+  {
+    "Nom": "EL KHALQI",
+    "prenom": "AMINA",
+    "promotion": "4 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "EL KHALQI AMINA"
+  },
+  {
+    "Nom": "EL KHAYAT",
+    "prenom": "Khaoula",
+    "promotion": "4 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "EL KHAYAT Khaoula"
+  },
+  {
+    "Nom": "EL MANSOURI",
+    "prenom": "Hiba",
+    "promotion": "4 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "EL MANSOURI Hiba"
+  },
+  {
+    "Nom": "EL MENNANI",
+    "prenom": "Soufiane",
+    "promotion": "4 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "EL MENNANI Soufiane"
+  },
+  {
+    "Nom": "EL MOUMNI",
+    "prenom": "ZINEB",
+    "promotion": "4 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "EL MOUMNI ZINEB"
+  },
+  {
+    "Nom": "ELAJOUADY",
+    "prenom": "Mariam",
+    "promotion": "4 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "ELAJOUADY Mariam"
+  },
+  {
+    "Nom": "EL OTMANI",
+    "prenom": "RACHA",
+    "promotion": "4 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "EL OTMANI RACHA"
+  },
+  {
+    "Nom": "ELFAHLI",
+    "prenom": "salma",
+    "promotion": "4 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "ELFAHLI salma"
+  },
+  {
+    "Nom": "ELFAHM",
+    "prenom": "Maryem",
+    "promotion": "4 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "ELFAHM Maryem"
+  },
+  {
+    "Nom": "ELFATIHY",
+    "prenom": "Khadija",
+    "promotion": "4 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "ELFATIHY Khadija"
+  },
+  {
+    "Nom": "ELGAMRI",
+    "prenom": "Ilias",
+    "promotion": "4 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "ELGAMRI Ilias"
+  },
+  {
+    "Nom": "ENNAKI",
+    "prenom": "Hajar",
+    "promotion": "4 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "ENNAKI Hajar"
+  },
+  {
+    "Nom": "ESSERTI",
+    "prenom": "MOHAMED-TAHA",
+    "promotion": "4 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "ESSERTI MOHAMED-TAHA"
+  },
+  {
+    "Nom": "FETICH",
+    "prenom": "soukaina",
+    "promotion": "4 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "FETICH soukaina"
+  },
+  {
+    "Nom": "FILALI ANSSARI",
+    "prenom": "ADNANE",
+    "promotion": "4 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "FILALI ANSSARI ADNANE"
+  },
+  {
+    "Nom": "FTOUHI",
+    "prenom": "Yasmine",
+    "promotion": "4 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "FTOUHI Yasmine"
+  },
+  {
+    "Nom": "GALZIM",
+    "prenom": "GHALI",
+    "promotion": "4 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "GALZIM GHALI"
+  },
+  {
+    "Nom": "GHOUZAILI",
+    "prenom": "Kawtar",
+    "promotion": "4 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "GHOUZAILI Kawtar"
+  },
+  {
+    "Nom": "GHRIB",
+    "prenom": "MOHAMED AMINE",
+    "promotion": "4 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "GHRIB MOHAMED AMINE"
+  },
+  {
+    "Nom": "GUELZIM",
+    "prenom": "Hamza",
+    "promotion": "4 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "GUELZIM Hamza"
+  },
+  {
+    "Nom": "HICHAR",
+    "prenom": "Nouhaila",
+    "promotion": "4 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "HICHAR Nouhaila"
+  },
+  {
+    "Nom": "HUSSEIN",
+    "prenom": "Taha",
+    "promotion": "4 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "HUSSEIN Taha"
+  },
+  {
+    "Nom": "IDRISSI",
+    "prenom": "Sofia",
+    "promotion": "4 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "IDRISSI Sofia"
+  },
+  {
+    "Nom": "JAID",
+    "prenom": "Soukaina",
+    "promotion": "4 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "JAID Soukaina"
+  },
+  {
+    "Nom": "KABBAJ",
+    "prenom": "zineb",
+    "promotion": "4 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "KABBAJ zineb"
+  },
+  {
+    "Nom": "KADRI HASSANI",
+    "prenom": "Ghita",
+    "promotion": "4 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "KADRI HASSANI Ghita"
+  },
+  {
+    "Nom": "KAMAL",
+    "prenom": "Yasser",
+    "promotion": "4 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "KAMAL Yasser"
+  },
+  {
+    "Nom": "KAZOUZ",
+    "prenom": "SARRA",
+    "promotion": "4 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "KAZOUZ SARRA"
+  },
+  {
+    "Nom": "KHABAMOU",
+    "prenom": "Hajar",
+    "promotion": "4 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "KHABAMOU Hajar"
+  },
+  {
+    "Nom": "LAAROUS",
+    "prenom": "Zineb",
+    "promotion": "4 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "LAAROUS Zineb"
+  },
+  {
+    "Nom": "LAAROUSSI",
+    "prenom": "SALMA",
+    "promotion": "4 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "LAAROUSSI SALMA"
+  },
+  {
+    "Nom": "LAHLIL",
+    "prenom": "Taoufik",
+    "promotion": "4 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "LAHLIL Taoufik"
+  },
+  {
+    "Nom": "LASRY",
+    "prenom": "Douaa",
+    "promotion": "4 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "LASRY Douaa"
+  },
+  {
+    "Nom": "lazrak",
+    "prenom": "Mohamed",
+    "promotion": "4 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "lazrak Mohamed"
+  },
+  {
+    "Nom": "LAZREQ",
+    "prenom": "Elmehdi",
+    "promotion": "4 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "LAZREQ Elmehdi"
+  },
+  {
+    "Nom": "LAZZOUZI",
+    "prenom": "Khadija",
+    "promotion": "4 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "LAZZOUZI Khadija"
+  },
+  {
+    "Nom": "LIKRAM",
+    "prenom": "farah",
+    "promotion": "4 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "LIKRAM farah"
+  },
+  {
+    "Nom": "LOUALI",
+    "prenom": "Camelia",
+    "promotion": "4 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "LOUALI Camelia"
+  },
+  {
+    "Nom": "MAHFOUD",
+    "prenom": "Rhita",
+    "promotion": "4 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "MAHFOUD Rhita"
+  },
+  {
+    "Nom": "MBOU INTCHALEY",
+    "prenom": "Amanda Denise",
+    "promotion": "4 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "MBOU INTCHALEY Amanda Denise"
+  },
+  {
+    "Nom": "MEDARHRI",
+    "prenom": "Hiba",
+    "promotion": "4 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "MEDARHRI Hiba"
+  },
+  {
+    "Nom": "MENNANE",
+    "prenom": "Nidale",
+    "promotion": "4 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "MENNANE Nidale"
+  },
+  {
+    "Nom": "MOKHLIS",
+    "prenom": "MOHAMMED AMINE",
+    "promotion": "4 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "MOKHLIS MOHAMMED AMINE"
+  },
+  {
+    "Nom": "MOUJIB",
+    "prenom": "Meryem",
+    "promotion": "4 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "MOUJIB Meryem"
+  },
+  {
+    "Nom": "MOUTAA",
+    "prenom": "Malak",
+    "promotion": "4 eme",
+    "Groupe": 5,
+    "faculte": "pharmacie",
+    "name": "MOUTAA Malak"
+  },
+  {
+    "Nom": "MIQDAM",
+    "prenom": "Malak",
+    "promotion": "4 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "MIQDAM Malak"
+  },
+  {
+    "Nom": "N'AIT HAMMOU",
+    "prenom": "HOUDA",
+    "promotion": "4 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "N'AIT HAMMOU HOUDA"
+  },
+  {
+    "Nom": "NEDAM",
+    "prenom": "Lina",
+    "promotion": "4 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "NEDAM Lina"
+  },
+  {
+    "Nom": "OUADRHIRI",
+    "prenom": "Basma",
+    "promotion": "4 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "OUADRHIRI Basma"
+  },
+  {
+    "Nom": "OUAFIK",
+    "prenom": "Ali",
+    "promotion": "4 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "OUAFIK Ali"
+  },
+  {
+    "Nom": "OULDSAIDIA",
+    "prenom": "Kawtar",
+    "promotion": "4 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "OULDSAIDIA Kawtar"
+  },
+  {
+    "Nom": "OUZEROUAL",
+    "prenom": "omar",
+    "promotion": "4 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "OUZEROUAL omar"
+  },
+  {
+    "Nom": "RHAYOUR",
+    "prenom": "Nora",
+    "promotion": "4 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "RHAYOUR Nora"
+  },
+  {
+    "Nom": "RHISSASSI",
+    "prenom": "Samia",
+    "promotion": "4 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "RHISSASSI Samia"
+  },
+  {
+    "Nom": "SADIK",
+    "prenom": "ANASS",
+    "promotion": "4 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "SADIK ANASS"
+  },
+  {
+    "Nom": "SADOUQI",
+    "prenom": "Kenza",
+    "promotion": "4 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "SADOUQI Kenza"
+  },
+  {
+    "Nom": "SAID",
+    "prenom": "Lina",
+    "promotion": "4 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "SAID Lina"
+  },
+  {
+    "Nom": "SAYEH",
+    "prenom": "israa",
+    "promotion": "4 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "SAYEH israa"
+  },
+  {
+    "Nom": "SBAI",
+    "prenom": "Abla",
+    "promotion": "4 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "SBAI Abla"
+  },
+  {
+    "Nom": "SEIDA",
+    "prenom": "Chaima",
+    "promotion": "4 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "SEIDA Chaima"
+  },
+  {
+    "Nom": "SOUIZI",
+    "prenom": "Aya",
+    "promotion": "4 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "SOUIZI Aya"
+  },
+  {
+    "Nom": "TAKI IMRANI",
+    "prenom": "yasmine",
+    "promotion": "4 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "TAKI IMRANI yasmine"
+  },
+  {
+    "Nom": "TOGHASSI",
+    "prenom": "Imane",
+    "promotion": "4 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "TOGHASSI Imane"
+  },
+  {
+    "Nom": "TOUZANI",
+    "prenom": "Yassmine",
+    "promotion": "4 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "TOUZANI Yassmine"
+  },
+  {
+    "Nom": "ZOHRY",
+    "prenom": "Youssef",
+    "promotion": "4 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "ZOHRY Youssef"
+  },
+  {
+    "Nom": "ZOUINE",
+    "prenom": "Hamza",
+    "promotion": "4 eme",
+    "Groupe": 6,
+    "faculte": "pharmacie",
+    "name": "ZOUINE Hamza"
+  },
+  {
+    "Nom": "ACH-CHAK",
+    "prenom": "Afafe",
+    "promotion": "5 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "ACH-CHAK Afafe"
+  },
+  {
+    "Nom": "ADNANE JAZOULI",
+    "prenom": "Soukaina",
+    "promotion": "5 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "ADNANE JAZOULI Soukaina"
+  },
+  {
+    "Nom": "AITISSIMOUR",
+    "prenom": "GHITA",
+    "promotion": "5 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "AITISSIMOUR GHITA"
+  },
+  {
+    "Nom": "AMMOR",
+    "prenom": "SALMA",
+    "promotion": "5 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "AMMOR SALMA"
+  },
+  {
+    "Nom": "BABA AHMED",
+    "prenom": "Mouad",
+    "promotion": "5 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BABA AHMED Mouad"
+  },
+  {
+    "Nom": "BALLA",
+    "prenom": "ASMA",
+    "promotion": "5 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BALLA ASMA"
+  },
+  {
+    "Nom": "BASSIR",
+    "prenom": "oussama",
+    "promotion": "5 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BASSIR oussama"
+  },
+  {
+    "Nom": "BEN FARAH",
+    "prenom": "KHADIJA",
+    "promotion": "5 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BEN FARAH KHADIJA"
+  },
+  {
+    "Nom": "BENTAMER",
+    "prenom": "ali",
+    "promotion": "5 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BENTAMER ali"
+  },
+  {
+    "Nom": "BERRADA FATHI",
+    "prenom": "WIAM",
+    "promotion": "5 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BERRADA FATHI WIAM"
+  },
+  {
+    "Nom": "BLAGHEN",
+    "prenom": "Aya",
+    "promotion": "5 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BLAGHEN Aya"
+  },
+  {
+    "Nom": "BOUCHGHOUL",
+    "prenom": "Bahia",
+    "promotion": "5 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BOUCHGHOUL Bahia"
+  },
+  {
+    "Nom": "BOUDAD",
+    "prenom": "Israa",
+    "promotion": "5 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BOUDAD Israa"
+  },
+  {
+    "Nom": "BOUGHABA",
+    "prenom": "Malak",
+    "promotion": "5 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BOUGHABA Malak"
+  },
+  {
+    "Nom": "BOUGREA",
+    "prenom": "Aya",
+    "promotion": "5 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BOUGREA Aya"
+  },
+  {
+    "Nom": "BOUKZANI",
+    "prenom": "MARYAM",
+    "promotion": "5 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BOUKZANI MARYAM"
+  },
+  {
+    "Nom": "BOULLI",
+    "prenom": "Soukaina",
+    "promotion": "5 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BOULLI Soukaina"
+  },
+  {
+    "Nom": "CHAABANI",
+    "prenom": "Meryem",
+    "promotion": "5 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "CHAABANI Meryem"
+  },
+  {
+    "Nom": "CHAFIK",
+    "prenom": "walid",
+    "promotion": "5 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "CHAFIK walid"
+  },
+  {
+    "Nom": "CHAKIR",
+    "prenom": "Zineb",
+    "promotion": "5 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "CHAKIR Zineb"
+  },
+  {
+    "Nom": "CHBOUKI",
+    "prenom": "rim",
+    "promotion": "5 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "CHBOUKI rim"
+  },
+  {
+    "Nom": "CHDID",
+    "prenom": "Yasmine",
+    "promotion": "5 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "CHDID Yasmine"
+  },
+  {
+    "Nom": "DERHMAIN",
+    "prenom": "Hanane",
+    "promotion": "5 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "DERHMAIN Hanane"
+  },
+  {
+    "Nom": "DERHMAIN",
+    "prenom": "Nadia",
+    "promotion": "5 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "DERHMAIN Nadia"
+  },
+  {
+    "Nom": "DIAB",
+    "prenom": "Imane",
+    "promotion": "5 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "DIAB Imane"
+  },
+  {
+    "Nom": "ECHLAIHI",
+    "prenom": "IBTISSAM",
+    "promotion": "5 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "ECHLAIHI IBTISSAM"
+  },
+  {
+    "Nom": "EL AKKARI",
+    "prenom": "Yassine",
+    "promotion": "5 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "EL AKKARI Yassine"
+  },
+  {
+    "Nom": "EL BAIR",
+    "prenom": "afaf",
+    "promotion": "5 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "EL BAIR afaf"
+  },
+  {
+    "Nom": "EL FADI",
+    "prenom": "Rehab",
+    "promotion": "5 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "EL FADI Rehab"
+  },
+  {
+    "Nom": "EL MALTI",
+    "prenom": "Mohamed Othmane",
+    "promotion": "5 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "EL MALTI Mohamed Othmane"
+  },
+  {
+    "Nom": "EL MBARKI",
+    "prenom": "Maryam",
+    "promotion": "5 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "EL MBARKI Maryam"
+  },
+  {
+    "Nom": "EL MOUMNI",
+    "prenom": "Aya",
+    "promotion": "5 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "EL MOUMNI Aya"
+  },
+  {
+    "Nom": "EL OMARI",
+    "prenom": "HAKIMA",
+    "promotion": "5 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "EL OMARI HAKIMA"
+  },
+  {
+    "Nom": "EL YASSAMI",
+    "prenom": "AYOUB",
+    "promotion": "5 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "EL YASSAMI AYOUB"
+  },
+  {
+    "Nom": "ELALAOUI ISMAILI",
+    "prenom": "Imane",
+    "promotion": "5 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "ELALAOUI ISMAILI Imane"
+  },
+  {
+    "Nom": "ELKABBAJ",
+    "prenom": "Siham",
+    "promotion": "5 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "ELKABBAJ Siham"
+  },
+  {
+    "Nom": "ELOUELDRHIRI",
+    "prenom": "YASMINE",
+    "promotion": "5 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "ELOUELDRHIRI YASMINE"
+  },
+  {
+    "Nom": "ESSAFI",
+    "prenom": "mehdi",
+    "promotion": "5 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "ESSAFI mehdi"
+  },
+  {
+    "Nom": "ETTABAGHI",
+    "prenom": "Hiba",
+    "promotion": "5 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "ETTABAGHI Hiba"
+  },
+  {
+    "Nom": "ETTABAGHI",
+    "prenom": "SARA",
+    "promotion": "5 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "ETTABAGHI SARA"
+  },
+  {
+    "Nom": "FADILI",
+    "prenom": "Kaoutar",
+    "promotion": "5 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "FADILI Kaoutar"
+  },
+  {
+    "Nom": "FAHIM",
+    "prenom": "Salma",
+    "promotion": "5 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "FAHIM Salma"
+  },
+  {
+    "Nom": "FETHI",
+    "prenom": "Yasmine",
+    "promotion": "5 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "FETHI Yasmine"
+  },
+  {
+    "Nom": "FRAOUSSY",
+    "prenom": "Hiba",
+    "promotion": "5 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "FRAOUSSY Hiba"
+  },
+  {
+    "Nom": "GUENNANI",
+    "prenom": "MERYEM",
+    "promotion": "5 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "GUENNANI MERYEM"
+  },
+  {
+    "Nom": "HABBARI",
+    "prenom": "SALSABIL",
+    "promotion": "5 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "HABBARI SALSABIL"
+  },
+  {
+    "Nom": "HALFYA",
+    "prenom": "aya",
+    "promotion": "5 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "HALFYA aya"
+  },
+  {
+    "Nom": "HASSANI",
+    "prenom": "BOTEINA",
+    "promotion": "5 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "HASSANI BOTEINA"
+  },
+  {
+    "Nom": "HAYAR",
+    "prenom": "Hajar",
+    "promotion": "5 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "HAYAR Hajar"
+  },
+  {
+    "Nom": "JAAD",
+    "prenom": "zineb",
+    "promotion": "5 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "JAAD zineb"
+  },
+  {
+    "Nom": "KARKOURI",
+    "prenom": "Douaa",
+    "promotion": "5 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "KARKOURI Douaa"
+  },
+  {
+    "Nom": "KHYATI",
+    "prenom": "Sara",
+    "promotion": "5 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "KHYATI Sara"
+  },
+  {
+    "Nom": "KRAFESS",
+    "prenom": "rim",
+    "promotion": "5 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "KRAFESS rim"
+  },
+  {
+    "Nom": "LAHLAFI",
+    "prenom": "Kenza",
+    "promotion": "5 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "LAHLAFI Kenza"
+  },
+  {
+    "Nom": "LAHLOU MIMI",
+    "prenom": "Ismail Aymane",
+    "promotion": "5 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "LAHLOU MIMI Ismail Aymane"
+  },
+  {
+    "Nom": "LAMTARQI",
+    "prenom": "AYA",
+    "promotion": "5 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "LAMTARQI AYA"
+  },
+  {
+    "Nom": "LAZAAR",
+    "prenom": "YASMINE",
+    "promotion": "5 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "LAZAAR YASMINE"
+  },
+  {
+    "Nom": "LOK-AYBA",
+    "prenom": "aya",
+    "promotion": "5 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "LOK-AYBA aya"
+  },
+  {
+    "Nom": "MAACHE",
+    "prenom": "Kawtar",
+    "promotion": "5 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "MAACHE Kawtar"
+  },
+  {
+    "Nom": "MAJD",
+    "prenom": "MARYEM",
+    "promotion": "5 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "MAJD MARYEM"
+  },
+  {
+    "Nom": "MANDARISS",
+    "prenom": "Hiba",
+    "promotion": "5 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "MANDARISS Hiba"
+  },
+  {
+    "Nom": "MEDAGHRI ALAOUI",
+    "prenom": "Rania",
+    "promotion": "5 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "MEDAGHRI ALAOUI Rania"
+  },
+  {
+    "Nom": "MEHBI",
+    "prenom": "meryam",
+    "promotion": "5 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "MEHBI meryam"
+  },
+  {
+    "Nom": "MEKOUAR",
+    "prenom": "Lina",
+    "promotion": "5 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "MEKOUAR Lina"
+  },
+  {
+    "Nom": "MEZOUAR",
+    "prenom": "YASMINE",
+    "promotion": "5 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "MEZOUAR YASMINE"
+  },
+  {
+    "Nom": "MOUAKKIR",
+    "prenom": "ismail",
+    "promotion": "5 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "MOUAKKIR ismail"
+  },
+  {
+    "Nom": "OQAIDI",
+    "prenom": "HAJAR",
+    "promotion": "5 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "OQAIDI HAJAR"
+  },
+  {
+    "Nom": "OUAHMANE",
+    "prenom": "Rihabe",
+    "promotion": "5 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "OUAHMANE Rihabe"
+  },
+  {
+    "Nom": "OUAIS",
+    "prenom": "Nassima",
+    "promotion": "5 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "OUAIS Nassima"
+  },
+  {
+    "Nom": "OUAZZANI TOUHAMI",
+    "prenom": "Mohamed Yacine",
+    "promotion": "5 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "OUAZZANI TOUHAMI Mohamed Yacine"
+  },
+  {
+    "Nom": "OUBAHA",
+    "prenom": "fatima zahra",
+    "promotion": "5 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "OUBAHA fatima zahra"
+  },
+  {
+    "Nom": "OUHADDOU",
+    "prenom": "yasmine",
+    "promotion": "5 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "OUHADDOU yasmine"
+  },
+  {
+    "Nom": "OUICHOUANI",
+    "prenom": "wissal",
+    "promotion": "5 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "OUICHOUANI wissal"
+  },
+  {
+    "Nom": "OURIEMCHI",
+    "prenom": "YOUSRA",
+    "promotion": "5 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "OURIEMCHI YOUSRA"
+  },
+  {
+    "Nom": "QANI",
+    "prenom": "Abir",
+    "promotion": "5 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "QANI Abir"
+  },
+  {
+    "Nom": "RAMI",
+    "prenom": "Amina",
+    "promotion": "5 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "RAMI Amina"
+  },
+  {
+    "Nom": "SABIL",
+    "prenom": "Meryem",
+    "promotion": "5 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "SABIL Meryem"
+  },
+  {
+    "Nom": "SAHMANE",
+    "prenom": "FAIZA",
+    "promotion": "5 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "SAHMANE FAIZA"
+  },
+  {
+    "Nom": "SAMIR",
+    "prenom": "haitam",
+    "promotion": "5 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "SAMIR haitam"
+  },
+  {
+    "Nom": "SEBBAR",
+    "prenom": "Abdelhadi",
+    "promotion": "5 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "SEBBAR Abdelhadi"
+  },
+  {
+    "Nom": "SRIJ",
+    "prenom": "Safae",
+    "promotion": "5 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "SRIJ Safae"
+  },
+  {
+    "Nom": "TAHIRI",
+    "prenom": "El Mehdi",
+    "promotion": "5 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "TAHIRI El Mehdi"
+  },
+  {
+    "Nom": "TARZI",
+    "prenom": "Badr eddine",
+    "promotion": "5 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "TARZI Badr eddine"
+  },
+  {
+    "Nom": "TASSINE",
+    "prenom": "Safaa",
+    "promotion": "5 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "TASSINE Safaa"
+  },
+  {
+    "Nom": "ZAKARI",
+    "prenom": "ILIANA",
+    "promotion": "5 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "ZAKARI ILIANA"
+  },
+  {
+    "Nom": "ZITI",
+    "prenom": "AYMAN",
+    "promotion": "5 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "ZITI AYMAN"
+  },
+  {
+    "Nom": "ZOUHRY",
+    "prenom": "Rabea",
+    "promotion": "5 eme",
+    "Groupe": 4,
+    "faculte": "pharmacie",
+    "name": "ZOUHRY Rabea"
+  },
+  {
+    "Nom": "ACHAGRI",
+    "prenom": "HAJER",
+    "promotion": "6 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "ACHAGRI HAJER"
+  },
+  {
+    "Nom": "AFENDI",
+    "prenom": "LAMIA",
+    "promotion": "6 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "AFENDI LAMIA"
+  },
+  {
+    "Nom": "AGAZZARA",
+    "prenom": "OMAR",
+    "promotion": "6 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "AGAZZARA OMAR"
+  },
+  {
+    "Nom": "AGUNAOU",
+    "prenom": "IKRAM",
+    "promotion": "6 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "AGUNAOU IKRAM"
+  },
+  {
+    "Nom": "ALLANI",
+    "prenom": "KHADIJA",
+    "promotion": "6 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "ALLANI KHADIJA"
+  },
+  {
+    "Nom": "ALNOUNO",
+    "prenom": "KAOUTHAR",
+    "promotion": "6 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "ALNOUNO KAOUTHAR"
+  },
+  {
+    "Nom": "ALTIT",
+    "prenom": "GHIZLAN",
+    "promotion": "6 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "ALTIT GHIZLAN"
+  },
+  {
+    "Nom": "ARSALANE",
+    "prenom": "SAMIA",
+    "promotion": "6 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "ARSALANE SAMIA"
+  },
+  {
+    "Nom": "AZIZ ALAOUI",
+    "prenom": "HOUDA",
+    "promotion": "6 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "AZIZ ALAOUI HOUDA"
+  },
+  {
+    "Nom": "BADR EDDINE",
+    "prenom": "AHLAM",
+    "promotion": "6 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BADR EDDINE AHLAM"
+  },
+  {
+    "Nom": "BALADI",
+    "prenom": "SARA",
+    "promotion": "6 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BALADI SARA"
+  },
+  {
+    "Nom": "BELEGCHOUR",
+    "prenom": "KHADIJA",
+    "promotion": "6 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BELEGCHOUR KHADIJA"
+  },
+  {
+    "Nom": "BELLAHBIB",
+    "prenom": "AIDA",
+    "promotion": "6 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BELLAHBIB AIDA"
+  },
+  {
+    "Nom": "BENCHERKI",
+    "prenom": "RADIA",
+    "promotion": "6 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BENCHERKI RADIA"
+  },
+  {
+    "Nom": "BENDI",
+    "prenom": "INES",
+    "promotion": "6 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BENDI INES"
+  },
+  {
+    "Nom": "BENHAIOUN",
+    "prenom": "Khaoula",
+    "promotion": "6 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BENHAIOUN Khaoula"
+  },
+  {
+    "Nom": "BENJELLOUN JBINA",
+    "prenom": "YAHYA",
+    "promotion": "6 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BENJELLOUN JBINA YAHYA"
+  },
+  {
+    "Nom": "BENMANSOUR",
+    "prenom": "NADA",
+    "promotion": "6 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BENMANSOUR NADA"
+  },
+  {
+    "Nom": "BENNIS",
+    "prenom": "NADA",
+    "promotion": "6 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BENNIS NADA"
+  },
+  {
+    "Nom": "BOUBCHER",
+    "prenom": "NIHAL",
+    "promotion": "6 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BOUBCHER NIHAL"
+  },
+  {
+    "Nom": "BOURAS",
+    "prenom": "HOUDA",
+    "promotion": "6 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BOURAS HOUDA"
+  },
+  {
+    "Nom": "BOUZERAA",
+    "prenom": "OUMAIMA",
+    "promotion": "6 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "BOUZERAA OUMAIMA"
+  },
+  {
+    "Nom": "CHAKIB",
+    "prenom": "IQBAL",
+    "promotion": "6 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "CHAKIB IQBAL"
+  },
+  {
+    "Nom": "CHAMI",
+    "prenom": "KARIM",
+    "promotion": "6 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "CHAMI KARIM"
+  },
+  {
+    "Nom": "CHARRA",
+    "prenom": "YASSINE",
+    "promotion": "6 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "CHARRA YASSINE"
+  },
+  {
+    "Nom": "CHBOUBI",
+    "prenom": "OMAR",
+    "promotion": "6 eme",
+    "Groupe": 1,
+    "faculte": "pharmacie",
+    "name": "CHBOUBI OMAR"
+  },
+  {
+    "Nom": "CHERKAOUI",
+    "prenom": "OMAR",
+    "promotion": "6 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "CHERKAOUI OMAR"
+  },
+  {
+    "Nom": "DALIL",
+    "prenom": "FATIMA ZAHRA",
+    "promotion": "6 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "DALIL FATIMA ZAHRA"
+  },
+  {
+    "Nom": "DJDIAA",
+    "prenom": "MERYEM",
+    "promotion": "6 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "DJDIAA MERYEM"
+  },
+  {
+    "Nom": "EL AMILE",
+    "prenom": "NOUR",
+    "promotion": "6 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "EL AMILE NOUR"
+  },
+  {
+    "Nom": "EL ARCHI",
+    "prenom": "HIND",
+    "promotion": "6 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "EL ARCHI HIND"
+  },
+  {
+    "Nom": "EL AROUI",
+    "prenom": "ILYASS",
+    "promotion": "6 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "EL AROUI ILYASS"
+  },
+  {
+    "Nom": "EL BARDI",
+    "prenom": "EL GHALI",
+    "promotion": "6 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "EL BARDI EL GHALI"
+  },
+  {
+    "Nom": "EL HADDAD",
+    "prenom": "IMANE",
+    "promotion": "6 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "EL HADDAD IMANE"
+  },
+  {
+    "Nom": "EL HARTI",
+    "prenom": "SOUFIANE",
+    "promotion": "6 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "EL HARTI SOUFIANE"
+  },
+  {
+    "Nom": "EL IDRISSI",
+    "prenom": "Salima",
+    "promotion": "6 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "EL IDRISSI Salima"
+  },
+  {
+    "Nom": "EL MAHBOUBI",
+    "prenom": "ASSALA",
+    "promotion": "6 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "EL MAHBOUBI ASSALA"
+  },
+  {
+    "Nom": "EL MIR",
+    "prenom": "HAJAR",
+    "promotion": "6 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "EL MIR HAJAR"
+  },
+  {
+    "Nom": "ELHADI",
+    "prenom": "Chaimaa",
+    "promotion": "6 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "ELHADI Chaimaa"
+  },
+  {
+    "Nom": "ELKIMYA",
+    "prenom": "RADIA",
+    "promotion": "6 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "ELKIMYA RADIA"
+  },
+  {
+    "Nom": "ESSAFI",
+    "prenom": "HAFSA",
+    "promotion": "6 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "ESSAFI HAFSA"
+  },
+  {
+    "Nom": "FALLAH",
+    "prenom": "FATIMA EZZAHRA",
+    "promotion": "6 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "FALLAH FATIMA EZZAHRA"
+  },
+  {
+    "Nom": "HAMDAOUI",
+    "prenom": "NADA",
+    "promotion": "6 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "HAMDAOUI NADA"
+  },
+  {
+    "Nom": "HAMMADI",
+    "prenom": "RANIA",
+    "promotion": "6 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "HAMMADI RANIA"
+  },
+  {
+    "Nom": "HARTI",
+    "prenom": "SALMA",
+    "promotion": "6 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "HARTI SALMA"
+  },
+  {
+    "Nom": "HMAMA",
+    "prenom": "LOUBABA",
+    "promotion": "6 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "HMAMA LOUBABA"
+  },
+  {
+    "Nom": "IBORK",
+    "prenom": "MALAK",
+    "promotion": "6 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "IBORK MALAK"
+  },
+  {
+    "Nom": "IMAD",
+    "prenom": "KAWTAR",
+    "promotion": "6 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "IMAD KAWTAR"
+  },
+  {
+    "Nom": "KARIME",
+    "prenom": "KENZA",
+    "promotion": "6 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "KARIME KENZA"
+  },
+  {
+    "Nom": "KERTAOUI",
+    "prenom": "YOUSSEF",
+    "promotion": "6 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "KERTAOUI YOUSSEF"
+  },
+  {
+    "Nom": "KHANOUACH",
+    "prenom": "SANAA",
+    "promotion": "6 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "KHANOUACH SANAA"
+  },
+  {
+    "Nom": "KHOUIDER",
+    "prenom": "DOUAA",
+    "promotion": "6 eme",
+    "Groupe": 2,
+    "faculte": "pharmacie",
+    "name": "KHOUIDER DOUAA"
+  },
+  {
+    "Nom": "LAHYANI",
+    "prenom": "CHAIMAE",
+    "promotion": "6 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "LAHYANI CHAIMAE"
+  },
+  {
+    "Nom": "LARINI",
+    "prenom": "Sara",
+    "promotion": "6 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "LARINI Sara"
+  },
+  {
+    "Nom": "LEBBAR",
+    "prenom": "YASSINE",
+    "promotion": "6 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "LEBBAR YASSINE"
+  },
+  {
+    "Nom": "LOUKILI",
+    "prenom": "rida",
+    "promotion": "6 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "LOUKILI rida"
+  },
+  {
+    "Nom": "MAAZOUZI",
+    "prenom": "Ibtihal",
+    "promotion": "6 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "MAAZOUZI Ibtihal"
+  },
+  {
+    "Nom": "MAHASSIN",
+    "prenom": "ZINEB",
+    "promotion": "6 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "MAHASSIN ZINEB"
+  },
+  {
+    "Nom": "MAZID",
+    "prenom": "NADA",
+    "promotion": "6 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "MAZID NADA"
+  },
+  {
+    "Nom": "MERBOUHI",
+    "prenom": "MERYEM",
+    "promotion": "6 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "MERBOUHI MERYEM"
+  },
+  {
+    "Nom": "MFADDEL",
+    "prenom": "ZAINEB",
+    "promotion": "6 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "MFADDEL ZAINEB"
+  },
+  {
+    "Nom": "MORTAKI",
+    "prenom": "MERYEM",
+    "promotion": "6 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "MORTAKI MERYEM"
+  },
+  {
+    "Nom": "MOUHADI",
+    "prenom": "ZAKARIA",
+    "promotion": "6 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "MOUHADI ZAKARIA"
+  },
+  {
+    "Nom": "MOUNIR",
+    "prenom": "MERYEM",
+    "promotion": "6 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "MOUNIR MERYEM"
+  },
+  {
+    "Nom": "NABIH",
+    "prenom": "KAWTAR",
+    "promotion": "6 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "NABIH KAWTAR"
+  },
+  {
+    "Nom": "OUAZZANI TOUHAMI",
+    "prenom": "Asmae",
+    "promotion": "6 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "OUAZZANI TOUHAMI Asmae"
+  },
+  {
+    "Nom": "OUBOUHOU",
+    "prenom": "RIM",
+    "promotion": "6 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "OUBOUHOU RIM"
+  },
+  {
+    "Nom": "OURTI",
+    "prenom": "LOUBNA",
+    "promotion": "6 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "OURTI LOUBNA"
+  },
+  {
+    "Nom": "RAGADI",
+    "prenom": "MARYAM",
+    "promotion": "6 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "RAGADI MARYAM"
+  },
+  {
+    "Nom": "REDDAD",
+    "prenom": "NOUR",
+    "promotion": "6 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "REDDAD NOUR"
+  },
+  {
+    "Nom": "REJILA",
+    "prenom": "HIBA",
+    "promotion": "6 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "REJILA HIBA"
+  },
+  {
+    "Nom": "SAKKAL",
+    "prenom": "AMAL",
+    "promotion": "6 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "SAKKAL AMAL"
+  },
+  {
+    "Nom": "SAKKAT",
+    "prenom": "MOHAMED ALI",
+    "promotion": "6 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "SAKKAT MOHAMED ALI"
+  },
+  {
+    "Nom": "SALAMI",
+    "prenom": "MAROUANE",
+    "promotion": "6 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "SALAMI MAROUANE"
+  },
+  {
+    "Nom": "SIJILMASSI",
+    "prenom": "SELMA",
+    "promotion": "6 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "SIJILMASSI SELMA"
+  },
+  {
+    "Nom": "TAHIRI",
+    "prenom": "LINA",
+    "promotion": "6 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "TAHIRI LINA"
+  },
+  {
+    "Nom": "WAHBI",
+    "prenom": "DEYAA",
+    "promotion": "6 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "WAHBI DEYAA"
+  },
+  {
+    "Nom": "ZAKI",
+    "prenom": "HALA",
+    "promotion": "6 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "ZAKI HALA"
+  },
+  {
+    "Nom": "ZARIOH",
+    "prenom": "KAOUTHAR",
+    "promotion": "6 eme",
+    "Groupe": 3,
+    "faculte": "pharmacie",
+    "name": "ZARIOH KAOUTHAR"
+  }
+]

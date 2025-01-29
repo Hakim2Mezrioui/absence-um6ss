@@ -1,0 +1,18 @@
+.bi {
+    left: 14em;
+    background-color: rgb(18, 19, 22);
+    transition: left .3s;
+}
+
+.minimized {
+    width: 5em;
+}
+
+#sidebar {
+    transition: width 0.3s;
+}
+
+.icon {
+    left: 5em;
+    transform: rotate(180deg);
+}
