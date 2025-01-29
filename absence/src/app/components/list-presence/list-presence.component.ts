@@ -17,10 +17,11 @@ import { Etudiant } from 'src/app/models/Etudiant';
   styleUrls: ['./list-presence.component.css'],
 })
 export class ListPresenceComponent implements OnInit {
-  constructor(private http: HttpClient) {}
   etudiants: Etudiant[] = [];
   @ViewChild('inputFilter') inputerFilter!: ElementRef;
   @ViewChild('dt') dt!: Table;
+  
+  constructor(private http: HttpClient) {}
 
   @Input("promotion") promotion!: String;
 
@@ -44,10 +45,8 @@ export class ListPresenceComponent implements OnInit {
         })
       )
       .subscribe(() => {
-        console.log(this.etudiants);
+        // console.log(this.etudiants);
       });
-
-      console.log(this.promotion)
   }
 
   clear(table: Table) {

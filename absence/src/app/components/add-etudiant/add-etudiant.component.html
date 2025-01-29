@@ -1,5 +1,12 @@
-<div class="body w-screen h-scren">
-    <form class="w-1/2 min-w-72">
+<div class="body">
+  <div class="flex justify-between mt-5 mr-5">
+    <div></div>
+    <button (click)="goToImportScreen()" class="bg-blue-900 hover:bg-blue-800 active:bg-blue-900 text-white px-5 py-1 rounded">
+      <i class="bi bi-file-earmark-arrow-down-fill"></i>
+      Importer les Etudiants
+    </button>
+  </div>
+    <form class="w-1/2 min-w-72 ">
       <div class="relative w-full mb-5 group">
         <input
           type="text"

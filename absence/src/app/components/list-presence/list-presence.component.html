@@ -54,6 +54,9 @@
   <ng-template pTemplate="header">
     <tr>
       <th pSortableColumn="name" style="width: 40%">
+        Matricule <p-sortIcon field="name"></p-sortIcon>
+      </th>
+      <th pSortableColumn="name" style="width: 40%">
         Name <p-sortIcon field="name"></p-sortIcon>
       </th>
       <th pSortableColumn="faculte" style="width: 20%">
@@ -67,9 +70,9 @@
   </ng-template>
   <ng-template pTemplate="body" let-etudiant let-ri="rowIndex">
     <tr>
-      <!-- <td>
+      <td>
         {{ etudiant.matricule }}
-      </td> -->
+      </td>
       <td>
         {{ etudiant.name }}
       </td>

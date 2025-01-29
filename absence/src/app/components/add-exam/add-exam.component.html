@@ -1,4 +1,10 @@
-<div class="body w-screen h-scren">
+<div class="body">
+  <div class="flex justify-between mt-5 mr-5">
+    <div></div>
+    <button (click)="goToImportScreen()" class="bg-blue-900 hover:bg-blue-800 active:bg-blue-900 text-white px-5 py-1 rounded">
+      <i class="bi bi-file-earmark-arrow-down-fill"></i>
+      Importer les Examens</button>
+  </div>
   <form class="w-1/2 min-w-72">
     <div class="relative w-full mb-5 group">
       <input
@@ -77,7 +83,7 @@
         >
       </div>
     </div>
-    <div class="grid grid-cols-2 gap-2">
+    <div class="grid grid-cols-3 gap-2">
       <div class="relative w-full mb-5 group">
         <label for="underline_select" class="sr-only">Underline select</label>
         <select
@@ -114,6 +120,21 @@
           for="floating_email"
           class="peer-focus:font-medium absolute text-sm text-green-800 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-2 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto peer-focus:text-green-800 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
           >Promotion</label
+        >
+      </div>
+      <div class="relative w-full mb-5 group">
+        <select
+          id="underline_select"
+          class="block py-2.5 px-0 w-full text-sm text-gray-500 bg-transparent border-b-2 border-gray-200 appearance-none focus:border-b-green-800 focus:outline-none focus:ring-0 focus:border-gray-200 peer"
+        >
+          <option selected>Selection le statut</option>
+          <option value="en cours">En cours</option>
+          <option value="archive">Archivé</option>
+        </select>
+        <label
+          for="floating_email"
+          class="peer-focus:font-medium absolute text-sm text-green-800 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-2 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto peer-focus:text-green-800 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
+          >Statut</label
         >
       </div>
     </div>

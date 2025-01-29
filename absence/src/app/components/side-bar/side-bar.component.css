@@ -7,6 +7,9 @@
 .minimized {
     width: 5em;
 }
+.expanded {
+    width: 20em;
+}
 
 #sidebar {
     transition: width 0.3s;

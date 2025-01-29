@@ -6,9 +6,11 @@ import { ImportStudentsComponent } from './components/import-students/import-stu
 import { AddExamComponent } from './components/add-exam/add-exam.component';
 import { AddEtudiantComponent } from './components/add-etudiant/add-etudiant.component';
 import { SideBarComponent } from './components/side-bar/side-bar.component';
-import { ListExamenItemComponent } from './list-examen-item/list-examen-item.component';
-import { ExamensListComponent } from './examens-list/examens-list.component';
+import { ListExamenItemComponent } from './components/list-examen-item/list-examen-item.component';
+import { ExamensListComponent } from './components/examens-list/examens-list.component';
 import { AuthticatedLayoutComponent } from './components/authticated-layout/authticated-layout.component';
+import { SuiviAbsenceComponent } from './components/suivi-absence/suivi-absence.component';
+import { NotFoundComponent } from './components/not-found/not-found.component';
 
 const routes: Routes = [
   {
@@ -38,16 +40,12 @@ const routes: Routes = [
         component: ImportStudentsComponent,
       },
       {
-        path: 'add-exam',
+        path: 'parametrer-examen',
         component: AddExamComponent,
       },
       {
         path: 'add-etudiant',
         component: AddEtudiantComponent,
-      },
-      {
-        path: 'side-bar',
-        component: SideBarComponent,
       },
       {
         path: 'list-examen-item',
@@ -57,8 +55,16 @@ const routes: Routes = [
         path: 'examens-list',
         component: ExamensListComponent,
       },
+      {
+        path: "suivi-absence",
+        component: SuiviAbsenceComponent
+      },
     ],
   },
+  {
+    path: "not-found",
+    component: NotFoundComponent,
+  }
 ];
 
 @NgModule({

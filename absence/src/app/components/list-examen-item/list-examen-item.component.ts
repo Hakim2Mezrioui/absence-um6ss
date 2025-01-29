@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 
 interface Statut {
   name: string;
@@ -14,7 +15,7 @@ export class ListExamenItemComponent implements OnInit {
   statut!: Statut[];
   selectedStatut!: Statut;
 
-  constructor() { }
+  constructor(private router: Router) { }
 
   ngOnInit() {
     this.statut = [
@@ -26,4 +27,8 @@ export class ListExamenItemComponent implements OnInit {
         { name: 'Paris', code: 'PRS' }
     ];
 }
+
+  onExplore() {
+    this.router.navigate(['suivi-absence']);
+  }
 }
