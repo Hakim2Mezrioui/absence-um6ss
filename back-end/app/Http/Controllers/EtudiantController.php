@@ -15,9 +15,9 @@ class EtudiantController extends Controller
      */
     public function index()
     {
-        $date = '2025-01-29'; // Example date
+        $date = '2025-01-30'; // Example date
         $heure1 = '07:00';
-        $heure2 = '09:00';
+        $heure2 = '12:00';
 
         // Create a PDO connection to the SQL Server database
         $dsn = 'sqlsrv:Server=10.0.2.148;Database=BIOSTAR_TA;TrustServerCertificate=true';
@@ -160,15 +160,39 @@ class EtudiantController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        // Validate the request input
+        $request->validate([
+            'matricule' => 'required|integer|unique:etudiants,matricule',
+            'name' => 'required|string|max:255',
+            'promotion' => 'required|in:1ère annee,2ème annee,3ème annee,4ème annee,5ème annee,6ème annee',
+            'faculte' => 'required|string|max:255',
+        ]);
+
+        // Create a new Etudiant
+        $etudiant = Etudiant::create([
+            'matricule' => $request->input('matricule'),
+            'name' => $request->input('name'),
+            'promotion' => $request->input('promotion'),
+            'faculte' => $request->input('faculte'),
+        ]);
+
+        // Return the newly created Etudiant as a JSON response
+        return response()->json($etudiant, 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show($matricule)
     {
-        //
+        // Fetch the student by matricule
+        $etudiant = Etudiant::where('matricule', $matricule)->first();
+
+        if ($etudiant) {
+            return response()->json($etudiant, 200);
+        } else {
+            return response()->json(['message' => 'Etudiant not found'], 404);
+        }
     }
 
     /**
@@ -182,17 +206,45 @@ class EtudiantController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $matricule)
     {
-        //
+        // Validate the request input
+        $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'promotion' => 'sometimes|required|in:1ère annee,2ème annee,3ème annee,4ème annee,5ème annee,6ème annee',
+            'faculte' => 'sometimes|required|string|max:255',
+        ]);
+
+        // Find the Etudiant by matricule
+        $etudiant = Etudiant::where('matricule', $matricule)->first();
+        if (!$etudiant) {
+            return response()->json(['message' => 'Etudiant not found'], 404);
+        }
+
+        // Update the Etudiant with the new data
+        $etudiant->update($request->only(['name', 'promotion', 'faculte']));
+
+        // Return the updated Etudiant as a JSON response
+        return response()->json($etudiant, 200);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy($matricule)
     {
-        //
+        // Find the Etudiant by matricule
+        $etudiant = Etudiant::where('matricule', $matricule)->first();
+
+        if (!$etudiant) {
+            return response()->json(['message' => 'Etudiant not found'], 404);
+        }
+
+        // Delete the Etudiant
+        $etudiant->delete();
+
+        // Return a success response
+        return response()->json(['message' => 'Etudiant deleted successfully'], 200);
     }
 
     public function importation() {

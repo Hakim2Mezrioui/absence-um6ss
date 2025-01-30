@@ -1,0 +1,11 @@
+title,date,hour_debut,hour_debut_pointage,hour_fin,faculte,promotion,statut
+Examen 1,2025-01-15,08:00:00,07:30:00,09:00:00,Pharmacie,1ère annee,en cours
+Examen 2,2025-01-16,09:00:00,08:30:00,10:00:00,Medcine,2ème annee,en cours
+Examen 3,2025-01-17,10:00:00,09:30:00,11:00:00,Dentaire,3ème annee,archivé
+Examen 4,2025-01-18,11:00:00,10:30:00,12:00:00,Esgb,4ème annee,en cours
+Examen 5,2025-01-19,12:00:00,11:30:00,13:00:00,Informatique,1ère annee,archivé
+Examen 6,2025-01-20,14:00:00,13:30:00,15:00:00,Pharmacie,2ème annee,en cours
+Examen 7,2025-01-21,15:00:00,14:30:00,16:00:00,Dentaire,5ème annee,archivé
+Examen 8,2025-01-22,16:00:00,15:30:00,17:00:00,Esgb,6ème annee,en cours
+Examen 9,2025-01-23,17:00:00,16:30:00,18:00:00,Medcine,3ème annee,archivé
+Examen 10,2025-01-24,18:00:00,17:30:00,19:00:00,Informatique,4ème annee,en cours

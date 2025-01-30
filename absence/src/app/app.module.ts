@@ -28,6 +28,7 @@ import { AuthticatedLayoutComponent } from './components/authticated-layout/auth
 import { ExamensListComponent } from './components/examens-list/examens-list.component';
 import { ListExamenItemComponent } from './components/list-examen-item/list-examen-item.component';
 import { NotFoundComponent } from './components/not-found/not-found.component';
+import { RattrapageComponent } from './components/rattrapage/rattrapage.component';
 
 @NgModule({
   declarations: [
@@ -45,6 +46,7 @@ import { NotFoundComponent } from './components/not-found/not-found.component';
     ListExamenItemComponent,
     AuthticatedLayoutComponent,
     NotFoundComponent,
+    RattrapageComponent,
   ],
   imports: [
     BrowserModule,
@@ -58,7 +60,7 @@ import { NotFoundComponent } from './components/not-found/not-found.component';
     ToastModule,
     CommonModule,
     DropdownModule,
-    RouterModule
+    RouterModule,
   ],
   providers: [MessageService],
   bootstrap: [AppComponent],
