@@ -29,6 +29,7 @@ import { ExamensListComponent } from './components/examens-list/examens-list.com
 import { ListExamenItemComponent } from './components/list-examen-item/list-examen-item.component';
 import { NotFoundComponent } from './components/not-found/not-found.component';
 import { RattrapageComponent } from './components/rattrapage/rattrapage.component';
+import { PaginatorModule } from 'primeng/paginator';
 
 @NgModule({
   declarations: [
@@ -61,6 +62,7 @@ import { RattrapageComponent } from './components/rattrapage/rattrapage.componen
     CommonModule,
     DropdownModule,
     RouterModule,
+    PaginatorModule
   ],
   providers: [MessageService],
   bootstrap: [AppComponent],

@@ -11,6 +11,12 @@
       (input)="handleSearch($event)"
     />
   </div>
+
+  <div class="w-full flex justify-center">
+  <div class="custom-width">
+
+
+
   <p-table
     #dt
     [value]="etudiants"
@@ -25,8 +31,10 @@
     [rows]="10"
     [showCurrentPageReport]="true"
     [rowsPerPageOptions]="[10, 50, 100]"
-    [paginator]="true"
     [globalFilterFields]="['matricule', 'name', 'faculte']"
+    [paginator]="true"
+    paginatorPosition="bottom"
+    
   >
     <!-- <ng-template pTemplate="caption">
     <div class="d-flex justify-content-between">
@@ -96,3 +104,5 @@
       Exporter
     </button>
   </div>
+</div>
+</div>
