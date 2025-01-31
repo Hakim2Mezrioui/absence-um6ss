@@ -1,11 +1,15 @@
 <div class="body">
   <div class="flex justify-between mt-5 mr-5">
     <div></div>
-    <button (click)="goToImportScreen()" class="bg-blue-900 hover:bg-blue-800 active:bg-blue-900 text-white px-5 py-1 rounded">
+    <button
+      (click)="goToImportScreen()"
+      class="bg-blue-900 hover:bg-blue-800 active:bg-blue-900 text-white px-5 py-1 rounded"
+    >
       <i class="bi bi-file-earmark-arrow-down-fill"></i>
-      Importer les Examens</button>
+      Importer les Examens
+    </button>
   </div>
-  <form class="w-1/2 min-w-72">
+  <form class="w-1/2 min-w-72" (submit)="onSubmit(f)" #f="ngForm">
     <div class="relative w-full mb-5 group">
       <input
         type="text"
@@ -24,7 +28,7 @@
     <div class="relative w-full mb-5 group">
       <input
         type="date"
-        name="title"
+        name="date"
         class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-b-2 z-0 appearance-none borde-gray-600 focus:border-green-800 focus:outline-none focus:ring-0 peer"
         placeholder=""
         required
@@ -40,7 +44,7 @@
       <div class="relative w-full mb-5 group">
         <input
           type="time"
-          name="title"
+          name="hour_debut"
           class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-b-2 z-0 appearance-none borde-gray-600 focus:border-green-800 focus:outline-none focus:ring-0 peer"
           placeholder=""
           required
@@ -55,7 +59,7 @@
       <div class="relative w-full mb-5 group">
         <input
           type="time"
-          name="title"
+          name="hour_fin"
           class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-b-2 z-0 appearance-none borde-gray-600 focus:border-green-800 focus:outline-none focus:ring-0 peer"
           placeholder=""
           required
@@ -70,7 +74,7 @@
       <div class="relative w-full mb-5 group">
         <input
           type="time"
-          name="title"
+          name="hour_debut_pointage"
           class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-b-2 z-0 appearance-none borde-gray-600 focus:border-green-800 focus:outline-none focus:ring-0 peer"
           placeholder=""
           required
@@ -87,14 +91,16 @@
       <div class="relative w-full mb-5 group">
         <label for="underline_select" class="sr-only">Underline select</label>
         <select
+          name="faculte"
+          ngModel
           id="underline_select"
           class="block py-2.5 px-0 w-full text-sm text-gray-500 bg-transparent border-b-2 border-gray-200 appearance-none focus:border-b-green-800 focus:outline-none focus:ring-0 focus:border-gray-200 peer"
         >
-          <option selected>Selection la faculte</option>
-          <option value="US">Medcine</option>
-          <option value="CA">Pharmacie</option>
-          <option value="FR">Dentaire</option>
-          <option value="DE">Fsts</option>
+          <option disabled selected>Selection la faculte</option>
+            <option value="Medcine">Medcine</option>
+            <option value="Pharmacie">Pharmacie</option>
+            <option value="Dentaire">Dentaire</option>
+            <option value="Fsts">Fsts</option>
         </select>
         <label
           for="floating_email"
@@ -106,15 +112,17 @@
       <div class="relative w-full mb-5 group">
         <select
           id="underline_select"
+          name="promotion"
+          ngModel
           class="block py-2.5 px-0 w-full text-sm text-gray-500 bg-transparent border-b-2 border-gray-200 appearance-none focus:border-b-green-800 focus:outline-none focus:ring-0 focus:border-gray-200 peer"
         >
-          <option selected>Selection la promotion</option>
-          <option value="US">1ere annee</option>
-          <option value="CA">2ere annee</option>
-          <option value="FR">3ere annee</option>
-          <option value="DE">4ere annee</option>
-          <option value="DE">5ere annee</option>
-          <option value="DE">6ere annee</option>
+          <option disabled selected>Selection la promotion</option>
+            <option value="1ère année">1ère année</option>
+            <option value="2ème année">2ème année</option>
+            <option value="3ème année">3ème année</option>
+            <option value="4ème année">4ème année</option>
+            <option value="5ème année">5ème année</option>
+            <option value="6ème année">6ème année</option>
         </select>
         <label
           for="floating_email"
@@ -125,9 +133,11 @@
       <div class="relative w-full mb-5 group">
         <select
           id="underline_select"
+          name="statut"
+          ngModel
           class="block py-2.5 px-0 w-full text-sm text-gray-500 bg-transparent border-b-2 border-gray-200 appearance-none focus:border-b-green-800 focus:outline-none focus:ring-0 focus:border-gray-200 peer"
         >
-          <option selected>Selection le statut</option>
+          <option disabled selected>Selection le statut</option>
           <option value="en cours">En cours</option>
           <option value="archive">Archivé</option>
         </select>
@@ -139,7 +149,11 @@
       </div>
     </div>
     <div>
-      <button class="border-none bg-green-500 w-full py-1 text-white hover:bg-green-400 active:bg-green-500"><i class="bi bi-send text-sm mr-2"></i>Submit</button>
+      <button
+        class="border-none bg-green-500 w-full py-1 text-white hover:bg-green-400 active:bg-green-500"
+      >
+        <i class="bi bi-send text-sm mr-2"></i>Submit
+      </button>
     </div>
   </form>
 </div>

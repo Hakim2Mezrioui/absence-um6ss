@@ -1,5 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { Examen } from 'src/app/models/Examen';
+import { ExamenService } from 'src/app/services/examen.service';
 
 interface Statut {
   name: string;
@@ -9,26 +11,37 @@ interface Statut {
 @Component({
   selector: 'app-list-examen-item',
   templateUrl: './list-examen-item.component.html',
-  styleUrls: ['./list-examen-item.component.css']
+  styleUrls: ['./list-examen-item.component.css'],
 })
 export class ListExamenItemComponent implements OnInit {
   statut!: Statut[];
   selectedStatut!: Statut;
 
-  constructor(private router: Router) { }
+  @Input('examen') examen!: Examen;
 
-  ngOnInit() {
-    this.statut = [
-        {name: "", code: ""},
-        { name: 'New York', code: 'NY' },
-        { name: 'Rome', code: 'RM' },
-        { name: 'London', code: 'LDN' },
-        { name: 'Istanbul', code: 'IST' },
-        { name: 'Paris', code: 'PRS' }
-    ];
-}
+  constructor(private router: Router, private examenService: ExamenService) {}
+
+  ngOnInit() {}
 
   onExplore() {
     this.router.navigate(['suivi-absence']);
+  }
+
+  convertTimeStringToDate(timeString: string): Date {
+    const [hours, minutes, seconds] = timeString.split(':').map(Number);
+    const date = new Date();
+    date.setHours(hours, minutes, seconds, 0);
+    return date;
+  }
+
+  onArchive(examen: Examen) {
+    this.examenService.archiver(examen).subscribe((response) => {
+      console.log(response);
+    });
+  }
+  onActiver(examen: Examen) {
+    this.examenService.activer(examen).subscribe((response) => {
+      console.log(response);
+    });
   }
 }

@@ -1,56 +1,67 @@
-<div class="examen">
-  <h3 class="font-bold text-md">Examen Anglais Français 1A Licence SN 24-25</h3>
+<div [ngClass]="examen.statut == 'archivé' ? 'bg-red-100' : 'bg-green-100' " class="examen bg-green-100">
+  <h3 [ngClass]="examen.statut == 'archivé' ? 'text-red-800' : 'text-green-800' " class="font-bold text-md">{{ examen.title }}</h3>
   <div class="mt-2 grid grid-cols-4 gap-3 items-start">
     <div>
       <div class="flex justify-between w-36">
         <h6 class="font-bold">Faculte :</h6>
-        <p>Pharmacie</p>
+        <p>{{ examen.faculte }}</p>
       </div>
       <div class="flex justify-between w-36">
         <h6 class="font-bold">Promotion :</h6>
-        <p>1ere annee</p>
+        <p>{{ examen.promotion }}</p>
       </div>
     </div>
     <div>
       <div class="flex justify-between w-36">
         <h6 class="font-bold">Date :</h6>
-        <p>29/01/2025</p>
+        <p>{{ examen.date }}</p>
       </div>
       <div class="flex justify-between w-36">
         <h6 class="font-bold">heurs :</h6>
-        <p>De 7:00 a 8:00</p>
+        <!-- <p>De {{ examen.hour_debut | date: 'HH:mm' }} a {{ examen.hour_fin | date: 'HH:mm' }}</p> -->
+        <p>{{ examen.hour_debut }}-{{ examen.hour_fin }}</p>
       </div>
     </div>
     <div>
       <div class="flex justify-between w-36">
-        <h6 class="font-bold">Debut pointage :</h6>
-        <p>7:00</p>
+        <h6 class="font-bold">pointage :</h6>
+        <p>{{ examen.hour_debut_pointage }}</p>
       </div>
       <div class="flex justify-between w-36">
         <h6 class="font-bold">Statut :</h6>
         <p>
           <span class="relative">
             <span
-              class="absolute -left-1 top-0.5 inline-flex h-1 w-1 animate-ping rounded-full bg-green-500 opacity-75"
+            [ngClass]="examen.statut == 'archivé' ? 'bg-red-500' : 'bg-green-500' "
+              class="absolute -left-1 top-0.5 inline-flex h-1 w-1 animate-ping rounded-full opacity-75"
             ></span>
           </span>
-          <span> En cours </span>
+          <span> {{ examen.statut }} </span>
         </p>
       </div>
     </div>
     <div class="ml-10">
       <button
         (click)="onExplore()"
-        class="explorer bg-green-500 hover:bg-green-400 active:bg-green-500 px-4 py-0 text-white rounded-sm flex justify-center gap-2"
+        class="explorer bg-blue-400 hover:bg-blue-300 active:bg-blue-400 w-32 py-0 text-white rounded-sm flex justify-center gap-2"
       >
         <b>Explorer</b>
         <i class="bi bi-caret-right-fill"></i>
       </button>
       <button
-        (click)="onExplore()"
-        class="explorer mt-0.5 bg-red-500 hover:bg-red-400 active:bg-green-500 px-4 py-0 text-white rounded-sm flex justify-center gap-2"
+        *ngIf="examen.statut == 'en cours'"
+        (click)="onArchive(examen)"
+        class="explorer mt-0.5 bg-red-500 hover:bg-red-400 active:bg-red-500 w-32 py-0 text-white rounded-sm flex justify-center gap-2"
       >
         <b>Archiver</b>
+        <i class="bi bi-archive-fill"></i>
+      </button>
+      <button
+        *ngIf="examen.statut != 'en cours'"
+        (click)="onActiver(examen)"
+        class="explorer mt-0.5 bg-green-500 hover:bg-green-400 active:bg-green-500 w-32 py-0 text-white rounded-sm flex justify-center gap-2"
+      >
+        <b>Activer</b>
         <i class="bi bi-archive-fill"></i>
       </button>
     </div>

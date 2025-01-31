@@ -9,13 +9,24 @@ class ExamenController extends Controller
 {
     function index(Request $request) {
         $size = $request->query('size', 6);
-        $page = $request->query('page', 1);
+        $page = $request->query('page', 1); 
+        $statut = $request->query('statut', ""); 
 
         $skip = ($page - 1) * $size;
 
         $examens = Examen::limit($size)->skip($skip)->get();
+        $total = Examen::count();
+        $totalPages = ceil($total / $size);
 
-        return response()->json(["examens" => $examens, "status" => 200]);
+        if($statut && $statut != "tous") {
+            $examens = Examen::where("statut", $statut)->get();
+        }
+
+        return response()->json([
+            "examens" => $examens,
+            "totalPages" => $totalPages,
+            "status" => 200
+        ]);
     }
 
     function show(Request $request) {
@@ -44,7 +55,7 @@ class ExamenController extends Controller
         $examen = Examen::create($request->all());
 
         // Return the newly created Examen as a JSON response
-        return response()->json($examen, 201);
+        return response()->json(['response' => $examen], 201);
     }
 
     function update(Request $request, $id) {
@@ -65,6 +76,7 @@ class ExamenController extends Controller
         if (!$examen) {
             return response()->json(['message' => 'Examen not found'], 404);
         }
+
 
         // Update the Examen with the new data
         $examen->update($request->only(['title', 'date', 'hour_debut', 'hour_debut_pointage', 'hour_fin', 'faculte', 'promotion', 'statut']));

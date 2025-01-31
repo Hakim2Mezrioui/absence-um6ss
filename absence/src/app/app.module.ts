@@ -30,6 +30,7 @@ import { ListExamenItemComponent } from './components/list-examen-item/list-exam
 import { NotFoundComponent } from './components/not-found/not-found.component';
 import { RattrapageComponent } from './components/rattrapage/rattrapage.component';
 import { PaginatorModule } from 'primeng/paginator';
+import { LoadingComponent } from './components/loading/loading.component';
 
 @NgModule({
   declarations: [
@@ -48,6 +49,7 @@ import { PaginatorModule } from 'primeng/paginator';
     AuthticatedLayoutComponent,
     NotFoundComponent,
     RattrapageComponent,
+    LoadingComponent,
   ],
   imports: [
     BrowserModule,
