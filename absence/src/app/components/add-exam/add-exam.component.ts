@@ -36,7 +36,6 @@ export class AddExamComponent implements OnInit {
     this.examenService.ajouter(examen).subscribe(
       response => {
       console.log('Examen ajouté avec succès', response);
-      this.router.navigate(['/exams']);
       },
       error => {
       console.error('Erreur lors de l\'ajout de l\'examen', error);

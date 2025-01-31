@@ -1,5 +1,22 @@
-<div [ngClass]="examen.statut == 'archivé' ? 'bg-red-100' : 'bg-green-100' " class="examen bg-green-100">
-  <h3 [ngClass]="examen.statut == 'archivé' ? 'text-red-800' : 'text-green-800' " class="font-bold text-md">{{ examen.title }}</h3>
+<div
+class="examen bg-green-100"
+  [ngClass]="[
+    examen.statut == 'archivé' ? 'bg-red-100' : 'bg-green-100',
+    examen.faculte == 'Pharmacie' ? 'border-l-4 border-l-green-800' :
+    examen.faculte == 'Medcine' ? 'border-l-4 border-l-blue-800' :
+    examen.faculte == 'Dentaire' ? 'border-l-4 border-l-violet-500' :
+    examen.faculte == 'Esgb' ? 'border-l-4 border-l-blue-300' :
+    examen.faculte == 'Fsts' ? 'border-l-4 border-l-red-700' :
+    'border-l-4 border-l-blue-800'
+  ]"
+  
+>
+  <h3
+    [ngClass]="examen.statut == 'archivé' ? 'text-red-800' : 'text-green-800'"
+    class="font-bold text-md"
+  >
+    {{ examen.title }}
+  </h3>
   <div class="mt-2 grid grid-cols-4 gap-3 items-start">
     <div>
       <div class="flex justify-between w-36">
@@ -32,7 +49,9 @@
         <p>
           <span class="relative">
             <span
-            [ngClass]="examen.statut == 'archivé' ? 'bg-red-500' : 'bg-green-500' "
+              [ngClass]="
+                examen.statut == 'archivé' ? 'bg-red-500' : 'bg-green-500'
+              "
               class="absolute -left-1 top-0.5 inline-flex h-1 w-1 animate-ping rounded-full opacity-75"
             ></span>
           </span>
