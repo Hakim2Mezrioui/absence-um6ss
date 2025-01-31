@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\EtudiantController;
 use App\Http\Controllers\FaculteController;
 use App\Http\Controllers\ExamenController;
+use App\Http\Controllers\RattrapageController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -38,3 +39,6 @@ Route::delete('/facultes/{id}', [FaculteController::class, 'destroy']);
 
 Route::post("register", [AuthController::class, "register"]);
 Route::post("login", [AuthController::class, "login"]);
+
+Route::post("rattrapage-importation", [RattrapageController::class, "importation"]);
+Route::get("", [RattrapageController::class, "index"]);

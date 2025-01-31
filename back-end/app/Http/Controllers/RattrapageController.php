@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Rattrapage;
 use Illuminate\Http\Request;
-use App\Models\Etudiant;
-use Illuminate\Support\Facades\DB;
 use PDO;
 use PDOException;
 
-class EtudiantController extends Controller
+class RattrapageController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -37,7 +36,7 @@ class EtudiantController extends Controller
             $biostarResults = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             // Fetch students from the local database
-            $localStudents = Etudiant::all();
+            $localStudents = Rattrapage::all();
 
             // Compare the two sets of students
             $faceIdStudents = collect($biostarResults)->pluck('user_name')->toArray();
@@ -56,60 +55,69 @@ class EtudiantController extends Controller
         }
     }
 
-    public function ImportEtudiants(Request $request) {
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        //
+    }
+
+    public function importation(Request $request) {
         if($request->hasFile("file")) {
             $file = $request->file('file');
             $path = $file->getRealPath();
-
+    
             // Open the file for reading
             $handle = fopen($path, 'r');
             if ($handle === false) {
                 return response()->json(['message' => 'Unable to open file'], 400);
             }
-
+    
             // Read the first line to determine the delimiter
             $firstLine = fgets($handle);
             $delimiter = $this->detectDelimiter($firstLine);
-
+    
             // Rewind the file pointer to the beginning of the file
             rewind($handle);
-
+    
             // Parse the CSV file with the detected delimiter
             $data = [];
             while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
                 $data[] = $row;
             }
-
+    
             // Close the file
             fclose($handle);
-
+    
             // Assuming the first row contains the headers
             $header = array_shift($data);
-
+    
             // Ensure the header keys are trimmed and lowercased
             $header = array_map('trim', $header);
             $header = array_map('strtolower', $header);
-
+    
             foreach ($data as $row) {
                 // Ensure the row values are trimmed
                 $row = array_map('trim', $row);
-
+    
                 // Combine the header with the row values
                 $studentData = array_combine($header, $row);
-
+    
                 // Insert the student data into the database
-                Etudiant::create([
+                Rattrapage::create([
                     'matricule' => $studentData['matricule'],
                     'name' => $studentData['name'],
                     'faculte' => $studentData['faculte'],
                     'promotion' => $studentData['promotion'],
                 ]);
             }
-
-            return response()->json(['message' => 'file imported successfully'], 200);
+    
+            return response()->json(['message' => 'Students imported successfully'], 200);
         }
-
+    
         return response()->json(['message' => 'No file uploaded'], 400);
+
     }
 
     private function detectDelimiter($line)
@@ -124,81 +132,10 @@ class EtudiantController extends Controller
         return array_search(max($counts), $counts);
     }
 
-    public function fetchEtudiantByPromotion(Request $request) {
-        $request->validate([
-            'promotion' => 'required|string',
-        ]);
-        
-        $etudiants = Etudiant::where('promotion', $request->input('promotion'))->get();
-        return response()->json(["etudiants" => $etudiants, "status" => 200]);
-    }
-
-    public function fetchEtudiantByFaculte(Request $request)
-    {
-        // Validate the request input
-        $request->validate([
-            'faculte' => 'required|string',
-        ]);
-
-        // Fetch students based on faculte
-        $etudiants = Etudiant::where('faculte', $request->input('faculte'))->get();
-
-        // Return the students as a JSON response
-        return response()->json(["etudiants" => $etudiants, "status" => 200]);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        // Validate the request input
-        $request->validate([
-            'matricule' => 'required|integer|unique:etudiants,matricule',
-            'name' => 'required|string|max:255',
-            'promotion' => 'required|in:1ère annee,2ème annee,3ème annee,4ème annee,5ème annee,6ème annee',
-            'faculte' => 'required|string|max:255',
-        ]);
-
-        // Create a new Etudiant
-        $etudiant = Etudiant::create([
-            'matricule' => $request->input('matricule'),
-            'name' => $request->input('name'),
-            'promotion' => $request->input('promotion'),
-            'faculte' => $request->input('faculte'),
-        ]);
-
-        // Return the newly created Etudiant as a JSON response
-        return response()->json($etudiant, 201);
-    }
-
     /**
      * Display the specified resource.
      */
-    public function show($matricule)
-    {
-        // Fetch the student by matricule
-        $etudiant = Etudiant::where('matricule', $matricule)->first();
-
-        if ($etudiant) {
-            return response()->json($etudiant, 200);
-        } else {
-            return response()->json(['message' => 'Etudiant not found'], 404);
-        }
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function show(Rattrapage $rattrapage)
     {
         //
     }
@@ -206,44 +143,16 @@ class EtudiantController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $matricule)
+    public function update(Request $request, Rattrapage $rattrapage)
     {
-        // Validate the request input
-        $request->validate([
-            'name' => 'sometimes|required|string|max:255',
-            'promotion' => 'sometimes|required|in:1ère annee,2ème annee,3ème annee,4ème annee,5ème annee,6ème annee',
-            'faculte' => 'sometimes|required|string|max:255',
-        ]);
-
-        // Find the Etudiant by matricule
-        $etudiant = Etudiant::where('matricule', $matricule)->first();
-        if (!$etudiant) {
-            return response()->json(['message' => 'Etudiant not found'], 404);
-        }
-
-        // Update the Etudiant with the new data
-        $etudiant->update($request->only(['name', 'promotion', 'faculte']));
-
-        // Return the updated Etudiant as a JSON response
-        return response()->json($etudiant, 200);
+        //
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($matricule)
+    public function destroy(Rattrapage $rattrapage)
     {
-        // Find the Etudiant by matricule
-        $etudiant = Etudiant::where('matricule', $matricule)->first();
-
-        if (!$etudiant) {
-            return response()->json(['message' => 'Etudiant not found'], 404);
-        }
-
-        // Delete the Etudiant
-        $etudiant->delete();
-
-        // Return a success response
-        return response()->json(['message' => 'Etudiant deleted successfully'], 200);
+        //
     }
 }

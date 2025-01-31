@@ -1,14 +1,15 @@
 .custom-width {
-    width: 80em;
+    width: 60vw;
+    overflow-x: hidden;
 }
 
 
 .p-datatable .p-paginator-bottom  {
-    width: 80em;
+    width: 60em;
     background-color: red;
 }
 
 .p-paginator {
-background-color: transparent;
-width: 80em;
+    background-color: transparent;
+    width: 60em;
 }

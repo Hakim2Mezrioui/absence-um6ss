@@ -1,6 +1,6 @@
 <form #f="ngForm" class="mt-5">
-    <div class="flex gap-4 items-center justify-center flex-wrap">
-      <!-- <div class="form-group border-collapse">
+  <div class="flex gap-4 items-center justify-center flex-wrap">
+    <!-- <div class="form-group border-collapse">
       <label
         class="bg-green-50 text-green-700 rounded-t-md px-6 py-2 flex items-center"
         > Année universitaire</label
@@ -18,7 +18,7 @@
         </option>
       </select>
     </div> -->
-      <!-- <div class="form-group border-collapse w-72">
+    <!-- <div class="form-group border-collapse w-72">
         <label
           class="bg-green-50 text-green-700 rounded-t-md px-6 py-2 flex items-center"
           >Ecole</label
@@ -36,7 +36,7 @@
           </option>
         </select>
       </div> -->
-      <!-- <div class="form-group border-collapse w-72">
+    <!-- <div class="form-group border-collapse w-72">
         <label
           class="bg-green-50 text-green-700 rounded-t-md px-6 py-2 flex items-center"
           >Promotion</label
@@ -56,11 +56,33 @@
           </option>
         </select>
       </div> -->
+  </div>
+  <div>
+    <div class="m-auto flex justify-center">
+      <label
+        for="import"
+        class="import-etudiant cursor-pointer flex gap-2 hover:gap-2 bg-green-50 py-1.5 text-green-800 rounded-sm"
+      >
+        <i class="bi bi-upload"></i>
+        <p>Importer Etudiants</p>
+        <input id="import" type="file" class="hidden" />
+      </label>
     </div>
-    <div class="border border-green-50 rounded-md mt-4 px-2 bg-green-50 w-fit m-auto">
-      <input type="time" placeholder="start"  class="bg-green-50 p-2 w-72 outline-none"/>
-      <input type="time" placeholder="end" class="bg-green-50 p-2 w-72 outline-none"/>
+    <div
+      class="border border-green-50 rounded-md mt-4 px-2 bg-green-50 w-fit m-auto"
+    >
+      <input
+        type="time"
+        placeholder="start"
+        class="bg-green-50 p-2 w-72 outline-none"
+      />
+      <input
+        type="time"
+        placeholder="end"
+        class="bg-green-50 p-2 w-72 outline-none"
+      />
     </div>
-  </form>
-  
-  <app-list-presence [promotion]="'1 ere'"></app-list-presence>
+  </div>
+</form>
+
+<app-list-presence [promotion]="'1 ere'"></app-list-presence>
