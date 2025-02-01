@@ -162,7 +162,7 @@ class EtudiantController extends Controller
     {
         // Validate the request input
         $request->validate([
-            'matricule' => 'required|integer|unique:etudiants,matricule',
+            'matricule' => 'required|integer|unique:etudiants,matricule|digits:6',
             'name' => 'required|string|max:255',
             'promotion' => 'required|in:1ère annee,2ème annee,3ème annee,4ème annee,5ème annee,6ème annee',
             'faculte' => 'required|string|max:255',

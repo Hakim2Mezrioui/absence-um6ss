@@ -12,11 +12,11 @@ class RattrapageController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $date = '2025-01-29'; // Example date
-        $heure1 = '07:00';
-        $heure2 = '12:00';
+        $date = $request->input('date', '2025-01-02'); // Default date if not provided
+        $heure1 = $request->input('hour1', '09:00'); // Default start time if not provided
+        $heure2 = $request->input('hour2', '10:00'); // Default end time if not provided
 
         // Create a PDO connection to the SQL Server database
         $dsn = 'sqlsrv:Server=10.0.2.148;Database=BIOSTAR_TA;TrustServerCertificate=true';
@@ -39,10 +39,11 @@ class RattrapageController extends Controller
             $localStudents = Rattrapage::all();
 
             // Compare the two sets of students
-            $faceIdStudents = collect($biostarResults)->pluck('user_name')->toArray();
-            $localStudentNames = $localStudents->pluck('name')->toArray();
+            $faceIdStudents = collect($biostarResults)->pluck('user_id')->toArray();
+            $localStudentMatricules = $localStudents->pluck('matricule')->toArray();
 
-            $studentsWithFaceId = array_intersect($faceIdStudents, $localStudentNames);
+            $studentsWithFaceId = array_intersect($faceIdStudents, $localStudentMatricules);
+            $studentsWithFaceId = array_values($studentsWithFaceId); // Re-index the array
 
             return response()->json([
                 "students_with_face_id" => $studentsWithFaceId,
@@ -96,7 +97,9 @@ class RattrapageController extends Controller
             // Ensure the header keys are trimmed and lowercased
             $header = array_map('trim', $header);
             $header = array_map('strtolower', $header);
-    
+            
+            Rattrapage::truncate();
+
             foreach ($data as $row) {
                 // Ensure the row values are trimmed
                 $row = array_map('trim', $row);

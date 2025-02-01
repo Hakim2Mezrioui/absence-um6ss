@@ -41,4 +41,4 @@ Route::post("register", [AuthController::class, "register"]);
 Route::post("login", [AuthController::class, "login"]);
 
 Route::post("rattrapage-importation", [RattrapageController::class, "importation"]);
-Route::get("", [RattrapageController::class, "index"]);
+Route::get("rattrapage", [RattrapageController::class, "index"]);

@@ -31,8 +31,6 @@ export class AddExamComponent implements OnInit {
       e.form.value.statut
     );
 
-    console.log(examen);
-
     this.examenService.ajouter(examen).subscribe(
       response => {
       console.log('Examen ajouté avec succès', response);

@@ -10,6 +10,8 @@ import { AuthticatedLayoutComponent } from './components/authticated-layout/auth
 import { SuiviAbsenceComponent } from './components/suivi-absence/suivi-absence.component';
 import { NotFoundComponent } from './components/not-found/not-found.component';
 import { RattrapageComponent } from './components/rattrapage/rattrapage.component';
+import { ImportExamensComponent } from './components/import-examens/import-examens.component';
+import { ListPresenceComponent } from './components/list-presence/list-presence.component';
 
 const routes: Routes = [
   {
@@ -29,6 +31,12 @@ const routes: Routes = [
       {
         path: 'rattrapage',
         component: RattrapageComponent,
+        children: [
+          {
+            path: 'suivi',
+            component: ListPresenceComponent,
+          },
+        ],
       },
       {
         path: 'import-etudiants',
@@ -36,7 +44,7 @@ const routes: Routes = [
       },
       {
         path: 'import-examens',
-        component: ImportStudentsComponent,
+        component: ImportExamensComponent,
       },
       {
         path: 'parametrer-examen',

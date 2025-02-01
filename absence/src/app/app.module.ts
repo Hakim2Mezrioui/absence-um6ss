@@ -11,6 +11,8 @@ import { ToastModule } from 'primeng/toast';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { DropdownModule } from 'primeng/dropdown';
+import { ToastrModule } from 'ngx-toastr';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { AppComponent } from './app.component';
 import { LoginComponent } from './components/login/login.component';
@@ -53,6 +55,7 @@ import { LoadingComponent } from './components/loading/loading.component';
   ],
   imports: [
     BrowserModule,
+    BrowserAnimationsModule,
     AppRoutingModule,
     FormsModule,
     TableModule,
@@ -64,7 +67,8 @@ import { LoadingComponent } from './components/loading/loading.component';
     CommonModule,
     DropdownModule,
     RouterModule,
-    PaginatorModule
+    PaginatorModule,
+    ToastrModule.forRoot(),
   ],
   providers: [MessageService],
   bootstrap: [AppComponent],

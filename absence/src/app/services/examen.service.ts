@@ -7,7 +7,6 @@ import { BehaviorSubject, map, Observable, tap } from 'rxjs';
   providedIn: 'root',
 })
 export class ExamenService implements OnInit {
-  // examen: Examen[] = [];
   baseUrl: string = 'http://127.0.0.1:8000/api';
 
   examens: Examen[] = [];
@@ -78,5 +77,9 @@ export class ExamenService implements OnInit {
       promotion: examen.promotion,
       statut: examen.statut,
     });
+  }
+
+  importer(examens: FormData) {
+    return this.http.post(`${this.baseUrl}/import-examens`, examens);
   }
 }

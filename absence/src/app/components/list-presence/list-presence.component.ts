@@ -17,7 +17,7 @@ import { Etudiant } from 'src/app/models/Etudiant';
   styleUrls: ['./list-presence.component.css'],
 })
 export class ListPresenceComponent implements OnInit {
-  etudiants: Etudiant[] = [];
+  // etudiants: Etudiant[] = [];
   @ViewChild('inputFilter') inputerFilter!: ElementRef;
   @ViewChild('dt') dt!: Table;
   
@@ -25,28 +25,31 @@ export class ListPresenceComponent implements OnInit {
 
   @Input("promotion") promotion!: String;
 
+  @Input("etudiants") etudiants: Etudiant[] = []; 
+  @Input("toto") studiantsWithFaceId: number[] = [];
+
   ngOnInit(): void {
-    this.http
-      .get('assets/core/etudiants.json', { responseType: 'text' })
-      .pipe(
-        map((data: any) => {
-          return JSON.parse(data).map(
-            (etudiant: any) =>
-              ({
-                matricule: etudiant.matricule,
-                name: etudiant.name,
-                faculte: etudiant.faculte,
-                promotion: etudiant.promotion,
-              } as Etudiant)
-          );
-        }),
-        tap((etudiants: Etudiant[]) => {
-          this.etudiants = etudiants;
-        })
-      )
-      .subscribe(() => {
-        // console.log(this.etudiants);
-      });
+    // this.http
+    //   .get('assets/core/etudiants.json', { responseType: 'text' })
+    //   .pipe(
+    //     map((data: any) => {
+    //       return JSON.parse(data).map(
+    //         (etudiant: any) =>
+    //           ({
+    //             matricule: etudiant.matricule,
+    //             name: etudiant.name,
+    //             faculte: etudiant.faculte,
+    //             promotion: etudiant.promotion,
+    //           } as Etudiant)
+    //       );
+    //     }),
+    //     tap((etudiants: Etudiant[]) => {
+    //       this.etudiants = etudiants;
+    //     })
+    //   )
+    //   .subscribe(() => {
+    //     // console.log(this.etudiants);
+    //   });
   }
 
   clear(table: Table) {
