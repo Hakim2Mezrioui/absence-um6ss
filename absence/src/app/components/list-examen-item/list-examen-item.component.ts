@@ -1,3 +1,4 @@
+import { Location } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Examen } from 'src/app/models/Examen';
@@ -19,7 +20,11 @@ export class ListExamenItemComponent implements OnInit {
 
   @Input('examen') examen!: Examen;
 
-  constructor(private router: Router, private examenService: ExamenService) {}
+  constructor(
+    private router: Router,
+    private examenService: ExamenService,
+    private location: Location
+  ) {}
 
   ngOnInit() {}
 
@@ -36,12 +41,19 @@ export class ListExamenItemComponent implements OnInit {
 
   onArchive(examen: Examen) {
     this.examenService.archiver(examen).subscribe((response) => {
-      console.log(response);
+      this.reloadCurrentRoute();
     });
   }
   onActiver(examen: Examen) {
     this.examenService.activer(examen).subscribe((response) => {
-      console.log(response);
+      this.reloadCurrentRoute();
+    });
+  }
+
+  private reloadCurrentRoute() {
+    const currentUrl = this.router.url;
+    this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+      this.router.navigate([currentUrl]);
     });
   }
 }

@@ -13,7 +13,7 @@ export class ImportStudentsComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private messageService: MessageService,
-    private startupService: StartupService,
+    private startupService: StartupService
   ) {}
   uploadedFiles: any[] = [];
 
@@ -32,23 +32,27 @@ export class ImportStudentsComponent implements OnInit {
       const file: File = input.files[0];
       const formData = new FormData();
       formData.append('file', file, file.name);
-      console.log(file)
-      this.http.post(`${this.startupService.baseUrl}/import-etudiants`, formData).subscribe(
-        (response) => {
-          this.messageService.add({
-            severity: 'info',
-            summary: 'File Uploaded',
-            detail: 'File has been uploaded successfully',
-          });
-        },
-        (error) => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Upload Error',
-            detail: 'Error uploading file',
-          });
-        }
-      );
+      console.log(file);
+      this.http
+        .post(`${this.startupService.baseUrl}/import-etudiants`, formData)
+        .subscribe(
+          (response) => {
+            this.messageService.add({
+              severity: 'info',
+              summary: 'File Uploaded',
+              detail: 'File has been uploaded successfully',
+            });
+            input.value = '';
+          },
+          (error) => {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Upload Error',
+              detail: 'Error uploading file',
+            });
+            input.value = '';
+          }
+        );
     }
   }
 }
