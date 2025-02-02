@@ -14,13 +14,16 @@ class ExamenController extends Controller
 
         $skip = ($page - 1) * $size;
 
-        $examens = Examen::limit($size)->skip($skip)->get();
-        $total = Examen::count();
-        $totalPages = ceil($total / $size);
-
         if($statut && $statut != "tous") {
-            $examens = Examen::where("statut", $statut)->get();
+            $examens = Examen::where("statut", $statut)->limit($size)->skip($skip)->get();
+            $total = Examen::where('statut', $statut)->count();
+            $totalPages = ceil($total / $size);
+        } else {
+            $examens = Examen::limit($size)->skip($skip)->get();
+            $total = Examen::count();
+            $totalPages = ceil($total / $size);
         }
+
 
         return response()->json([
             "examens" => $examens,

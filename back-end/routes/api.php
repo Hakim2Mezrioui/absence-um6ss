@@ -20,7 +20,7 @@ Route::get("etudiant/{matricule}", [EtudiantController::class, "show"]);
 Route::post("add-etudiant", [EtudiantController::class, "store"]);
 Route::put('/update-etudiant/{matricule}', [EtudiantController::class, 'update']);
 Route::delete('/delete-etudiants/{matricule}', [EtudiantController::class, 'destroy']);
-
+Route::get("/fetch-etudiants", [EtudiantController::class, "fetchEtudiants"]);
 
 Route::get("examens", [ExamenController::class, "index"]);
 Route::post("create-exam", [ExamenController::class, "store"]);

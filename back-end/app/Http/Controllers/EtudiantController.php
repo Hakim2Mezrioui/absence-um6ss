@@ -246,4 +246,9 @@ class EtudiantController extends Controller
         // Return a success response
         return response()->json(['message' => 'Etudiant deleted successfully'], 200);
     }
+
+    public function fetchEtudiants() {
+        $etudiants = Etudiant::all();
+        return response()->json(["etudiants" => $etudiants], 200);
+    }
 }

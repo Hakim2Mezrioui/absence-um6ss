@@ -69,8 +69,7 @@ export class ListPresenceComponent implements OnInit {
 
   handleSearch(e: Event) {
     const value = (e.target as HTMLInputElement).value;
-
-    this.dt.filter(value, 'name', 'contains');
+    this.dt.filterGlobal(value, 'contains');
   }
 
   handleFilter(e: Event) {

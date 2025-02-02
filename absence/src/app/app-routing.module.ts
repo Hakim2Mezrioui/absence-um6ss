@@ -14,6 +14,7 @@ import { ImportExamensComponent } from './components/import-examens/import-exame
 import { ListPresenceComponent } from './components/list-presence/list-presence.component';
 import { PreventUnsavedChangesGuardGuard } from './guards/prevent-unsaved-changes-guard.guard';
 import { ExamenFormGuard } from './guards/examen-form.guard';
+import { EtudiantsComponent } from './components/etudiants/etudiants.component';
 
 const routes: Routes = [
   {
@@ -71,6 +72,10 @@ const routes: Routes = [
         path: 'suivi-absence',
         component: SuiviAbsenceComponent,
       },
+      {
+        path: 'etudiants',
+        component: EtudiantsComponent,
+      }
     ],
   },
   {

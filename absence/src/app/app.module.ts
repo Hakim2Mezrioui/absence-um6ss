@@ -33,6 +33,7 @@ import { NotFoundComponent } from './components/not-found/not-found.component';
 import { RattrapageComponent } from './components/rattrapage/rattrapage.component';
 import { PaginatorModule } from 'primeng/paginator';
 import { LoadingComponent } from './components/loading/loading.component';
+import { EtudiantsComponent } from './components/etudiants/etudiants.component';
 
 @NgModule({
   declarations: [
@@ -52,6 +53,7 @@ import { LoadingComponent } from './components/loading/loading.component';
     NotFoundComponent,
     RattrapageComponent,
     LoadingComponent,
+    EtudiantsComponent,
   ],
   imports: [
     BrowserModule,

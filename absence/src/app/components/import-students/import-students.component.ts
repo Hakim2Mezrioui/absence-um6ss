@@ -2,6 +2,8 @@ import { StartupService } from './../../services/startup.service';
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { MessageService } from 'primeng/api';
+import { ToastrService } from 'ngx-toastr';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-import-students',
@@ -13,7 +15,9 @@ export class ImportStudentsComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private messageService: MessageService,
-    private startupService: StartupService
+    private startupService: StartupService,
+    private toast: ToastrService,
+    private router: Router
   ) {}
   uploadedFiles: any[] = [];
 
@@ -26,6 +30,7 @@ export class ImportStudentsComponent implements OnInit {
   ngOnInit(): void {}
 
   onSubmit() {}
+
   onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
@@ -37,20 +42,13 @@ export class ImportStudentsComponent implements OnInit {
         .post(`${this.startupService.baseUrl}/import-etudiants`, formData)
         .subscribe(
           (response) => {
-            this.messageService.add({
-              severity: 'info',
-              summary: 'File Uploaded',
-              detail: 'File has been uploaded successfully',
-            });
-            input.value = '';
+            this.toast.success('File has been uploaded successfully');
+            input.value = ''; // Reset the input
+            this.router.navigate(['etudiants']);
           },
           (error) => {
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Upload Error',
-              detail: 'Error uploading file',
-            });
-            input.value = '';
+            this.toast.error('Error uploading file');
+            input.value = ''; // Reset the input
           }
         );
     }

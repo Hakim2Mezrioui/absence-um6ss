@@ -1,7 +1,8 @@
+import { StartupService } from './startup.service';
 import { HttpClient } from '@angular/common/http';
 import { Injectable, OnInit } from '@angular/core';
 import { Examen } from '../models/Examen';
-import { BehaviorSubject, map, Observable, tap } from 'rxjs';
+import { BehaviorSubject, map, Observable, ReplaySubject, tap } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -15,8 +16,12 @@ export class ExamenService implements OnInit {
 
   loading = new BehaviorSubject<boolean>(false);
 
-  constructor(private http: HttpClient) {}
+  // actualPage = new ReplaySubject();
+  actualPage = new BehaviorSubject<number>(1);
 
+  statutActual = new BehaviorSubject<String>('en cours');
+
+  constructor(private http: HttpClient) {}
   ngOnInit(): void {}
 
   fetchExamens(
@@ -24,6 +29,7 @@ export class ExamenService implements OnInit {
     statut: String = 'tous'
   ): Observable<Examen[]> {
     this.loading.next(true);
+    this.actualPage.next(page);
     return this.http
       .get<{ examens: any[]; totalPages: number }>(
         `${this.baseUrl}/examens?page=${page}&statut=${statut}`
@@ -41,7 +47,7 @@ export class ExamenService implements OnInit {
               item.faculte,
               item.promotion,
               item.statut,
-              item.id,
+              item.id
             );
           });
         }),
