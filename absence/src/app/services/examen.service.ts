@@ -19,7 +19,7 @@ export class ExamenService implements OnInit {
   // actualPage = new ReplaySubject();
   actualPage = new BehaviorSubject<number>(1);
 
-  statutActual = new BehaviorSubject<String>('en cours');
+  statutActual = new BehaviorSubject<String>('tous');
 
   constructor(private http: HttpClient) {}
   ngOnInit(): void {}

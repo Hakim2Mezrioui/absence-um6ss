@@ -9,7 +9,7 @@ import { TableModule } from 'primeng/table';
 import { FileUploadModule } from 'primeng/fileupload';
 import { ToastModule } from 'primeng/toast';
 import { CommonModule } from '@angular/common';
-import { HttpClientModule } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { DropdownModule } from 'primeng/dropdown';
 import { ToastrModule } from 'ngx-toastr';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -34,7 +34,7 @@ import { RattrapageComponent } from './components/rattrapage/rattrapage.componen
 import { PaginatorModule } from 'primeng/paginator';
 import { LoadingComponent } from './components/loading/loading.component';
 import { EtudiantsComponent } from './components/etudiants/etudiants.component';
-
+import { TokenInterceptor } from './token.interceptor';
 @NgModule({
   declarations: [
     AppComponent,
@@ -72,7 +72,10 @@ import { EtudiantsComponent } from './components/etudiants/etudiants.component';
     PaginatorModule,
     ToastrModule.forRoot(),
   ],
-  providers: [MessageService],
+  providers: [
+    MessageService,
+    { provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true },
+  ],
   bootstrap: [AppComponent],
 })
 export class AppModule {}
