@@ -29,10 +29,18 @@ export class ImportExamensComponent implements OnInit {
       formData.append('file', file, file.name);
       this.examenService.importer(formData).subscribe(
         (response) => {
-          console.log("sucess");
+          this.messageService.add({
+            severity: 'info',
+            summary: 'File Uploaded',
+            detail: 'File has been uploaded successfully',
+          });
         },
         (error) => {
-          console.log("warning");
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Upload Error',
+            detail: 'Error uploading file',
+          });
         }
       );
     }

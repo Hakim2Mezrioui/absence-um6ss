@@ -12,6 +12,8 @@ import { NotFoundComponent } from './components/not-found/not-found.component';
 import { RattrapageComponent } from './components/rattrapage/rattrapage.component';
 import { ImportExamensComponent } from './components/import-examens/import-examens.component';
 import { ListPresenceComponent } from './components/list-presence/list-presence.component';
+import { PreventUnsavedChangesGuardGuard } from './guards/prevent-unsaved-changes-guard.guard';
+import { ExamenFormGuard } from './guards/examen-form.guard';
 
 const routes: Routes = [
   {
@@ -49,10 +51,13 @@ const routes: Routes = [
       {
         path: 'parametrer-examen',
         component: AddExamComponent,
+        canDeactivate: [ExamenFormGuard]
       },
       {
         path: 'add-etudiant',
         component: AddEtudiantComponent,
+        canDeactivate: [PreventUnsavedChangesGuardGuard]
+        
       },
       {
         path: 'list-examen-item',

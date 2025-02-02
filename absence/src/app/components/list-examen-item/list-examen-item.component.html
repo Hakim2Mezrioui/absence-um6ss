@@ -61,6 +61,7 @@ class="examen bg-green-100"
     </div>
     <div class="ml-10">
       <button
+        *ngIf="examen.statut == 'en cours'"
         (click)="onExplore()"
         class="explorer bg-blue-400 hover:bg-blue-300 active:bg-blue-400 w-32 py-0 text-white rounded-sm flex justify-center gap-2"
       >
