@@ -11,25 +11,57 @@ class ExamenController extends Controller
         $size = $request->query('size', 6);
         $page = $request->query('page', 1); 
         $statut = $request->query('statut', ""); 
+        $faculte = $request->query("faculte", "");
 
         $skip = ($page - 1) * $size;
 
-        if($statut && $statut != "tous") {
-            $examens = Examen::where("statut", $statut)->limit($size)->skip($skip)->get();
-            $total = Examen::where('statut', $statut)->count();
-            $totalPages = ceil($total / $size);
-        } else {
-            $examens = Examen::limit($size)->skip($skip)->get();
-            $total = Examen::count();
-            $totalPages = ceil($total / $size);
+        $query = Examen::query();
+
+        // Appliquer le filtre sur le statut si nécessaire
+        if (!empty($statut) && $statut !== "tous") {
+            $query->where("statut", $statut);
         }
 
+        // Appliquer le filtre sur la faculté si nécessaire
+        if (!empty($faculte) && $faculte !== "toutes") {
+            $query->where("faculte", $faculte);
+        }
 
+        // Obtenir le total des résultats avant la pagination
+        $total = $query->count();
+
+        // Appliquer la pagination
+        $examens = $query->limit($size)->skip($skip)->get();
+
+        // Calcul du nombre total de pages
+        $totalPages = ($size > 0) ? ceil($total / $size) : 1;
+
+        // Retourner la réponse JSON
         return response()->json([
             "examens" => $examens,
             "totalPages" => $totalPages,
+            "total" => $total, // Ajout pour debug si nécessaire
             "status" => 200
         ]);
+
+
+        // if($statut && $statut != "tous") {
+        //     $examens = Examen::where("statut", $statut)->limit($size)->skip($skip)->get();
+        //     $total = Examen::where('statut', $statut)->count();
+        //     $totalPages = ceil($total / $size);
+        // } 
+        // else {
+        //     $examens = Examen::limit($size)->skip($skip)->get();
+        //     $total = Examen::count();
+        //     $totalPages = ceil($total / $size);
+        // }
+
+
+        // return response()->json([
+        //     "examens" => $examens,
+        //     "totalPages" => $totalPages,
+        //     "status" => 200
+        // ]);
     }
 
     function show(Request $request) {

@@ -51,9 +51,11 @@ export class ListExamenItemComponent implements OnInit {
           console.log(response.local_students);
 
           this.isLoading = false;
-          this.studiantsWithFaceId = response.students_with_face_id;
+          // this.studiantsWithFaceId = response.students_with_face_id;
           this.localStudents = response.local_students;
-          console.log(this.studiantsWithFaceId);
+          // console.log(this.studiantsWithFaceId);
+          this.examenService.localStudents.next(this.localStudents);
+          this.router.navigate(['suivi-absence']);
         },
         (error) => {
           this.isLoading = false;

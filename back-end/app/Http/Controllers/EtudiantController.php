@@ -22,36 +22,40 @@ class EtudiantController extends Controller
         $promotion = $request->input("promotion", "1ère annee");
 
         // Create a PDO connection to the SQL Server database
-        $dsn = 'sqlsrv:Server=10.0.2.148;Database=BIOSTAR_TA;TrustServerCertificate=true';
-        $username = 'dbuser';
-        $password = 'Driss@2024';
+        // $dsn = 'sqlsrv:Server=10.0.2.148;Database=BIOSTAR_TA;TrustServerCertificate=true';
+        // $username = 'dbuser';
+        // $password = 'Driss@2024';
 
         try {
-            $pdo = new PDO($dsn, $username, $password);
-            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            // $pdo = new PDO($dsn, $username, $password);
+            // $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-            // Execute the query using PDO
-            $sql = "SELECT * FROM punchlog WHERE CAST(bsevtdt AS date) = :date AND FORMAT(bsevtdt, 'HH:mm') BETWEEN :heure1 AND :heure2 AND devnm NOT LIKE 'TOUR%' AND devnm NOT LIKE 'ACCES HCK%'";
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute(['date' => $date, 'heure1' => $heure1, 'heure2' => $heure2]);
+            // // Execute the query using PDO
+            // $sql = "SELECT * FROM punchlog WHERE CAST(bsevtdt AS date) = :date AND FORMAT(bsevtdt, 'HH:mm') BETWEEN :heure1 AND :heure2 AND devnm NOT LIKE 'TOUR%' AND devnm NOT LIKE 'ACCES HCK%'";
+            // $stmt = $pdo->prepare($sql);
+            // $stmt->execute(['date' => $date, 'heure1' => $heure1, 'heure2' => $heure2]);
 
-            // Fetch the results
-            $biostarResults = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            // // Fetch the results
+            // $biostarResults = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            // Fetch students from the local database
-            $localStudents = Etudiant::where("faculte", $faculte)->where("promotion", $promotion)->get();
+            // // Fetch students from the local database
+            // $localStudents = Etudiant::where("faculte", $faculte)->where("promotion", $promotion)->get();
 
-            // Compare the two sets of students
-            $faceIdStudents = collect($biostarResults)->pluck('user_name')->toArray();
-            $localStudentNames = $localStudents->pluck('name')->toArray();
+            // // Compare the two sets of students
+            // $faceIdStudents = collect($biostarResults)->pluck('user_name')->toArray();
+            // $localStudentNames = $localStudents->pluck('name')->toArray();
 
-            $studentsWithFaceId = array_intersect($faceIdStudents, $localStudentNames);
+            // $studentsWithFaceId = array_intersect($faceIdStudents, $localStudentNames);
 
-            return response()->json([
-                "students_with_face_id" => $studentsWithFaceId,
-                "biostar_results" => $biostarResults,
-                "local_students" => $localStudents
-            ], 200);
+            // return response()->json([
+            //     "students_with_face_id" => $studentsWithFaceId,
+            //     "biostar_results" => $biostarResults,
+            //     "local_students" => $localStudents
+            // ], 200);
+            
+            $local_students = Etudiant::where("faculte", strtolower($faculte))->where("promotion", $promotion)->get();
+
+            return response()->json(["local_students" => $local_students]);
 
         } catch (PDOException $e) {
             return response()->json(['error' => $e->getMessage()], 500);

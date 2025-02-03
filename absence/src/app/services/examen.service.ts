@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, OnInit } from '@angular/core';
 import { Examen } from '../models/Examen';
 import { BehaviorSubject, map, Observable, ReplaySubject, tap } from 'rxjs';
+import { Etudiant } from '../models/Etudiant';
 
 @Injectable({
   providedIn: 'root',
@@ -20,19 +21,24 @@ export class ExamenService implements OnInit {
   actualPage = new BehaviorSubject<number>(1);
 
   statutActual = new BehaviorSubject<String>('tous');
+  faculteActual = new BehaviorSubject<String>('toutes');
+
+  localStudents = new BehaviorSubject<Etudiant[]>([]);
+  // studiantsWithFaceId = new BehaviorSubject<Etudiant[]>([]);
 
   constructor(private http: HttpClient) {}
   ngOnInit(): void {}
 
   fetchExamens(
     page: number = 1,
-    statut: String = 'tous'
+    statut: String = 'tous',
+    faculte: String = 'toutes',
   ): Observable<Examen[]> {
     this.loading.next(true);
     this.actualPage.next(page);
     return this.http
       .get<{ examens: any[]; totalPages: number }>(
-        `${this.baseUrl}/examens?page=${page}&statut=${statut}`
+        `${this.baseUrl}/examens?page=${page}&statut=${statut}&faculte=${faculte}`
       )
       .pipe(
         map((response) => {
@@ -68,7 +74,7 @@ export class ExamenService implements OnInit {
     return this.http.get(
       `${this.baseUrl}/etudiants?hour1=${data.hour1}&hour2=${
         data.hour2
-      }&date=${this.formatDate(data.date)}&faculte=${data.faculte}`
+      }&date=${this.formatDate(data.date)}&faculte=${data.faculte}&promotion=${data.promotion}`
     );
   }
 

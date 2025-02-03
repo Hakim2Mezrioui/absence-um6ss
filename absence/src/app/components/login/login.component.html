@@ -2,7 +2,7 @@
 
 <form #f="ngForm" (submit)="onSubmit()" class="loginForm">
   <div class="side-form">
-    <img src="../../../assets/images/logo_um6ss.png" alt="" class="logo">
+    <img src="../../../assets/images/logo_um6ss.png" alt="" class="logo" />
   </div>
   <div class="content-form">
     <div>
@@ -29,7 +29,9 @@
       />
     </div>
     <div class="form-action">
-        <button>LOGIN</button>
+      <button>LOGIN</button>
     </div>
   </div>
 </form>
+
+<app-loading *ngIf="loading"></app-loading>

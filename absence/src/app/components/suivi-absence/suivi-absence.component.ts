@@ -1,3 +1,4 @@
+import { ExamenService } from 'src/app/services/examen.service';
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { Etudiant } from 'src/app/models/Etudiant';
@@ -14,30 +15,40 @@ export class SuiviAbsenceComponent implements OnInit {
   @ViewChild('inputFilter') inputerFilter!: ElementRef;
   @ViewChild('dt') dt!: Table;
 
-  constructor(private http: HttpClient) { }
+  localStudents: Etudiant[] = [];
+  studiantsWithFaceId: Etudiant[] = [];
+
+  constructor(private http: HttpClient, private examenService: ExamenService) { }
 
   ngOnInit(): void {
-    this.http
-      .get('assets/core/etudiants.json', { responseType: 'text' })
-      .pipe(
-        map((data: any) => {
-          return JSON.parse(data).map(
-            (etudiant: any) =>
-              ({
-                matricule: etudiant.matricule,
-                name: etudiant.name,
-                faculte: etudiant.faculte,
-                promotion: etudiant.promotion,
-              } as Etudiant)
-          );
-        }),
-        tap((etudiants: Etudiant[]) => {
-          this.etudiants = etudiants;
-        })
-      )
-      .subscribe(() => {
-        // console.log(this.etudiants);
-      });
+    // this.http
+    //   .get('assets/core/etudiants.json', { responseType: 'text' })
+    //   .pipe(
+    //     map((data: any) => {
+    //       return JSON.parse(data).map(
+    //         (etudiant: any) =>
+    //           ({
+    //             matricule: etudiant.matricule,
+    //             name: etudiant.name,
+    //             faculte: etudiant.faculte,
+    //             promotion: etudiant.promotion,
+    //           } as Etudiant)
+    //       );
+    //     }),
+    //     tap((etudiants: Etudiant[]) => {
+    //       this.etudiants = etudiants;
+    //     })
+    //   )
+    //   .subscribe(() => {
+    //     // console.log(this.etudiants);
+    //   });
+
+    this.examenService.localStudents.subscribe(value => this.localStudents = value);
+  }
+
+  handleSearch(e: Event) {
+    const value = (e.target as HTMLInputElement).value;
+    this.dt.filterGlobal(value, 'contains');
   }
 
   handleExport() {

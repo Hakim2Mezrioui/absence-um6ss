@@ -1,10 +1,24 @@
+<div class="form-group border-collapse m-auto my-4" style="width: 37em">
+  <label
+    for="search"
+    class="bg-green-50 text-green-700 rounded-t-md px-6 py-2 flex items-center"
+    >Search ...</label
+  >
+  <input
+    id="search"
+    class="bg-green-50 text-green-700 rounded-b-md px-6 py-2 flex items-center outline-none w-full"
+    #valSearch
+    (input)="handleSearch($event)"
+  />
+</div>
+
 <div class="w-full flex justify-center">
 
   <div class="custom-width">
   
     <p-table
     #dt
-    [value]="etudiants"
+    [value]="localStudents"
     dataKey="id"
     editMode="row"
     [tableStyle]="{
