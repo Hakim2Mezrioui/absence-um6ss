@@ -25,8 +25,8 @@ export class ListPresenceComponent implements OnInit {
 
   @Input("promotion") promotion!: String;
 
-  @Input("etudiants") etudiants: Etudiant[] = []; 
-  @Input("toto") studiantsWithFaceId: number[] = [];
+  @Input("etudiants") etudiants: Etudiant[] = [];
+  @Input("studiantsWithFaceId") studiantsWithFaceId: String[] = [];
 
   ngOnInit(): void {
     // this.http
@@ -50,6 +50,10 @@ export class ListPresenceComponent implements OnInit {
     //   .subscribe(() => {
     //     // console.log(this.etudiants);
     //   });
+  }
+
+  checkEtudiantMatricule(matricule: String): boolean {
+    return this.studiantsWithFaceId.includes(matricule.toString());
   }
 
   clear(table: Table) {

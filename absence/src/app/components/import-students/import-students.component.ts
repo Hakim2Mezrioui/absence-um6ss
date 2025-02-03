@@ -12,6 +12,7 @@ import { Router } from '@angular/router';
   providers: [MessageService],
 })
 export class ImportStudentsComponent implements OnInit {
+  loading: boolean = false;
   constructor(
     private http: HttpClient,
     private messageService: MessageService,
@@ -32,6 +33,7 @@ export class ImportStudentsComponent implements OnInit {
   onSubmit() {}
 
   onFileSelected(event: Event) {
+    this.loading = true;
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       const file: File = input.files[0];
@@ -42,11 +44,13 @@ export class ImportStudentsComponent implements OnInit {
         .post(`${this.startupService.baseUrl}/import-etudiants`, formData)
         .subscribe(
           (response) => {
+            this.loading = false;
             this.toast.success('File has been uploaded successfully');
             input.value = ''; // Reset the input
             this.router.navigate(['etudiants']);
           },
           (error) => {
+            this.loading = false;
             this.toast.error('Error uploading file');
             input.value = ''; // Reset the input
           }

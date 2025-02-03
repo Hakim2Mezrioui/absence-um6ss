@@ -25,4 +25,8 @@ export class AuthService {
 
     return this.http.post(url, body, { headers });
   }
+
+  // logout() {
+  //   return this.http.post(`${this.baseUrl}/logout`);
+  // }
 }

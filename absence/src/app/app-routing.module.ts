@@ -15,6 +15,7 @@ import { ListPresenceComponent } from './components/list-presence/list-presence.
 import { PreventUnsavedChangesGuardGuard } from './guards/prevent-unsaved-changes-guard.guard';
 import { ExamenFormGuard } from './guards/examen-form.guard';
 import { EtudiantsComponent } from './components/etudiants/etudiants.component';
+import { AuthGard } from './guards/auth.guard';
 
 const routes: Routes = [
   {
@@ -30,6 +31,7 @@ const routes: Routes = [
   {
     path: '',
     component: AuthticatedLayoutComponent,
+    canActivate: [AuthGard],
     children: [
       {
         path: 'rattrapage',
@@ -52,13 +54,12 @@ const routes: Routes = [
       {
         path: 'parametrer-examen',
         component: AddExamComponent,
-        canDeactivate: [ExamenFormGuard]
+        canDeactivate: [ExamenFormGuard],
       },
       {
         path: 'add-etudiant',
         component: AddEtudiantComponent,
-        canDeactivate: [PreventUnsavedChangesGuardGuard]
-        
+        canDeactivate: [PreventUnsavedChangesGuardGuard],
       },
       {
         path: 'list-examen-item',
@@ -75,7 +76,7 @@ const routes: Routes = [
       {
         path: 'etudiants',
         component: EtudiantsComponent,
-      }
+      },
     ],
   },
   {

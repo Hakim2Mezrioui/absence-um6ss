@@ -13,13 +13,16 @@ export class EtudiantsComponent implements OnInit {
   @ViewChild('dt') dt!: Table;
 
   etudiants: Etudiant[] = [];
+  loading: boolean = false;
 
   constructor(private etudiantService: EtudiantService) {}
 
   ngOnInit(): void {
-    this.etudiantService
-      .fetch()
-      .subscribe((etudiants) => (this.etudiants = etudiants));
+    this.loading = true;
+    this.etudiantService.fetch().subscribe((etudiants) => {
+      this.etudiants = etudiants;
+      this.loading = false;
+    });
   }
 
   handleSearch(e: Event) {

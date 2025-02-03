@@ -35,6 +35,7 @@ import { PaginatorModule } from 'primeng/paginator';
 import { LoadingComponent } from './components/loading/loading.component';
 import { EtudiantsComponent } from './components/etudiants/etudiants.component';
 import { TokenInterceptor } from './token.interceptor';
+
 @NgModule({
   declarations: [
     AppComponent,

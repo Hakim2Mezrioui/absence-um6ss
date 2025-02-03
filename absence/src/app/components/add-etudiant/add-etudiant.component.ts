@@ -12,7 +12,8 @@ import { ToastrService } from 'ngx-toastr';
   styleUrls: ['./add-etudiant.component.css'],
 })
 export class AddEtudiantComponent implements OnInit {
-  @ViewChild("f") form!: NgForm;
+  @ViewChild('f') form!: NgForm;
+  loading: boolean = false;
 
   constructor(
     private router: Router,
@@ -27,12 +28,20 @@ export class AddEtudiantComponent implements OnInit {
   }
 
   validateData(): boolean {
-    if (!this.form.value.name || !this.form.value.matricule || !this.form.value.promotion || !this.form.value.faculte) {
+    if (
+      !this.form.value.name ||
+      !this.form.value.matricule ||
+      !this.form.value.promotion ||
+      !this.form.value.faculte
+    ) {
       this.toastr.error('All fields are required!', 'Validation Error');
       return false;
     }
     if (this.form.value.matricule.toString().length < 6) {
-      this.toastr.error('Matricule must be at least 6 characters long!', 'Validation Error');
+      this.toastr.error(
+        'Matricule must be at least 6 characters long!',
+        'Validation Error'
+      );
       return false;
     }
     return true;
@@ -42,6 +51,7 @@ export class AddEtudiantComponent implements OnInit {
     if (!this.validateData()) {
       return;
     }
+    this.loading = true;
     const etudiant = new Etudiant(
       this.form.value.matricule,
       this.form.value.name,
@@ -50,12 +60,14 @@ export class AddEtudiantComponent implements OnInit {
     );
 
     this.etudiantService.ajouter(etudiant).subscribe(
-      response => {
+      (response) => {
+        this.loading = false;
         this.toastr.success('Etudiant ajouté avec succès', 'Success');
         this.router.navigate(['examens-list']);
       },
-      error => {
-        this.toastr.error('Erreur lors de l\'ajout de l\'etudiant', 'Error');
+      (error) => {
+        this.loading = false;
+        this.toastr.error("Erreur lors de l'ajout de l'etudiant", 'Error');
       }
     );
   }

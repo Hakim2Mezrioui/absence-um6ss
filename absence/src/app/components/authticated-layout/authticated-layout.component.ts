@@ -12,4 +12,6 @@ export class AuthticatedLayoutComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  
+
 }

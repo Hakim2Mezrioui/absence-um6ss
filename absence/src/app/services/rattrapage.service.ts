@@ -13,9 +13,9 @@ export class RattrapageService {
     return this.http.post(`${this.baseUrl}/rattrapage-importation`, file);
   }
 
-  suivi(data: { hour1: string; hour2: string; date: string }) {
+  suivi(data: { hour1: string; hour2: string; date: string, faculte: String }) {
     return this.http.get(
-      `${this.baseUrl}/rattrapage?hour1=${data.hour1}&hour2=${data.hour2}&date=${this.formatDate(data.date)}`
+      `${this.baseUrl}/rattrapage?hour1=${data.hour1}&hour2=${data.hour2}&date=${this.formatDate(data.date)}&faculte=${data.faculte}`
     );
   }
 

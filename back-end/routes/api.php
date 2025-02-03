@@ -8,9 +8,11 @@ use App\Http\Controllers\FaculteController;
 use App\Http\Controllers\ExamenController;
 use App\Http\Controllers\RattrapageController;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+// Route::get('/user', function (Request $request) {
+//     return $request->user();
+// })->middleware('auth:sanctum');
+
+Route::get("user", [AuthController::class, "user"])->middleware("auth:sanctum");
 
 
 Route::get("etudiants", [EtudiantController::class, "index"]);
@@ -39,6 +41,7 @@ Route::delete('/facultes/{id}', [FaculteController::class, 'destroy']);
 
 Route::post("register", [AuthController::class, "register"]);
 Route::post("login", [AuthController::class, "login"]);
+Route::post("logout", [AuthController::class,"logout"]);
 
 Route::post("rattrapage-importation", [RattrapageController::class, "importation"]);
 Route::get("rattrapage", [RattrapageController::class, "index"]);

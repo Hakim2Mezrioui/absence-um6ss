@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-side-bar',
@@ -8,7 +9,7 @@ import { Component, OnInit } from '@angular/core';
 export class SideBarComponent implements OnInit {
   isMinimized = true;
 
-  constructor() { }
+  constructor(private authService: AuthService) { }
 
   ngOnInit(): void {
   }
@@ -16,6 +17,10 @@ export class SideBarComponent implements OnInit {
 
   toggleSidebar() {
     this.isMinimized = !this.isMinimized;
+  }
+
+  logout() {
+    // this.authService.
   }
 
 }

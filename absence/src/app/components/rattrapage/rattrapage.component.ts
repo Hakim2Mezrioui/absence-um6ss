@@ -22,7 +22,7 @@ export class RattrapageComponent implements OnInit {
 
   parametrage: String = '';
 
-  studiantsWithFaceId: number[] = [];
+  studiantsWithFaceId: String[] = [];
   localStudents: Etudiant[] = [];
 
   anneesUniversitaires = [
@@ -50,24 +50,27 @@ export class RattrapageComponent implements OnInit {
 
   onSubmit() {
     this.isLoading = true;
+    console.log(this.f.value)
     this.rattrapageSerice.suivi(this.f.value).subscribe(
       (response: any) => {
-        console.log(response.students_with_face_id);
         console.log(response.local_students);
-
+        
+        this.isLoading = false;
         this.studiantsWithFaceId = response.students_with_face_id;
         this.localStudents = response.local_students;
+        console.log(this.studiantsWithFaceId);
       },
       (error) => {
+        this.isLoading = false;
         this.toastr.error('An error occurred while processing your request');
       }
     );
-    this.isLoading = false;
   }
 
   handlePromotion(e: Event) {
     console.log((e.target as HTMLSelectElement).value);
   }
+
   async onFileSelected(event: Event) {
     this.isLoading = true;
     const input = event.target as HTMLInputElement;
@@ -77,16 +80,17 @@ export class RattrapageComponent implements OnInit {
       formData.append('file', file, file.name);
       this.rattrapageSerice.importer(formData).subscribe(
         (response) => {
+          this.isLoading = false;
           this.toastr.success('The file uploaded successfully');
         },
         (error) => {
+          this.isLoading = false;
           this.toastr.error('There was an error uploading the file');
           console.log('warning');
         }
       );
     }
 
-    this.isLoading = false;
     input.value = '';
   }
 }

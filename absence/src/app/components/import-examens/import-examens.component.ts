@@ -12,6 +12,7 @@ import { ToastrService } from 'ngx-toastr';
   styleUrls: ['./import-examens.component.css'],
 })
 export class ImportExamensComponent implements OnInit {
+  loading: boolean = false;
   constructor(
     private http: HttpClient,
     private messageService: MessageService,
@@ -24,6 +25,7 @@ export class ImportExamensComponent implements OnInit {
   ngOnInit(): void {}
 
   async onFileSelected(event: Event) {
+    this.loading = true;
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       const file: File = input.files[0];
@@ -31,11 +33,13 @@ export class ImportExamensComponent implements OnInit {
       formData.append('file', file, file.name);
       this.examenService.importer(formData).subscribe(
         (response) => {
+          this.loading = false;
           this.toast.success('File has been uploaded successfully');
           input.value = ''; // Reset the input
           this.router.navigate(["examens-list"]);
         },
         (error) => {
+          this.loading = false;
           this.toast.error('Error uploading file');
           input.value = ''; // Reset the input
         }

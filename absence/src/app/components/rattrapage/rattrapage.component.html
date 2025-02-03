@@ -75,6 +75,24 @@
           />
         </label>
       </div>
+      <div class="m-auto flex justify-center custom-width mt-4">
+        <label
+          class="bg-green-50 text-green-700 rounded-t-md px-6 py-2 flex items-center"
+          >Faculte</label
+        >
+        <select
+          class="bg-green-50 text-green-700 w-full rounded-b-md px-6 py-2 flex items-center outline-none"
+          ngModel
+          name="faculte"
+        >
+          <option class="text-black " value="" disabled selected>
+            choisir une faculte
+          </option>
+          <option *ngFor="let ecole of ecoles" [value]="ecole.name">
+            {{ ecole.name }}
+          </option>
+        </select>
+      </div>
       <div class="m-auto flex justify-center">
         <input
           type="date"
@@ -102,6 +120,7 @@
         />
       </div>
     </div>
+
     <div class="m-auto flex justify-center">
       <button
         class="custom-width bg-green-50 hover:bg-green-100 w-64 text-green-800 rounded-sm my-4 py-1.5"
@@ -118,6 +137,7 @@
 
 <app-list-presence
   [etudiants]="localStudents"
+  [studiantsWithFaceId]="studiantsWithFaceId"
   *ngIf="localStudents.length > 0"
   [promotion]="'1 ere'"
 ></app-list-presence>

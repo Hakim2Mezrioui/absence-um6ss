@@ -12,6 +12,7 @@ import { ToastrService } from 'ngx-toastr';
 })
 export class AddExamComponent implements OnInit {
   @ViewChild('f') form!: NgForm;
+  loading: boolean = false;
 
   constructor(
     private router: Router,
@@ -43,10 +44,13 @@ export class AddExamComponent implements OnInit {
   }
 
   onSubmit(e: any) {
+    
     if (!this.validateForm()) {
       return;
     }
-
+    
+    this.loading = true;
+    
     const examen = new Examen(
       this.form.value.title,
       this.form.value.date,
@@ -60,10 +64,12 @@ export class AddExamComponent implements OnInit {
 
     this.examenService.ajouter(examen).subscribe(
       (response) => {
+        this.loading = false;
         this.toastr.success('Examen ajouté avec succès');
         this.router.navigate(['examens-list']);
       },
       (error) => {
+        this.loading = false;
         this.toastr.error("Erreur lors de l'ajout de l'examen");
       }
     );

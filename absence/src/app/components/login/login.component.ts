@@ -10,6 +10,7 @@ import { CookieService } from 'ngx-cookie-service';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
 })
+
 export class LoginComponent implements OnInit {
   @ViewChild('f') form!: NgForm;
   constructor(

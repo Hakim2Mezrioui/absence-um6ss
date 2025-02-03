@@ -13,8 +13,5 @@ export class AppComponent implements OnInit {
   title = 'absence';
   isLoginPage = false;
 
-  ngOnInit(): void {
-    this.isLoginPage = this.startupService.isLogin;
-  }
-
+  ngOnInit(): void {}
 }

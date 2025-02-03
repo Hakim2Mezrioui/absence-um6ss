@@ -1,18 +1,17 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { map, tap } from 'rxjs';
+import { BehaviorSubject, map, tap } from 'rxjs';
 import { Faculte } from '../models/Facultes';
 
 @Injectable({
   providedIn: 'root',
 })
-
 export class StartupService {
   constructor(private http: HttpClient) {}
 
   baseUrl: string = 'http://127.0.0.1:8000/api';
   facultes: Faculte[] = [];
-  isLogin: boolean = false;
+  isLogin = new BehaviorSubject<boolean>(false);
 
   async fetchFacultes() {
     this.http
@@ -34,6 +33,6 @@ export class StartupService {
   }
 
   isLoginPage(value: boolean) {
-    this.isLogin = value;
+    this.isLogin.next(value);
   }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -67,5 +68,15 @@ class AuthController extends Controller
             ]
         ])->withCookie($cookie);
 
+    }
+
+    public function logout(Request $request) {
+        $request->user()->tokens()->delete();
+        return response()->json(["message"=> "The use is logouted "], 200);
+    }
+
+    public function user(Request $request)
+    {
+        return Auth::user();
     }
 }
