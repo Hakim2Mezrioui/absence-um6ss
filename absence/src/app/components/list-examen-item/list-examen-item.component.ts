@@ -1,8 +1,11 @@
 import { Location } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { ToastrService } from 'ngx-toastr';
+import { Etudiant } from 'src/app/models/Etudiant';
 import { Examen } from 'src/app/models/Examen';
 import { ExamenService } from 'src/app/services/examen.service';
+import { RattrapageService } from 'src/app/services/rattrapage.service';
 
 interface Statut {
   name: string;
@@ -17,19 +20,46 @@ interface Statut {
 export class ListExamenItemComponent implements OnInit {
   statut!: Statut[];
   selectedStatut!: Statut;
+  isLoading: boolean = false;
+  studiantsWithFaceId: String[] = [];
+  localStudents: Etudiant[] = [];
 
   @Input('examen') examen!: Examen;
 
   constructor(
     private router: Router,
     private examenService: ExamenService,
-    private location: Location
+    private location: Location,
+    private toastr: ToastrService
   ) {}
 
   ngOnInit() {}
 
-  onExplore() {
-    this.router.navigate(['suivi-absence']);
+  onExplore(examen: Examen) {
+    // console.log(examen);
+    // this.router.navigate(['suivi-absence']);
+    this.examenService
+      .suivi({
+        hour1: examen.hour_debut_pointage.toString(),
+        hour2: examen.hour_fin.toString(),
+        date: examen.date.toString(),
+        faculte: examen.faculte,
+        promotion: examen.promotion,
+      })
+      .subscribe(
+        (response: any) => {
+          console.log(response.local_students);
+
+          this.isLoading = false;
+          this.studiantsWithFaceId = response.students_with_face_id;
+          this.localStudents = response.local_students;
+          console.log(this.studiantsWithFaceId);
+        },
+        (error) => {
+          this.isLoading = false;
+          this.toastr.error('An error occurred while processing your request');
+        }
+      );
   }
 
   convertTimeStringToDate(timeString: string): Date {
@@ -52,8 +82,10 @@ export class ListExamenItemComponent implements OnInit {
 
   private reloadCurrentRoute() {
     const currentUrl = this.router.url;
-    this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
-      this.router.navigate([currentUrl]);
-    });
+    this.router
+      .navigateByUrl('/whitePage', { skipLocationChange: true })
+      .then(() => {
+        this.router.navigate([currentUrl]);
+      });
   }
 }

@@ -63,7 +63,7 @@ export class AddEtudiantComponent implements OnInit {
       (response) => {
         this.loading = false;
         this.toastr.success('Etudiant ajouté avec succès', 'Success');
-        this.router.navigate(['examens-list']);
+        this.router.navigate(['etudiants']);
       },
       (error) => {
         this.loading = false;

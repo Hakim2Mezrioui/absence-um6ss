@@ -13,11 +13,13 @@ class EtudiantController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $date = '2025-01-29'; // Example date
-        $heure1 = '07:00';
-        $heure2 = '12:00';
+        $date = $request->input('date', '2025-01-02'); // Default date if not provided
+        $heure1 = $request->input('hour1', '09:00'); // Default start time if not provided
+        $heure2 = $request->input('hour2', '10:00'); // Default end time if not provided
+        $faculte = $request->input('faculte', "pharmacie");
+        $promotion = $request->input("promotion", "1ère annee");
 
         // Create a PDO connection to the SQL Server database
         $dsn = 'sqlsrv:Server=10.0.2.148;Database=BIOSTAR_TA;TrustServerCertificate=true';
@@ -37,7 +39,7 @@ class EtudiantController extends Controller
             $biostarResults = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             // Fetch students from the local database
-            $localStudents = Etudiant::all();
+            $localStudents = Etudiant::where("faculte", $faculte)->where("promotion", $promotion)->get();
 
             // Compare the two sets of students
             $faceIdStudents = collect($biostarResults)->pluck('user_name')->toArray();

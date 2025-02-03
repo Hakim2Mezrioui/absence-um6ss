@@ -9,11 +9,11 @@ export class RattrapageService {
 
   constructor(private http: HttpClient) {}
 
-  importer(file: FormData) {
-    return this.http.post(`${this.baseUrl}/rattrapage-importation`, file);
+  importer(file: FormData, faculte: String) {
+    return this.http.post(`${this.baseUrl}/rattrapage-importation?faculte=${faculte}`, file);
   }
 
-  suivi(data: { hour1: string; hour2: string; date: string, faculte: String }) {
+  suivi(data: { hour1: string, hour2: string, date: string, faculte: String }) {
     return this.http.get(
       `${this.baseUrl}/rattrapage?hour1=${data.hour1}&hour2=${data.hour2}&date=${this.formatDate(data.date)}&faculte=${data.faculte}`
     );

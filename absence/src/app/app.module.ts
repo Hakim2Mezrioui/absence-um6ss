@@ -35,6 +35,7 @@ import { PaginatorModule } from 'primeng/paginator';
 import { LoadingComponent } from './components/loading/loading.component';
 import { EtudiantsComponent } from './components/etudiants/etudiants.component';
 import { TokenInterceptor } from './token.interceptor';
+import { WhitePageComponent } from './components/white-page/white-page.component';
 
 @NgModule({
   declarations: [
@@ -55,6 +56,7 @@ import { TokenInterceptor } from './token.interceptor';
     RattrapageComponent,
     LoadingComponent,
     EtudiantsComponent,
+    WhitePageComponent,
   ],
   imports: [
     BrowserModule,

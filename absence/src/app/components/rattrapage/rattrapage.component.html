@@ -58,8 +58,26 @@
           </select>
         </div> -->
     </div>
-    <div>
-      <div class="m-auto flex justify-center">
+    <div class="m-auto flex justify-center custom-width">
+      <label
+        class="bg-green-50 text-green-700 rounded-t-md px-6 py-2 flex items-center"
+        >Faculte</label
+      >
+      <select
+        class="bg-green-50 text-green-700 w-full rounded-b-md px-6 py-2 flex items-center outline-none"
+        ngModel
+        name="faculte"
+      >
+        <option class="text-black" value="" disabled selected>
+          choisir une faculte
+        </option>
+        <option *ngFor="let ecole of ecoles" [value]="ecole.name">
+          {{ ecole.name }}
+        </option>
+      </select>
+    </div>
+    <!-- <div> -->
+      <div class="m-auto flex justify-center mt-4">
         <label
           for="import"
           class="import-etudiant cursor-pointer flex bg-green-50 py-1.5 text-green-800 rounded-sm"
@@ -75,7 +93,7 @@
           />
         </label>
       </div>
-      <div class="m-auto flex justify-center custom-width mt-4">
+      <!-- <div class="m-auto flex justify-center custom-width mt-4">
         <label
           class="bg-green-50 text-green-700 rounded-t-md px-6 py-2 flex items-center"
           >Faculte</label
@@ -85,14 +103,14 @@
           ngModel
           name="faculte"
         >
-          <option class="text-black " value="" disabled selected>
+          <option class="text-black" value="" disabled selected>
             choisir une faculte
           </option>
           <option *ngFor="let ecole of ecoles" [value]="ecole.name">
             {{ ecole.name }}
           </option>
         </select>
-      </div>
+      </div> -->
       <div class="m-auto flex justify-center">
         <input
           type="date"
@@ -119,7 +137,7 @@
           ngModel
         />
       </div>
-    </div>
+    <!-- </div> -->
 
     <div class="m-auto flex justify-center">
       <button

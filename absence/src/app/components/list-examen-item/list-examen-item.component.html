@@ -1,3 +1,5 @@
+
+
 <div
 class="examen bg-green-100"
   [ngClass]="[
@@ -62,7 +64,7 @@ class="examen bg-green-100"
     <div class="ml-10">
       <button
         *ngIf="examen.statut == 'en cours'"
-        (click)="onExplore()"
+        (click)="onExplore(examen)"
         class="explorer bg-blue-400 hover:bg-blue-300 active:bg-blue-400 w-32 py-0 text-white rounded-sm flex justify-center gap-2"
       >
         <b>Explorer</b>
@@ -87,3 +89,5 @@ class="examen bg-green-100"
     </div>
   </div>
 </div>
+
+<app-loading *ngIf="isLoading"></app-loading>

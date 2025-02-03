@@ -66,6 +66,8 @@ class RattrapageController extends Controller
     }
 
     public function importation(Request $request) {
+        $faculte = $request->input("faculte");
+        
         if($request->hasFile("file")) {
             $file = $request->file('file');
             $path = $file->getRealPath();
@@ -99,7 +101,7 @@ class RattrapageController extends Controller
             $header = array_map('trim', $header);
             $header = array_map('strtolower', $header);
             
-            Rattrapage::truncate();
+            Rattrapage::where("faculte", $faculte)->delete();
 
             foreach ($data as $row) {
                 // Ensure the row values are trimmed

@@ -58,6 +58,28 @@ export class ExamenService implements OnInit {
       );
   }
 
+  suivi(data: {
+    hour1: string;
+    hour2: string;
+    date: string;
+    faculte: String;
+    promotion: String;
+  }) {
+    return this.http.get(
+      `${this.baseUrl}/etudiants?hour1=${data.hour1}&hour2=${
+        data.hour2
+      }&date=${this.formatDate(data.date)}&faculte=${data.faculte}`
+    );
+  }
+
+  formatDate(date: string): string {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = ('0' + (d.getMonth() + 1)).slice(-2);
+    const day = ('0' + d.getDate()).slice(-2);
+    return `${year}-${month}-${day}`;
+  }
+
   archiver(examen: Examen) {
     return this.http.put(`${this.baseUrl}/examens/${examen.id}`, {
       ...examen,

@@ -16,6 +16,7 @@ import { PreventUnsavedChangesGuardGuard } from './guards/prevent-unsaved-change
 import { ExamenFormGuard } from './guards/examen-form.guard';
 import { EtudiantsComponent } from './components/etudiants/etudiants.component';
 import { AuthGard } from './guards/auth.guard';
+import { WhitePageComponent } from './components/white-page/white-page.component';
 
 const routes: Routes = [
   {
@@ -76,6 +77,10 @@ const routes: Routes = [
       {
         path: 'etudiants',
         component: EtudiantsComponent,
+      },
+      {
+        path: 'whitePage',
+        component: WhitePageComponent,
       },
     ],
   },

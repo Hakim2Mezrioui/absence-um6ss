@@ -50,11 +50,11 @@ export class RattrapageComponent implements OnInit {
 
   onSubmit() {
     this.isLoading = true;
-    console.log(this.f.value)
+    console.log(this.f.value);
     this.rattrapageSerice.suivi(this.f.value).subscribe(
       (response: any) => {
         console.log(response.local_students);
-        
+
         this.isLoading = false;
         this.studiantsWithFaceId = response.students_with_face_id;
         this.localStudents = response.local_students;
@@ -72,13 +72,21 @@ export class RattrapageComponent implements OnInit {
   }
 
   async onFileSelected(event: Event) {
+    const faculte = this.f.value.faculte;
+    if (faculte === '' || faculte === undefined) {
+      this.toastr.error(
+        'Vous devez sélectionner une faculté avant de continuer'
+      );
+      return;
+    }
+    
     this.isLoading = true;
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       const file: File = input.files[0];
       const formData = new FormData();
       formData.append('file', file, file.name);
-      this.rattrapageSerice.importer(formData).subscribe(
+      this.rattrapageSerice.importer(formData, faculte).subscribe(
         (response) => {
           this.isLoading = false;
           this.toastr.success('The file uploaded successfully');
