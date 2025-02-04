@@ -79,7 +79,7 @@ export class RattrapageComponent implements OnInit {
       );
       return;
     }
-    
+
     this.isLoading = true;
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {

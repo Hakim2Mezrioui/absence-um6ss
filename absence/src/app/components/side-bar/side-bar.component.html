@@ -78,6 +78,26 @@
         >
       </a>
     </div>
+    <div
+      class="flex flex-col items-center w-full mt-2 border-t border-gray-700"
+    >
+      <a
+        class="flex text-2xl items-center w-full h-12 px-3 mt-2 rounded hover:bg-gray-700 hover:text-gray-300"
+        routerLink="add-user"
+      >
+        <i class="bi bi-person-plus-fill bg-transparent mr-1 translate-x-1"></i>
+        <span class="ml-2 text-sm font-medium" *ngIf="!isMinimized"
+          >Ajouter Utilisateur</span
+        >
+      </a>
+      <a
+        class="flex text-2xl items-center w-full h-12 px-3 mt-2 rounded hover:bg-gray-700 hover:text-gray-300"
+        routerLink="etudiants"
+      >
+        <i class="bi bi-people-fill bg-transparent translate-x-1 mr-1"></i>
+        <span class="ml-2 text-sm font-medium" *ngIf="!isMinimized">Users</span>
+      </a>
+    </div>
   </div>
   <a
     (click)="logout()"

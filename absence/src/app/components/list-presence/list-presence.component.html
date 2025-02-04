@@ -85,10 +85,13 @@
           <td>
             {{ etudiant.promotion }}
           </td>
-          <td [ngClass]="checkEtudiantMatricule(etudiant.matricule) ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'" class="text-center bg-green-50">
+          <!-- <td [ngClass]="checkEtudiantMatricule(etudiant.matricule) ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'" class="text-center bg-green-50">
             <span>{{
               checkEtudiantMatricule(etudiant.matricule) ? "P" : "A"
             }}</span>
+          </td> -->
+          <td [ngClass]="etudiant.etatPresence === 'P' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'">
+            {{ etudiant.etatPresence }}
           </td>
         </tr>
       </ng-template>

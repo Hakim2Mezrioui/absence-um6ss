@@ -50,10 +50,31 @@ export class ListPresenceComponent implements OnInit {
     //   .subscribe(() => {
     //     // console.log(this.etudiants);
     //   });
+
+    this.mettreAJourPresence()
   }
 
   checkEtudiantMatricule(matricule: String): boolean {
-    return this.studiantsWithFaceId.includes(matricule.toString());
+    // return this.studiantsWithFaceId.includes(matricule.toString());
+    const present = this.studiantsWithFaceId.includes(matricule.toString());
+
+    // Mise à jour de l'état de présence de l'étudiant correspondant
+    const etudiant = this.etudiants.find(e => e.matricule === matricule);
+    if (etudiant) {
+        etudiant.etatPresence = present ? "P" : "A";
+    }
+
+    return present;
+  }
+
+  mettreAJourPresence() {
+    this.etudiants.forEach((etudiant) => {
+      return (etudiant.etatPresence = this.studiantsWithFaceId.includes(
+        etudiant.matricule.toString()
+      )
+        ? 'P'
+        : 'A');
+    });
   }
 
   clear(table: Table) {

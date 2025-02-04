@@ -24,7 +24,11 @@ export class ExamenService implements OnInit {
   faculteActual = new BehaviorSubject<String>('toutes');
 
   localStudents = new BehaviorSubject<Etudiant[]>([]);
-  // studiantsWithFaceId = new BehaviorSubject<Etudiant[]>([]);
+  studiantsWithFaceId = new BehaviorSubject<String[]>([]);
+
+  examenExploring = new BehaviorSubject<Examen>(
+    new Examen('', new Date(), new Date(), new Date(), new Date(), '', '', '')
+  );
 
   constructor(private http: HttpClient) {}
   ngOnInit(): void {}
@@ -32,7 +36,7 @@ export class ExamenService implements OnInit {
   fetchExamens(
     page: number = 1,
     statut: String = 'tous',
-    faculte: String = 'toutes',
+    faculte: String = 'toutes'
   ): Observable<Examen[]> {
     this.loading.next(true);
     this.actualPage.next(page);
@@ -74,7 +78,9 @@ export class ExamenService implements OnInit {
     return this.http.get(
       `${this.baseUrl}/etudiants?hour1=${data.hour1}&hour2=${
         data.hour2
-      }&date=${this.formatDate(data.date)}&faculte=${data.faculte}&promotion=${data.promotion}`
+      }&date=${this.formatDate(data.date)}&faculte=${data.faculte}&promotion=${
+        data.promotion
+      }`
     );
   }
 

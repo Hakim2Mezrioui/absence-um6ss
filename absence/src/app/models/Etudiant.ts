@@ -3,6 +3,7 @@ export class Etudiant {
     public matricule: string,
     public name: string,
     public promotion: string,
-    public faculte: string
+    public faculte: string,
+    public etatPresence?: string,
   ) {}
 }

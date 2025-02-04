@@ -36,6 +36,7 @@ import { LoadingComponent } from './components/loading/loading.component';
 import { EtudiantsComponent } from './components/etudiants/etudiants.component';
 import { TokenInterceptor } from './token.interceptor';
 import { WhitePageComponent } from './components/white-page/white-page.component';
+import { AddUserComponent } from './components/add-user/add-user.component';
 
 @NgModule({
   declarations: [
@@ -57,6 +58,7 @@ import { WhitePageComponent } from './components/white-page/white-page.component
     LoadingComponent,
     EtudiantsComponent,
     WhitePageComponent,
+    AddUserComponent,
   ],
   imports: [
     BrowserModule,

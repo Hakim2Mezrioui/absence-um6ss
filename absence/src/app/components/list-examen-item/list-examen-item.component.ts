@@ -36,8 +36,8 @@ export class ListExamenItemComponent implements OnInit {
   ngOnInit() {}
 
   onExplore(examen: Examen) {
-    // console.log(examen);
-    // this.router.navigate(['suivi-absence']);
+    this.isLoading = true;
+    this.examenService.examenExploring.next(examen);
     this.examenService
       .suivi({
         hour1: examen.hour_debut_pointage.toString(),
@@ -51,10 +51,11 @@ export class ListExamenItemComponent implements OnInit {
           console.log(response.local_students);
 
           this.isLoading = false;
-          // this.studiantsWithFaceId = response.students_with_face_id;
+          this.studiantsWithFaceId = response.students_with_face_id;
           this.localStudents = response.local_students;
           // console.log(this.studiantsWithFaceId);
           this.examenService.localStudents.next(this.localStudents);
+          this.examenService.studiantsWithFaceId.next(this.studiantsWithFaceId);
           this.router.navigate(['suivi-absence']);
         },
         (error) => {
