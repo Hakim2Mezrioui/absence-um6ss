@@ -18,6 +18,7 @@ import { EtudiantsComponent } from './components/etudiants/etudiants.component';
 import { AuthGard } from './guards/auth.guard';
 import { WhitePageComponent } from './components/white-page/white-page.component';
 import { AddUserComponent } from './components/add-user/add-user.component';
+import { UsersComponent } from './components/users/users.component';
 
 const routes: Routes = [
   {
@@ -86,6 +87,10 @@ const routes: Routes = [
       {
         path: 'add-user',
         component: AddUserComponent,
+      },
+      {
+        path: 'users',
+        component: UsersComponent,
       },
     ],
   },

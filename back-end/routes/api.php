@@ -8,11 +8,13 @@ use App\Http\Controllers\FaculteController;
 use App\Http\Controllers\ExamenController;
 use App\Http\Controllers\RattrapageController;
 
-// Route::get('/user', function (Request $request) {
-//     return $request->user();
-// })->middleware('auth:sanctum');
+Route::get('/user', function (Request $request) {
+    return $request->user();
+})->middleware('auth:sanctum');
 
 Route::get("user", [AuthController::class, "user"])->middleware("auth:sanctum");
+Route::post("create", [AuthController::class,"create"])->middleware("auth:sanctum");
+Route::get("users", [AuthController::class, "users"]);
 
 
 Route::get("etudiants", [EtudiantController::class, "index"]);

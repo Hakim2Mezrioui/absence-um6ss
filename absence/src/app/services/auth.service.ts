@@ -29,4 +29,12 @@ export class AuthService {
   logout() {
     return this.http.post(`${this.baseUrl}/logout`, {});
   }
+
+  create(user: {name: String, email: String, password: String, role: String, faculte?: String}) {
+    return this.http.post(`${this.baseUrl}/create`, user);
+  }
+
+  users() {
+    return this.http.get(`${this.baseUrl}/users`)
+  }
 }
