@@ -19,6 +19,8 @@ import { AuthGard } from './guards/auth.guard';
 import { WhitePageComponent } from './components/white-page/white-page.component';
 import { AddUserComponent } from './components/add-user/add-user.component';
 import { UsersComponent } from './components/users/users.component';
+import { AdminGuard } from './guards/admin.guard';
+import { SuperAdminGuard } from './guards/super-admin.guard';
 
 const routes: Routes = [
   {
@@ -49,20 +51,24 @@ const routes: Routes = [
       {
         path: 'import-etudiants',
         component: ImportStudentsComponent,
+        canActivate: [AdminGuard, SuperAdminGuard]
       },
       {
         path: 'import-examens',
-        component: ImportExamensComponent,
+        component: ImportExamensComponent,        
+        canActivate: [AdminGuard, SuperAdminGuard]
       },
       {
         path: 'parametrer-examen',
         component: AddExamComponent,
-        canDeactivate: [ExamenFormGuard],
+        canDeactivate: [ExamenFormGuard],        
+        canActivate: [AdminGuard, SuperAdminGuard]
       },
       {
         path: 'add-etudiant',
         component: AddEtudiantComponent,
         canDeactivate: [PreventUnsavedChangesGuardGuard],
+        canActivate: [AdminGuard, SuperAdminGuard]
       },
       {
         path: 'list-examen-item',
@@ -78,7 +84,8 @@ const routes: Routes = [
       },
       {
         path: 'etudiants',
-        component: EtudiantsComponent,
+        component: EtudiantsComponent,        
+        canActivate: [AdminGuard, SuperAdminGuard]
       },
       {
         path: 'whitePage',
@@ -86,11 +93,13 @@ const routes: Routes = [
       },
       {
         path: 'add-user',
-        component: AddUserComponent,
+        component: AddUserComponent,        
+        canActivate: [SuperAdminGuard]
       },
       {
         path: 'users',
-        component: UsersComponent,
+        component: UsersComponent,        
+        canActivate: [AdminGuard, SuperAdminGuard]
       },
     ],
   },

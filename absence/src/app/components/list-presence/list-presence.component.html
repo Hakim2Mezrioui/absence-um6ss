@@ -97,7 +97,7 @@
       </ng-template>
     </p-table>
 
-    <div class="border-none w-full m-auto my-4">
+    <div class="border-none w-full m-auto my-4" *ngIf="role == 'admin' || role == 'super-admin'">
       <button
         (click)="handleExport()"
         class="w-fit outline-none bg-green-50 px-5 py-2 hover:bg-green-100 active:bg-green-200"

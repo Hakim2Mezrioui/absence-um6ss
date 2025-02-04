@@ -1,3 +1,4 @@
+import { StartupService } from './../services/startup.service';
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import {
@@ -17,7 +18,8 @@ export class AuthGard implements CanActivate {
   constructor(
     private cookieService: CookieService,
     private router: Router,
-    private http: HttpClient
+    private http: HttpClient,
+    private startupService: StartupService
   ) {}
   canActivate(
     route: ActivatedRouteSnapshot,
@@ -43,10 +45,12 @@ export class AuthGard implements CanActivate {
         tap((response: any) => {
           // If the user is authenticated (e.g., user information received successfully),
           // return true to allow access to the route
-          console.log(response);
           if (response) {
             console.log(response);
             localStorage.setItem('name', response.name);
+
+            this.startupService.userFaculte.next(response.faculte);
+            this.startupService.role.next(response.role);
             return true;
           } else {
             this.router.navigate(['/login']);
@@ -57,7 +61,7 @@ export class AuthGard implements CanActivate {
           // If there's an error (e.g., user not authenticated),
           // redirect to the login page
           this.router.navigate(['/login']);
-          // Return an observable with a value indicating that access to the route is denied
+          // Return an observable with a value indicating `that access to the route is denied
           return of(false);
         })
       );

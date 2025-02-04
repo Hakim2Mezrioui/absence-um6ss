@@ -6,6 +6,7 @@ import { Etudiant } from 'src/app/models/Etudiant';
 import { Examen } from 'src/app/models/Examen';
 import { ExamenService } from 'src/app/services/examen.service';
 import { RattrapageService } from 'src/app/services/rattrapage.service';
+import { StartupService } from 'src/app/services/startup.service';
 
 interface Statut {
   name: string;
@@ -23,6 +24,7 @@ export class ListExamenItemComponent implements OnInit {
   isLoading: boolean = false;
   studiantsWithFaceId: String[] = [];
   localStudents: Etudiant[] = [];
+  role: String = 'user';
 
   @Input('examen') examen!: Examen;
 
@@ -30,10 +32,13 @@ export class ListExamenItemComponent implements OnInit {
     private router: Router,
     private examenService: ExamenService,
     private location: Location,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private startupService: StartupService
   ) {}
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.startupService.role.subscribe((value) => (this.role = value));
+  }
 
   onExplore(examen: Examen) {
     this.isLoading = true;

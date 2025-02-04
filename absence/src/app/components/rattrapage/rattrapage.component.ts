@@ -1,3 +1,4 @@
+import { StartupService } from './../../services/startup.service';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { RattrapageService } from 'src/app/services/rattrapage.service';
 import { ToastrService } from 'ngx-toastr';
@@ -9,14 +10,8 @@ import { Etudiant } from 'src/app/models/Etudiant';
   styleUrls: ['./rattrapage.component.css'],
 })
 export class RattrapageComponent implements OnInit {
-  constructor(
-    private rattrapageSerice: RattrapageService,
-    private toastr: ToastrService
-  ) {}
-
-  ngOnInit(): void {}
-
   @ViewChild('f') f: any;
+  role: String = 'user';
 
   isLoading: boolean = false;
 
@@ -24,6 +19,17 @@ export class RattrapageComponent implements OnInit {
 
   studiantsWithFaceId: String[] = [];
   localStudents: Etudiant[] = [];
+  
+  constructor(
+    private rattrapageSerice: RattrapageService,
+    private toastr: ToastrService,
+    private startupService: StartupService
+  ) {}
+
+  ngOnInit(): void {
+    this.startupService.role.subscribe((value) => (this.role = value));
+  }
+
 
   anneesUniversitaires = [
     { id: 1, annee: '2020/2021' },

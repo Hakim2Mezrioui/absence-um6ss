@@ -58,7 +58,7 @@
           </select>
         </div> -->
     </div>
-    <div class="m-auto flex justify-center custom-width">
+    <div *ngIf="role == 'super-admin'" class="m-auto flex justify-center custom-width">
       <label
         class="bg-green-50 text-green-700 rounded-t-md px-6 py-2 flex items-center"
         >Faculte</label
@@ -81,6 +81,7 @@
       <label
         for="import"
         class="import-etudiant cursor-pointer flex bg-green-50 py-1.5 text-green-800 rounded-sm"
+        *ngIf="role == 'super-admin' || role == 'admin'" 
       >
         <i class="bi bi-upload"></i>
         <p>Importer Etudiants</p>

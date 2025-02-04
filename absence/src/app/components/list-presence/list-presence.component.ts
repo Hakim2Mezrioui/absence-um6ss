@@ -10,6 +10,7 @@ import {
 import { Table } from 'primeng/table';
 import { map, tap } from 'rxjs';
 import { Etudiant } from 'src/app/models/Etudiant';
+import { StartupService } from 'src/app/services/startup.service';
 
 @Component({
   selector: 'app-list-presence',
@@ -20,13 +21,17 @@ export class ListPresenceComponent implements OnInit {
   // etudiants: Etudiant[] = [];
   @ViewChild('inputFilter') inputerFilter!: ElementRef;
   @ViewChild('dt') dt!: Table;
-  
-  constructor(private http: HttpClient) {}
 
-  @Input("promotion") promotion!: String;
+  constructor(
+    private http: HttpClient,
+    private startupService: StartupService
+  ) {}
 
-  @Input("etudiants") etudiants: Etudiant[] = [];
-  @Input("studiantsWithFaceId") studiantsWithFaceId: String[] = [];
+  @Input('promotion') promotion!: String;
+
+  @Input('etudiants') etudiants: Etudiant[] = [];
+  @Input('studiantsWithFaceId') studiantsWithFaceId: String[] = [];
+  role: String = 'user';
 
   ngOnInit(): void {
     // this.http
@@ -50,8 +55,9 @@ export class ListPresenceComponent implements OnInit {
     //   .subscribe(() => {
     //     // console.log(this.etudiants);
     //   });
-
-    this.mettreAJourPresence()
+    
+    this.startupService.role.subscribe((value => this.role = value));
+    this.mettreAJourPresence();
   }
 
   checkEtudiantMatricule(matricule: String): boolean {
@@ -59,9 +65,9 @@ export class ListPresenceComponent implements OnInit {
     const present = this.studiantsWithFaceId.includes(matricule.toString());
 
     // Mise à jour de l'état de présence de l'étudiant correspondant
-    const etudiant = this.etudiants.find(e => e.matricule === matricule);
+    const etudiant = this.etudiants.find((e) => e.matricule === matricule);
     if (etudiant) {
-        etudiant.etatPresence = present ? "P" : "A";
+      etudiant.etatPresence = present ? 'P' : 'A';
     }
 
     return present;
@@ -98,7 +104,7 @@ export class ListPresenceComponent implements OnInit {
   }
 
   handleFilter(e: Event) {
-    const value = (e.target as HTMLInputElement).value
+    const value = (e.target as HTMLInputElement).value;
   }
 
   handleExport() {
@@ -109,7 +115,7 @@ export class ListPresenceComponent implements OnInit {
 
   convertToCSV(data: any[]): string {
     const header = Object.keys(data[0]).join(',');
-    const rows = data.map(row => Object.values(row).join(','));
+    const rows = data.map((row) => Object.values(row).join(','));
     return [header, ...rows].join('\n');
   }
 

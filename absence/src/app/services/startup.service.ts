@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, map, tap } from 'rxjs';
+import { BehaviorSubject, map, ReplaySubject, tap } from 'rxjs';
 import { Faculte } from '../models/Facultes';
 
 @Injectable({
@@ -12,6 +12,9 @@ export class StartupService {
   baseUrl: string = 'http://127.0.0.1:8000/api';
   facultes: Faculte[] = [];
   isLogin = new BehaviorSubject<boolean>(false);
+
+  role = new ReplaySubject<String>();
+  userFaculte = new ReplaySubject<String>();
 
   async fetchFacultes() {
     this.http

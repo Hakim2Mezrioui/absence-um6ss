@@ -1,3 +1,4 @@
+import { StartupService } from './../../services/startup.service';
 import { Component, OnInit } from '@angular/core';
 import { Examen } from 'src/app/models/Examen';
 import { ExamenService } from 'src/app/services/examen.service';
@@ -14,8 +15,9 @@ export class ExamensListComponent implements OnInit {
   statutActual: String = 'tous';
   faculteActual: String = 'toutes';
   isLoading!: boolean;
+  role: String = "user";
 
-  constructor(private examenService: ExamenService) {}
+  constructor(private examenService: ExamenService, private startupService: StartupService) {}
 
   ngOnInit(): void {
     this.getExamens();
@@ -23,6 +25,9 @@ export class ExamensListComponent implements OnInit {
       (value) => (this.totalPages = value)
     );
     this.examenService.loading.subscribe((value) => (this.isLoading = value));
+    
+    this.startupService.role.subscribe(value => this.role = value);
+    console.log(this.role);
   }
 
   getExamens() {

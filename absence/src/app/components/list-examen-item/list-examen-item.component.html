@@ -71,7 +71,7 @@ class="examen bg-green-100"
         <i class="bi bi-caret-right-fill"></i>
       </button>
       <button
-        *ngIf="examen.statut == 'en cours'"
+        *ngIf="examen.statut == 'en cours' && (role == 'admin' || role == 'super-admin')"
         (click)="onArchive(examen)"
         class="explorer mt-0.5 bg-red-500 hover:bg-red-400 active:bg-red-500 w-32 py-0 text-white rounded-sm flex justify-center gap-2"
       >
@@ -79,11 +79,18 @@ class="examen bg-green-100"
         <i class="bi bi-archive-fill"></i>
       </button>
       <button
-        *ngIf="examen.statut != 'en cours'"
+        *ngIf="examen.statut != 'en cours' && (role == 'admin' || role == 'super-admin')"
         (click)="onActiver(examen)"
         class="explorer mt-0.5 bg-green-500 hover:bg-green-400 active:bg-green-500 w-32 py-0 text-white rounded-sm flex justify-center gap-2"
       >
         <b>Activer</b>
+        <i class="bi bi-archive-fill"></i>
+      </button>
+      <button
+        *ngIf="(role == 'user' && examen.statut == 'archivé')"
+        class="explorer invisible mt-0.5 bg-green-500 hover:bg-green-400 active:bg-green-500 w-32 py-0 text-white rounded-sm flex justify-center gap-2"
+      >
+        <b></b>
         <i class="bi bi-archive-fill"></i>
       </button>
     </div>
