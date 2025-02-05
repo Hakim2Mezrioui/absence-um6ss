@@ -1,6 +1,13 @@
 import { ExamenService } from 'src/app/services/examen.service';
 import { HttpClient } from '@angular/common/http';
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ViewChild,
+  ElementRef,
+  Output,
+  EventEmitter,
+} from '@angular/core';
 import { Etudiant } from 'src/app/models/Etudiant';
 import { map, tap } from 'rxjs';
 import { Table } from 'primeng/table';
@@ -62,7 +69,7 @@ export class SuiviAbsenceComponent implements OnInit {
     this.examenService.examenExploring.subscribe(
       (value) => (this.examen = value)
     );
-    this.mettreAJourPresence();
+    // this.mettreAJourPresence();
   }
 
   handleSearch(e: Event) {
@@ -102,19 +109,17 @@ export class SuiviAbsenceComponent implements OnInit {
           this.studiantsWithFaceId = response.students_with_face_id;
           this.localStudents = response.local_students;
 
-          this.mettreAJourPresence();
           // console.log(this.studiantsWithFaceId);
           // this.examenService.localStudents.next(this.localStudents);
           // this.examenService.studiantsWithFaceId.next(this.studiantsWithFaceId);
           // this.router.navigate(['suivi-absence']);
-
-
         },
         (error) => {
           this.isLoading = false;
           this.toastr.error('An error occurred while processing your request');
         }
       );
+      this.mettreAJourPresence();
   }
 
   handleExport() {

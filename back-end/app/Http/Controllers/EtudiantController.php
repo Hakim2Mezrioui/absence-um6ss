@@ -7,6 +7,7 @@ use App\Models\Etudiant;
 use Illuminate\Support\Facades\DB;
 use PDO;
 use PDOException;
+use Illuminate\Support\Facades\Auth;
 
 class EtudiantController extends Controller
 {
@@ -68,6 +69,16 @@ class EtudiantController extends Controller
     }
 
     public function ImportEtudiants(Request $request) {
+        $user = $request->user();
+        $faculte = "";
+        if($user->role == 'admin') {
+            $faculte = $user->faculte;
+        }
+
+        if(!Auth::check()){
+            return response()->json(['error'=> 'you should be authenticated'],0);
+        }
+
         if($request->hasFile("file")) {
             $file = $request->file('file');
             $path = $file->getRealPath();
@@ -101,21 +112,40 @@ class EtudiantController extends Controller
             $header = array_map('trim', $header);
             $header = array_map('strtolower', $header);
 
-            foreach ($data as $row) {
-                // Ensure the row values are trimmed
-                $row = array_map('trim', $row);
-
-                // Combine the header with the row values
-                $studentData = array_combine($header, $row);
-
-                // Insert the student data into the database
-                Etudiant::create([
-                    'matricule' => $studentData['matricule'],
-                    'name' => $studentData['name'],
-                    'faculte' => $studentData['faculte'],
-                    'promotion' => $studentData['promotion'],
-                ]);
+            if($user->role != 'super-admin') {
+                foreach ($data as $row) {
+                    // Ensure the row values are trimmed
+                    $row = array_map('trim', $row);
+    
+                    // Combine the header with the row values
+                    $studentData = array_combine($header, $row);
+    
+                    // Insert the student data into the database
+                    Etudiant::create([
+                        'matricule' => $studentData['matricule'],
+                        'name' => $studentData['name'],
+                        'faculte' => strtolower($faculte),
+                        'promotion' => $studentData['promotion'],
+                    ]);
+                }
+            } else {
+                foreach ($data as $row) {
+                    // Ensure the row values are trimmed
+                    $row = array_map('trim', $row);
+    
+                    // Combine the header with the row values
+                    $studentData = array_combine($header, $row);
+    
+                    // Insert the student data into the database
+                    Etudiant::create([
+                        'matricule' => $studentData['matricule'],
+                        'name' => $studentData['name'],
+                        'faculte' => $studentData['faculte'],
+                        'promotion' => $studentData['promotion'],
+                    ]);
+                }
             }
+
 
             return response()->json(['message' => 'file imported successfully'], 200);
         }

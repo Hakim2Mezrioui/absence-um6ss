@@ -19,6 +19,11 @@ class RattrapageController extends Controller
         $heure2 = $request->input('hour2', '10:00'); // Default end time if not provided
         $faculte = $request->input('faculte', "pharmacie");
 
+        $user = $request->user();
+        if($user) {
+            $faculte = $user->faculte;
+        }
+
         // Create a PDO connection to the SQL Server database
         $dsn = 'sqlsrv:Server=10.0.2.148;Database=BIOSTAR_TA;TrustServerCertificate=true';
         $username = 'dbuser';
@@ -66,7 +71,12 @@ class RattrapageController extends Controller
     }
 
     public function importation(Request $request) {
+        $user = $request->user();
         $faculte = $request->input("faculte");
+
+        if($user->role == 'admin') {
+            $faculte = $user->faculte;
+        }
         
         if($request->hasFile("file")) {
             $file = $request->file('file');
@@ -101,7 +111,7 @@ class RattrapageController extends Controller
             $header = array_map('trim', $header);
             $header = array_map('strtolower', $header);
             
-            Rattrapage::where("faculte", $faculte)->delete();
+            Rattrapage::where("faculte", strtolower($faculte))->delete();
 
             foreach ($data as $row) {
                 // Ensure the row values are trimmed
@@ -114,7 +124,7 @@ class RattrapageController extends Controller
                 Rattrapage::create([
                     'matricule' => $studentData['matricule'],
                     'name' => $studentData['name'],
-                    'faculte' => $studentData['faculte'],
+                    'faculte' => strtolower($faculte),
                     'promotion' => $studentData['promotion'],
                 ]);
             }

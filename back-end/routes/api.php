@@ -16,7 +16,7 @@ Route::get("user", [AuthController::class, "user"])->middleware("auth:sanctum");
 Route::post("create", [AuthController::class,"create"])->middleware("auth:sanctum");
 Route::get("users", [AuthController::class, "users"]);
 
-
+Route::middleware('auth:sanctum')->group(function () {
 Route::get("etudiants", [EtudiantController::class, "index"]);
 Route::post("import-etudiants", [EtudiantController::class, "ImportEtudiants"]);
 Route::get("fetchEtudiantByPromotion", [EtudiantController::class, "fetchEtudiantByPromotion"]);
@@ -41,9 +41,10 @@ Route::post('/facultes', [FaculteController::class, 'store']);
 Route::put('/facultes/{id}', [FaculteController::class, 'update']);
 Route::delete('/facultes/{id}', [FaculteController::class, 'destroy']);
 
+Route::post("rattrapage-importation", [RattrapageController::class, "importation"]);
+Route::get("rattrapage", [RattrapageController::class, "index"]);
+});
+
 Route::post("register", [AuthController::class, "register"]);
 Route::post("login", [AuthController::class, "login"]);
 Route::post("logout", [AuthController::class,"logout"]);
-
-Route::post("rattrapage-importation", [RattrapageController::class, "importation"]);
-Route::get("rattrapage", [RattrapageController::class, "index"]);

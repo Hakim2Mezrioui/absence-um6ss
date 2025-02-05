@@ -87,8 +87,8 @@
         >
       </div>
     </div>
-    <div class="grid grid-cols-3 gap-2">
-      <div class="relative w-full mb-5 group">
+    <div [ngClass]="role == 'super-admin' ? 'grid-cols-3' : 'grid-cols-2'" class="grid gap-2">
+      <div *ngIf="role == 'super-admin'" class="relative w-full mb-5 group">
         <label for="underline_select" class="sr-only">Underline select</label>
         <select
           name="faculte"
@@ -96,7 +96,7 @@
           id="underline_select"
           class="block py-2.5 px-0 w-full text-sm text-gray-500 bg-transparent border-b-2 border-gray-200 appearance-none focus:border-b-green-800 focus:outline-none focus:ring-0 focus:border-gray-200 peer"
         >
-          <option disabled selected>Selection la faculte</option>
+          <option value="" disabled selected>selectionner la faculte</option>
             <option value="Medcine">Medcine</option>
             <option value="Pharmacie">Pharmacie</option>
             <option value="Dentaire">Dentaire</option>
@@ -116,7 +116,7 @@
           ngModel
           class="block py-2.5 px-0 w-full text-sm text-gray-500 bg-transparent border-b-2 border-gray-200 appearance-none focus:border-b-green-800 focus:outline-none focus:ring-0 focus:border-gray-200 peer"
         >
-          <option disabled selected>Selection la promotion</option>
+          <option value="" disabled selected>selectionner la promotion</option>
             <option value="1ère annee">1ère année</option>
             <option value="2ème annee">2ème année</option>
             <option value="3ème annee">3ème année</option>
@@ -137,7 +137,7 @@
           ngModel
           class="block py-2.5 px-0 w-full text-sm text-gray-500 bg-transparent border-b-2 border-gray-200 appearance-none focus:border-b-green-800 focus:outline-none focus:ring-0 focus:border-gray-200 peer"
         >
-          <option disabled selected>Selection le statut</option>
+          <option value="" disabled selected>selectionner le statut</option>
           <option value="en cours">En cours</option>
           <option value="archive">Archivé</option>
         </select>

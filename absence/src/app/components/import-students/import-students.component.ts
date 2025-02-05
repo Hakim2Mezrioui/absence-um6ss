@@ -13,6 +13,7 @@ import { Router } from '@angular/router';
 })
 export class ImportStudentsComponent implements OnInit {
   loading: boolean = false;
+  role!: String;
   constructor(
     private http: HttpClient,
     private messageService: MessageService,
@@ -28,20 +29,30 @@ export class ImportStudentsComponent implements OnInit {
     promotion: '',
   };
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.startupService.role.subscribe((value) => (this.role = value));
+  }
 
   onSubmit() {}
 
   onFileSelected(event: Event) {
+    let faculte;
     this.loading = true;
     const input = event.target as HTMLInputElement;
+    if (this.role != 'super-admin') {
+      this.startupService.userFaculte.subscribe((value) => (faculte = value));
+    }
+
     if (input.files && input.files.length > 0) {
       const file: File = input.files[0];
       const formData = new FormData();
       formData.append('file', file, file.name);
       console.log(file);
       this.http
-        .post(`${this.startupService.baseUrl}/import-etudiants`, formData)
+        .post(
+          `${this.startupService.baseUrl}/import-etudiants?faculte=${faculte}`,
+          formData
+        )
         .subscribe(
           (response) => {
             this.loading = false;

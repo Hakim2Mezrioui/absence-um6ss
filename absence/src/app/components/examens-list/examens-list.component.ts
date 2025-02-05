@@ -15,19 +15,26 @@ export class ExamensListComponent implements OnInit {
   statutActual: String = 'tous';
   faculteActual: String = 'toutes';
   isLoading!: boolean;
-  role: String = "user";
+  role: String = 'user';
+  userFaculte: String = '';
 
-  constructor(private examenService: ExamenService, private startupService: StartupService) {}
+  constructor(
+    private examenService: ExamenService,
+    private startupService: StartupService
+  ) {}
 
   ngOnInit(): void {
+    this.startupService.userFaculte.subscribe((value) => {
+      this.examenService.faculteActual.next(value);
+      this.userFaculte = value;
+    });
     this.getExamens();
     this.examenService.totalPages.subscribe(
       (value) => (this.totalPages = value)
     );
     this.examenService.loading.subscribe((value) => (this.isLoading = value));
-    
-    this.startupService.role.subscribe(value => this.role = value);
-    console.log(this.role);
+
+    this.startupService.role.subscribe((value) => (this.role = value));
   }
 
   getExamens() {
@@ -38,16 +45,20 @@ export class ExamensListComponent implements OnInit {
     this.examenService.statutActual.subscribe(
       (value) => (this.statutActual = value)
     );
-
-    this.examenService.faculteActual.subscribe(
-      (value) => (this.faculteActual = value)
-    );
+    
+    
+    this.faculteActual = this.userFaculte;
+    if (this.userFaculte == null) {
+      this.examenService.faculteActual.subscribe(
+        (value) => (this.faculteActual = value)
+      );
+    }
+    
 
     this.examenService
       .fetchExamens(this.actualPage, this.statutActual, this.faculteActual)
       .subscribe((examens) => {
         this.examens = examens;
-        console.log(examens);
       });
   }
 
@@ -63,6 +74,7 @@ export class ExamensListComponent implements OnInit {
         this.examens = examens;
       });
   }
+
   filterByStatut(statut: String) {
     let faculte;
     this.examenService.faculteActual.subscribe((value) => (faculte = value));

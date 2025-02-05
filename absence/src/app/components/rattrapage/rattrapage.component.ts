@@ -12,6 +12,7 @@ import { Etudiant } from 'src/app/models/Etudiant';
 export class RattrapageComponent implements OnInit {
   @ViewChild('f') f: any;
   role: String = 'user';
+  userFaculte!: String;
 
   isLoading: boolean = false;
 
@@ -19,7 +20,7 @@ export class RattrapageComponent implements OnInit {
 
   studiantsWithFaceId: String[] = [];
   localStudents: Etudiant[] = [];
-  
+
   constructor(
     private rattrapageSerice: RattrapageService,
     private toastr: ToastrService,
@@ -28,8 +29,10 @@ export class RattrapageComponent implements OnInit {
 
   ngOnInit(): void {
     this.startupService.role.subscribe((value) => (this.role = value));
+    this.startupService.userFaculte.subscribe(
+      (value) => (this.userFaculte = value)
+    );
   }
-
 
   anneesUniversitaires = [
     { id: 1, annee: '2020/2021' },
@@ -56,7 +59,6 @@ export class RattrapageComponent implements OnInit {
 
   onSubmit() {
     this.isLoading = true;
-    console.log(this.f.value);
     this.rattrapageSerice.suivi(this.f.value).subscribe(
       (response: any) => {
         console.log(response.local_students);
@@ -64,7 +66,8 @@ export class RattrapageComponent implements OnInit {
         this.isLoading = false;
         this.studiantsWithFaceId = response.students_with_face_id;
         this.localStudents = response.local_students;
-        console.log(this.studiantsWithFaceId);
+        
+        this.mettreAJourPresence();
       },
       (error) => {
         this.isLoading = false;
@@ -73,12 +76,26 @@ export class RattrapageComponent implements OnInit {
     );
   }
 
+  mettreAJourPresence() {
+    this.localStudents.forEach((etudiant) => {
+      return (etudiant.etatPresence = this.studiantsWithFaceId.includes(
+        etudiant.matricule.toString()
+      )
+        ? 'P'
+        : 'A');
+    });
+  }
+
   handlePromotion(e: Event) {
     console.log((e.target as HTMLSelectElement).value);
   }
 
   async onFileSelected(event: Event) {
-    const faculte = this.f.value.faculte;
+    let faculte = this.userFaculte;
+    if (this.role == 'super-admin') {
+      faculte = this.f.value.faculte;
+    }
+    console.log(faculte);
     if (faculte === '' || faculte === undefined) {
       this.toastr.error(
         'Vous devez sélectionner une faculté avant de continuer'

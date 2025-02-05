@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { Examen } from 'src/app/models/Examen';
 import { ExamenService } from 'src/app/services/examen.service';
 import { ToastrService } from 'ngx-toastr';
+import { StartupService } from 'src/app/services/startup.service';
 
 @Component({
   selector: 'app-add-exam',
@@ -13,20 +14,30 @@ import { ToastrService } from 'ngx-toastr';
 export class AddExamComponent implements OnInit {
   @ViewChild('f') form!: NgForm;
   loading: boolean = false;
+  role: String = 'user';
 
   constructor(
     private router: Router,
     private examenService: ExamenService,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private startupService: StartupService
   ) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.startupService.role.subscribe((value) => (this.role = value));
+  }
 
   goToImportScreen() {
     this.router.navigate(['/import-examens']);
   }
 
   validateForm(): boolean {
+    if (this.role != 'super-admin') {
+      this.startupService.userFaculte.subscribe(
+        (value) => (this.form.value.faculte = value)
+      );
+    }
+
     if (
       !this.form.value.title ||
       !this.form.value.date ||
@@ -44,13 +55,12 @@ export class AddExamComponent implements OnInit {
   }
 
   onSubmit(e: any) {
-    
     if (!this.validateForm()) {
       return;
     }
-    
+
     this.loading = true;
-    
+
     const examen = new Examen(
       this.form.value.title,
       this.form.value.date,

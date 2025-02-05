@@ -42,7 +42,7 @@
       >
     </div>
 
-    <div class="relative w-full mb-5 group">
+    <div *ngIf="role == 'super-admin'" class="relative w-full mb-5 group">
       <label for="underline_select" class="sr-only">Underline select</label>
       <select
         name="faculte"

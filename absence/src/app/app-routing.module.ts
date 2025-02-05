@@ -95,7 +95,7 @@ const routes: Routes = [
       {
         path: 'add-user',
         component: AddUserComponent,        
-        canActivate: [SuperAdminGuard]
+        // canActivate: [SuperAdminGuard]
       },
       {
         path: 'users',
