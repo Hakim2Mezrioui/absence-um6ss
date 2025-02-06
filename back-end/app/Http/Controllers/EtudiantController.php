@@ -16,7 +16,7 @@ class EtudiantController extends Controller
      */
     public function index(Request $request)
     {
-        $date = $request->input('date', '2025-02-03'); // Default date if not provided
+        $date = $request->input('date', '2025-02-06'); // Default date if not provided
         $heure1 = $request->input('hour1', '08:00'); // Default start time if not provided
         $heure2 = $request->input('hour2', '10:00'); // Default end time if not provided
         $faculte = $request->input('faculte', "pharmacie");

@@ -15,6 +15,7 @@ Route::get('/user', function (Request $request) {
 Route::get("user", [AuthController::class, "user"])->middleware("auth:sanctum");
 Route::post("create", [AuthController::class,"create"])->middleware("auth:sanctum");
 Route::get("users", [AuthController::class, "users"]);
+Route::post("destroy/{id}", [AuthController::class, "destroy"]);
 
 Route::middleware('auth:sanctum')->group(function () {
 Route::get("etudiants", [EtudiantController::class, "index"]);

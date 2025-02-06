@@ -1,6 +1,8 @@
 <div class="flex justify-between">
-  <div></div>
-  <div *ngIf="role == 'super-admin' || role=='admin'" class="flex">
+  <div>
+  </div>
+  <!-- <input class="form-control mt-4" /> -->
+  <div *ngIf="role == 'super-admin' || role == 'admin'" class="flex">
     <div *ngIf="role == 'super-admin'" class="relative group p-0">
       <button
         class="bg-blue-900 hover:bg-blue-800 rounded-sm text-white px-4 py-1 my-3 mx-3"

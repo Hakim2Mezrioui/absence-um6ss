@@ -69,7 +69,7 @@ export class SuiviAbsenceComponent implements OnInit {
     this.examenService.examenExploring.subscribe(
       (value) => (this.examen = value)
     );
-    // this.mettreAJourPresence();
+    this.mettreAJourPresence();
   }
 
   handleSearch(e: Event) {
@@ -109,6 +109,7 @@ export class SuiviAbsenceComponent implements OnInit {
           this.studiantsWithFaceId = response.students_with_face_id;
           this.localStudents = response.local_students;
 
+          this.mettreAJourPresence();
           // console.log(this.studiantsWithFaceId);
           // this.examenService.localStudents.next(this.localStudents);
           // this.examenService.studiantsWithFaceId.next(this.studiantsWithFaceId);
@@ -119,7 +120,6 @@ export class SuiviAbsenceComponent implements OnInit {
           this.toastr.error('An error occurred while processing your request');
         }
       );
-      this.mettreAJourPresence();
   }
 
   handleExport() {

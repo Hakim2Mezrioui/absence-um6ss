@@ -40,6 +40,7 @@ export class ExamenService implements OnInit {
   ): Observable<Examen[]> {
     this.loading.next(true);
     this.actualPage.next(page);
+    this.faculteActual.subscribe(value => faculte = value);
     return this.http
       .get<{ examens: any[]; totalPages: number }>(
         `${this.baseUrl}/examens?page=${page}&statut=${statut}&faculte=${faculte}`
@@ -121,5 +122,9 @@ export class ExamenService implements OnInit {
 
   importer(examens: FormData) {
     return this.http.post(`${this.baseUrl}/import-examens`, examens);
+  }
+
+  delete(id: number) {
+    return this.http.delete(`${this.baseUrl}/examens/${id}`, {});
   }
 }

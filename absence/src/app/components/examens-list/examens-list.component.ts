@@ -16,7 +16,7 @@ export class ExamensListComponent implements OnInit {
   faculteActual: String = 'toutes';
   isLoading!: boolean;
   role: String = 'user';
-  userFaculte: String = '';
+  userFaculte: String = 'toutes';
 
   constructor(
     private examenService: ExamenService,
@@ -25,16 +25,23 @@ export class ExamensListComponent implements OnInit {
 
   ngOnInit(): void {
     this.startupService.userFaculte.subscribe((value) => {
+      if(value == null)  {        
+        return;
+      }
       this.examenService.faculteActual.next(value);
       this.userFaculte = value;
     });
+
     this.getExamens();
     this.examenService.totalPages.subscribe(
       (value) => (this.totalPages = value)
     );
     this.examenService.loading.subscribe((value) => (this.isLoading = value));
-
+    
     this.startupService.role.subscribe((value) => (this.role = value));
+    if(this.role == 'user') {
+      this.examenService.statutActual.next("en cours");
+    }
   }
 
   getExamens() {

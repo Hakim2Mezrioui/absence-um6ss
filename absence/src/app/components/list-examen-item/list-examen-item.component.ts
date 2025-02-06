@@ -7,6 +7,7 @@ import { Examen } from 'src/app/models/Examen';
 import { ExamenService } from 'src/app/services/examen.service';
 import { RattrapageService } from 'src/app/services/rattrapage.service';
 import { StartupService } from 'src/app/services/startup.service';
+import Swal from 'sweetalert2';
 
 interface Statut {
   name: string;
@@ -95,5 +96,29 @@ export class ListExamenItemComponent implements OnInit {
       .then(() => {
         this.router.navigate([currentUrl]);
       });
+  }
+
+  async onDelete(id: number) {
+    const response = await Swal.fire({
+      title: '',
+      text: 'Are you sure!',
+      icon: 'info',
+      showCancelButton: true,
+    });
+    if (!response.isConfirmed) {
+      return;
+    }
+
+    this.examenService.delete(id).subscribe(
+      (response) => {
+        this.isLoading = false;
+        this.toastr.success('Examen supprimé avec succès');
+        this.reloadCurrentRoute();
+      },
+      (error) => {
+        this.isLoading = false;
+        this.toastr.error("Erreur lors de la suppression de l'examen");
+      }
+    );
   }
 }

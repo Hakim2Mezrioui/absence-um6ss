@@ -87,7 +87,10 @@
         >
       </div>
     </div>
-    <div [ngClass]="role == 'super-admin' ? 'grid-cols-3' : 'grid-cols-2'" class="grid gap-2">
+    <div
+      [ngClass]="role == 'super-admin' ? 'grid-cols-3' : 'grid-cols-2'"
+      class="grid gap-2"
+    >
       <div *ngIf="role == 'super-admin'" class="relative w-full mb-5 group">
         <label for="underline_select" class="sr-only">Underline select</label>
         <select
@@ -97,10 +100,10 @@
           class="block py-2.5 px-0 w-full text-sm text-gray-500 bg-transparent border-b-2 border-gray-200 appearance-none focus:border-b-green-800 focus:outline-none focus:ring-0 focus:border-gray-200 peer"
         >
           <option value="" disabled selected>selectionner la faculte</option>
-            <option value="Medcine">Medcine</option>
-            <option value="Pharmacie">Pharmacie</option>
-            <option value="Dentaire">Dentaire</option>
-            <option value="Fsts">Fsts</option>
+          <option value="medecine">medecine</option>
+          <option value="Pharmacie">Pharmacie</option>
+          <option value="Dentaire">Dentaire</option>
+          <option value="Fsts">Fsts</option>
         </select>
         <label
           for="floating_email"
@@ -117,12 +120,12 @@
           class="block py-2.5 px-0 w-full text-sm text-gray-500 bg-transparent border-b-2 border-gray-200 appearance-none focus:border-b-green-800 focus:outline-none focus:ring-0 focus:border-gray-200 peer"
         >
           <option value="" disabled selected>selectionner la promotion</option>
-            <option value="1ère annee">1ère année</option>
-            <option value="2ème annee">2ème année</option>
-            <option value="3ème annee">3ème année</option>
-            <option value="4ème annee">4ème année</option>
-            <option value="5ème annee">5ème année</option>
-            <option value="6ème annee">6ème année</option>
+          <option value="1ère annee">1ère année</option>
+          <option value="2ème annee">2ème année</option>
+          <option value="3ème annee">3ème année</option>
+          <option value="4ème annee">4ème année</option>
+          <option value="5ème annee">5ème année</option>
+          <option value="6ème annee">6ème année</option>
         </select>
         <label
           for="floating_email"

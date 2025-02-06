@@ -15,7 +15,7 @@ class FaculteSeeder extends Seeder
     {
         $ecoles = [
             ['id' => 1, 'name' => 'Pharmacie'],
-            ['id' => 2, 'name' => 'Medcine'],
+            ['id' => 2, 'name' => 'medecine'],
             ['id' => 3, 'name' => 'Dentaire'],
             ['id' => 4, 'name' => 'Esgb'],
         ];

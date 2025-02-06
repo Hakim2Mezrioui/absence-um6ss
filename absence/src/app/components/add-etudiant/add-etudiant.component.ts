@@ -3,7 +3,6 @@ import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Etudiant } from 'src/app/models/Etudiant';
 import { EtudiantService } from 'src/app/services/etudiant.service';
-import Swal from 'sweetalert2';
 import { ToastrService } from 'ngx-toastr';
 import { StartupService } from 'src/app/services/startup.service';
 

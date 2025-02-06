@@ -18,8 +18,8 @@ export class AddExamComponent implements OnInit {
 
   constructor(
     private router: Router,
-    private examenService: ExamenService,
     private toastr: ToastrService,
+    private examenService: ExamenService,
     private startupService: StartupService
   ) {}
 

@@ -1,17 +1,19 @@
-
-
 <div
-class="examen bg-green-100"
+  class="relative examen bg-green-100"
   [ngClass]="[
     examen.statut == 'archivé' ? 'bg-red-100' : 'bg-green-100',
-    examen.faculte == 'Pharmacie' ? 'border-l-4 border-l-green-800' :
-    examen.faculte == 'Medcine' ? 'border-l-4 border-l-blue-800' :
-    examen.faculte == 'Dentaire' ? 'border-l-4 border-l-violet-500' :
-    examen.faculte == 'Esgb' ? 'border-l-4 border-l-blue-300' :
-    examen.faculte == 'Fsts' ? 'border-l-4 border-l-red-700' :
-    'border-l-4 border-l-blue-800'
+    examen.faculte == 'Pharmacie'
+      ? 'border-l-4 border-l-green-800'
+      : examen.faculte == 'medecine'
+      ? 'border-l-4 border-l-blue-800'
+      : examen.faculte == 'Dentaire'
+      ? 'border-l-4 border-l-violet-500'
+      : examen.faculte == 'Esgb'
+      ? 'border-l-4 border-l-blue-300'
+      : examen.faculte == 'Fsts'
+      ? 'border-l-4 border-l-red-700'
+      : 'border-l-4 border-l-blue-800'
   ]"
-  
 >
   <h3
     [ngClass]="examen.statut == 'archivé' ? 'text-red-800' : 'text-green-800'"
@@ -71,7 +73,10 @@ class="examen bg-green-100"
         <i class="bi bi-caret-right-fill"></i>
       </button>
       <button
-        *ngIf="examen.statut == 'en cours' && (role == 'admin' || role == 'super-admin')"
+        *ngIf="
+          examen.statut == 'en cours' &&
+          (role == 'admin' || role == 'super-admin')
+        "
         (click)="onArchive(examen)"
         class="explorer mt-0.5 bg-red-500 hover:bg-red-400 active:bg-red-500 w-32 py-0 text-white rounded-sm flex justify-center gap-2"
       >
@@ -79,7 +84,10 @@ class="examen bg-green-100"
         <i class="bi bi-archive-fill"></i>
       </button>
       <button
-        *ngIf="examen.statut != 'en cours' && (role == 'admin' || role == 'super-admin')"
+        *ngIf="
+          examen.statut != 'en cours' &&
+          (role == 'admin' || role == 'super-admin')
+        "
         (click)="onActiver(examen)"
         class="explorer mt-0.5 bg-green-500 hover:bg-green-400 active:bg-green-500 w-32 py-0 text-white rounded-sm flex justify-center gap-2"
       >
@@ -87,7 +95,7 @@ class="examen bg-green-100"
         <i class="bi bi-archive-fill"></i>
       </button>
       <button
-        *ngIf="(role == 'user' && examen.statut == 'archivé')"
+        *ngIf="role == 'user' && examen.statut == 'archivé'"
         class="explorer invisible mt-0.5 bg-green-500 hover:bg-green-400 active:bg-green-500 w-32 py-0 text-white rounded-sm flex justify-center gap-2"
       >
         <b></b>
@@ -95,6 +103,9 @@ class="examen bg-green-100"
       </button>
     </div>
   </div>
+
+  <i *ngIf="role == 'super-admin' || role == 'admin'" (click)="onDelete(examen.id!)" class="bi bi-trash absolute top-0 right-0 translate-x-3 -translate-y-3 bg-red-800 text-white px-2 py-1 hover:bg-red-700 active:bg-red-800 rounded-md"></i>
+  <i *ngIf="role == 'super-admin' || role == 'admin'" (click)="onDelete(examen.id!)" class="bi bi-pencil absolute top-0 right-0 -translate-x-6 -translate-y-3 bg-gray-400 text-white px-2 py-1 hover:bg-gray-400 active:bg-orange-400 rounded-md"></i>
 </div>
 
 <app-loading *ngIf="isLoading"></app-loading>

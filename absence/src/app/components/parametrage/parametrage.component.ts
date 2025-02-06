@@ -12,7 +12,7 @@ export class ParametrageComponent implements OnInit {
 
   @ViewChild('f') f: any;
 
-  parametrage: String = "";
+  parametrage: String = '';
 
   anneesUniversitaires = [
     { id: 1, annee: '2020/2021' },
@@ -24,7 +24,7 @@ export class ParametrageComponent implements OnInit {
 
   ecoles = [
     { id: 1, name: 'Pharmacie' },
-    { id: 2, name: 'Medcine' },
+    { id: 2, name: 'medecine' },
     { id: 3, name: 'Dentaire' },
     { id: 4, name: 'Esgb' },
   ];

@@ -10,8 +10,8 @@ class ExamenController extends Controller
     function index(Request $request) {
         $size = $request->query('size', 6);
         $page = $request->query('page', 1); 
-        $statut = $request->query('statut', ""); 
-        $faculte = $request->query("faculte", "");
+        $statut = $request->query('statut', "tous"); 
+        $faculte = $request->query("faculte", "toutes");
 
         $skip = ($page - 1) * $size;
 

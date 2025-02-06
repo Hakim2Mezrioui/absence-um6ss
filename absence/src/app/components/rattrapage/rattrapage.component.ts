@@ -43,10 +43,12 @@ export class RattrapageComponent implements OnInit {
   ];
 
   ecoles = [
-    { id: 1, name: 'Pharmacie' },
-    { id: 2, name: 'Medcine' },
-    { id: 3, name: 'Dentaire' },
-    { id: 4, name: 'Esgb' },
+    { id: 1, name: 'pharmacie' },
+    { id: 2, name: 'medecine' },
+    { id: 3, name: 'dentaire' },
+    { id: 4, name: 'esgb' },
+    { id: 5, name: 'medecine anglophone' },
+    { id: 6, name: 'fsts' },
   ];
 
   promotions = [
@@ -66,7 +68,7 @@ export class RattrapageComponent implements OnInit {
         this.isLoading = false;
         this.studiantsWithFaceId = response.students_with_face_id;
         this.localStudents = response.local_students;
-        
+
         this.mettreAJourPresence();
       },
       (error) => {

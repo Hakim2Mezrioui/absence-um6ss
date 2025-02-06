@@ -37,4 +37,8 @@ export class AuthService {
   users() {
     return this.http.get(`${this.baseUrl}/users`)
   }
+
+  delete(id: number) {
+    return this.http.post(`${this.baseUrl}/destroy/${id}`, {});
+  }
 }

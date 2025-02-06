@@ -20,7 +20,10 @@ class RattrapageController extends Controller
         $faculte = $request->input('faculte', "pharmacie");
 
         $user = $request->user();
-        if($user) {
+        if(!$user) {
+            return response()->json(["message"=> "you should be authenticated"],500);
+        }
+        if($user->role != 'super-admin') {
             $faculte = $user->faculte;
         }
 
@@ -53,7 +56,7 @@ class RattrapageController extends Controller
 
             return response()->json([
                 "students_with_face_id" => $studentsWithFaceId,
-                "biostar_results" => $biostarResults,
+                // "biostar_results" => $biostarResults,
                 "local_students" => $localStudents
             ], 200);
 
