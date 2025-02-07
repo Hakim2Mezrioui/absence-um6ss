@@ -1,5 +1,5 @@
 import { StartupService } from './../../services/startup.service';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { Examen } from 'src/app/models/Examen';
 import { ExamenService } from 'src/app/services/examen.service';
 
@@ -17,6 +17,7 @@ export class ExamensListComponent implements OnInit {
   isLoading!: boolean;
   role: String = 'user';
   userFaculte: String = 'toutes';
+  @ViewChild('searchVal') searchVal!: String;
 
   constructor(
     private examenService: ExamenService,
@@ -25,7 +26,7 @@ export class ExamensListComponent implements OnInit {
 
   ngOnInit(): void {
     this.startupService.userFaculte.subscribe((value) => {
-      if(value == null)  {        
+      if (value == null) {
         return;
       }
       this.examenService.faculteActual.next(value);
@@ -37,11 +38,21 @@ export class ExamensListComponent implements OnInit {
       (value) => (this.totalPages = value)
     );
     this.examenService.loading.subscribe((value) => (this.isLoading = value));
-    
+
     this.startupService.role.subscribe((value) => (this.role = value));
-    if(this.role == 'user') {
-      this.examenService.statutActual.next("en cours");
+    if (this.role == 'user') {
+      this.examenService.statutActual.next('en cours');
     }
+  }
+
+  handleSearch(value: String) {
+    // const inputElement = e.target as HTMLInputElement;
+    // const value = inputElement.value; // Logs the current value of the input
+    // this.filtredExamens = this.examens.filter((examen) =>
+    //   examen.title.toLocaleLowerCase().includes(value.toLocaleLowerCase())
+    // );
+
+    console.log(value);
   }
 
   getExamens() {
@@ -52,15 +63,13 @@ export class ExamensListComponent implements OnInit {
     this.examenService.statutActual.subscribe(
       (value) => (this.statutActual = value)
     );
-    
-    
+
     this.faculteActual = this.userFaculte;
     if (this.userFaculte == null) {
       this.examenService.faculteActual.subscribe(
         (value) => (this.faculteActual = value)
       );
     }
-    
 
     this.examenService
       .fetchExamens(this.actualPage, this.statutActual, this.faculteActual)

@@ -1,7 +1,13 @@
-<div class="flex justify-between">
-  <div>
+<div class="flex justify-between ms-40">
+  <div class="flex gap-1 items-center ">
+    <input
+      #searchVal
+      value=""
+      placeholder="Rechercher..."
+      class="py-1 -translate-y-2 ms-36 form-control mt-4"
+    />
+    <i (input)="handleSearch(searchVal.value)" class="bi bi-check cursor-pointer bg-blue-900 active:bg-blue-900 hover:bg-blue-800 text-white p-1 rounded translate-y-1"></i>
   </div>
-  <!-- <input class="form-control mt-4" /> -->
   <div *ngIf="role == 'super-admin' || role == 'admin'" class="flex">
     <div *ngIf="role == 'super-admin'" class="relative group p-0">
       <button
