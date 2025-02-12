@@ -69,6 +69,11 @@ export class ExamenService implements OnInit {
       );
   }
 
+  fetchExam(id: number) {
+    return this.http.get(`${this.baseUrl}/examens/${id}`)
+  }
+
+  
   suivi(data: {
     hour1: string;
     hour2: string;
@@ -126,5 +131,9 @@ export class ExamenService implements OnInit {
 
   delete(id: number) {
     return this.http.delete(`${this.baseUrl}/examens/${id}`, {});
+  }
+
+  update(examen: Examen, id: number) {
+    return this.http.put(`${this.baseUrl}/examens/${id}`, {... examen})
   }
 }

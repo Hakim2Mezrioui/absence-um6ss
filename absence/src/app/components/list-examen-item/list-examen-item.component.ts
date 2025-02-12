@@ -121,4 +121,8 @@ export class ListExamenItemComponent implements OnInit {
       }
     );
   }
+
+  onUpdate(id: number) {
+      this.router.navigate([`update-exam/${id}`])
+  }
 }

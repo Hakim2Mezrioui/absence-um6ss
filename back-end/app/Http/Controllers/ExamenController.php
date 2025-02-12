@@ -98,9 +98,9 @@ class ExamenController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'date' => 'required|date',
-            'hour_debut' => 'required|date_format:H:i:s',
-            'hour_debut_pointage' => 'required|date_format:H:i:s',
-            'hour_fin' => 'required|date_format:H:i:s',
+            'hour_debut' => 'required',
+            'hour_debut_pointage' => 'required',
+            'hour_fin' => 'required',
             'faculte' => 'required|string|max:255',
             'promotion' => 'required|in:1ère annee,2ème annee,3ème annee,4ème annee,5ème annee,6ème annee',
             'statut' => 'required|in:archivé,en cours',
@@ -177,5 +177,9 @@ class ExamenController extends Controller
 
         // Return a success response
         return response()->json(['message' => 'Examen deleted successfully'], 200);
+    }
+
+    function search() {
+        
     }
 }

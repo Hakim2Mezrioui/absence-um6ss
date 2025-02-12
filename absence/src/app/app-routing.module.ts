@@ -22,6 +22,7 @@ import { UsersComponent } from './components/users/users.component';
 import { AdminGuard } from './guards/admin.guard';
 import { SuperAdminGuard } from './guards/super-admin.guard';
 import { SuperAdminAndAdminGuard } from './guards/super-admin-and-admin.guard';
+import { UpdateExameComponent } from './update-exame/update-exame.component';
 
 const routes: Routes = [
   {
@@ -52,24 +53,29 @@ const routes: Routes = [
       {
         path: 'import-etudiants',
         component: ImportStudentsComponent,
-        canActivate: [SuperAdminAndAdminGuard]
+        canActivate: [SuperAdminAndAdminGuard],
       },
       {
         path: 'import-examens',
-        component: ImportExamensComponent,        
-        canActivate: [SuperAdminAndAdminGuard]
+        component: ImportExamensComponent,
+        canActivate: [SuperAdminAndAdminGuard],
       },
       {
         path: 'parametrer-examen',
         component: AddExamComponent,
-        canDeactivate: [ExamenFormGuard],        
-        canActivate: [SuperAdminAndAdminGuard]
+        canDeactivate: [ExamenFormGuard],
+        canActivate: [SuperAdminAndAdminGuard],
+      },
+      {
+        path: 'update-exam/:id',
+        component: UpdateExameComponent,
+        canActivate: [SuperAdminAndAdminGuard],
       },
       {
         path: 'add-etudiant',
         component: AddEtudiantComponent,
         canDeactivate: [PreventUnsavedChangesGuardGuard],
-        canActivate: [SuperAdminAndAdminGuard]
+        canActivate: [SuperAdminAndAdminGuard],
       },
       {
         path: 'list-examen-item',
@@ -85,8 +91,8 @@ const routes: Routes = [
       },
       {
         path: 'etudiants',
-        component: EtudiantsComponent,        
-        canActivate: [SuperAdminAndAdminGuard]
+        component: EtudiantsComponent,
+        canActivate: [SuperAdminAndAdminGuard],
       },
       {
         path: 'whitePage',
@@ -94,13 +100,13 @@ const routes: Routes = [
       },
       {
         path: 'add-user',
-        component: AddUserComponent,        
+        component: AddUserComponent,
         // canActivate: [SuperAdminGuard]
       },
       {
         path: 'users',
-        component: UsersComponent,        
-        canActivate: [SuperAdminAndAdminGuard]
+        component: UsersComponent,
+        canActivate: [SuperAdminAndAdminGuard],
       },
     ],
   },
