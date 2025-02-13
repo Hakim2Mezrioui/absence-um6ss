@@ -31,10 +31,9 @@ export class UpdateExameComponent implements OnInit {
     this.startupService.role.subscribe((value) => (this.role = value));
     this.id = this.activatedRoute.snapshot.params['id'];
     // id = this.activatedRoute.snapshot.params['id'];
+    this.loading = true;
     this.examenService.fetchExam(this.id).subscribe(
       (response: any) => {
-        console.log(response.examen);
-
         // this.examen.title = response.examen.title;
         // this.examen.date = response.examen.date;
         // this.examen.faculte = response.examen.faculte;
@@ -53,9 +52,13 @@ export class UpdateExameComponent implements OnInit {
           response.examen.promotion,
           response.examen.statut
         );
+
       },
       (error) => {
         console.log(error);
+      },
+      () => {
+        this.loading = false;
       }
     );
   }

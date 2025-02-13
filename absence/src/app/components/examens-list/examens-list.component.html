@@ -5,8 +5,9 @@
       value=""
       placeholder="Rechercher..."
       class="py-1 -translate-y-2 ms-36 form-control mt-4"
+      (keydown.enter)="handleSearch(searchVal.value)"
     />
-    <i (input)="handleSearch(searchVal.value)" class="bi bi-search cursor-pointer bg-blue-900 active:bg-blue-900 hover:bg-blue-800 text-white p-1 px-2 rounded translate-y-1"></i>
+    <i (click)="handleSearch(searchVal.value)" class="bi bi-search cursor-pointer bg-blue-900 active:bg-blue-900 hover:bg-blue-800 text-white p-1 px-2 rounded translate-y-1"></i>
   </div>
   <div *ngIf="role == 'super-admin' || role == 'admin'" class="flex">
     <div *ngIf="role == 'super-admin'" class="relative group p-0">
@@ -152,4 +153,4 @@
   </ul>
 </nav>
 
-<!-- <app-loading *ngIf="isLoading"></app-loading> -->
+<app-loading *ngIf="isLoading"></app-loading>

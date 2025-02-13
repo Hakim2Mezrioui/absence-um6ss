@@ -12,6 +12,7 @@ class ExamenController extends Controller
         $page = $request->query('page', 1); 
         $statut = $request->query('statut', "tous"); 
         $faculte = $request->query("faculte", "toutes");
+        $searchValue = $request->query("searchValue", "");
 
         $skip = ($page - 1) * $size;
 
@@ -25,6 +26,9 @@ class ExamenController extends Controller
         // Appliquer le filtre sur la faculté si nécessaire
         if (!empty($faculte) && $faculte !== "toutes") {
             $query->where("faculte", $faculte);
+        }
+        if (!empty($searchValue) && $searchValue !== "") {
+            $query->where("title", "LIKE", "%{$searchValue}%");
         }
 
         // Obtenir le total des résultats avant la pagination
