@@ -26,6 +26,7 @@ export class AddExamComponent implements OnInit {
 
   ngOnInit(): void {
     this.startupService.role.subscribe((value) => (this.role = value));
+    this.startupService.page.next("Parametrer Examen");
   }
 
   goToImportScreen() {

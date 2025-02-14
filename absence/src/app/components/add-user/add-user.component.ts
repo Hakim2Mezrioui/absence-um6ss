@@ -3,6 +3,7 @@ import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { AuthService } from 'src/app/services/auth.service';
+import { StartupService } from 'src/app/services/startup.service';
 
 @Component({
   selector: 'app-add-user',
@@ -17,10 +18,13 @@ export class AddUserComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private toastr: ToastrService,
-    private router: Router
+    private router: Router,
+    private startupService: StartupService
   ) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.startupService.page.next('Ajouter utilisateur');
+  }
 
   onRoleChange() {
     this.roleValue = this.form.value.role;

@@ -1,5 +1,5 @@
 <div class="flex justify-between ms-40">
-  <div class="flex gap-1 items-center ">
+  <div class="flex gap-1 items-center">
     <input
       #searchVal
       value=""
@@ -7,7 +7,10 @@
       class="py-1 -translate-y-2 ms-36 form-control mt-4"
       (keydown.enter)="handleSearch(searchVal.value)"
     />
-    <i (click)="handleSearch(searchVal.value)" class="bi bi-search cursor-pointer bg-blue-900 active:bg-blue-900 hover:bg-blue-800 text-white p-1 px-2 rounded translate-y-1"></i>
+    <i
+      (click)="handleSearch(searchVal.value)"
+      class="bi bi-search cursor-pointer bg-blue-900 active:bg-blue-900 hover:bg-blue-800 text-white p-1 px-2 rounded translate-y-1"
+    ></i>
   </div>
   <div *ngIf="role == 'super-admin' || role == 'admin'" class="flex">
     <div *ngIf="role == 'super-admin'" class="relative group p-0">
@@ -154,3 +157,7 @@
 </nav>
 
 <app-loading *ngIf="isLoading"></app-loading>
+
+<div *ngIf="!isLoading && examens.length == 0" class="h-full flex justify-center items-center">
+  <h1 class="text-center text-blue-900 font-bold text-3xl mb-32">Not Found</h1>
+</div>

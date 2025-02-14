@@ -1,4 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
+import { StartupService } from 'src/app/services/startup.service';
 
 @Component({
   selector: 'app-parametrage',
@@ -6,9 +7,11 @@ import { Component, OnInit, ViewChild } from '@angular/core';
   styleUrls: ['./parametrage.component.css'],
 })
 export class ParametrageComponent implements OnInit {
-  constructor() {}
+  constructor(private startupService: StartupService) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.startupService.page.next('Parametrage');
+  }
 
   @ViewChild('f') f: any;
 

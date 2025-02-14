@@ -39,6 +39,7 @@ import { WhitePageComponent } from './components/white-page/white-page.component
 import { AddUserComponent } from './components/add-user/add-user.component';
 import { UsersComponent } from './components/users/users.component';
 import { UpdateExameComponent } from './update-exame/update-exame.component';
+import { HeaderComponent } from './components/header/header.component';
 
 @NgModule({
   declarations: [
@@ -63,6 +64,7 @@ import { UpdateExameComponent } from './update-exame/update-exame.component';
     AddUserComponent,
     UsersComponent,
     UpdateExameComponent,
+    HeaderComponent,
   ],
   imports: [
     BrowserModule,

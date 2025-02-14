@@ -29,6 +29,7 @@ export class AddEtudiantComponent implements OnInit {
     this.startupService.userFaculte.subscribe(
       (value) => (this.userFaculte = value)
     );
+    this.startupService.page.next("Ajouter etudiant");
   }
 
   goToImportScreen() {

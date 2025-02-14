@@ -2,6 +2,7 @@ import { EtudiantService } from './../../services/etudiant.service';
 import { Etudiant } from './../../models/Etudiant';
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { Table } from 'primeng/table';
+import { StartupService } from 'src/app/services/startup.service';
 
 @Component({
   selector: 'app-etudiants',
@@ -15,7 +16,10 @@ export class EtudiantsComponent implements OnInit {
   etudiants: Etudiant[] = [];
   loading: boolean = false;
 
-  constructor(private etudiantService: EtudiantService) {}
+  constructor(
+    private etudiantService: EtudiantService,
+    private startupService: StartupService,
+  ) {}
 
   ngOnInit(): void {
     this.loading = true;
@@ -23,6 +27,7 @@ export class EtudiantsComponent implements OnInit {
       this.etudiants = etudiants;
       this.loading = false;
     });
+    this.startupService.page.next('Etudiants');
   }
 
   handleSearch(e: Event) {

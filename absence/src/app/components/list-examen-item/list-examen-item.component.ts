@@ -26,6 +26,7 @@ export class ListExamenItemComponent implements OnInit {
   studiantsWithFaceId: String[] = [];
   localStudents: Etudiant[] = [];
   role: String = 'user';
+  page!: String;
 
   @Input('examen') examen!: Examen;
 
@@ -39,6 +40,7 @@ export class ListExamenItemComponent implements OnInit {
 
   ngOnInit() {
     this.startupService.role.subscribe((value) => (this.role = value));
+    this.startupService.page.next("Examen list");
   }
 
   onExplore(examen: Examen) {
@@ -123,6 +125,6 @@ export class ListExamenItemComponent implements OnInit {
   }
 
   onUpdate(id: number) {
-      this.router.navigate([`update-exam/${id}`])
+    this.router.navigate([`update-exam/${id}`]);
   }
 }
