@@ -5,6 +5,7 @@ import { ToastrService } from 'ngx-toastr';
 import { Table } from 'primeng/table';
 import { User } from 'src/app/models/Users';
 import { AuthService } from 'src/app/services/auth.service';
+import { StartupService } from 'src/app/services/startup.service';
 
 @Component({
   selector: 'app-users',
@@ -19,11 +20,13 @@ export class UsersComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private router: Router,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private startupService: StartupService
   ) {}
 
   ngOnInit(): void {
     this.getUsers();
+    this.startupService.page.next('Utilisateurs');
   }
 
   getUsers() {
@@ -50,7 +53,7 @@ export class UsersComponent implements OnInit {
       (response) => {
         this.loading = false;
         this.toastr.success('Utilisateur supprimé avec succès');
-        this.reloadCurrentRoute()
+        this.reloadCurrentRoute();
       },
       (error) => {
         this.loading = false;

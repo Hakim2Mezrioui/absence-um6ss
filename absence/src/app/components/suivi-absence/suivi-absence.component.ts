@@ -14,6 +14,7 @@ import { Table } from 'primeng/table';
 import { Examen } from 'src/app/models/Examen';
 import { ToastrService } from 'ngx-toastr';
 import { Router } from '@angular/router';
+import { StartupService } from 'src/app/services/startup.service';
 
 @Component({
   selector: 'app-suivi-absence',
@@ -34,7 +35,8 @@ export class SuiviAbsenceComponent implements OnInit {
     private http: HttpClient,
     private examenService: ExamenService,
     private toastr: ToastrService,
-    private router: Router
+    private router: Router,
+    private startupService: StartupService
   ) {}
 
   ngOnInit(): void {
@@ -69,6 +71,7 @@ export class SuiviAbsenceComponent implements OnInit {
     this.examenService.examenExploring.subscribe(
       (value) => (this.examen = value)
     );
+    this.startupService.page.next('Suivi');
     this.mettreAJourPresence();
   }
 

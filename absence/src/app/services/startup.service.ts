@@ -14,6 +14,9 @@ export class StartupService {
   isLogin = new BehaviorSubject<boolean>(false);
 
   role = new ReplaySubject<String>();
+  name = new ReplaySubject<String>();
+  page = new ReplaySubject<String>();
+
   userFaculte = new ReplaySubject<String>();
 
   async fetchFacultes() {

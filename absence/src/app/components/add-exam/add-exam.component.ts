@@ -15,6 +15,7 @@ export class AddExamComponent implements OnInit {
   @ViewChild('f') form!: NgForm;
   loading: boolean = false;
   role: String = 'user';
+  selectedFaculte!: String;
 
   constructor(
     private router: Router,
@@ -25,6 +26,7 @@ export class AddExamComponent implements OnInit {
 
   ngOnInit(): void {
     this.startupService.role.subscribe((value) => (this.role = value));
+    this.startupService.page.next("Parametrer Examen");
   }
 
   goToImportScreen() {
@@ -36,6 +38,14 @@ export class AddExamComponent implements OnInit {
       this.startupService.userFaculte.subscribe(
         (value) => (this.form.value.faculte = value)
       );
+    }
+
+    if (
+      this.selectedFaculte === 'fsts' &&
+      (this.form.value.option == null || this.form.value.option == '')
+    ) {
+      this.toastr.error('Veuillez remplir tous les champs obligatoires');
+      return false;
     }
 
     if (
@@ -59,6 +69,8 @@ export class AddExamComponent implements OnInit {
       return;
     }
 
+    console.log(this.form);
+
     this.loading = true;
 
     const examen = new Examen(
@@ -69,7 +81,8 @@ export class AddExamComponent implements OnInit {
       this.form.value.hour_debut_pointage,
       this.form.value.faculte,
       this.form.value.promotion,
-      this.form.value.statut
+      this.form.value.statut,
+      this.form.value.option ?? ''
     );
 
     this.examenService.ajouter(examen).subscribe(
@@ -84,5 +97,9 @@ export class AddExamComponent implements OnInit {
       }
     );
     // this.examenService.ajouter()
+  }
+
+  faculteChange(name: String) {
+    this.selectedFaculte = name;
   }
 }

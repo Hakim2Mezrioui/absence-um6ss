@@ -32,6 +32,7 @@ export class RattrapageComponent implements OnInit {
     this.startupService.userFaculte.subscribe(
       (value) => (this.userFaculte = value)
     );
+    this.startupService.page.next("Rattrappage");
   }
 
   anneesUniversitaires = [

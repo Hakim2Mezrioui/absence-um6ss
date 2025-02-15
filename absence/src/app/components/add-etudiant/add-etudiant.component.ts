@@ -23,7 +23,10 @@ export class AddEtudiantComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    
+    this.startupService.role.subscribe((value) => (this.role = value));
+    this.startupService.userFaculte.subscribe(
+      (value) => (this.userFaculte = value)
+    );
   }
 
   goToImportScreen() {

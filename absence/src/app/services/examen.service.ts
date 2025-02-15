@@ -17,6 +17,8 @@ export class ExamenService implements OnInit {
 
   loading = new BehaviorSubject<boolean>(false);
 
+  searchValue = new BehaviorSubject<String>('');
+
   // actualPage = new ReplaySubject();
   actualPage = new BehaviorSubject<number>(1);
 
@@ -27,7 +29,17 @@ export class ExamenService implements OnInit {
   studiantsWithFaceId = new BehaviorSubject<String[]>([]);
 
   examenExploring = new BehaviorSubject<Examen>(
-    new Examen('', new Date(), new Date(), new Date(), new Date(), '', '', '')
+    new Examen(
+      '',
+      new Date(),
+      new Date(),
+      new Date(),
+      new Date(),
+      '',
+      '',
+      '',
+      ''
+    )
   );
 
   constructor(private http: HttpClient) {}
@@ -36,14 +48,15 @@ export class ExamenService implements OnInit {
   fetchExamens(
     page: number = 1,
     statut: String = 'tous',
-    faculte: String = 'toutes'
+    faculte: String = 'toutes',
+    value: String = ''
   ): Observable<Examen[]> {
     this.loading.next(true);
     this.actualPage.next(page);
-    this.faculteActual.subscribe(value => faculte = value);
+    this.faculteActual.subscribe((value) => (faculte = value));
     return this.http
       .get<{ examens: any[]; totalPages: number }>(
-        `${this.baseUrl}/examens?page=${page}&statut=${statut}&faculte=${faculte}`
+        `${this.baseUrl}/examens?page=${page}&statut=${statut}&faculte=${faculte}&searchValue=${value}`
       )
       .pipe(
         map((response) => {
@@ -58,6 +71,7 @@ export class ExamenService implements OnInit {
               item.faculte,
               item.promotion,
               item.statut,
+              item.option ?? '',
               item.id
             );
           });
@@ -67,6 +81,10 @@ export class ExamenService implements OnInit {
           this.loading.next(false);
         })
       );
+  }
+
+  fetchExam(id: number) {
+    return this.http.get(`${this.baseUrl}/examens/${id}`);
   }
 
   suivi(data: {
@@ -117,6 +135,7 @@ export class ExamenService implements OnInit {
       faculte: examen.faculte,
       promotion: examen.promotion,
       statut: examen.statut,
+      option: examen.option,
     });
   }
 
@@ -126,5 +145,36 @@ export class ExamenService implements OnInit {
 
   delete(id: number) {
     return this.http.delete(`${this.baseUrl}/examens/${id}`, {});
+  }
+
+  update(examen: Examen, id: number) {
+    return this.http.put(`${this.baseUrl}/examens/${id}`, { ...examen });
+  }
+
+  search(value: String) {
+    return this.http
+      .get<{ examens: any[]; totalPages: number }>(`${this.baseUrl}/examens`)
+      .pipe(
+        map((response) => {
+          this.totalPages.next(response.totalPages);
+          return response.examens.map((item) => {
+            return new Examen(
+              item.title,
+              item.date,
+              item.hour_debut,
+              item.hour_fin,
+              item.hour_debut_pointage,
+              item.faculte,
+              item.promotion,
+              item.statut,
+              item.id
+            );
+          });
+        }),
+        tap((examens: Examen[]) => {
+          this.examens = examens;
+          this.loading.next(false);
+        })
+      );
   }
 }

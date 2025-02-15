@@ -1,5 +1,6 @@
 import { StartupService } from './../../services/startup.service';
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { InputText } from 'primeng/inputtext';
 import { Examen } from 'src/app/models/Examen';
 import { ExamenService } from 'src/app/services/examen.service';
 
@@ -17,7 +18,7 @@ export class ExamensListComponent implements OnInit {
   isLoading!: boolean;
   role: String = 'user';
   userFaculte: String = 'toutes';
-  @ViewChild('searchVal') searchVal!: String;
+  searchVal: String = '';
 
   constructor(
     private examenService: ExamenService,
@@ -46,13 +47,9 @@ export class ExamensListComponent implements OnInit {
   }
 
   handleSearch(value: String) {
-    // const inputElement = e.target as HTMLInputElement;
-    // const value = inputElement.value; // Logs the current value of the input
-    // this.filtredExamens = this.examens.filter((examen) =>
-    //   examen.title.toLocaleLowerCase().includes(value.toLocaleLowerCase())
-    // );
-
-    console.log(value);
+    this.examenService.searchValue.next(value);
+    this.examenService.actualPage.next(1);
+    this.getExamens();
   }
 
   getExamens() {
@@ -71,8 +68,17 @@ export class ExamensListComponent implements OnInit {
       );
     }
 
+    this.examenService.searchValue.subscribe(
+      (value) => (this.searchVal = value)
+    );
+
     this.examenService
-      .fetchExamens(this.actualPage, this.statutActual, this.faculteActual)
+      .fetchExamens(
+        this.actualPage,
+        this.statutActual,
+        this.faculteActual,
+        this.searchVal
+      )
       .subscribe((examens) => {
         this.examens = examens;
       });
@@ -81,11 +87,13 @@ export class ExamensListComponent implements OnInit {
   getPage(number: number) {
     let statut;
     let faculte;
+    let valueSearch;
     this.examenService.statutActual.subscribe((value) => (statut = value));
     this.examenService.faculteActual.subscribe((value) => (faculte = value));
+    this.examenService.searchValue.subscribe((value) => (valueSearch = value));
 
     this.examenService
-      .fetchExamens(number, statut, faculte)
+      .fetchExamens(number, statut, faculte, valueSearch)
       .subscribe((examens) => {
         this.examens = examens;
       });
@@ -117,9 +125,11 @@ export class ExamensListComponent implements OnInit {
     let totalPage = 1;
     let statut;
     let faculte;
+    let valueSearch;
 
     this.examenService.statutActual.subscribe((value) => (statut = value));
     this.examenService.faculteActual.subscribe((value) => (faculte = value));
+    this.examenService.searchValue.subscribe((value) => (valueSearch = value));
 
     this.examenService.totalPages.subscribe((value) => (totalPage = value));
     if (this.actualPage == this.totalPages) return;
@@ -133,9 +143,11 @@ export class ExamensListComponent implements OnInit {
   back() {
     let statut;
     let faculte;
+    let valueSearch;
 
     this.examenService.statutActual.subscribe((value) => (statut = value));
     this.examenService.faculteActual.subscribe((value) => (faculte = value));
+    this.examenService.searchValue.subscribe((value) => (valueSearch = value));
 
     if (this.actualPage == 1) return;
     this.examenService

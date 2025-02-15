@@ -1,5 +1,5 @@
 <div class="body">
-  <div class="flex justify-between mt-5 mr-5">
+  <!-- <div class="flex justify-between mt-5 mr-5">
     <div></div>
     <button
       (click)="goToImportScreen()"
@@ -8,8 +8,8 @@
       <i class="bi bi-file-earmark-arrow-down-fill"></i>
       Importer les Examens
     </button>
-  </div>
-  <form class="w-1/2 min-w-72" (submit)="onSubmit(f)" #f="ngForm">
+  </div> -->
+  <form class="w-1/2 min-w-72" (submit)="onSubmit()" #f="ngForm">
     <div class="relative w-full mb-5 group">
       <input
         type="text"
@@ -17,7 +17,7 @@
         class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-b-2 z-0 appearance-none borde-gray-600 focus:border-green-800 focus:outline-none focus:ring-0 peer"
         placeholder=""
         required
-        ngModel
+        [ngModel]="this.examen.title"
       />
       <label
         for="floating_email"
@@ -32,7 +32,7 @@
         class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-b-2 z-0 appearance-none borde-gray-600 focus:border-green-800 focus:outline-none focus:ring-0 peer"
         placeholder=""
         required
-        ngModel
+        [ngModel]="this.examen.date"
       />
       <label
         for="floating_email"
@@ -48,7 +48,7 @@
           class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-b-2 z-0 appearance-none borde-gray-600 focus:border-green-800 focus:outline-none focus:ring-0 peer"
           placeholder=""
           required
-          ngModel
+          [ngModel]="this.examen.hour_debut"
         />
         <label
           for="floating_email"
@@ -63,7 +63,7 @@
           class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-b-2 z-0 appearance-none borde-gray-600 focus:border-green-800 focus:outline-none focus:ring-0 peer"
           placeholder=""
           required
-          ngModel
+          [ngModel]="this.examen.hour_fin"
         />
         <label
           for="floating_email"
@@ -78,7 +78,7 @@
           class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-b-2 z-0 appearance-none borde-gray-600 focus:border-green-800 focus:outline-none focus:ring-0 peer"
           placeholder=""
           required
-          ngModel
+          [ngModel]="this.examen.hour_debut_pointage"
         />
         <label
           for="floating_email"
@@ -95,13 +95,11 @@
         <label for="underline_select" class="sr-only">Underline select</label>
         <select
           name="faculte"
-          ngModel
-          #faculte
-          (change)="faculteChange(faculte.value)"
+          [ngModel]="this.examen.faculte"
           id="underline_select"
           class="block py-2.5 px-0 w-full text-sm text-gray-500 bg-transparent border-b-2 border-gray-200 appearance-none focus:border-b-green-800 focus:outline-none focus:ring-0 focus:border-gray-200 peer"
         >
-          <option value="" disabled selected>selectionner la faculte</option>
+          <option value="" disabled>selectionner la faculte</option>
           <option value="medecine">medecine</option>
           <option value="pharmacie">Pharmacie</option>
           <option value="dentaire">Dentaire</option>
@@ -118,16 +116,16 @@
         <select
           id="underline_select"
           name="promotion"
-          ngModel
+          [ngModel]="this.examen.promotion"
           class="block py-2.5 px-0 w-full text-sm text-gray-500 bg-transparent border-b-2 border-gray-200 appearance-none focus:border-b-green-800 focus:outline-none focus:ring-0 focus:border-gray-200 peer"
         >
           <option value="" disabled selected>selectionner la promotion</option>
           <option value="1ère annee">1ère année</option>
           <option value="2ème annee">2ème année</option>
           <option value="3ème annee">3ème année</option>
-          <option *ngIf="" value="4ème annee">4ème année</option>
-          <option *ngIf="selectedFaculte !== 'fsts'" value="5ème annee">5ème année</option>
-          <option *ngIf="selectedFaculte !== 'fsts'" value="6ème annee">6ème année</option>
+          <option value="4ème annee">4ème année</option>
+          <option value="5ème annee">5ème année</option>
+          <option value="6ème annee">6ème année</option>
         </select>
         <label
           for="floating_email"
@@ -139,15 +137,15 @@
         <select
           id="underline_select"
           name="statut"
-          ngModel
+          [ngModel]="this.examen.statut"
           class="block py-2.5 px-0 w-full text-sm text-gray-500 bg-transparent border-b-2 border-gray-200 appearance-none focus:border-b-green-800 focus:outline-none focus:ring-0 focus:border-gray-200 peer"
         >
-          <option value="" disabled selected>selectionner le statut</option>
+          <option value="" disabled >selectionner le statut</option>
           <option value="en cours">En cours</option>
           <option value="archivé">Archivé</option>
         </select>
         <label
-          for="underline_select"
+          for="floating_email"
           class="peer-focus:font-medium absolute text-sm text-green-800 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-2 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto peer-focus:text-green-800 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
           >Statut</label
         >

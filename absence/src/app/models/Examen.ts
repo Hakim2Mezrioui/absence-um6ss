@@ -8,6 +8,7 @@ export class Examen {
     public faculte: string,
     public promotion: string,
     public statut: string,
-    public id?: number,
+    public option?: string,
+    public id?: number
   ) {}
 }

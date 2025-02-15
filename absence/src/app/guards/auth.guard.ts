@@ -51,6 +51,7 @@ export class AuthGard implements CanActivate {
 
             this.startupService.userFaculte.next(response.faculte);
             this.startupService.role.next(response.role);
+            this.startupService.name.next(response.name);
             return true;
           } else {
             this.router.navigate(['/login']);

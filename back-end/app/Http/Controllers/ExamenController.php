@@ -12,6 +12,7 @@ class ExamenController extends Controller
         $page = $request->query('page', 1); 
         $statut = $request->query('statut', "tous"); 
         $faculte = $request->query("faculte", "toutes");
+        $searchValue = $request->query("searchValue", "");
 
         $skip = ($page - 1) * $size;
 
@@ -25,6 +26,9 @@ class ExamenController extends Controller
         // Appliquer le filtre sur la faculté si nécessaire
         if (!empty($faculte) && $faculte !== "toutes") {
             $query->where("faculte", $faculte);
+        }
+        if (!empty($searchValue) && $searchValue !== "") {
+            $query->where("title", "LIKE", "%{$searchValue}%");
         }
 
         // Obtenir le total des résultats avant la pagination
@@ -75,19 +79,29 @@ class ExamenController extends Controller
 
     function store(Request $request) {
         // Validate the request input
-        // $request->validate([
-        //     'title' => 'required|string|max:255',
-        //     'date' => 'required|date',
-        //     'hour_debut' => 'required',
-        //     'hour_debut_pointage' => 'required',
-        //     'hour_fin' => 'required',
-        //     'faculte' => 'required|string|max:255',
-        //     'promotion' => 'required|in:1ère annee,2ème annee,3ème annee,4ème annee,5ème annee,6ème annee',
-        //     'statut' => 'required|in:archivé,en cours',
-        // ]);
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'date' => 'required|date',
+            'hour_debut' => 'required',
+            'hour_debut_pointage' => 'required',
+            'hour_fin' => 'required',
+            'faculte' => 'required|string|max:255',
+            'promotion' => 'required|in:1ère annee,2ème annee,3ème annee,4ème annee,5ème annee,6ème annee',
+            'statut' => 'required|in:archivé,en cours',
+        ]);
 
         // Create a new Examen
-        $examen = Examen::create($request->all());
+        $examen = Examen::create([
+            'title' => $request->title,
+            'date' => $request->date,
+            'hour_debut' => $request->hour_debut,
+            'hour_debut_pointage' => $request->hour_debut_pointage,
+            'hour_fin' => $request->hour_fin,
+            'faculte' => $request->faculte,
+            'promotion' => $request->promotion,
+            'statut' => $request->statut,
+            'option' => $request->option ?? '',
+        ]);
 
         // Return the newly created Examen as a JSON response
         return response()->json(['response' => $examen], 201);
@@ -98,9 +112,9 @@ class ExamenController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'date' => 'required|date',
-            'hour_debut' => 'required|date_format:H:i:s',
-            'hour_debut_pointage' => 'required|date_format:H:i:s',
-            'hour_fin' => 'required|date_format:H:i:s',
+            'hour_debut' => 'required',
+            'hour_debut_pointage' => 'required',
+            'hour_fin' => 'required',
             'faculte' => 'required|string|max:255',
             'promotion' => 'required|in:1ère annee,2ème annee,3ème annee,4ème annee,5ème annee,6ème annee',
             'statut' => 'required|in:archivé,en cours',
@@ -177,5 +191,9 @@ class ExamenController extends Controller
 
         // Return a success response
         return response()->json(['message' => 'Examen deleted successfully'], 200);
+    }
+
+    function search() {
+        
     }
 }
