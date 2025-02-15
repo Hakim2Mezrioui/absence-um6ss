@@ -3,8 +3,8 @@ import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Etudiant } from 'src/app/models/Etudiant';
 import { EtudiantService } from 'src/app/services/etudiant.service';
+import Swal from 'sweetalert2';
 import { ToastrService } from 'ngx-toastr';
-import { StartupService } from 'src/app/services/startup.service';
 
 @Component({
   selector: 'app-add-etudiant',
@@ -14,21 +14,16 @@ import { StartupService } from 'src/app/services/startup.service';
 export class AddEtudiantComponent implements OnInit {
   @ViewChild('f') form!: NgForm;
   loading: boolean = false;
-  role: String = 'user';
-  userFaculte!: String;
+  role: String = "user";
 
   constructor(
     private router: Router,
     private etudiantService: EtudiantService,
-    private toastr: ToastrService,
-    private startupService: StartupService
+    private toastr: ToastrService
   ) {}
 
   ngOnInit(): void {
-    this.startupService.role.subscribe((value) => (this.role = value));
-    this.startupService.userFaculte.subscribe(
-      (value) => (this.userFaculte = value)
-    );
+    
   }
 
   goToImportScreen() {
@@ -36,10 +31,6 @@ export class AddEtudiantComponent implements OnInit {
   }
 
   validateData(): boolean {
-    if (this.role != 'super-admin') {
-      this.form.value.faculte = this.userFaculte;
-    }
-    
     if (
       !this.form.value.name ||
       !this.form.value.matricule ||
