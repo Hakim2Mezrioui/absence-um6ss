@@ -79,19 +79,29 @@ class ExamenController extends Controller
 
     function store(Request $request) {
         // Validate the request input
-        // $request->validate([
-        //     'title' => 'required|string|max:255',
-        //     'date' => 'required|date',
-        //     'hour_debut' => 'required',
-        //     'hour_debut_pointage' => 'required',
-        //     'hour_fin' => 'required',
-        //     'faculte' => 'required|string|max:255',
-        //     'promotion' => 'required|in:1ère annee,2ème annee,3ème annee,4ème annee,5ème annee,6ème annee',
-        //     'statut' => 'required|in:archivé,en cours',
-        // ]);
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'date' => 'required|date',
+            'hour_debut' => 'required',
+            'hour_debut_pointage' => 'required',
+            'hour_fin' => 'required',
+            'faculte' => 'required|string|max:255',
+            'promotion' => 'required|in:1ère annee,2ème annee,3ème annee,4ème annee,5ème annee,6ème annee',
+            'statut' => 'required|in:archivé,en cours',
+        ]);
 
         // Create a new Examen
-        $examen = Examen::create($request->all());
+        $examen = Examen::create([
+            'title' => $request->title,
+            'date' => $request->date,
+            'hour_debut' => $request->hour_debut,
+            'hour_debut_pointage' => $request->hour_debut_pointage,
+            'hour_fin' => $request->hour_fin,
+            'faculte' => $request->faculte,
+            'promotion' => $request->promotion,
+            'statut' => $request->statut,
+            'option' => $request->option ?? '',
+        ]);
 
         // Return the newly created Examen as a JSON response
         return response()->json(['response' => $examen], 201);

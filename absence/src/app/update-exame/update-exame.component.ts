@@ -9,7 +9,7 @@ import { Examen } from '../models/Examen';
 @Component({
   selector: 'app-update-exame',
   templateUrl: './update-exame.component.html',
-  
+
   styleUrls: ['./update-exame.component.css'],
 })
 export class UpdateExameComponent implements OnInit {
@@ -17,6 +17,7 @@ export class UpdateExameComponent implements OnInit {
   role: String = 'user';
   examen!: Examen;
   id!: number;
+  selectedFaculte!: String;
   @ViewChild('f') form!: NgForm;
 
   constructor(
@@ -41,7 +42,7 @@ export class UpdateExameComponent implements OnInit {
         // this.examen.hour_fin = response.examen.hour_fin;
         // this.examen.promotion = response.examen.promotion;
         // this.examen.statut = response.examen.statut;
-        
+
         this.examen = new Examen(
           response.examen.title,
           response.examen.date,
@@ -52,7 +53,6 @@ export class UpdateExameComponent implements OnInit {
           response.examen.promotion,
           response.examen.statut
         );
-
       },
       (error) => {
         console.log(error);
@@ -114,5 +114,9 @@ export class UpdateExameComponent implements OnInit {
         this.toastr.error("Erreur lors de la modification de l'examen");
       }
     );
+  }
+
+  faculteChange(name: String) {
+    this.selectedFaculte = name;
   }
 }
