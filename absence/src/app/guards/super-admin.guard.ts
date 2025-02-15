@@ -26,7 +26,7 @@ export class SuperAdminGuard implements CanActivate {
     | UrlTree {
     this.startService.role.subscribe((value) => (this.role = value));
 
-    if (this.role == 'admin') return true;
+    if (this.role == 'super-admin') return true;
     this.router.navigate(['examens-list']);
     return false;
   }

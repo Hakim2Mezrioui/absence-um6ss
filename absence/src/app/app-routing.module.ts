@@ -23,6 +23,10 @@ import { AdminGuard } from './guards/admin.guard';
 import { SuperAdminGuard } from './guards/super-admin.guard';
 import { SuperAdminAndAdminGuard } from './guards/super-admin-and-admin.guard';
 import { UpdateExameComponent } from './update-exame/update-exame.component';
+import { CoursComponent } from './components/cours/cours.component';
+import { AddCoursComponent } from './components/add-cours/add-cours.component';
+import { UpdateCoursComponent } from './components/update-cours/update-cours.component';
+import { ImportCoursComponent } from './components/import-cours/import-cours.component';
 
 const routes: Routes = [
   {
@@ -101,12 +105,32 @@ const routes: Routes = [
       {
         path: 'add-user',
         component: AddUserComponent,
-        // canActivate: [SuperAdminGuard]
+        canActivate: [SuperAdminGuard]
       },
       {
         path: 'users',
         component: UsersComponent,
         canActivate: [SuperAdminAndAdminGuard],
+      },
+      {
+        path: 'cours',
+        component: CoursComponent,
+        // canActivate: [SuperAdminAndAdminGuard],
+      },
+      {
+        path: 'add-cours',
+        component: AddCoursComponent,
+        // canActivate: [SuperAdminAndAdminGuard],
+      },
+      {
+        path: 'update-cours',
+        component: UpdateCoursComponent,
+        // canActivate: [SuperAdminAndAdminGuard],
+      },
+      {
+        path: 'import-cours',
+        component: ImportCoursComponent,
+        // canActivate: [SuperAdminAndAdminGuard],
       },
     ],
   },

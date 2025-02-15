@@ -66,6 +66,31 @@
     >
       <a
         class="flex text-2xl items-center w-full h-12 px-3 mt-2 rounded hover:bg-gray-700 hover:text-gray-300"
+        routerLink="cours"
+        routerLinkActive="bg-gray-700"
+      >
+        <i
+          class="bi bi-journal-bookmark-fill bg-transparent translate-x-1 mr-1"
+        ></i>
+        <span class="ml-2 text-sm font-medium" *ngIf="!isMinimized">Cours</span>
+      </a>
+      <a
+        class="flex text-2xl items-center w-full h-12 px-3 mt-2 rounded hover:bg-gray-700 hover:text-gray-300"
+        routerLink="add-cours"
+        routerLinkActive="bg-gray-700"
+      >
+        <i class="bi bi-journal-plus bg-transparent translate-x-1 mr-1"></i>
+        <span class="ml-2 text-sm font-medium" *ngIf="!isMinimized"
+          >Ajouter cours</span
+        >
+      </a>
+    </div>
+    <div
+      class="flex flex-col items-center w-full mt-2 border-t border-gray-700"
+      *ngIf="role == 'admin' || role == 'super-admin'"
+    >
+      <a
+        class="flex text-2xl items-center w-full h-12 px-3 mt-2 rounded hover:bg-gray-700 hover:text-gray-300"
         routerLink="add-etudiant"
         routerLinkActive="bg-gray-700"
       >

@@ -1,37 +1,35 @@
-import { CoursService } from './../../services/cours.service';
+import { StartupService } from 'src/app/services/startup.service';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Examen } from 'src/app/models/Examen';
-import { ExamenService } from 'src/app/services/examen.service';
 import { ToastrService } from 'ngx-toastr';
-import { StartupService } from 'src/app/services/startup.service';
+import { Cours } from 'src/app/models/Cours';
+import { CoursService } from 'src/app/services/cours.service';
 
 @Component({
-  selector: 'app-add-exam',
-  templateUrl: './add-exam.component.html',
-  styleUrls: ['./add-exam.component.css'],
+  selector: 'app-add-cours',
+  templateUrl: './add-cours.component.html',
+  styleUrls: ['./add-cours.component.css'],
 })
-export class AddExamComponent implements OnInit {
+export class AddCoursComponent implements OnInit {
   @ViewChild('f') form!: NgForm;
   loading: boolean = false;
   role: String = 'user';
   selectedFaculte!: String;
-
   constructor(
+    private startupService: StartupService,
     private router: Router,
     private toastr: ToastrService,
-    private examenService: ExamenService,
-    private startupService: StartupService
+    private coursService: CoursService
   ) {}
 
   ngOnInit(): void {
     this.startupService.role.subscribe((value) => (this.role = value));
-    this.startupService.page.next('Parametrer Examen');
+    this.startupService.page.next('Ajouter cours');
   }
 
-  goToImportScreen() {
-    this.router.navigate(['/import-examens']);
+  faculteChange(name: String) {
+    this.selectedFaculte = name;
   }
 
   validateForm(): boolean {
@@ -54,10 +52,8 @@ export class AddExamComponent implements OnInit {
       !this.form.value.date ||
       !this.form.value.hour_debut ||
       !this.form.value.hour_fin ||
-      !this.form.value.hour_debut_pointage ||
       !this.form.value.faculte ||
-      !this.form.value.promotion ||
-      !this.form.value.statut
+      !this.form.value.promotion
     ) {
       this.toastr.error('Veuillez remplir tous les champs obligatoires');
       return false;
@@ -66,39 +62,36 @@ export class AddExamComponent implements OnInit {
   }
 
   onSubmit(e: any) {
+    // this.examenService.ajouter()
+
     if (!this.validateForm()) {
       return;
     }
 
-    this.loading = true;
-
-    const examen = new Examen(
+    const cours = new Cours(
       this.form.value.title,
       this.form.value.date,
       this.form.value.hour_debut,
       this.form.value.hour_fin,
-      this.form.value.hour_debut_pointage,
       this.form.value.faculte,
       this.form.value.promotion,
-      this.form.value.statut,
+      this.form.value.groupe,
       this.form.value.option ?? ''
     );
 
-    this.examenService.ajouter(examen).subscribe(
+    this.coursService.addCours(cours).subscribe(
       (response) => {
-        this.loading = false;
-        this.toastr.success('Examen ajouté avec succès');
-        this.router.navigate(['examens-list']);
+        this.toastr.success('Cours ajouté avec succès');
+        this.router.navigate(['/cours']);
+        console.log(response);
       },
       (error) => {
-        this.loading = false;
-        this.toastr.error("Erreur lors de l'ajout de l'examen");
+        this.toastr.error("Erreur lors de l'ajout du cours");
       }
     );
-    // this.examenService.ajouter()
   }
 
-  faculteChange(name: String) {
-    this.selectedFaculte = name;
+  goToImportScreen() {
+    this.router.navigate(['/import-cours']);
   }
 }

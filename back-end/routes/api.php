@@ -7,6 +7,7 @@ use App\Http\Controllers\EtudiantController;
 use App\Http\Controllers\FaculteController;
 use App\Http\Controllers\ExamenController;
 use App\Http\Controllers\RattrapageController;
+use App\Http\Controllers\CoursController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -45,6 +46,12 @@ Route::delete('/facultes/{id}', [FaculteController::class, 'destroy']);
 Route::post("rattrapage-importation", [RattrapageController::class, "importation"]);
 Route::get("rattrapage", [RattrapageController::class, "index"]);
 });
+
+Route::get('/cours', [CoursController::class, 'index']);
+Route::get('/cours/{id}', [CoursController::class, 'show']);
+Route::post('/cours', [CoursController::class, 'store']);
+Route::put('/cours/{id}', [CoursController::class, 'update']);
+Route::delete('/cours/{id}', [CoursController::class, 'destroy']);
 
 Route::post("register", [AuthController::class, "register"]);
 Route::post("login", [AuthController::class, "login"]);
