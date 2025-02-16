@@ -1,0 +1,115 @@
+<div
+  class="relative cours bg-green-100"
+  [ngClass]="[
+    statut == 'archivé' ? 'bg-red-100' : 'bg-green-100',
+    cours.faculte == 'Pharmacie'
+      ? 'border-l-4 border-l-green-800'
+      : cours.faculte == 'medecine'
+      ? 'border-l-4 border-l-blue-800'
+      : cours.faculte == 'Dentaire'
+      ? 'border-l-4 border-l-violet-500'
+      : cours.faculte == 'Esgb'
+      ? 'border-l-4 border-l-blue-300'
+      : cours.faculte == 'Fsts'
+      ? 'border-l-4 border-l-red-700'
+      : 'border-l-4 border-l-blue-800'
+  ]"
+>
+  <h3
+    [ngClass]="statut == 'archivé' ? 'text-red-800' : 'text-green-800'"
+    class="font-bold text-md"
+  >
+    {{ cours.title }}
+  </h3>
+  <div class="mt-2 grid grid-cols-4 gap-3 items-start">
+    <div>
+      <div class="flex justify-between w-36">
+        <h6 class="font-bold">Faculte :</h6>
+        <p>{{ cours.faculte }}</p>
+      </div>
+      <div class="flex justify-between w-36">
+        <h6 class="font-bold">Promotion :</h6>
+        <p>{{ cours.promotion }}</p>
+      </div>
+      <div *ngIf="cours.faculte === 'fsts'" class="flex justify-between w-36">
+        <h6 class="font-bold">Option :</h6>
+        <p>{{ cours.option }}</p>
+      </div>
+    </div>
+    <div>
+      <div class="flex justify-between w-36">
+        <h6 class="font-bold">Date :</h6>
+        <p>{{ cours.date }}</p>
+      </div>
+      <div class="flex justify-between w-36">
+        <h6 class="font-bold">heurs :</h6>
+        <!-- <p>De {{ cours.hour_debut | date: 'HH:mm' }} a {{ cours.hour_fin | date: 'HH:mm' }}</p> -->
+        <p>{{ cours.hour_debut }}-{{ cours.hour_fin }}</p>
+      </div>
+    </div>
+    <div>
+      <!-- <div class="flex justify-between w-36">
+        <h6 class="font-bold">pointage :</h6>
+        <p>{{ cours.hour_debut_pointage }}</p>
+      </div> -->
+      <div class="flex justify-between w-36">
+        <h6 class="font-bold">Statut :</h6>
+        <p>
+          <span class="relative">
+            <span
+              [ngClass]="
+                statut == 'archivé' ? 'bg-red-500' : 'bg-green-500'
+              "
+              class="absolute -left-1 top-0.5 inline-flex h-1 w-1 animate-ping rounded-full opacity-75"
+            ></span>
+          </span>
+          <span> {{ statut }} </span>
+        </p>
+      </div>
+    </div>
+    <div class="ml-10">
+      <button
+        *ngIf="statut == 'en cours'"
+        (click)="onExplore(cours)"
+        class="explorer bg-blue-400 hover:bg-blue-300 active:bg-blue-400 w-32 py-0 text-white rounded-sm flex justify-center gap-2"
+      >
+        <b>Explorer</b>
+        <i class="bi bi-caret-right-fill"></i>
+      </button>
+      <button
+        *ngIf="
+          statut == 'en cours' &&
+          (role == 'admin' || role == 'super-admin')
+        "
+        (click)="onArchive(cours)"
+        class="explorer mt-0.5 bg-red-500 hover:bg-red-400 active:bg-red-500 w-32 py-0 text-white rounded-sm flex justify-center gap-2"
+      >
+        <b>Archiver</b>
+        <i class="bi bi-archive-fill"></i>
+      </button>
+      <button
+        *ngIf="
+          cours.statut != 'en cours' &&
+          (role == 'admin' || role == 'super-admin')
+        "
+        (click)="onActiver(cours)"
+        class="explorer mt-0.5 bg-green-500 hover:bg-green-400 active:bg-green-500 w-32 py-0 text-white rounded-sm flex justify-center gap-2"
+      >
+        <b>Activer</b>
+        <i class="bi bi-archive-fill"></i>
+      </button>
+      <button
+        *ngIf="role == 'user' && cours.statut == 'archivé'"
+        class="explorer invisible mt-0.5 bg-green-500 hover:bg-green-400 active:bg-green-500 w-32 py-0 text-white rounded-sm flex justify-center gap-2"
+      >
+        <b></b>
+        <i class="bi bi-archive-fill"></i>
+      </button>
+    </div>
+  </div>
+
+  <i *ngIf="role == 'super-admin' || role == 'admin'" (click)="onDelete(cours.id!)" class="bi bi-trash absolute top-0 right-0 translate-x-3 -translate-y-3 bg-red-800 text-white px-2 py-1 hover:bg-red-700 active:bg-red-800 rounded-md"></i>
+  <i *ngIf="role == 'super-admin' || role == 'admin'" (click)="onUpdate(cours.id!)" class="bi bi-pencil absolute top-0 right-0 -translate-x-6 -translate-y-3 bg-blue-700 text-white px-2 py-1 hover:bg-blue-600 active:bg-blue-700 rounded-md"></i>
+</div>
+
+<app-loading *ngIf="isLoading"></app-loading>

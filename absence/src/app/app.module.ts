@@ -44,6 +44,7 @@ import { CoursComponent } from './components/cours/cours.component';
 import { AddCoursComponent } from './components/add-cours/add-cours.component';
 import { UpdateCoursComponent } from './components/update-cours/update-cours.component';
 import { ImportCoursComponent } from './components/import-cours/import-cours.component';
+import { CoursItemComponent } from './components/cours-item/cours-item.component';
 
 @NgModule({
   declarations: [
@@ -73,6 +74,7 @@ import { ImportCoursComponent } from './components/import-cours/import-cours.com
     AddCoursComponent,
     UpdateCoursComponent,
     ImportCoursComponent,
+    CoursItemComponent,
   ],
   imports: [
     BrowserModule,
