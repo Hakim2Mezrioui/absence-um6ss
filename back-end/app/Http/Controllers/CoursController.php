@@ -8,10 +8,46 @@ use Illuminate\Validation\Rule;
 
 class CoursController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $cours = Cours::all();
-        return response()->json($cours);
+        $size = $request->query('size', 6);
+        $page = $request->query('page', 1);
+        $faculte = $request->query("faculte", "toutes");
+        $searchValue = $request->query("searchValue", "");
+
+        $skip = ($page - 1) * $size;
+
+        $query = Cours::query();
+
+        // Appliquer le filtre sur le statut si nécessaire
+        if (!empty($statut) && $statut !== "tous") {
+            $query->where("statut", $statut);
+        }
+
+        // Appliquer le filtre sur la faculté si nécessaire
+        if (!empty($faculte) && $faculte !== "toutes") {
+            $query->where("faculte", $faculte);
+        }
+        if (!empty($searchValue) && $searchValue !== "") {
+            $query->where("title", "LIKE", "%{$searchValue}%");
+        }
+
+        // Obtenir le total des résultats avant la pagination
+        $total = $query->count();
+
+        // Appliquer la pagination
+        $cours = $query->limit($size)->skip($skip)->get();
+
+        // Calcul du nombre total de pages
+        $totalPages = ($size > 0) ? ceil($total / $size) : 1;
+
+        // Retourner la réponse JSON
+        return response()->json([
+            "cours" => $cours,
+            "totalPages" => $totalPages,
+            "total" => $total, // Ajout pour debug si nécessaire
+            "status" => 200
+        ]);
     }
 
     /**
@@ -79,6 +115,50 @@ class CoursController extends Controller
 
         $cours->update($validatedData);
         return response()->json(['message' => 'Cours mis à jour avec succès', 'cours' => $cours]);
+    }
+
+    function ImportCourse(Request $request) {
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+            $path = $file->getRealPath();
+
+            // Open the file for reading
+            $handle = fopen($path, 'r');
+            if ($handle === false) {
+                return response()->json(['message' => 'Unable to open file'], 400);
+            }
+
+            // Read the first line to get the headers
+            $header = fgetcsv($handle, 0, ',');
+
+            // Ensure the header keys are trimmed and lowercased
+            $header = array_map('trim', $header);
+            $header = array_map('strtolower', $header);
+
+            // Parse the CSV file and insert data into the database
+            while (($row = fgetcsv($handle, 0, ',')) !== false) {
+                $row = array_map('trim', $row);
+                $examenData = array_combine($header, $row);
+
+                Cours::create([
+                    'title' => $examenData['title'],
+                    'date' => $examenData['date'],
+                    'hour_debut' => $examenData['hour_debut'],
+                    'hour_fin' => $examenData['hour_fin'],
+                    'faculte' => $examenData['faculte'],
+                    'promotion' => $examenData['promotion'],
+                    'groupe' => $examenData['groupe'],
+                    'option' => $examenData['option'],
+                ]);
+            }
+
+            // Close the file
+            fclose($handle);
+
+            return response()->json(['message' => 'Cours imported successfully'], 200);
+        }
+
+        return response()->json(['message' => 'No file uploaded'], 400);
     }
 
     /**

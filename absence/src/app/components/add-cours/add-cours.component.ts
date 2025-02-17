@@ -68,16 +68,17 @@ export class AddCoursComponent implements OnInit {
       return;
     }
 
-    const cours = new Cours(
-      this.form.value.title,
-      this.form.value.date,
-      this.form.value.hour_debut,
-      this.form.value.hour_fin,
-      this.form.value.faculte,
-      this.form.value.promotion,
-      this.form.value.groupe,
-      this.form.value.option ?? ''
-    );
+    const cours = {
+      "title" :this.form.value.title,
+      "date" :this.form.value.date,
+      "hour_debut" :this.form.value.hour_debut,
+      "hour_fin" :this.form.value.hour_fin,
+      "faculte" :this.form.value.faculte,
+      "promotion" :this.form.value.promotion,
+      "groupe" :this.form.value.groupe,
+      "option" :this.form.value.option ?? ''
+    }
+
 
     this.coursService.addCours(cours).subscribe(
       (response) => {

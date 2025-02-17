@@ -1,0 +1,6 @@
+title,date,hour_debut,hour_fin,faculte,promotion,groupe,option
+Mathématiques,2025-02-18,08:30:00,10:00:00,Sciences,1ère année,1,Analyse
+Physique,2025-02-18,10:15:00,11:45:00,Sciences,1ère année,2,Mécanique
+Chimie,2025-02-19,09:00:00,10:30:00,Sciences,2ème année,1,Organique
+Informatique,2025-02-19,11:00:00,12:30:00,Informatique,2ème année,2,Programmation
+Biologie,2025-02-20,13:30:00,15:00:00,Médecine,1ère année,1,Génétique

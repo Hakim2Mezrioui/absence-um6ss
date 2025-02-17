@@ -22,37 +22,37 @@
     {{ examen.title }}
   </h3>
   <div class="mt-2 grid grid-cols-4 gap-3 items-start">
-    <div>
-      <div class="flex justify-between w-36">
+    <div class="">
+      <div class="flex justify-between w-48">
         <h6 class="font-bold">Faculte :</h6>
         <p>{{ examen.faculte }}</p>
       </div>
-      <div class="flex justify-between w-36">
+      <div class="flex justify-between w-48">
         <h6 class="font-bold">Promotion :</h6>
         <p>{{ examen.promotion }}</p>
       </div>
-      <div *ngIf="examen.faculte === 'fsts'" class="flex justify-between w-36">
+      <div *ngIf="examen.faculte === 'fsts'" class="flex justify-between w-48">
         <h6 class="font-bold">Option :</h6>
         <p>{{ examen.option }}</p>
       </div>
     </div>
     <div>
-      <div class="flex justify-between w-36">
+      <div class="flex justify-between w-48">
         <h6 class="font-bold">Date :</h6>
         <p>{{ examen.date }}</p>
       </div>
-      <div class="flex justify-between w-36">
+      <div class="flex justify-between w-48">
         <h6 class="font-bold">heurs :</h6>
         <!-- <p>De {{ examen.hour_debut | date: 'HH:mm' }} a {{ examen.hour_fin | date: 'HH:mm' }}</p> -->
         <p>{{ examen.hour_debut }}-{{ examen.hour_fin }}</p>
       </div>
     </div>
     <div>
-      <div class="flex justify-between w-36">
+      <div class="flex justify-between w-48">
         <h6 class="font-bold">pointage :</h6>
         <p>{{ examen.hour_debut_pointage }}</p>
       </div>
-      <div class="flex justify-between w-36">
+      <div class="flex justify-between w-48">
         <h6 class="font-bold">Statut :</h6>
         <p>
           <span class="relative">

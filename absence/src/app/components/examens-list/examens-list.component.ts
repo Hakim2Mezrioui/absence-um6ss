@@ -11,7 +11,7 @@ import { ExamenService } from 'src/app/services/examen.service';
 })
 export class ExamensListComponent implements OnInit {
   examens: Examen[] = [];
-  totalPages: number = 0;
+  totalPages: number = 1;
   actualPage: number = 1;
   statutActual: String = 'tous';
   faculteActual: String = 'toutes';

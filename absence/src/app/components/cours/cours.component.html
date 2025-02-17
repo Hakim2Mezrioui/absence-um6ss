@@ -93,4 +93,130 @@
   <app-loading></app-loading>
 </div> -->
 
-<app-cours-item></app-cours-item>
+<div class="flex justify-between ms-40">
+  <div class="flex gap-1 items-center">
+    <input
+      #searchVal
+      value=""
+      placeholder="Rechercher..."
+      class="py-1 -translate-y-2 ms-36 form-control mt-4"
+      (keydown.enter)="handleSearch(searchVal.value)"
+    />
+    <i
+      (click)="handleSearch(searchVal.value)"
+      class="bi bi-search cursor-pointer bg-blue-900 active:bg-blue-900 hover:bg-blue-800 text-white p-1 px-2 rounded translate-y-1"
+    ></i>
+  </div>
+  <div *ngIf="role == 'super-admin' || role == 'admin'" class="flex">
+    <div *ngIf="role == 'super-admin'" class="relative group p-0">
+      <button
+        class="bg-blue-900 hover:bg-blue-800 rounded-sm text-white px-4 py-1 my-3 mx-3"
+      >
+        Filtrer par faculte <i class="bi bi-caret-down-fill"></i>
+      </button>
+
+      <ul
+        class="hidden z-50 group-hover:block bg-blue-100 absolute right-0 shadow-md mx-3 text-center"
+      >
+        <li
+          (click)="filterByFaculte('pharmacie')"
+          class="cursor-pointer px-16 text-sm py-2 hover:bg-blue-200"
+        >
+          Pharmacie
+        </li>
+        <li
+          (click)="filterByFaculte('dentaire')"
+          class="cursor-pointer px-16 text-sm py-2 hover:bg-blue-200"
+        >
+          Dentaire
+        </li>
+        <li
+          (click)="filterByFaculte('esgb')"
+          class="cursor-pointer px-16 text-sm py-2 hover:bg-blue-200"
+        >
+          ESG
+        </li>
+        <li
+          (click)="filterByFaculte('medecine')"
+          class="cursor-pointer px-16 text-sm py-2 hover:bg-blue-200"
+        >
+          Médecine
+        </li>
+        <li
+          (click)="filterByFaculte('fsts')"
+          class="cursor-pointer px-16 text-sm py-2 hover:bg-blue-200"
+        >
+          FSTS
+        </li>
+        <li
+          (click)="filterByFaculte('toutes')"
+          class="cursor-pointer px-16 text-sm py-2 hover:bg-blue-200"
+        >
+          Toutes
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div *ngFor="let cours of cours; let i = index" class="row">
+  <app-cours-item [cours]="cours"></app-cours-item>
+</div>
+
+<nav *ngIf="this.cours.length > 0" class="flex justify-center mt-5 pb-5">
+  <ul class="flex items-center -space-x-px h-8 text-sm">
+    <li>
+      <a
+        (click)="back()"
+        class="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+      >
+        <span class="sr-only">Previous</span>
+        <svg
+          class="w-2.5 h-2.5 rtl:rotate-180"
+          aria-hidden="true"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 6 10"
+        >
+          <path
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M5 1 1 5l4 4"
+          />
+        </svg>
+      </a>
+    </li>
+    <li *ngFor="let page of [].constructor(totalPages); let i = index">
+      <a
+        (click)="getPage(i + 1)"
+        class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+        >{{ i + 1 }}</a
+      >
+    </li>
+    <li>
+      <a
+        (click)="next()"
+        class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+      >
+        <span class="sr-only">Next</span>
+        <svg
+          class="w-2.5 h-2.5 rtl:rotate-180"
+          aria-hidden="true"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 6 10"
+        >
+          <path
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="m1 9 4-4-4-4"
+          />
+        </svg>
+      </a>
+    </li>
+  </ul>
+</nav>
