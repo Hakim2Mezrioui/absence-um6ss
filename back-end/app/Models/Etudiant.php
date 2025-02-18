@@ -18,5 +18,6 @@ class Etudiant extends Model
         "name",
         "promotion",
         "faculte",
+        'groupe',
     ];
 }

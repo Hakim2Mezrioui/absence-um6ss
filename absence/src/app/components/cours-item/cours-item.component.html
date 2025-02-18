@@ -19,21 +19,21 @@
     [ngClass]="statut == 'archivé' ? 'text-red-800' : 'text-green-800'"
     class="font-bold text-md"
   >
-    {{ course.title }}
+    {{ course.title | titlecase }}
   </h3>
   <div class="mt-2 grid grid-cols-4 gap-3 items-start">
     <div>
       <div class="flex justify-between w-48">
         <h6 class="font-bold">Faculte :</h6>
-        <p>{{ course.faculte }}</p>
+        <p>{{ course.faculte | titlecase }}</p>
       </div>
       <div class="flex justify-between w-48">
         <h6 class="font-bold">Promotion :</h6>
         <p>{{ course.promotion }}</p>
       </div>
-      <div *ngIf="course.faculte === 'fsts'" class="flex justify-between w-48">
-        <h6 class="font-bold">Option :</h6>
-        <p>{{ course.option }}</p>
+      <div class="flex justify-between w-48">
+        <h6 class="font-bold">Groupe :</h6>
+        <p>{{ course.groupe }}</p>
       </div>
     </div>
     <div>
@@ -49,6 +49,10 @@
             course.hour_fin | date : "shortTime"
           }}
         </p>
+      </div>
+      <div *ngIf="course.faculte === 'fsts'" class="flex justify-between w-48">
+        <h6 class="font-bold">Option :</h6>
+        <p>{{ course.option | uppercase }}</p>
       </div>
     </div>
     <div>
@@ -81,12 +85,12 @@
   </div>
 
   <i
-    *ngIf="role == 'super-admin' || role == 'admin'"
+    *ngIf="role == 'super-admin' || role == 'scolarite'"
     (click)="onDelete(course.id!)"
     class="bi bi-trash absolute top-0 right-0 translate-x-3 -translate-y-3 bg-red-800 text-white px-2 py-1 hover:bg-red-700 active:bg-red-800 rounded-md"
   ></i>
   <i
-    *ngIf="role == 'super-admin' || role == 'admin'"
+    *ngIf="role == 'super-admin' || role == 'scolarite'"
     (click)="onUpdate(course.id!)"
     class="bi bi-pencil absolute top-0 right-0 -translate-x-6 -translate-y-3 bg-blue-700 text-white px-2 py-1 hover:bg-blue-600 active:bg-blue-700 rounded-md"
   ></i>

@@ -101,6 +101,10 @@ class CoursController extends Controller
         if (!$cours) {
             return response()->json(['message' => 'Cours non trouvé'], 404);
         }
+        
+        if ($request->faculte == "fsts" && ($request->option == "" || empty($request->option))) {
+            return response()->json(['message' => 'selectionner l\'option'], 404);
+        }
 
         $validatedData = $request->validate([
             'title' => 'sometimes|string|max:255',
@@ -110,7 +114,6 @@ class CoursController extends Controller
             'faculte' => 'sometimes|string|max:255',
             'groupe' => 'sometimes|integer',
             'promotion' => ['sometimes', Rule::in(['1ère annee', '2ème annee', '3ème annee', '4ème annee', '5ème annee', '6ème annee'])],
-            'option' => 'nullable|string',
         ]);
 
         $cours->update($validatedData);
@@ -148,7 +151,7 @@ class CoursController extends Controller
                     'faculte' => $examenData['faculte'],
                     'promotion' => $examenData['promotion'],
                     'groupe' => $examenData['groupe'],
-                    'option' => $examenData['option'],
+                    'option' => $examenData['option'] ?? null,
                 ]);
             }
 

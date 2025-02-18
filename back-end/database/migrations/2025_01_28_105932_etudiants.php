@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('name');
             $table->enum('promotion', ['1ère annee', '2ème annee', '3ème annee', '4ème annee', '5ème annee', '6ème annee']);
             $table->string("faculte");
+            $table->integer("groupe");
         });
     }
 

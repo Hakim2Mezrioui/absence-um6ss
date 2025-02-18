@@ -19,6 +19,8 @@ export class StartupService {
 
   userFaculte = new ReplaySubject<String>();
 
+  typeSuivi = new BehaviorSubject<String>("examen");
+
   async fetchFacultes() {
     this.http
       .get<any[]>(`${this.baseUrl}/facultes`)

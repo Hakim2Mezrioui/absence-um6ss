@@ -25,6 +25,10 @@ export class CoursService {
   localStudents = new BehaviorSubject<Etudiant[]>([]);
   studiantsWithFaceId = new BehaviorSubject<String[]>([]);
 
+  coursExploring = new BehaviorSubject<Cours>(
+    new Cours('', new Date(), new Date(), new Date(), '', '', 0)
+  );
+
   constructor(private http: HttpClient) {}
 
   getAllCours(
@@ -32,6 +36,8 @@ export class CoursService {
     faculte: String = 'toutes',
     value: String = ''
   ): Observable<Cours[]> {
+    this.faculteActual.subscribe((value) => (faculte = value));
+    this.actualPage.next(page);
     return this.http
       .get<any[]>(
         `${this.baseUrl}/cours?page=${page}&faculte=${faculte}&searchValue=${value}`
@@ -60,6 +66,31 @@ export class CoursService {
       );
   }
 
+  suivi(data: {
+    hour1: string;
+    hour2: string;
+    date: string;
+    faculte: String;
+    promotion: String;
+    groupe: number;
+  }) {
+    return this.http.get(
+      `${this.baseUrl}/etudiants?hour1=${data.hour1}&hour2=${
+        data.hour2
+      }&date=${this.formatDate(data.date)}&faculte=${data.faculte}&promotion=${
+        data.promotion
+      }&groupe=${data.groupe}`
+    );
+  }
+
+  formatDate(date: string): string {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = ('0' + (d.getMonth() + 1)).slice(-2);
+    const day = ('0' + d.getDate()).slice(-2);
+    return `${year}-${month}-${day}`;
+  }
+
   getCoursById(id: number): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}/cours/${id}`);
   }
@@ -69,11 +100,12 @@ export class CoursService {
   }
 
   updateCours(id: number, coursData: any): Observable<any> {
+    console.log(coursData)
     return this.http.put<any>(`${this.baseUrl}/cours/${id}`, coursData);
   }
 
   deleteCours(id: number): Observable<any> {
-    return this.http.delete<any>(`${this.baseUrl}/cours${id}`);
+    return this.http.delete<any>(`${this.baseUrl}/cours/${id}`);
   }
 
   importer(examens: FormData) {

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { CoursService } from 'src/app/services/cours.service';
+import { StartupService } from 'src/app/services/startup.service';
 
 @Component({
   selector: 'app-import-cours',
@@ -13,10 +14,13 @@ export class ImportCoursComponent implements OnInit {
   constructor(
     private toast: ToastrService,
     private coursService: CoursService,
-    private router: Router
+    private router: Router,
+    private startupService: StartupService
   ) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.startupService.page.next('Importer les cours');
+  }
 
   async onFileSelected(event: Event) {
     this.loading = true;

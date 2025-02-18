@@ -30,7 +30,8 @@ export class EtudiantService {
             item.matricule,
             item.name,
             item.promotion,
-            item.faculte
+            item.faculte,
+            item.groupe
           );
         });
       }),

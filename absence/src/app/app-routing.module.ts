@@ -123,7 +123,7 @@ const routes: Routes = [
         // canActivate: [SuperAdminAndAdminGuard],
       },
       {
-        path: 'update-cours',
+        path: 'update-cours/:id',
         component: UpdateCoursComponent,
         // canActivate: [SuperAdminAndAdminGuard],
       },

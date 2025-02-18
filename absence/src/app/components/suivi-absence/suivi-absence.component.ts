@@ -15,6 +15,8 @@ import { Examen } from 'src/app/models/Examen';
 import { ToastrService } from 'ngx-toastr';
 import { Router } from '@angular/router';
 import { StartupService } from 'src/app/services/startup.service';
+import { CoursService } from 'src/app/services/cours.service';
+import { Cours } from 'src/app/models/Cours';
 
 @Component({
   selector: 'app-suivi-absence',
@@ -29,11 +31,13 @@ export class SuiviAbsenceComponent implements OnInit {
   localStudents: Etudiant[] = [];
   studiantsWithFaceId: String[] = [];
   isLoading: boolean = false;
-  examen!: Examen;
+  examen!: Examen | Cours;
+  typeSuivi!: String;
 
   constructor(
     private http: HttpClient,
     private examenService: ExamenService,
+    private coursService: CoursService,
     private toastr: ToastrService,
     private router: Router,
     private startupService: StartupService
@@ -62,15 +66,35 @@ export class SuiviAbsenceComponent implements OnInit {
     //     // console.log(this.etudiants);
     //   });
 
-    this.examenService.localStudents.subscribe(
-      (value) => (this.localStudents = value)
+    this.startupService.typeSuivi.subscribe(
+      (value) => (this.typeSuivi = value)
     );
-    this.examenService.studiantsWithFaceId.subscribe(
-      (value) => (this.studiantsWithFaceId = value)
-    );
-    this.examenService.examenExploring.subscribe(
-      (value) => (this.examen = value)
-    );
+    if (this.typeSuivi === 'cours') {
+      //
+      this.coursService.localStudents.subscribe(
+        (value) => (this.localStudents = value)
+      );
+      this.coursService.studiantsWithFaceId.subscribe(
+        (value) => (this.studiantsWithFaceId = value)
+      );
+      this.coursService.coursExploring.subscribe(
+        (value) => (this.examen = value)
+      );
+      //
+    } else if (this.typeSuivi === 'examen') {
+      //
+      this.examenService.localStudents.subscribe(
+        (value) => (this.localStudents = value)
+      );
+      this.examenService.studiantsWithFaceId.subscribe(
+        (value) => (this.studiantsWithFaceId = value)
+      );
+      this.examenService.examenExploring.subscribe(
+        (value) => (this.examen = value)
+      );
+      //
+    }
+
     this.startupService.page.next('Suivi');
     this.mettreAJourPresence();
   }
@@ -96,33 +120,67 @@ export class SuiviAbsenceComponent implements OnInit {
 
   recharger() {
     this.isLoading = true;
-    this.examenService
-      .suivi({
-        hour1: this.examen.hour_debut_pointage.toString(),
-        hour2: this.examen.hour_fin.toString(),
-        date: this.examen.date.toString(),
-        faculte: this.examen.faculte,
-        promotion: this.examen.promotion,
-      })
-      .subscribe(
-        (response: any) => {
-          console.log(response.local_students);
+    this.typeSuivi === 'examens' &&
+      this.examenService
+        .suivi({
+          hour1: (this.examen as Examen).hour_debut_pointage.toString(),
+          hour2: this.examen.hour_fin.toString(),
+          date: this.examen.date.toString(),
+          faculte: this.examen.faculte,
+          promotion: this.examen.promotion,
+        })
+        .subscribe(
+          (response: any) => {
+            console.log(response.local_students);
 
-          this.isLoading = false;
-          this.studiantsWithFaceId = response.students_with_face_id;
-          this.localStudents = response.local_students;
+            this.isLoading = false;
+            this.studiantsWithFaceId = response.students_with_face_id;
+            this.localStudents = response.local_students;
 
-          this.mettreAJourPresence();
-          // console.log(this.studiantsWithFaceId);
-          // this.examenService.localStudents.next(this.localStudents);
-          // this.examenService.studiantsWithFaceId.next(this.studiantsWithFaceId);
-          // this.router.navigate(['suivi-absence']);
-        },
-        (error) => {
-          this.isLoading = false;
-          this.toastr.error('An error occurred while processing your request');
-        }
-      );
+            this.mettreAJourPresence();
+            // console.log(this.studiantsWithFaceId);
+            // this.examenService.localStudents.next(this.localStudents);
+            // this.examenService.studiantsWithFaceId.next(this.studiantsWithFaceId);
+            // this.router.navigate(['suivi-absence']);
+          },
+          (error) => {
+            this.isLoading = false;
+            this.toastr.error(
+              'An error occurred while processing your request'
+            );
+          }
+        );
+
+    this.typeSuivi === 'cours' &&
+      this.examenService
+        .suivi({
+          hour1: (this.examen as Cours).hour_debut.toString(),
+          hour2: this.examen.hour_fin.toString(),
+          date: this.examen.date.toString(),
+          faculte: this.examen.faculte,
+          promotion: this.examen.promotion,
+        })
+        .subscribe(
+          (response: any) => {
+            console.log(response.local_students);
+
+            this.isLoading = false;
+            this.studiantsWithFaceId = response.students_with_face_id;
+            this.localStudents = response.local_students;
+
+            this.mettreAJourPresence();
+            // console.log(this.studiantsWithFaceId);
+            // this.examenService.localStudents.next(this.localStudents);
+            // this.examenService.studiantsWithFaceId.next(this.studiantsWithFaceId);
+            // this.router.navigate(['suivi-absence']);
+          },
+          (error) => {
+            this.isLoading = false;
+            this.toastr.error(
+              'An error occurred while processing your request'
+            );
+          }
+        );
   }
 
   handleExport() {

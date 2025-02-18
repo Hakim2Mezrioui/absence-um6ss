@@ -21,6 +21,7 @@ class EtudiantController extends Controller
         $heure2 = $request->input('hour2', '10:00'); // Default end time if not provided
         $faculte = $request->input('faculte', "pharmacie");
         $promotion = $request->input("promotion", "1ère annee");
+        $groupe = $request->query("groupe", 0);
 
         // Create a PDO connection to the SQL Server database
         $dsn = 'sqlsrv:Server=10.0.2.148;Database=BIOSTAR_TA;TrustServerCertificate=true';
@@ -40,7 +41,23 @@ class EtudiantController extends Controller
             $biostarResults = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             // Fetch students from the local database
-            $localStudents = Etudiant::where("faculte", strtolower($faculte))->where("promotion", $promotion)->get();
+            // $localStudents = Etudiant::where("faculte", strtolower($faculte))->where("promotion", $promotion)->get();
+
+            $query = Etudiant::query();
+
+            if(!empty($groupe) && !$groupe == 0) {
+                $query->where('groupe', $groupe);
+            }
+            
+            if(!empty($faculte) && $faculte == "") {
+                $query->where('faculte', $faculte);
+            }
+
+            if(!empty($promotion) && $promotion == "") {
+                $query->where('promotion', $promotion);
+            }
+
+            $localStudents = $query->get();
 
             // Compare the two sets of students
             $faceIdStudents = collect($biostarResults)->pluck('user_id')->toArray();
@@ -126,6 +143,7 @@ class EtudiantController extends Controller
                         'name' => $studentData['name'],
                         'faculte' => strtolower($faculte),
                         'promotion' => $studentData['promotion'],
+                        'groupe' => $studentData['groupe'],
                     ]);
                 }
             } else {
@@ -142,6 +160,7 @@ class EtudiantController extends Controller
                         'name' => $studentData['name'],
                         'faculte' => $studentData['faculte'],
                         'promotion' => $studentData['promotion'],
+                        'groupe' => $studentData['groupe'],
                     ]);
                 }
             }

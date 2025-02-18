@@ -40,10 +40,11 @@ export class ListExamenItemComponent implements OnInit {
 
   ngOnInit() {
     this.startupService.role.subscribe((value) => (this.role = value));
-    this.startupService.page.next("Examen list");
+    this.startupService.page.next('Examen list');
   }
 
   onExplore(examen: Examen) {
+    this.startupService.typeSuivi.next('examen');
     this.isLoading = true;
     this.examenService.examenExploring.next(examen);
     this.examenService
@@ -103,7 +104,7 @@ export class ListExamenItemComponent implements OnInit {
   async onDelete(id: number) {
     const response = await Swal.fire({
       title: '',
-      text: 'Are you sure!',
+      text: 'Vous êtes sûr!',
       icon: 'info',
       showCancelButton: true,
     });

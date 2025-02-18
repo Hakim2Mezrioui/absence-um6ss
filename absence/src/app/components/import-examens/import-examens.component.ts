@@ -16,13 +16,15 @@ export class ImportExamensComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private messageService: MessageService,
-    private StartupService: StartupService,
+    private startupService: StartupService,
     private examenService: ExamenService,
     private toast: ToastrService,
     private router: Router
   ) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.startupService.page.next('Importer les examens');
+  }
 
   async onFileSelected(event: Event) {
     this.loading = true;
@@ -36,7 +38,7 @@ export class ImportExamensComponent implements OnInit {
           this.loading = false;
           this.toast.success('File has been uploaded successfully');
           input.value = ''; // Reset the input
-          this.router.navigate(["examens-list"]);
+          this.router.navigate(['examens-list']);
         },
         (error) => {
           this.loading = false;

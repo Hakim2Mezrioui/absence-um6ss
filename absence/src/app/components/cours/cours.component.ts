@@ -46,6 +46,7 @@ export class CoursComponent implements OnInit {
   }
 
   getCours() {
+    this.loading = true;
     this.coursService.actualPage.subscribe((value) => {
       this.actualPage = value;
     });
@@ -60,14 +61,19 @@ export class CoursComponent implements OnInit {
     this.coursService.searchValue.subscribe(
       (value) => (this.searchVal = value)
     );
-    this.coursService.getAllCours().subscribe(
-      (response) => {
-        this.cours = response;
-      },
-      (error) => {
-        console.log(error);
-      }
-    );
+
+    this.coursService
+      .getAllCours(1, this.faculteActual, this.searchVal)
+      .subscribe(
+        (response: any) => {
+          this.cours = response;
+          this.loading = false;
+        },
+        (error) => {
+          this.loading = false;
+          console.log(error);
+        }
+      );
   }
 
   handleSearch(value: String) {
@@ -76,26 +82,28 @@ export class CoursComponent implements OnInit {
     this.getCours();
   }
 
-  filterByStatut(statut: String) {
-    let faculte;
-    this.coursService.faculteActual.subscribe((value) => (faculte = value));
+  // filterByStatut(statut: String) {
+  //   let faculte;
+  //   this.coursService.faculteActual.subscribe((value) => (faculte = value));
 
-    this.coursService.statutActual.next(statut);
+  //   this.coursService.statutActual.next(statut);
 
-    this.coursService.getAllCours(1, statut, faculte).subscribe((cours) => {
-      this.cours = cours;
-    });
-  }
+  //   this.coursService.getAllCours(1, statut, faculte).subscribe((cours) => {
+  //     this.cours = cours;
+  //   });
+  // }
 
   filterByFaculte(faculte: String) {
     let statut;
-    this.coursService.statutActual.subscribe((value) => (statut = value));
+    // this.coursService.statutActual.subscribe((value) => (statut = value));
 
     this.coursService.faculteActual.next(faculte);
 
-    this.coursService.getAllCours(1, statut, faculte).subscribe((cours) => {
-      this.cours = cours;
-    });
+    this.coursService
+      .getAllCours(1, faculte, this.searchVal)
+      .subscribe((cours) => {
+        this.cours = cours;
+      });
   }
 
   getPage(number: number) {
@@ -121,12 +129,11 @@ export class CoursComponent implements OnInit {
 
     this.coursService.faculteActual.subscribe((value) => (faculte = value));
     this.coursService.searchValue.subscribe((value) => (valueSearch = value));
-    this.coursService.actualPage.next(this.actualPage + 1);
-
     this.coursService.totalPages.subscribe((value) => (totalPage = value));
+
     if (this.actualPage == this.totalPages) return;
     this.coursService
-      .getAllCours(this.actualPage + 1, faculte)
+      .getAllCours(this.actualPage + 1, faculte, valueSearch)
       .subscribe((cours) => {
         this.cours = cours;
       });
@@ -138,11 +145,10 @@ export class CoursComponent implements OnInit {
 
     this.coursService.faculteActual.subscribe((value) => (faculte = value));
     this.coursService.searchValue.subscribe((value) => (valueSearch = value));
-    this.coursService.actualPage.next(this.actualPage - 1);
 
     if (this.actualPage == 1) return;
     this.coursService
-      .getAllCours(this.actualPage - 1, faculte)
+      .getAllCours(this.actualPage - 1, faculte, valueSearch)
       .subscribe((cours) => {
         this.cours = cours;
       });

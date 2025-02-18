@@ -2,6 +2,11 @@ import { CoursService } from 'src/app/services/cours.service';
 import { Component, Input, OnInit } from '@angular/core';
 import { Cours } from 'src/app/models/Cours';
 import { DatePipe } from '@angular/common';
+import { StartupService } from 'src/app/services/startup.service';
+import { ToastrService } from 'ngx-toastr';
+import Swal from 'sweetalert2';
+import { Router } from '@angular/router';
+import { Etudiant } from 'src/app/models/Etudiant';
 
 @Component({
   selector: 'app-cours-item',
@@ -12,40 +17,52 @@ export class CoursItemComponent implements OnInit {
   @Input('cours') course!: Cours;
   statut: String = 'en attente';
   isLoading: Boolean = false;
+  studiantsWithFaceId: String[] = [];
+  localStudents: Etudiant[] = [];
   role: String = 'user';
 
-  constructor(private coursService: CoursService, private datePipe: DatePipe) {}
+  constructor(
+    private router: Router,
+    private coursService: CoursService,
+    private datePipe: DatePipe,
+    private startupService: StartupService,
+    private toast: ToastrService
+  ) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.startupService.role.subscribe((value) => (this.role = value));
+  }
 
   onExplore(cours: Cours) {
+    this.startupService.typeSuivi.next('cours');
     this.isLoading = true;
-    // this.coursService.coursExploring.next(cours);
-    // this.coursService
-    //   .suivi({
-    //     hour1: examen.hour_debut_pointage.toString(),
-    //     hour2: examen.hour_fin.toString(),
-    //     date: examen.date.toString(),
-    //     faculte: examen.faculte,
-    //     promotion: examen.promotion,
-    //   })
-    //   .subscribe(
-    //     (response: any) => {
-    //       console.log(response.local_students);
+    this.coursService.coursExploring.next(cours);
+    this.coursService
+      .suivi({
+        hour1: cours.hour_debut.toString(),
+        hour2: cours.hour_fin.toString(),
+        date: cours.date.toString(),
+        faculte: cours.faculte,
+        promotion: cours.promotion,
+        groupe: cours.groupe,
+      })
+      .subscribe(
+        (response: any) => {
+          console.log(response.local_students);
 
-    //       this.isLoading = false;
-    //       this.studiantsWithFaceId = response.students_with_face_id;
-    //       this.localStudents = response.local_students;
-    //       // console.log(this.studiantsWithFaceId);
-    //       this.examenService.localStudents.next(this.localStudents);
-    //       this.examenService.studiantsWithFaceId.next(this.studiantsWithFaceId);
-    //       this.router.navigate(['suivi-absence']);
-    //     },
-    //     (error) => {
-    //       this.isLoading = false;
-    //       this.toastr.error('An error occurred while processing your request');
-    //     }
-    //   );
+          this.isLoading = false;
+          this.studiantsWithFaceId = response.students_with_face_id;
+          this.localStudents = response.local_students;
+          // console.log(this.studiantsWithFaceId);
+          this.coursService.localStudents.next(this.localStudents);
+          this.coursService.studiantsWithFaceId.next(this.studiantsWithFaceId);
+          this.router.navigate(['suivi-absence']);
+        },
+        (error) => {
+          this.isLoading = false;
+          this.toast.error('An error occurred while processing your request');
+        }
+      );
   }
 
   isCourseActive(): boolean {
@@ -122,6 +139,40 @@ export class CoursItemComponent implements OnInit {
     return this.datePipe.transform(date, 'dd/MM/yyyy')!;
   }
 
-  onDelete(id: Number) {}
-  onUpdate(id: Number) {}
+  async onDelete(id: number) {
+    const response = await Swal.fire({
+      title: '',
+      text: 'Vous êtes sûr!',
+      icon: 'info',
+      showCancelButton: true,
+    });
+    if (!response.isConfirmed) {
+      return;
+    }
+
+    this.coursService.deleteCours(id).subscribe(
+      (value) => {
+        this.isLoading = false;
+        this.toast.success('Cours supprimé avec succès');
+        this.reloadCurrentRoute();
+      },
+      (error) => {
+        this.isLoading = false;
+        this.toast.error('Erreur lors de la suppression du cours');
+      }
+    );
+  }
+
+  onUpdate(id: number) {
+    this.router.navigate([`update-cours/${id}`]);
+  }
+
+  private reloadCurrentRoute() {
+    const currentUrl = this.router.url;
+    this.router
+      .navigateByUrl('/whitePage', { skipLocationChange: true })
+      .then(() => {
+        this.router.navigate([currentUrl]);
+      });
+  }
 }

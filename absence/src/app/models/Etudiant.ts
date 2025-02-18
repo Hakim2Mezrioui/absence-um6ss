@@ -4,6 +4,7 @@ export class Etudiant {
     public name: string,
     public promotion: string,
     public faculte: string,
-    public etatPresence?: string,
+    public groupe: number,
+    public etatPresence?: string
   ) {}
 }

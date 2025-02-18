@@ -31,6 +31,7 @@ export class ImportStudentsComponent implements OnInit {
 
   ngOnInit(): void {
     this.startupService.role.subscribe((value) => (this.role = value));
+    this.startupService.page.next('Importer les étudiants');
   }
 
   onSubmit() {}

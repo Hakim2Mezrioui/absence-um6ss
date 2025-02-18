@@ -5,6 +5,7 @@ import { Etudiant } from 'src/app/models/Etudiant';
 import { EtudiantService } from 'src/app/services/etudiant.service';
 import Swal from 'sweetalert2';
 import { ToastrService } from 'ngx-toastr';
+import { StartupService } from 'src/app/services/startup.service';
 
 @Component({
   selector: 'app-add-etudiant',
@@ -14,16 +15,17 @@ import { ToastrService } from 'ngx-toastr';
 export class AddEtudiantComponent implements OnInit {
   @ViewChild('f') form!: NgForm;
   loading: boolean = false;
-  role: String = "user";
+  role: String = 'user';
 
   constructor(
     private router: Router,
     private etudiantService: EtudiantService,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private startupService: StartupService
   ) {}
 
   ngOnInit(): void {
-    
+    this.startupService.page.next('Ajouter étudiant');
   }
 
   goToImportScreen() {
@@ -59,7 +61,8 @@ export class AddEtudiantComponent implements OnInit {
       this.form.value.matricule,
       this.form.value.name,
       this.form.value.promotion,
-      this.form.value.faculte
+      this.form.value.faculte,
+      this.form.value.groupe
     );
 
     this.etudiantService.ajouter(etudiant).subscribe(
