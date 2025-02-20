@@ -39,8 +39,12 @@ export class CoursItemComponent implements OnInit {
     this.coursService.coursExploring.next(cours);
     this.coursService
       .suivi({
-        hour1: cours.hour_debut.toString(),
-        hour2: cours.hour_fin.toString(),
+        // hour1: this.formatTime(cours.hour_debut.toString()),
+        // hour2: this.formatTime(cours.hour_debut.toString()),
+        hour1: this.formatTime(this.subtractMinutes(cours.hour_debut, 30)),
+        hour2: this.formatTime(
+          this.addMinutes(cours.hour_debut, cours.tolerance)
+        ),
         date: cours.date.toString(),
         faculte: cours.faculte,
         promotion: cours.promotion,
@@ -48,7 +52,7 @@ export class CoursItemComponent implements OnInit {
       })
       .subscribe(
         (response: any) => {
-          console.log(response.local_students);
+          console.log(response);
 
           this.isLoading = false;
           this.studiantsWithFaceId = response.students_with_face_id;
@@ -139,6 +143,16 @@ export class CoursItemComponent implements OnInit {
     return this.datePipe.transform(date, 'dd/MM/yyyy')!;
   }
 
+  formatTime(time: string | Date): string {
+    if (!time) return '';
+
+    const date = new Date(time);
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+
+    return `${hours}:${minutes}`; // Format "HH:mm"
+  }
+
   async onDelete(id: number) {
     const response = await Swal.fire({
       title: '',
@@ -161,6 +175,19 @@ export class CoursItemComponent implements OnInit {
         this.toast.error('Erreur lors de la suppression du cours');
       }
     );
+  }
+
+  subtractMinutes(time: string | Date, minutes: number): Date {
+    const date = new Date(time);
+    date.setMinutes(date.getMinutes() - minutes);
+    return date;
+  }
+
+  // ✅ Fonction pour ajouter des minutes
+  addMinutes(time: string | Date, minutes: number): Date {
+    const date = new Date(time);
+    date.setMinutes(date.getMinutes() + minutes);
+    return date;
   }
 
   onUpdate(id: number) {

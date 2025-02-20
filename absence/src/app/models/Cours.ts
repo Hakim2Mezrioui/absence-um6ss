@@ -4,6 +4,7 @@ export class Cours {
     public date: string | Date,
     public hour_debut: string | Date,
     public hour_fin: string | Date,
+    public tolerance: number,
     public faculte: string,
     public promotion: string,
     public groupe: number,

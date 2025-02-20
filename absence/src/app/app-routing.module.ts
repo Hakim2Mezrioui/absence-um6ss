@@ -22,11 +22,12 @@ import { UsersComponent } from './components/users/users.component';
 import { AdminGuard } from './guards/admin.guard';
 import { SuperAdminGuard } from './guards/super-admin.guard';
 import { SuperAdminAndAdminGuard } from './guards/super-admin-and-admin.guard';
-import { UpdateExameComponent } from './update-exame/update-exame.component';
 import { CoursComponent } from './components/cours/cours.component';
 import { AddCoursComponent } from './components/add-cours/add-cours.component';
 import { UpdateCoursComponent } from './components/update-cours/update-cours.component';
 import { ImportCoursComponent } from './components/import-cours/import-cours.component';
+import { UpdateExameComponent } from './components/update-exame/update-exame.component';
+import { FooterComponent } from './components/footer/footer.component';
 
 const routes: Routes = [
   {
@@ -105,7 +106,7 @@ const routes: Routes = [
       {
         path: 'add-user',
         component: AddUserComponent,
-        canActivate: [SuperAdminGuard]
+        canActivate: [SuperAdminGuard],
       },
       {
         path: 'users',
@@ -130,6 +131,11 @@ const routes: Routes = [
       {
         path: 'import-cours',
         component: ImportCoursComponent,
+        // canActivate: [SuperAdminAndAdminGuard],
+      },
+      {
+        path: 'footer',
+        component: FooterComponent,
         // canActivate: [SuperAdminAndAdminGuard],
       },
     ],

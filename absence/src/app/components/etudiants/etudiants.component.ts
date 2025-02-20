@@ -16,9 +16,12 @@ export class EtudiantsComponent implements OnInit {
   etudiants: Etudiant[] = [];
   loading: boolean = false;
 
+  role: String = 'user';
+  userFaculte!: String;
+
   constructor(
     private etudiantService: EtudiantService,
-    private startupService: StartupService,
+    private startupService: StartupService
   ) {}
 
   ngOnInit(): void {
@@ -28,6 +31,11 @@ export class EtudiantsComponent implements OnInit {
       this.loading = false;
     });
     this.startupService.page.next('Etudiants');
+
+    this.startupService.role.subscribe((value) => (this.role = value));
+    this.startupService.userFaculte.subscribe(
+      (value) => (this.userFaculte = value)
+    );
   }
 
   handleSearch(e: Event) {

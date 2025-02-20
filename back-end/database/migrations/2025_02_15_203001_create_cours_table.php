@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string("title");
             $table->date("date");
             $table->time("hour_debut");
+            $table->integer("tolerance");
             $table->time("hour_fin");
             $table->string("faculte");
             $table->integer("groupe");

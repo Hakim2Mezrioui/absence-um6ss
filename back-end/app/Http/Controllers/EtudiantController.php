@@ -22,6 +22,7 @@ class EtudiantController extends Controller
         $faculte = $request->input('faculte', "pharmacie");
         $promotion = $request->input("promotion", "1ère annee");
         $groupe = $request->query("groupe", 0);
+        $option = $request->query("option", 0);
 
         // Create a PDO connection to the SQL Server database
         $dsn = 'sqlsrv:Server=10.0.2.148;Database=BIOSTAR_TA;TrustServerCertificate=true';
@@ -47,6 +48,10 @@ class EtudiantController extends Controller
 
             if(!empty($groupe) && !$groupe == 0) {
                 $query->where('groupe', $groupe);
+            }
+
+            if(!empty($option) && !$option == 0) {
+                $query->where('option', $option);
             }
             
             if(!empty($faculte) && $faculte == "") {
@@ -144,6 +149,7 @@ class EtudiantController extends Controller
                         'faculte' => strtolower($faculte),
                         'promotion' => $studentData['promotion'],
                         'groupe' => $studentData['groupe'],
+                        'option' => $studentData['option'],
                     ]);
                 }
             } else {
@@ -161,6 +167,7 @@ class EtudiantController extends Controller
                         'faculte' => $studentData['faculte'],
                         'promotion' => $studentData['promotion'],
                         'groupe' => $studentData['groupe'],
+                        'option' => $studentData['option'],
                     ]);
                 }
             }
@@ -234,6 +241,8 @@ class EtudiantController extends Controller
             'name' => $request->input('name'),
             'promotion' => $request->input('promotion'),
             'faculte' => $request->input('faculte'),
+            'option' => $request->input('option'),
+            'groupe' => $request->input('groupe'),
         ]);
 
         // Return the newly created Etudiant as a JSON response

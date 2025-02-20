@@ -33,6 +33,8 @@ export class SuiviAbsenceComponent implements OnInit {
   isLoading: boolean = false;
   examen!: Examen | Cours;
   typeSuivi!: String;
+  totalPresent: Number = 0;
+  totalEtudiant: Number = 0;
 
   constructor(
     private http: HttpClient,
@@ -97,6 +99,8 @@ export class SuiviAbsenceComponent implements OnInit {
 
     this.startupService.page.next('Suivi');
     this.mettreAJourPresence();
+    this.totalPresent = this.studiantsWithFaceId.length;
+    this.totalEtudiant = this.localStudents.length;
   }
 
   handleSearch(e: Event) {

@@ -26,7 +26,7 @@ export class CoursService {
   studiantsWithFaceId = new BehaviorSubject<String[]>([]);
 
   coursExploring = new BehaviorSubject<Cours>(
-    new Cours('', new Date(), new Date(), new Date(), '', '', 0)
+    new Cours('', new Date(), new Date(), new Date(), 10,'', '', 0)
   );
 
   constructor(private http: HttpClient) {}
@@ -51,6 +51,7 @@ export class CoursService {
               item.date,
               item.hour_debut,
               item.hour_fin,
+              item.tolerance,
               item.faculte,
               item.promotion,
               item.groupe,

@@ -82,9 +82,9 @@ class ExamenController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'date' => 'required|date',
-            'hour_debut' => 'required',
+            'hour_debut' => 'required|after:hour_debut_pointage',
             'hour_debut_pointage' => 'required',
-            'hour_fin' => 'required',
+            'hour_fin' => 'required|after:hour_debut',
             'faculte' => 'required|string|max:255',
             'promotion' => 'required|in:1ère annee,2ème annee,3ème annee,4ème annee,5ème annee,6ème annee',
             'statut' => 'required|in:archivé,en cours',

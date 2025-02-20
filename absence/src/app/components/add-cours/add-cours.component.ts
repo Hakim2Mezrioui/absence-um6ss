@@ -73,6 +73,7 @@ export class AddCoursComponent implements OnInit {
       "date" :this.form.value.date,
       "hour_debut" :this.form.value.hour_debut,
       "hour_fin" :this.form.value.hour_fin,
+      "tolerance": this.form.value.tolerance,
       "faculte" :this.form.value.faculte,
       "promotion" :this.form.value.promotion,
       "groupe" :this.form.value.groupe,

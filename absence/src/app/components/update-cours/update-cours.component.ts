@@ -49,10 +49,11 @@ export class UpdateCoursComponent implements OnInit {
           response.date,
           response.hour_debut,
           response.hour_fin,
+          response.tolerance,
           response.faculte,
           response.promotion,
           response.groupe,
-          response.options ?? '',
+          response.option ?? '',
           response.id
         );
       },
@@ -126,6 +127,7 @@ export class UpdateCoursComponent implements OnInit {
       title: this.form.value.title,
       date: this.form.value.date,
       hour_debut: this.form.value.hour_debut,
+      tolerance: this.form.value.tolerance,
       hour_fin: this.form.value.hour_fin,
       faculte: this.form.value.faculte,
       promotion: this.form.value.promotion,

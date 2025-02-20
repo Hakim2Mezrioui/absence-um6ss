@@ -2,3 +2,7 @@
   width: 60vw;
   overflow-x: hidden;
 }
+
+.adjust-content {
+  height: 60vh;
+}

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Cours;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Carbon\Carbon;
 
 class CoursController extends Controller
 {
@@ -76,16 +77,19 @@ class CoursController extends Controller
             'groupe' => 'required|integer',
             'promotion' => ['required', Rule::in(['1ère annee', '2ème annee', '3ème annee', '4ème annee', '5ème annee', '6ème annee'])],
             'option' => 'nullable|string',
+            'tolerance' => 'numeric',
         ]);
 
         $cours = new Cours();
         $cours->title = $validatedData['title'];
         $cours->date = $validatedData['date'];
         $cours->hour_debut = $validatedData['hour_debut'];
+        // $cours->hour_debut_pointage = Carbon::parse($validatedData['hour_debut'])->subMinutes(30);
         $cours->hour_fin = $validatedData['hour_fin'];
         $cours->faculte = $validatedData['faculte'];
         $cours->groupe = $validatedData['groupe'];
         $cours->promotion = $validatedData['promotion'];
+        $cours->tolerance = $validatedData['tolerance'];
         $cours->option = $validatedData['option'] ?? '';
         $cours->save();
 
@@ -114,9 +118,21 @@ class CoursController extends Controller
             'faculte' => 'sometimes|string|max:255',
             'groupe' => 'sometimes|integer',
             'promotion' => ['sometimes', Rule::in(['1ère annee', '2ème annee', '3ème annee', '4ème annee', '5ème annee', '6ème annee'])],
+            'tolerance' => 'numeric',
         ]);
 
-        $cours->update($validatedData);
+        // $cours->update($validatedData);
+        $cours->update([
+            'title' => $request['title'],
+            'date' => $request['date'],
+            'hour_debut' => $request['hour_debut'],
+            'hour_fin' => $request['hour_fin'],
+            'faculte' => $request['faculte'],
+            'promotion' => $request['promotion'],
+            'groupe' => $request['groupe'],
+            'option' => $request['option'] ?? "",
+            'tolerance' => $request['tolerance'],
+        ]);
         return response()->json(['message' => 'Cours mis à jour avec succès', 'cours' => $cours]);
     }
 
@@ -141,17 +157,18 @@ class CoursController extends Controller
             // Parse the CSV file and insert data into the database
             while (($row = fgetcsv($handle, 0, ',')) !== false) {
                 $row = array_map('trim', $row);
-                $examenData = array_combine($header, $row);
+                $coursData = array_combine($header, $row);
 
                 Cours::create([
-                    'title' => $examenData['title'],
-                    'date' => $examenData['date'],
-                    'hour_debut' => $examenData['hour_debut'],
-                    'hour_fin' => $examenData['hour_fin'],
-                    'faculte' => $examenData['faculte'],
-                    'promotion' => $examenData['promotion'],
-                    'groupe' => $examenData['groupe'],
-                    'option' => $examenData['option'] ?? null,
+                    'title' => $coursData['title'],
+                    'date' => $coursData['date'],
+                    'hour_debut' => $coursData['hour_debut'],
+                    'hour_fin' => $coursData['hour_fin'],
+                    'faculte' => $coursData['faculte'],
+                    'promotion' => $coursData['promotion'],
+                    'groupe' => $coursData['groupe'],
+                    'option' => $coursData['option'] ?? null,
+                    'tolerance' => $coursData['tolerance'],
                 ]);
             }
 

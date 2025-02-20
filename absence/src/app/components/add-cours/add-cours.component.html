@@ -40,7 +40,7 @@
         >Date</label
       >
     </div>
-    <div class="grid grid-cols-2 gap-2">
+    <div class="grid grid-cols-3 gap-2">
       <div class="relative w-full mb-5 group">
         <input
           type="time"
@@ -69,6 +69,21 @@
           for="floating_email"
           class="peer-focus:font-medium absolute text-sm text-green-800 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-2 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto peer-focus:text-green-800 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
           >Heur de fin</label
+        >
+      </div>
+      <div class="relative w-full mb-5 group">
+        <input
+          type="number"
+          name="tolerance"
+          class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-b-2 z-0 appearance-none borde-gray-600 focus:border-green-800 focus:outline-none focus:ring-0 peer"
+          placeholder=""
+          required
+          [ngModel]="10"
+        />
+        <label
+          for="floating_email"
+          class="peer-focus:font-medium absolute text-sm text-green-800 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-2 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto peer-focus:text-green-800 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
+          >Tolerance</label
         >
       </div>
     </div>
@@ -149,18 +164,18 @@
           class="block py-2.5 px-0 w-full text-sm text-gray-500 bg-transparent border-b-2 border-gray-200 appearance-none focus:border-b-green-800 focus:outline-none focus:ring-0 focus:border-gray-200 peer"
         >
           <option value="" disabled selected>selectionner l'option</option>
-          <option value="IP">Infirmier Polyvalent</option>
-          <option value="INP">Infirmier en Néonatologie et Pédiatrie</option>
-          <option value="IBO">Infirmier au Bloc Opératoire</option>
-          <option value="IAR">Infirmier en Anesthésie Réanimation</option>
-          <option value="OR">Orthophonie</option>
-          <option value="OT">Orthoptie</option>
-          <option value="PSY">Psychomotricité</option>
-          <option value="KIN">Kinésithérapie</option>
-          <option value="IM">Imagerie Médicale</option>
-          <option value="TL">Technicien de Laboratoire</option>
-          <option value="DN">Nutrition et Diététique</option>
-          <option value="SF">Sage-femme</option>
+          <option value="LPIP">Infirmier Polyvalent</option>
+          <option value="LPINP">Infirmier en Néonatologie et Pédiatrie</option>
+          <option value="LPIBO">Infirmier au Bloc Opératoire</option>
+          <option value="LPIAR">Infirmier en Anesthésie Réanimation</option>
+          <option value="LPOR">Orthophonie</option>
+          <option value="LPOT">Orthoptie</option>
+          <option value="LPPSY">Psychomotricité</option>
+          <option value="LPKIN">Kinésithérapie</option>
+          <option value="LPIM">Imagerie Médicale</option>
+          <option value="LPTL">Technicien de Laboratoire</option>
+          <option value="LPDN">Nutrition et Diététique</option>
+          <option value="LPSF">Sage-femme</option>
         </select>
         <label
           for="underline_select"

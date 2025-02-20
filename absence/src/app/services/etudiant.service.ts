@@ -12,11 +12,14 @@ export class EtudiantService {
   constructor(private http: HttpClient) {}
 
   ajouter(etudiant: Etudiant) {
+    console.log(etudiant);
     return this.http.post(`${this.baseUrl}/add-etudiant`, {
       matricule: etudiant.matricule,
       name: etudiant.name,
       promotion: etudiant.promotion,
       faculte: etudiant.faculte,
+      groupe: etudiant.groupe,
+      option: etudiant.option
     });
   }
 
@@ -31,7 +34,9 @@ export class EtudiantService {
             item.name,
             item.promotion,
             item.faculte,
-            item.groupe
+            item.groupe,
+            undefined,
+            item.option
           );
         });
       }),

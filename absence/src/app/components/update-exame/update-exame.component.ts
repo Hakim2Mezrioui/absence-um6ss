@@ -1,10 +1,10 @@
 import { AfterViewChecked, Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
-import { ExamenService } from '../services/examen.service';
-import { StartupService } from '../services/startup.service';
 import { NgForm } from '@angular/forms';
-import { Examen } from '../models/Examen';
+import { ExamenService } from 'src/app/services/examen.service';
+import { StartupService } from 'src/app/services/startup.service';
+import { Examen } from 'src/app/models/Examen';
 
 @Component({
   selector: 'app-update-exame',

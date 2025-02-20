@@ -15,5 +15,6 @@ class cours extends Model
         'groupe',
         'promotion',
         'option',
+        'tolerance'
     ];
 }

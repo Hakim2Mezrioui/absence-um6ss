@@ -16,6 +16,7 @@ export class AddEtudiantComponent implements OnInit {
   @ViewChild('f') form!: NgForm;
   loading: boolean = false;
   role: String = 'user';
+  selectedFaculte!: String;
 
   constructor(
     private router: Router,
@@ -26,6 +27,11 @@ export class AddEtudiantComponent implements OnInit {
 
   ngOnInit(): void {
     this.startupService.page.next('Ajouter étudiant');
+    this.startupService.role.subscribe((value) => (this.role = value));
+  }
+
+  faculteChange(name: String) {
+    this.selectedFaculte = name;
   }
 
   goToImportScreen() {
@@ -37,7 +43,8 @@ export class AddEtudiantComponent implements OnInit {
       !this.form.value.name ||
       !this.form.value.matricule ||
       !this.form.value.promotion ||
-      !this.form.value.faculte
+      !this.form.value.faculte ||
+      !this.form.value.groupe
     ) {
       this.toastr.error('All fields are required!', 'Validation Error');
       return false;
@@ -62,7 +69,9 @@ export class AddEtudiantComponent implements OnInit {
       this.form.value.name,
       this.form.value.promotion,
       this.form.value.faculte,
-      this.form.value.groupe
+      this.form.value.groupe,
+      '',
+      this.form.value.option
     );
 
     this.etudiantService.ajouter(etudiant).subscribe(

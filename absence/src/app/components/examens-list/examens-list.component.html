@@ -125,8 +125,9 @@
     </li>
     <li *ngFor="let page of [].constructor(totalPages); let i = index">
       <a
+        [ngClass]="actualPage == i + 1 ? 'bg-slate-900' : 'bg-white'"
         (click)="getPage(i + 1)"
-        class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+        class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 hover:bg-gray-100 hover:text-gray-700  dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
         >{{ i + 1 }}</a
       >
     </li>
@@ -158,6 +159,11 @@
 
 <app-loading *ngIf="isLoading"></app-loading>
 
-<div *ngIf="!isLoading && examens.length == 0" class="h-96 flex justify-center items-center">
+<div
+  *ngIf="!isLoading && examens.length == 0"
+  class="h-96 flex justify-center items-center"
+>
   <h1 class="text-center text-blue-900 font-bold text-3xl mb-32">Not Found</h1>
 </div>
+
+<app-footer></app-footer>

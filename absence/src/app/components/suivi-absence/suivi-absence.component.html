@@ -83,7 +83,8 @@
             Promotion <p-sortIcon field="promotion"></p-sortIcon>
           </th>
           <th class="text-xs" pSortableColumn="etatPresence" style="width: 10%">
-            <p-sortIcon field="etatPresence"></p-sortIcon>
+            {{ this.totalPresent }}/{{ this.totalEtudiant
+            }}<p-sortIcon field="etatPresence"></p-sortIcon>
           </th>
         </tr>
       </ng-template>

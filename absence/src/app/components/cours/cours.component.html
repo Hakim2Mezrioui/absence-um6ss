@@ -157,10 +157,13 @@
   </div>
 </div>
 
-<div *ngFor="let cours of cours; let i = index" class="row">
-  <app-cours-item [cours]="cours"></app-cours-item>
-</div>
+<div class="adjust-content">
 
+  <div *ngFor="let cours of cours; let i = index" class="row">
+    <app-cours-item [cours]="cours"></app-cours-item>
+  </div>
+  
+</div>
 <nav *ngIf="this.cours.length > 0" class="flex justify-center mt-5 pb-5">
   <ul class="flex items-center -space-x-px h-8 text-sm">
     <li>
@@ -227,3 +230,5 @@
 <div *ngIf="!loading && cours.length == 0" class="h-96 flex justify-center items-center">
   <h1 class="text-center text-blue-900 font-bold text-3xl mb-32">Not Found</h1>
 </div>
+
+<app-footer></app-footer>
