@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Cours;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use DateTime;   
 use Carbon\Carbon;
 
 class CoursController extends Controller
@@ -136,49 +137,135 @@ class CoursController extends Controller
         return response()->json(['message' => 'Cours mis à jour avec succès', 'cours' => $cours]);
     }
 
+    // function ImportCourse(Request $request) {
+    //     if ($request->hasFile('file')) {
+    //         $file = $request->file('file');
+    //         $path = $file->getRealPath();
+
+    //         // Open the file for reading
+    //         $handle = fopen($path, 'r');
+    //         if ($handle === false) {
+    //             return response()->json(['message' => 'Unable to open file'], 400);
+    //         }
+    //         $firstLine = fgets($handle);
+    //         $delimiter = $this->detectDelimiter($firstLine);
+
+    //         // Read the first line to get the headers
+    //         $header = fgetcsv($handle, 0, $delimiter);
+
+    //         // Ensure the header keys are trimmed and lowercased
+    //         $header = array_map('trim', $header);
+    //         $header = array_map('strtolower', $header);
+
+
+    //         rewind($handle);
+
+    //         // Parse the CSV file and insert data into the database
+    //         while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
+    //             $row = array_map('trim', $row);
+    //             $coursData = array_combine($header, $row);
+    //             return response()->json($coursData);
+
+    //             // Cours::create([
+    //             //     'title' => $coursData['title'],
+    //             //     'date' => $coursData['date'],
+    //             //     'hour_debut' => $coursData['hour_debut'],
+    //             //     'hour_fin' => $coursData['hour_fin'],
+    //             //     'faculte' => $coursData['faculte'],
+    //             //     'promotion' => $coursData['promotion'],
+    //             //     'groupe' => $coursData['groupe'],
+    //             //     'option' => $coursData['option'] ?? null,
+    //             //     'tolerance' => $coursData['tolerance'],
+    //             // ]);
+    //         }
+
+    //         // Close the file
+    //         fclose($handle);
+
+    //         return response()->json(['message' => 'Cours imported successfully'], 200);
+    //     }
+
+    //     return response()->json(['message' => 'No file uploaded'], 400);
+    // }
+
     function ImportCourse(Request $request) {
         if ($request->hasFile('file')) {
             $file = $request->file('file');
             $path = $file->getRealPath();
-
+    
             // Open the file for reading
             $handle = fopen($path, 'r');
             if ($handle === false) {
                 return response()->json(['message' => 'Unable to open file'], 400);
             }
-
+    
+            $firstLine = fgets($handle);
+            $delimiter = $this->detectDelimiter($firstLine);
+            rewind($handle);
+    
             // Read the first line to get the headers
-            $header = fgetcsv($handle, 0, ',');
-
+            $header = fgetcsv($handle, 0, $delimiter);
+            if (!$header) {
+                return response()->json(['message' => 'Invalid CSV format'], 400);
+            }
+    
             // Ensure the header keys are trimmed and lowercased
             $header = array_map('trim', $header);
             $header = array_map('strtolower', $header);
-
+    
+            $courses = [];
+    
             // Parse the CSV file and insert data into the database
-            while (($row = fgetcsv($handle, 0, ',')) !== false) {
+            while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
                 $row = array_map('trim', $row);
                 $coursData = array_combine($header, $row);
-
-                Cours::create([
-                    'title' => $coursData['title'],
-                    'date' => $coursData['date'],
-                    'hour_debut' => $coursData['hour_debut'],
-                    'hour_fin' => $coursData['hour_fin'],
-                    'faculte' => $coursData['faculte'],
-                    'promotion' => $coursData['promotion'],
-                    'groupe' => $coursData['groupe'],
-                    'option' => $coursData['option'] ?? null,
-                    'tolerance' => $coursData['tolerance'],
-                ]);
+    
+                // Vérifier si la ligne est bien formatée
+                if ($coursData && isset($coursData['title'], $coursData['date'], $coursData['hour_debut'], $coursData['hour_fin'], $coursData['faculte'], $coursData['promotion'], $coursData['groupe'], $coursData['tolerance'])) {
+                    // Convertir la date en format MySQL (YYYY-MM-DD)
+                    $date = DateTime::createFromFormat('d/m/Y', $coursData['date']);
+                    $coursData['date'] = $date ? $date->format('Y-m-d') : null;
+    
+                    $courses[] = [
+                        'title' => $coursData['title'],
+                        'date' => $coursData['date'],
+                        'hour_debut' => $coursData['hour_debut'],
+                        'hour_fin' => $coursData['hour_fin'],
+                        'faculte' => $coursData['faculte'],
+                        'promotion' => $coursData['promotion'],
+                        'groupe' => $coursData['groupe'],
+                        'option' => $coursData['option'] ?? null,
+                        'tolerance' => $coursData['tolerance'],
+                    ];
+                }
             }
-
-            // Close the file
+    
             fclose($handle);
+    
+            if (!empty($courses)) {
+                // Insérer tous les cours en une seule requête pour optimiser la base de données
+                Cours::insert($courses);
+                return response()->json(['message' => 'Cours imported successfully', 'data' => $courses], 200);
+            }
+    
+            return response()->json(['message' => 'No valid data found in CSV'], 400);
+        }
+    
+        return response()->json(['message' => 'No file uploaded'], 400);
+    }
+    
+    
 
-            return response()->json(['message' => 'Cours imported successfully'], 200);
+    private function detectDelimiter($line)
+    {
+        $delimiters = [',', ';', "\t"];
+        $counts = [];
+
+        foreach ($delimiters as $delimiter) {
+            $counts[$delimiter] = substr_count($line, $delimiter);
         }
 
-        return response()->json(['message' => 'No file uploaded'], 400);
+        return array_search(max($counts), $counts);
     }
 
     /**

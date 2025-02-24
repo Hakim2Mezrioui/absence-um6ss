@@ -45,4 +45,8 @@ export class EtudiantService {
       })
     );
   }
+
+  delete(id: number) {
+    return this.http.delete(`${this.baseUrl}/delete-etudiants/${id}`, {});
+  }
 }

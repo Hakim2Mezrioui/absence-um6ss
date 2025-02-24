@@ -49,16 +49,18 @@ export class ListExamenItemComponent implements OnInit {
     this.examenService.examenExploring.next(examen);
     this.examenService
       .suivi({
-        hour1: examen.hour_debut_pointage.toString(),
-        hour2: examen.hour_fin.toString(),
+        // hour1: examen.hour_debut_pointage.toString(),
+        // hour2: examen.hour_fin.toString(),
+        hour1: examen.hour_debut_pointage
+          ? examen.hour_debut_pointage.toString()
+          : '',
+        hour2: examen.hour_fin ? examen.hour_fin.toString() : '',
         date: examen.date.toString(),
         faculte: examen.faculte,
         promotion: examen.promotion,
       })
       .subscribe(
         (response: any) => {
-          console.log(response.local_students);
-
           this.isLoading = false;
           this.studiantsWithFaceId = response.students_with_face_id;
           this.localStudents = response.local_students;
@@ -72,6 +74,16 @@ export class ListExamenItemComponent implements OnInit {
           this.toastr.error('An error occurred while processing your request');
         }
       );
+  }
+
+  formatTime(time: string | Date): string {
+    if (!time) return '';
+
+    const date = new Date(time);
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+
+    return `${hours}:${minutes}`; // Format "HH:mm"
   }
 
   convertTimeStringToDate(timeString: string): Date {

@@ -124,14 +124,14 @@ export class SuiviAbsenceComponent implements OnInit {
 
   recharger() {
     this.isLoading = true;
-    this.typeSuivi === 'examens' &&
+    this.typeSuivi === 'examen' &&
       this.examenService
         .suivi({
           hour1: (this.examen as Examen).hour_debut_pointage.toString(),
-          hour2: this.examen.hour_fin.toString(),
-          date: this.examen.date.toString(),
-          faculte: this.examen.faculte,
-          promotion: this.examen.promotion,
+          hour2: (this.examen as Examen).hour_fin.toString(),
+          date: (this.examen as Examen).date.toString(),
+          faculte: (this.examen as Examen).faculte,
+          promotion: (this.examen as Examen).promotion,
         })
         .subscribe(
           (response: any) => {
@@ -156,13 +156,21 @@ export class SuiviAbsenceComponent implements OnInit {
         );
 
     this.typeSuivi === 'cours' &&
-      this.examenService
+      this.coursService
         .suivi({
-          hour1: (this.examen as Cours).hour_debut.toString(),
-          hour2: this.examen.hour_fin.toString(),
-          date: this.examen.date.toString(),
-          faculte: this.examen.faculte,
-          promotion: this.examen.promotion,
+          hour1: this.formatTime(
+            this.subtractMinutes((this.examen as Cours).hour_debut, 30)
+          ),
+          hour2: this.formatTime(
+            this.addMinutes(
+              (this.examen as Cours).hour_debut,
+              (this.examen as Cours).tolerance
+            )
+          ),
+          date: (this.examen as Cours).date.toString(),
+          faculte: (this.examen as Cours).faculte,
+          promotion: (this.examen as Cours).promotion,
+          groupe: (this.examen as Cours).groupe
         })
         .subscribe(
           (response: any) => {
@@ -185,6 +193,28 @@ export class SuiviAbsenceComponent implements OnInit {
             );
           }
         );
+  }
+
+  formatTime(time: string | Date): string {
+    if (!time) return '';
+
+    const date = new Date(time);
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+
+    return `${hours}:${minutes}`; // Format "HH:mm"
+  }
+
+  subtractMinutes(time: string | Date, minutes: number): Date {
+    const date = new Date(time);
+    date.setMinutes(date.getMinutes() - minutes);
+    return date;
+  }
+
+  addMinutes(time: string | Date, minutes: number): Date {
+    const date = new Date(time);
+    date.setMinutes(date.getMinutes() + minutes);
+    return date;
   }
 
   handleExport() {

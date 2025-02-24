@@ -85,12 +85,12 @@
   </div>
 
   <i
-    *ngIf="role == 'super-admin' || role == 'scolarite'"
+    *ngIf="role == 'scolarite'"
     (click)="onDelete(course.id!)"
     class="bi bi-trash absolute top-0 right-0 translate-x-3 -translate-y-3 bg-red-800 text-white px-2 py-1 hover:bg-red-700 active:bg-red-800 rounded-md"
   ></i>
   <i
-    *ngIf="role == 'super-admin' || role == 'scolarite'"
+    *ngIf="role == 'scolarite'"
     (click)="onUpdate(course.id!)"
     class="bi bi-pencil absolute top-0 right-0 -translate-x-6 -translate-y-3 bg-blue-700 text-white px-2 py-1 hover:bg-blue-600 active:bg-blue-700 rounded-md"
   ></i>

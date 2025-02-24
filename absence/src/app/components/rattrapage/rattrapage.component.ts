@@ -21,6 +21,8 @@ export class RattrapageComponent implements OnInit {
   studiantsWithFaceId: String[] = [];
   localStudents: Etudiant[] = [];
 
+  
+
   constructor(
     private rattrapageSerice: RattrapageService,
     private toastr: ToastrService,
@@ -33,6 +35,9 @@ export class RattrapageComponent implements OnInit {
       (value) => (this.userFaculte = value)
     );
     this.startupService.page.next("Rattrappage");
+
+    
+    
   }
 
   anneesUniversitaires = [

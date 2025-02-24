@@ -33,6 +33,10 @@ export class ListPresenceComponent implements OnInit {
   @Input('studiantsWithFaceId') studiantsWithFaceId: String[] = [];
   role: String = 'user';
 
+  
+  totalPresent: Number = 0;
+  totalEtudiant: Number = 0;
+
   ngOnInit(): void {
     // this.http
     //   .get('assets/core/etudiants.json', { responseType: 'text' })
@@ -58,6 +62,10 @@ export class ListPresenceComponent implements OnInit {
     
     this.startupService.role.subscribe((value => this.role = value));
     this.mettreAJourPresence();
+
+    
+    this.totalPresent = this.studiantsWithFaceId.length;
+    this.totalEtudiant = this.etudiants.length;
   }
 
   checkEtudiantMatricule(matricule: String): boolean {

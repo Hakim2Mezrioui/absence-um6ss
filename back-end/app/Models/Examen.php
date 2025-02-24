@@ -9,5 +9,5 @@ class Examen extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title', 'date', 'hour_debut', 'hour_debut_pointage', 'hour_fin', 'faculte', 'promotion', 'statut', 'option'];
+    protected $fillable = ['title', 'date', 'hour_debut', 'hour_fin', 'hour_debut_pointage', 'faculte', 'promotion', 'statut', 'option'];
 }

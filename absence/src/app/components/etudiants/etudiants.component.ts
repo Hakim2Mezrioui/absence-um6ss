@@ -3,6 +3,8 @@ import { Etudiant } from './../../models/Etudiant';
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { Table } from 'primeng/table';
 import { StartupService } from 'src/app/services/startup.service';
+import { ToastrService } from 'ngx-toastr';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-etudiants',
@@ -21,7 +23,9 @@ export class EtudiantsComponent implements OnInit {
 
   constructor(
     private etudiantService: EtudiantService,
-    private startupService: StartupService
+    private startupService: StartupService,
+    private toastr: ToastrService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -63,5 +67,28 @@ export class EtudiantsComponent implements OnInit {
     a.download = filename;
     a.click();
     window.URL.revokeObjectURL(url);
+  }
+
+  onDelete(id: number) {
+    this.etudiantService.delete(id).subscribe(
+      (response) => {
+        this.loading = false;
+        this.toastr.success('Etudiant supprimé avec succès');
+        this.reloadCurrentRoute();
+      },
+      (error) => {
+        this.loading = false;
+        this.toastr.error("Erreur lors de la suppression de l'étudiant");
+      }
+    );
+  }
+
+  private reloadCurrentRoute() {
+    const currentUrl = this.router.url;
+    this.router
+      .navigateByUrl('/whitePage', { skipLocationChange: true })
+      .then(() => {
+        this.router.navigate([currentUrl]);
+      });
   }
 }

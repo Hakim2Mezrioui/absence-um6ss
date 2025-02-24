@@ -38,6 +38,12 @@ export class LoginComponent implements OnInit {
       (response) => {
         this.cookieService.set('token', response.authorisation.token, 1);
         this.loading = false;
+
+        if (response.user.role == 'scolarite') {
+          this.router.navigate(['/cours']);
+          return;
+        }
+
         this.router.navigate(['/examens-list']);
         this.toast.success('Login successful!');
       },

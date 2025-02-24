@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Examen;
+use DateTime;
 
 class ExamenController extends Controller
 {
@@ -134,48 +135,134 @@ class ExamenController extends Controller
         return response()->json($examen, 200);
     }
 
-    function ImportExamens(Request $request) {
-        if ($request->hasFile('file')) {
-            $file = $request->file('file');
-            $path = $file->getRealPath();
+    // function ImportExamens(Request $request) {
+    //     if ($request->hasFile('file')) {
+    //         $file = $request->file('file');
+    //         $path = $file->getRealPath();
 
-            // Open the file for reading
-            $handle = fopen($path, 'r');
-            if ($handle === false) {
-                return response()->json(['message' => 'Unable to open file'], 400);
-            }
+    //         // Open the file for reading
+    //         $handle = fopen($path, 'r');
+    //         if ($handle === false) {
+    //             return response()->json(['message' => 'Unable to open file'], 400);
+    //         }
+            
+    //         $firstLine = fgets($handle);
+    //         $delimiter = $this->detectDelimiter($firstLine);
+    //         // Read the first line to get the headers
+    //         $header = fgetcsv($handle, 0, $delimiter);
 
-            // Read the first line to get the headers
-            $header = fgetcsv($handle, 0, ',');
+    //         // Ensure the header keys are trimmed and lowercased
+    //         $header = array_map('trim', $header);
+    //         $header = array_map('strtolower', $header);
 
-            // Ensure the header keys are trimmed and lowercased
-            $header = array_map('trim', $header);
-            $header = array_map('strtolower', $header);
 
-            // Parse the CSV file and insert data into the database
-            while (($row = fgetcsv($handle, 0, ',')) !== false) {
-                $row = array_map('trim', $row);
-                $examenData = array_combine($header, $row);
+    //         rewind($handle);
 
-                Examen::create([
-                    'title' => $examenData['title'],
-                    'date' => $examenData['date'],
-                    'hour_debut' => $examenData['hour_debut'],
-                    'hour_debut_pointage' => $examenData['hour_debut_pointage'],
-                    'hour_fin' => $examenData['hour_fin'],
-                    'faculte' => $examenData['faculte'],
-                    'promotion' => $examenData['promotion'],
-                    'statut' => $examenData['statut'],
-                ]);
-            }
+    //         // Parse the CSV file and insert data into the database
+    //         while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
+    //             $row = array_map('trim', $row);
+    //             $examenData = array_combine($header, $row);
 
-            // Close the file
-            fclose($handle);
+    //             $date = DateTime::createFromFormat('d/m/Y', $examenData['date']);
+    //             $examenData['date'] = $date ? $date->format('Y-m-d') : null;
+    //             Examen::create([
+    //                 'title' => $examenData['title'],
+    //                 'date' => $examenData['date'],
+    //                 'hour_debut' => $examenData['hour_debut'],
+    //                 'hour_debut_pointage' => $examenData['hour_debut_pointage'],
+    //                 'hour_fin' => $examenData['hour_fin'],
+    //                 'faculte' => $examenData['faculte'],
+    //                 'promotion' => $examenData['promotion'],
+    //                 'statut' => $examenData['statut'],
+    //             ]);
+    //         }
 
-            return response()->json(['message' => 'Examens imported successfully'], 200);
+    //         // Close the file
+    //         fclose($handle);
+
+    //         return response()->json(['message' => 'Examens imported successfully'], 200);
+    //     }
+
+    //     return response()->json(['message' => 'No file uploaded'], 400);
+    // }
+
+function ImportExamens(Request $request) {
+    if ($request->hasFile('file')) {
+        $file = $request->file('file');
+        $path = $file->getRealPath();
+
+        // Open the file for reading
+        $handle = fopen($path, 'r');
+        if ($handle === false) {
+            return response()->json(['message' => 'Unable to open file'], 400);
+        }
+        
+        $firstLine = fgets($handle);
+        $delimiter = $this->detectDelimiter($firstLine);
+        rewind($handle);
+
+        // Read the first line to get the headers
+        $header = fgetcsv($handle, 0, $delimiter);
+        if (!$header) {
+            return response()->json(['message' => 'Invalid CSV format'], 400);
         }
 
-        return response()->json(['message' => 'No file uploaded'], 400);
+        // Ensure the header keys are trimmed and lowercased
+        $header = array_map('trim', $header);
+        $header = array_map('strtolower', $header);
+
+        $examens = [];
+
+        // Parse the CSV file and insert data into the database
+        while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
+            $row = array_map('trim', $row);
+            $examenData = array_combine($header, $row);
+            
+            // return response()->json($examenData);
+
+            // if (isset($examenData['date'])) {
+            //     $date = DateTime::createFromFormat('d/m/Y', $examenData['date']);
+            //     $examenData['date'] = $date ? $date->format('Y-m-d') : null;
+            // }
+
+            $examens[] = [
+                'title' => $examenData['title'],
+                'date' => $examenData['date'],
+                'hour_debut' => $examenData['hour_debut'],
+                'hour_debut_pointage' => $examenData['hour_debut_pointage'],
+                'hour_fin' => $examenData['hour_fin'],
+                'faculte' => $examenData['faculte'],
+                'promotion' => $examenData['promotion'],
+                'statut' => $examenData['statut'],
+            ];
+        }
+
+        // Close the file
+        fclose($handle);
+
+        // Insert data into the database
+        if (!empty($examens)) {
+            Examen::insert($examens);
+            return response()->json(['message' => 'Examens imported successfully', 'data' => $examens], 200);
+        }
+
+        return response()->json(['message' => 'No valid data found in CSV'], 400);
+    }
+
+    return response()->json(['message' => 'No file uploaded'], 400);
+}
+
+
+    private function detectDelimiter($line)
+    {
+        $delimiters = [',', ';', "\t"];
+        $counts = [];
+
+        foreach ($delimiters as $delimiter) {
+            $counts[$delimiter] = substr_count($line, $delimiter);
+        }
+
+        return array_search(max($counts), $counts);
     }
 
     function destroy($id) {

@@ -35,13 +35,14 @@
         margin: 'auto',
         marginTop: '2rem'
       }"
-      [rows]="10"
+      [rows]="20"
       [showCurrentPageReport]="true"
       [paginator]="true"
       [globalFilterFields]="['matricule', 'name', 'faculte']"
-      [rowsPerPageOptions]="[10, 50, 100]"
+      [rowsPerPageOptions]="[20, 50, 100]"
       stripedRows
-      [responsive]="true"
+      [responsive]="true"      
+      paginatorPosition="bottom"
     >
       <!-- <ng-template pTemplate="caption">
       <div class="d-flex justify-content-between">

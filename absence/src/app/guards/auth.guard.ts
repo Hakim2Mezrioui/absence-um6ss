@@ -46,7 +46,6 @@ export class AuthGard implements CanActivate {
           // If the user is authenticated (e.g., user information received successfully),
           // return true to allow access to the route
           if (response) {
-            console.log(response);
             localStorage.setItem('name', response.name);
 
             this.startupService.userFaculte.next(response.faculte);

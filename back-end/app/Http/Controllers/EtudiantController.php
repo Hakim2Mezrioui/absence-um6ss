@@ -46,21 +46,21 @@ class EtudiantController extends Controller
 
             $query = Etudiant::query();
 
-            if(!empty($groupe) && !$groupe == 0) {
+            if(!empty($groupe) || !$groupe == 0) {
                 $query->where('groupe', $groupe);
             }
 
-            if(!empty($option) && !$option == 0) {
+            if(!empty($option) || !$option == 0) {
                 $query->where('option', $option);
             }
             
-            if(!empty($faculte) && $faculte == "") {
-                $query->where('faculte', $faculte);
+            if(!empty($faculte) || $faculte == "") {
+                $query->where('faculte', strtolower($faculte));
             }
 
-            if(!empty($promotion) && $promotion == "") {
+            if(!empty($promotion) || $promotion == "") {
                 $query->where('promotion', $promotion);
-            }
+            }   
 
             $localStudents = $query->get();
 
@@ -149,7 +149,7 @@ class EtudiantController extends Controller
                         'faculte' => strtolower($faculte),
                         'promotion' => $studentData['promotion'],
                         'groupe' => $studentData['groupe'],
-                        'option' => $studentData['option'],
+                        'option' => $studentData['option'] ?? "",
                     ]);
                 }
             } else {
@@ -167,7 +167,7 @@ class EtudiantController extends Controller
                         'faculte' => $studentData['faculte'],
                         'promotion' => $studentData['promotion'],
                         'groupe' => $studentData['groupe'],
-                        'option' => $studentData['option'],
+                        'option' => $studentData['option'] ?? "",
                     ]);
                 }
             }
