@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Etudiant;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use PDO;
 use PDOException;
@@ -66,6 +67,12 @@ class EtudiantController extends Controller
 
             // Compare the two sets of students
             $faceIdStudents = collect($biostarResults)->pluck('user_id')->toArray();
+            // $faceIdStudents2 = collect($biostarResults)->map(function ($student) {
+            //     return [
+            //         'matricule' => $student['user_id'],
+            //         'bsevtdt' => Carbon::parse($student['bsevtdt'])->format('H:i:s'),
+            //     ];
+            // })->toArray();
             // $localStudentNames = $localStudents->pluck('name')->toArray();
             $localStudentMatricules = $localStudents->pluck('matricule')->toArray();
 
@@ -77,7 +84,8 @@ class EtudiantController extends Controller
             return response()->json([
                 "students_with_face_id" => $studentsWithFaceId,
                 "biostar_results" => $biostarResults,
-                "local_students" => $localStudents
+                "local_students" => $localStudents,
+                // "test" => $faceIdStudents2,
             ], 200);
             
             // test a la maison
