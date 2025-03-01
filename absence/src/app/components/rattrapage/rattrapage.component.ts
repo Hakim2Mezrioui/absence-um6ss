@@ -21,7 +21,8 @@ export class RattrapageComponent implements OnInit {
   studiantsWithFaceId: String[] = [];
   localStudents: Etudiant[] = [];
 
-  
+  totalPresent: Number = 0;
+  totalEtudiant: Number = 0;
 
   constructor(
     private rattrapageSerice: RattrapageService,
@@ -34,10 +35,7 @@ export class RattrapageComponent implements OnInit {
     this.startupService.userFaculte.subscribe(
       (value) => (this.userFaculte = value)
     );
-    this.startupService.page.next("Rattrappage");
-
-    
-    
+    this.startupService.page.next('Rattrappage');
   }
 
   anneesUniversitaires = [
@@ -80,6 +78,10 @@ export class RattrapageComponent implements OnInit {
       (error) => {
         this.isLoading = false;
         this.toastr.error('An error occurred while processing your request');
+      },
+      () => {
+        this.totalPresent = this.studiantsWithFaceId.length;
+        this.totalEtudiant = this.localStudents.length;
       }
     );
   }

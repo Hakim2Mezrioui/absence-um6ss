@@ -58,7 +58,10 @@
           </select>
         </div> -->
     </div>
-    <div *ngIf="role == 'super-admin'" class="m-auto flex justify-center custom-width">
+    <div
+      *ngIf="role == 'super-admin'"
+      class="m-auto flex justify-center custom-width"
+    >
       <label
         class="bg-green-50 text-green-700 rounded-t-md px-6 py-2 flex items-center"
         >Faculte</label
@@ -81,7 +84,7 @@
       <label
         for="import"
         class="import-etudiant cursor-pointer flex bg-green-50 py-1.5 text-green-800 rounded-sm"
-        *ngIf="role == 'super-admin' || role == 'admin'" 
+        *ngIf="role == 'super-admin' || role == 'admin'"
       >
         <i class="bi bi-upload"></i>
         <p>Importer Etudiants</p>
@@ -144,9 +147,9 @@
       <button
         class="custom-width bg-green-50 hover:bg-green-100 w-64 text-green-800 rounded-sm my-4 py-1.5"
       >
-      <ng-container *ngIf="localStudents.length != 0">
-        <i class="bi bi-arrow-clockwise"></i>
-      </ng-container>
+        <ng-container *ngIf="localStudents.length != 0">
+          <i class="bi bi-arrow-clockwise"></i>
+        </ng-container>
         {{ this.localStudents.length == 0 ? "Suivi l'exam" : "Recharger" }}
       </button>
     </div>
@@ -158,6 +161,8 @@
 </div>
 
 <app-list-presence
+  [totalEtudiant]="totalEtudiant"
+  [totalPresent]="totalPresent"
   [etudiants]="localStudents"
   [studiantsWithFaceId]="studiantsWithFaceId"
   *ngIf="localStudents.length > 0"

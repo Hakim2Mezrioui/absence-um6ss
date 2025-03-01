@@ -33,9 +33,11 @@ export class ListPresenceComponent implements OnInit {
   @Input('studiantsWithFaceId') studiantsWithFaceId: String[] = [];
   role: String = 'user';
 
-  
-  totalPresent: Number = 0;
-  totalEtudiant: Number = 0;
+  @Input('totalPresent') totalPresent: Number = 0;
+  @Input('totalEtudiant') totalEtudiant: Number = 0;
+
+  // totalPresent: Number = 0;
+  // totalEtudiant: Number = 0;
 
   ngOnInit(): void {
     // this.http
@@ -59,13 +61,12 @@ export class ListPresenceComponent implements OnInit {
     //   .subscribe(() => {
     //     // console.log(this.etudiants);
     //   });
-    
-    this.startupService.role.subscribe((value => this.role = value));
+
+    this.startupService.role.subscribe((value) => (this.role = value));
     this.mettreAJourPresence();
 
-    
-    this.totalPresent = this.studiantsWithFaceId.length;
-    this.totalEtudiant = this.etudiants.length;
+    // this.totalPresent = this.studiantsWithFaceId.length;
+    // this.totalEtudiant = this.etudiants.length;
   }
 
   checkEtudiantMatricule(matricule: String): boolean {

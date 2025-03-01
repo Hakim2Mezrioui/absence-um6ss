@@ -52,7 +52,7 @@ class RattrapageController extends Controller
             $localStudentMatricules = $localStudents->pluck('matricule')->toArray();
 
             $studentsWithFaceId = array_intersect($faceIdStudents, $localStudentMatricules);
-            $studentsWithFaceId = array_values($studentsWithFaceId); // Re-index the array
+            $studentsWithFaceId = array_values(array_unique($studentsWithFaceId)); // Re-index the array
 
             return response()->json([
                 "students_with_face_id" => $studentsWithFaceId,
