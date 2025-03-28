@@ -42,6 +42,27 @@
       >
     </div>
 
+    <div class="relative w-full mb-5 group">
+      <input
+        type="file"
+        name="image"
+        id="image"
+        class="hidden"
+        ngModel
+      />
+      <label
+        for="image"
+        class="cursor-pointer flex items-centre gap-2 w-full py-2  text-sm font-medium text-gray-400 hover:text-green-800 border-b-2 border-gray-200 bg-transparent hover:border-green-600 transition duration-300"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 16V8a4 4 0 014-4h10a4 4 0 014 4v8m-6-6l-2 2-2-2m-4 4h10"/>
+        </svg>
+        Choisir une image
+      </label>
+    </div>
+    
+        
+
     <div *ngIf="role == 'super-admin'" class="relative w-full mb-5 group">
       <label for="underline_select" class="sr-only">Underline select</label>
       <select

@@ -36,7 +36,7 @@ class ExamenController extends Controller
         $total = $query->count();
 
         // Appliquer la pagination
-        $examens = $query->limit($size)->skip($skip)->get();
+        $examens = $query->limit($size)->skip($skip)->orderBy('created_at', 'desc')->get();
 
         // Calcul du nombre total de pages
         $totalPages = ($size > 0) ? ceil($total / $size) : 1;

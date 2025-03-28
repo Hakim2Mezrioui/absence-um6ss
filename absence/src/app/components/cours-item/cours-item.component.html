@@ -50,6 +50,13 @@
           }}
         </p>
       </div>
+      <div class="flex justify-between w-48">
+        <h6 class="font-bold">Tolerance :</h6>
+        <p>
+          {{ course.tolerance}}
+        </p>
+      </div>
+
       <div *ngIf="course.faculte === 'fsts'" class="flex justify-between w-48">
         <h6 class="font-bold">Option :</h6>
         <p>{{ course.option | uppercase }}</p>

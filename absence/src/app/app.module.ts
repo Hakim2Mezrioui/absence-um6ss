@@ -13,8 +13,8 @@ import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { DropdownModule } from 'primeng/dropdown';
 import { ToastrModule } from 'ngx-toastr';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { DatePipe } from '@angular/common';
 
+import { DatePipe } from '@angular/common';
 import { AppComponent } from './app.component';
 import { LoginComponent } from './components/login/login.component';
 import { ParametrageComponent } from './components/parametrage/parametrage.component';

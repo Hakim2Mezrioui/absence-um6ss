@@ -73,7 +73,7 @@ class EtudiantController extends Controller
             //         'bsevtdt' => Carbon::parse($student['bsevtdt'])->format('H:i:s'),
             //     ];
             // })->toArray();
-            // $localStudentNames = $localStudents->pluck('name')->toArray();
+            // $localStudentNames = $localStudents->pluck('user_id')->toArray();
             $localStudentMatricules = $localStudents->pluck('matricule')->toArray();
 
 
@@ -97,7 +97,6 @@ class EtudiantController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
-
     public function ImportEtudiants(Request $request) {
         $user = $request->user();
         $faculte = "";
@@ -151,7 +150,7 @@ class EtudiantController extends Controller
                     $studentData = array_combine($header, $row);
     
                     // Insert the student data into the database
-                    Etudiant::create([
+                    Etudiant::updateOrCreate([
                         'matricule' => $studentData['matricule'],
                         'name' => $studentData['name'],
                         'faculte' => strtolower($faculte),
@@ -169,7 +168,7 @@ class EtudiantController extends Controller
                     $studentData = array_combine($header, $row);
     
                     // Insert the student data into the database
-                    Etudiant::create([
+                    Etudiant::updateOrCreate([
                         'matricule' => $studentData['matricule'],
                         'name' => $studentData['name'],
                         'faculte' => $studentData['faculte'],
@@ -186,6 +185,7 @@ class EtudiantController extends Controller
 
         return response()->json(['message' => 'No file uploaded'], 400);
     }
+
 
     private function detectDelimiter($line)
     {
@@ -249,7 +249,7 @@ class EtudiantController extends Controller
             'name' => $request->input('name'),
             'promotion' => $request->input('promotion'),
             'faculte' => $request->input('faculte'),
-            'option' => $request->input('option'),
+            'option' => $request->input('option') ?? null,
             'groupe' => $request->input('groupe'),
         ]);
 

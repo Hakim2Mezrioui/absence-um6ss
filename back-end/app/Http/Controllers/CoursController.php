@@ -38,7 +38,7 @@ class CoursController extends Controller
         $total = $query->count();
 
         // Appliquer la pagination
-        $cours = $query->limit($size)->skip($skip)->get();
+        $cours = $query->limit($size)->skip($skip)->orderByDesc("created_at")->get();
 
         // Calcul du nombre total de pages
         $totalPages = ($size > 0) ? ceil($total / $size) : 1;

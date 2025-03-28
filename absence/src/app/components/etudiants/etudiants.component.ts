@@ -5,6 +5,7 @@ import { Table } from 'primeng/table';
 import { StartupService } from 'src/app/services/startup.service';
 import { ToastrService } from 'ngx-toastr';
 import { Router } from '@angular/router';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-etudiants',
@@ -69,7 +70,18 @@ export class EtudiantsComponent implements OnInit {
     window.URL.revokeObjectURL(url);
   }
 
-  onDelete(id: number) {
+  async onDelete(id: number) {
+    const response = await Swal.fire({
+      title: '',
+      text: 'Vous êtes sûr!',
+      icon: 'info',
+      showCancelButton: true,
+    });
+
+    if (!response.isConfirmed) {
+      return;
+    }
+
     this.etudiantService.delete(id).subscribe(
       (response) => {
         this.loading = false;

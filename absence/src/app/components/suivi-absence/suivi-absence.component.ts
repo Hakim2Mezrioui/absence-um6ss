@@ -7,6 +7,7 @@ import {
   ElementRef,
   Output,
   EventEmitter,
+  Input,
 } from '@angular/core';
 import { Etudiant } from 'src/app/models/Etudiant';
 import { map, tap } from 'rxjs';
@@ -17,6 +18,7 @@ import { Router } from '@angular/router';
 import { StartupService } from 'src/app/services/startup.service';
 import { CoursService } from 'src/app/services/cours.service';
 import { Cours } from 'src/app/models/Cours';
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-suivi-absence',
@@ -42,7 +44,8 @@ export class SuiviAbsenceComponent implements OnInit {
     private coursService: CoursService,
     private toastr: ToastrService,
     private router: Router,
-    private startupService: StartupService
+    private startupService: StartupService,
+        private datePipe: DatePipe
   ) {}
 
   ngOnInit(): void {
@@ -97,7 +100,7 @@ export class SuiviAbsenceComponent implements OnInit {
       //
     }
 
-    this.startupService.page.next('Suivi');
+    this.startupService.page.next(`Suivi ${this.examen.title}-${this.examen.promotion}-${this.typeSuivi == "examen" ? this.examen.date : this.formatDate(new Date(this.examen.date))}-${this.typeSuivi == "examen" ? this.examen.hour_debut : this.formatTime(this.examen.hour_debut)}-${this.typeSuivi == "examen" ? this.examen.hour_fin : this.formatTime(this.examen.hour_fin)}`);
     this.mettreAJourPresence();
     this.totalPresent = this.studiantsWithFaceId.length;
     this.totalEtudiant = this.localStudents.length;
@@ -205,6 +208,11 @@ export class SuiviAbsenceComponent implements OnInit {
     return `${hours}:${minutes}`; // Format "HH:mm"
   }
 
+  formatDate(date: Date): string {
+    console.log(this.datePipe.transform(date, 'dd/MM/yyyy'));
+    return this.datePipe.transform(date, 'dd/MM/yyyy')!;
+  }
+
   subtractMinutes(time: string | Date, minutes: number): Date {
     const date = new Date(time);
     date.setMinutes(date.getMinutes() - minutes);
@@ -220,7 +228,7 @@ export class SuiviAbsenceComponent implements OnInit {
   handleExport() {
     const filteredData = this.dt.filteredValue || this.localStudents;
     const csvData = this.convertToCSV(filteredData);
-    this.downloadCSV(csvData, 'filtered_data.csv');
+    this.downloadCSV(csvData, `${this.examen.title}-${this.examen.promotion}-${this.examen.date}-${this.examen.hour_debut}-${this.examen.hour_fin}.csv`);
   }
 
   convertToCSV(data: any[]): string {

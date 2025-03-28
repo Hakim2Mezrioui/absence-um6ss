@@ -125,7 +125,7 @@
           <option value="1ère annee">1ère année</option>
           <option value="2ème annee">2ème année</option>
           <option value="3ème annee">3ème année</option>
-          <option *ngIf="" value="4ème annee">4ème année</option>
+          <option *ngIf="selectedFaculte !== 'fsts'" value="5ème annee" value="4ème annee">4ème année</option>
           <option *ngIf="selectedFaculte !== 'fsts'" value="5ème annee">5ème année</option>
           <option *ngIf="selectedFaculte !== 'fsts'" value="6ème annee">6ème année</option>
         </select>

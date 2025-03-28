@@ -6,6 +6,7 @@ import { Table } from 'primeng/table';
 import { User } from 'src/app/models/Users';
 import { AuthService } from 'src/app/services/auth.service';
 import { StartupService } from 'src/app/services/startup.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-users',
@@ -48,7 +49,17 @@ export class UsersComponent implements OnInit {
     this.dt.filterGlobal(value, 'contains');
   }
 
-  onDelete(id: number) {
+  async onDelete(id: number) {
+    const response = await Swal.fire({
+      title: '',
+      text: 'Vous êtes sûr!',
+      icon: 'info',
+      showCancelButton: true,
+    });
+    if (!response.isConfirmed) {
+      return;
+    }
+    
     this.authService.delete(id).subscribe(
       (response) => {
         this.loading = false;
