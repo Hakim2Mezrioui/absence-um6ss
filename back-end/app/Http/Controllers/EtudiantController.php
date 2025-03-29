@@ -253,6 +253,15 @@ class EtudiantController extends Controller
             'groupe' => $request->input('groupe'),
         ]);
 
+        if ($request->hasFile("image")) {
+            $image = $request->file("image");
+            $imageName = $etudiant->matricule . "." . $image->getClientOriginalExtension();
+            $image->move(public_path("/images"), $imageName);
+
+            // Mettre à jour l'étudiant avec le chemin de l'image
+            $etudiant->update(['image' => "/images/" . $imageName]);
+        }
+
         // Return the newly created Etudiant as a JSON response
         return response()->json($etudiant, 201);
     }

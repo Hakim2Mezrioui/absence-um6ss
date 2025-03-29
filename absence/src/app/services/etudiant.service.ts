@@ -11,16 +11,17 @@ export class EtudiantService {
   etudiant: Etudiant[] = [];
   constructor(private http: HttpClient) {}
 
-  ajouter(etudiant: Etudiant) {
+  ajouter(etudiant: FormData) {
     console.log(etudiant);
-    return this.http.post(`${this.baseUrl}/add-etudiant`, {
-      matricule: etudiant.matricule,
-      name: etudiant.name,
-      promotion: etudiant.promotion,
-      faculte: etudiant.faculte,
-      groupe: etudiant.groupe,
-      option: etudiant.option
-    });
+    // return this.http.post(`${this.baseUrl}/add-etudiant`, {
+    //   matricule: etudiant.matricule,
+    //   name: etudiant.name,
+    //   promotion: etudiant.promotion,
+    //   faculte: etudiant.faculte,
+    //   groupe: etudiant.groupe,
+    //   option: etudiant.option
+    // });
+    return this.http.post(`${this.baseUrl}/add-etudiant`, etudiant);
   }
 
   importer() {}

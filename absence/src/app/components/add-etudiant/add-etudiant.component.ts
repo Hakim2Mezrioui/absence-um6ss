@@ -17,6 +17,7 @@ export class AddEtudiantComponent implements OnInit {
   loading: boolean = false;
   role: String = 'user';
   selectedFaculte!: String;
+  selectedFile: File | null = null;
 
   constructor(
     private router: Router,
@@ -59,31 +60,77 @@ export class AddEtudiantComponent implements OnInit {
     return true;
   }
 
-  onSubmit(e: any) {
-    if (!this.validateData()) {
-      return;
-    }
-    this.loading = true;
-    const etudiant = new Etudiant(
-      this.form.value.matricule,
-      this.form.value.name,
-      this.form.value.promotion,
-      this.form.value.faculte,
-      this.form.value.groupe,
-      '',
-      this.form.value.option
-    );
+  // onSubmit(e: any) {
+  //   if (!this.validateData()) {
+  //     return;
+  //   }
 
-    this.etudiantService.ajouter(etudiant).subscribe(
+  //   this.loading = true;
+  //   const etudiant = new Etudiant(
+  //     this.form.value.matricule,
+  //     this.form.value.name,
+  //     this.form.value.promotion,
+  //     this.form.value.faculte,
+  //     this.form.value.groupe,
+  //     '',
+  //     this.form.value.option
+  //   );
+
+  //   this.etudiantService.ajouter(etudiant).subscribe(
+  //     (response) => {
+  //       this.loading = false;
+  //       this.toastr.success('Etudiant ajouté avec succès', 'Success');
+  //       this.router.navigate(['etudiants']);
+  //     },
+  //     (error) => {
+  //       this.loading = false;
+  //       this.toastr.error("Erreur lors de l'ajout de l'etudiant", 'Error');
+  //     }
+  //   );
+  // }
+
+  onSubmit(e: any) {
+    // if (!this.validateData()) {
+    //   return;
+    // }
+  
+    // this.loading = true;
+
+    const formData = new FormData();
+    formData.append('matricule', this.form.value.matricule);
+    formData.append('name', this.form.value.name);
+    formData.append('promotion', this.form.value.promotion);
+    formData.append('faculte', this.form.value.faculte);
+    formData.append('groupe', this.form.value.groupe);
+    formData.append('option', this.form.value.option);
+
+    if (this.selectedFile) {
+      formData.append('image', this.selectedFile, this.selectedFile.name);
+    }
+
+    // for (let pair of (formData as any).entries()) {
+    //   console.log(pair[0] + ': ' + pair[1]);
+    // }
+  
+    this.etudiantService.ajouter(formData).subscribe(
       (response) => {
         this.loading = false;
-        this.toastr.success('Etudiant ajouté avec succès', 'Success');
+        this.toastr.success('Étudiant ajouté avec succès', 'Success');
         this.router.navigate(['etudiants']);
       },
       (error) => {
         this.loading = false;
-        this.toastr.error("Erreur lors de l'ajout de l'etudiant", 'Error');
+        this.toastr.error("Erreur lors de l'ajout de l'étudiant", 'Error');
       }
     );
   }
+
+  onFileSelected(event: Event) {
+    const fileInput = event.target as HTMLInputElement;
+    if (fileInput.files && fileInput.files.length > 0) {
+      this.selectedFile = fileInput.files[0];
+      console.log('Fichier sélectionné:', this.selectedFile);
+    }
+  }
+  
 }

@@ -9,7 +9,7 @@
       Importer les Etudiants
     </button>
   </div>
-  <form class="w-1/2 min-w-72" #f="ngForm" (submit)="onSubmit(f)">
+  <form class="w-1/2 min-w-72" #f="ngForm" (submit)="onSubmit(f)" >
     <div class="relative w-full mb-5 group">
       <input
         type="text"
@@ -49,6 +49,8 @@
         id="image"
         class="hidden"
         ngModel
+        accept="image/*"
+        (change)="onFileSelected($event)"
       />
       <label
         for="image"
