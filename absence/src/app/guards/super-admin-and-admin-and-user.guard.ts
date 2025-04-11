@@ -6,7 +6,7 @@ import { StartupService } from '../services/startup.service';
 @Injectable({
   providedIn: 'root'
 })
-export class SuperAdminAndAdminAndUserGuard implements CanActivate {
+export class SuperAdminAndAdminGuard implements CanActivate {
   role!: String;
     constructor(private startService: StartupService, private router: Router) {}
   
@@ -18,9 +18,10 @@ export class SuperAdminAndAdminAndUserGuard implements CanActivate {
       | Promise<boolean | UrlTree>
       | boolean
       | UrlTree {
-      this.startService.role.subscribe((value) => (this.role = value));
-  
-      if (this.role == 'admin' || this.role == "super-admin") return true;
+        this.startService.role.subscribe((value) => (this.role = value));
+        
+      if (this.role == 'admin' || this.role == "super-admin" || this.role == "user") return true;
+
       this.router.navigate(['examens-list']);
       return false;
     }

@@ -21,7 +21,6 @@ import { AddUserComponent } from './components/add-user/add-user.component';
 import { UsersComponent } from './components/users/users.component';
 import { AdminGuard } from './guards/admin.guard';
 import { SuperAdminGuard } from './guards/super-admin.guard';
-import { SuperAdminAndAdminGuard } from './guards/super-admin-and-admin.guard';
 import { CoursComponent } from './components/cours/cours.component';
 import { AddCoursComponent } from './components/add-cours/add-cours.component';
 import { UpdateCoursComponent } from './components/update-cours/update-cours.component';
@@ -30,6 +29,8 @@ import { UpdateExameComponent } from './components/update-exame/update-exame.com
 import { FooterComponent } from './components/footer/footer.component';
 import { ScolariteGuard } from './guards/scolarite.guard';
 import { SuperAdminAndScolariteGuard } from './guards/super-admin-and-scolarite.guard';
+import { SuperAdminAndAdminGuard } from './guards/super-admin-and-admin-and-user.guard';
+import { SuperAdminAndAdminAndUserGuard } from './guards/super-admin-and-admin.guard';
 
 const routes: Routes = [
   {
@@ -91,7 +92,7 @@ const routes: Routes = [
       {
         path: 'examens-list',
         component: ExamensListComponent,
-        canActivate: [SuperAdminAndAdminGuard],
+        // canActivate: [SuperAdminAndAdminAndUserGuard],
       },
       {
         path: 'suivi-absence',

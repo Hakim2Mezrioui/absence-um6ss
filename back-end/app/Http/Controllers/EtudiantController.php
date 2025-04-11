@@ -250,7 +250,7 @@ class EtudiantController extends Controller
             'promotion' => $request->input('promotion'),
             'faculte' => $request->input('faculte'),
             'option' => $request->input('option') ?? null,
-            'groupe' => $request->input('groupe'),
+            'groupe' => $request->input('groupe'),  
         ]);
 
         if ($request->hasFile("image")) {
@@ -324,6 +324,13 @@ class EtudiantController extends Controller
 
         if (!$etudiant) {
             return response()->json(['message' => 'Etudiant not found'], 404);
+        }
+
+        if ($etudiant->image) {
+            $imagePath = public_path($etudiant->image); // Obtenir le chemin complet de l'image
+            if (file_exists($imagePath)) {
+                unlink($imagePath); // Supprimer l'image
+            }
         }
 
         // Delete the Etudiant

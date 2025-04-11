@@ -143,6 +143,7 @@ export class SuiviAbsenceComponent implements OnInit {
             this.isLoading = false;
             this.studiantsWithFaceId = response.students_with_face_id;
             this.localStudents = response.local_students;
+            this.totalPresent = this.studiantsWithFaceId.length;
 
             this.mettreAJourPresence();
             // console.log(this.studiantsWithFaceId);
@@ -182,6 +183,7 @@ export class SuiviAbsenceComponent implements OnInit {
             this.isLoading = false;
             this.studiantsWithFaceId = response.students_with_face_id;
             this.localStudents = response.local_students;
+            this.totalPresent = this.studiantsWithFaceId.length;
 
             this.mettreAJourPresence();
             // console.log(this.studiantsWithFaceId);

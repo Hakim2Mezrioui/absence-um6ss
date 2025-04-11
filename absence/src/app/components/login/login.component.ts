@@ -44,6 +44,8 @@ export class LoginComponent implements OnInit {
           return;
         }
 
+        
+
         this.router.navigate(['/examens-list']);
         this.toast.success('Login successful!');
       },

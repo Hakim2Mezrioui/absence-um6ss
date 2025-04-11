@@ -20,5 +20,6 @@ class Etudiant extends Model
         "faculte",
         'groupe',
         'option',
+        'image',
     ];
 }
