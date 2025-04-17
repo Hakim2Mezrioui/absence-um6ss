@@ -27,24 +27,26 @@ export class EtudiantService {
   importer() {}
 
   fetch(): Observable<Etudiant[]> {
-    return this.http.get(`${this.baseUrl}/fetch-etudiants`).pipe(
-      map((response: any) => {
-        return response.etudiants.map((item: any) => {
-          return new Etudiant(
-            item.matricule,
-            item.name,
-            item.promotion,
-            item.faculte,
-            item.groupe,
-            undefined,
-            item.option
-          );
-        });
-      }),
-      tap((etudiants: Etudiant[]) => {
-        this.etudiant = etudiants;
-      })
-    );
+    return this.http
+      .get(`${this.baseUrl}/fetch-etudiants`)
+      .pipe(
+        map((response: any) => {
+          return response.etudiants.map((item: any) => {
+            return new Etudiant(
+              item.matricule,
+              item.name,
+              item.promotion,
+              item.faculte,
+              item.groupe,
+              undefined,
+              item.option
+            );
+          });
+        }),
+        tap((etudiants: Etudiant[]) => {
+          this.etudiant = etudiants;
+        })
+      );
   }
 
   delete(id: number) {

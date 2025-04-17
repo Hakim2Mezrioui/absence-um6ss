@@ -75,7 +75,7 @@
           choisir une faculte
         </option>
         <option *ngFor="let ecole of ecoles" [value]="ecole.name.toLowerCase()">
-          {{ ecole.name }}
+          {{ ecole.name | titlecase }}
         </option>
       </select>
     </div>
