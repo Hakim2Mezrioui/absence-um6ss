@@ -19,6 +19,16 @@ export class ExamensListComponent implements OnInit {
   role: String = 'user';
   userFaculte: String = 'toutes';
   searchVal: String = '';
+  isDropdownOpen = false;
+
+  faculties = [
+    { label: 'Pharmacie', value: 'pharmacie' },
+    { label: 'Dentaire', value: 'dentaire' },
+    { label: 'ESGB', value: 'esgb' },
+    { label: 'Médecine', value: 'medecine' },
+    { label: 'FSTS', value: 'fsts' },
+    { label: 'Toutes les facultés', value: 'toutes' },
+  ];
 
   constructor(
     private examenService: ExamenService,
@@ -44,6 +54,9 @@ export class ExamensListComponent implements OnInit {
     if (this.role == 'user') {
       this.examenService.statutActual.next('en cours');
     }
+  }
+  toggleDropdown() {
+    this.isDropdownOpen = !this.isDropdownOpen;
   }
 
   handleSearch(value: String) {

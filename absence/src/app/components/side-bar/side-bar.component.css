@@ -1,21 +1,24 @@
-.bi {
-    left: 14em;
-    background-color: rgb(18, 19, 22);
-    transition: left .3s;
-}
-
-.minimized {
-    width: 5em;
-}
-.expanded {
-    width: 20em;
-}
-
 #sidebar {
-    transition: width 0.3s;
-}
-
-.icon {
-    left: 5em;
-    transform: rotate(180deg);
-}
+    box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  #sidebar .router-link-active {
+    box-shadow: inset 3px 0 0 #3b82f6;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: #4b5563;
+    border-radius: 2px;
+  }
+  
+  .bi {
+    transition: transform 0.2s;
+  }
+  
+  .group:hover .bi {
+    transform: scale(1.1);
+  }

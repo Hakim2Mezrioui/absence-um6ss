@@ -27,6 +27,38 @@ export class CoursComponent implements OnInit {
     private startupService: StartupService
   ) {}
 
+  isDropdownOpen = false;
+
+  faculties = [
+    { label: 'Pharmacie', value: 'pharmacie' },
+    { label: 'Dentaire', value: 'dentaire' },
+    { label: 'ESGB', value: 'esgb' },
+    { label: 'Médecine', value: 'medecine' },
+    { label: 'FSTS', value: 'fsts' },
+    { label: 'Toutes les facultés', value: 'toutes' }
+  ];
+
+  trackById(index: number, item: any): number {
+    return item.id || index;
+  }
+
+toggleDropdown() {
+  this.isDropdownOpen = !this.isDropdownOpen;
+}
+
+getVisiblePages(): number[] {
+  const visiblePages = [];
+  const startPage = Math.max(1, this.actualPage - 1);
+  const endPage = Math.min(this.totalPages, this.actualPage + 1);
+
+  for (let i = startPage; i <= endPage; i++) {
+    visiblePages.push(i);
+  }
+
+  return visiblePages;
+}
+
+
   ngOnInit(): void {
     this.startupService.userFaculte.subscribe((value) => {
       if (value == null) {

@@ -1,6 +1,31 @@
 .body {
-    height: 94vh;
+    min-height: 100vh;
     display: flex;
-    justify-content: center;
     align-items: center;
-}
+    padding: 2rem;
+  }
+  
+  /* Animation pour l'apparition de la prévisualisation */
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  /* Effet de survol pour la zone de dépôt */
+  label:hover {
+    transform: translateY(-2px);
+  }
+  
+  /* Style pour le bouton de sélection */
+  button {
+    transition: all 0.2s ease;
+  }
+  
+  button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }

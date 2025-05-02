@@ -1,13 +1,39 @@
-<div id="loading-overlay" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60">
-
-    <svg class="animate-spin h-8 w-8 text-white mr-3" xmlns="http://www.w3.org/2000/svg" fill="none"
-        viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-        </path>
-    </svg>
-
-    <span class="text-white text-3xl font-bold">Loading...</span>
-
+<div id="loading-overlay" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gray-900/80 backdrop-blur-sm">
+    <!-- Animated gradient circle -->
+    <div class="relative w-24 h-24 mb-4">
+        <div class="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-400 border-r-pink-400 border-b-purple-400 border-l-teal-400 animate-spin"></div>
+        <div class="absolute inset-2 rounded-full border-4 border-transparent border-t-teal-400 border-r-blue-400 border-b-pink-400 border-l-purple-400 animate-spin animation-delay-100"></div>
+    </div>
+    
+    <!-- Text with subtle animation -->
+    <div class="flex space-x-2">
+        <span class="text-white text-xl font-medium">Chargement</span>
+        <div class="flex space-x-1 items-end">
+            <div class="w-1 h-1 bg-white rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+            <div class="w-1 h-1 bg-white rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+            <div class="w-1 h-1 bg-white rounded-full animate-bounce" style="animation-delay: 0.3s"></div>
+        </div>
+    </div>
+    
+    <!-- Optional progress text -->
+    <p class="mt-2 text-gray-300 text-sm">Veuillez patienter...</p>
 </div>
+
+<style>
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    .animate-spin {
+        animation: spin 1.5s linear infinite;
+    }
+    .animation-delay-100 {
+        animation-delay: 0.1s;
+    }
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-5px); }
+    }
+    .animate-bounce {
+        animation: bounce 1s infinite;
+    }
+</style>

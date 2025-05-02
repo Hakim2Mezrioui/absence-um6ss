@@ -125,7 +125,7 @@ const routes: Routes = [
       {
         path: 'add-cours',
         component: AddCoursComponent,
-        canActivate: [ScolariteGuard],
+        canActivate: [SuperAdminAndScolariteGuard],
       },
       {
         path: 'update-cours/:id',

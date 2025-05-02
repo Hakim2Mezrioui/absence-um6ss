@@ -1,146 +1,71 @@
-<div
+<div 
   id="sidebar"
   [class.minimized]="isMinimized"
-  class="flex flex-col items-center w-56 h-screen overflow-hidden text-gray-400 bg-gray-900 z-50"
->
-  <i
-    (click)="toggleSidebar()"
-    [class.icon]="isMinimized"
-    class="bi bi-caret-left-fill px-1 py-6 text-white absolute top-0 cursor-pointer"
-  ></i>
-  <a class="flex items-center w-full px-3 mt-3">
-    <img
-      src="assets/images/logo_um6ss.png"
-      alt="Profile Picture"
-      class="w-10"
-    />
-    <span class="ml-2 text-sm font-bold" *ngIf="!isMinimized">Absence App</span>
-  </a>
-  <div class="w-full px-2">
-    <div
-      class="flex flex-col items-center w-full mt-3 border-t border-gray-700"
-      *ngIf="role != 'scolarite'"
-    >
-      <a
-        class="flex text-2xl items-center w-full h-12 px-3 mt-2 rounded hover:bg-gray-700 hover:text-gray-300"
-        routerLink="examens-list"
-        routerLinkActive="bg-gray-700"
-      >
-        <i
-          class="bi bi-ui-radios-grid bg-transparent text-xl translate-x-1 mr-1"
-        ></i>
-        <span class="ml-2 text-sm font-medium" *ngIf="!isMinimized"
-          >Examens</span
-        >
-      </a>
-      <a
-        class="flex text-2xl items-center w-full h-12 px-3 mt-2 rounded hover:bg-gray-700 hover:text-gray-300"
-        routerLink="parametrer-examen"
-        routerLinkActive="bg-gray-700"
-        *ngIf="role == 'admin' || role == 'super-admin'"
-      >
-        <!-- <svg class="w-6 h-6 stroke-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg> -->
-        <i class="bi bi-gear bg-transparent translate-x-1 mr-1"></i>
-        <span class="ml-2 text-sm font-medium" *ngIf="!isMinimized"
-          >Parametrer</span
-        >
-      </a>
-      <a
-        class="flex text-2xl items-center w-full h-12 px-3 mt-2 rounded hover:bg-gray-700 hover:text-gray-300"
-        routerLink="rattrapage"
-        routerLinkActive="bg-gray-700"
-      >
-        <!-- <svg class="w-6 h-6 stroke-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg> -->
-        <i class="bi bi-reply-all-fill bg-transparent translate-x-1 mr-1"></i>
-        <span class="ml-2 text-sm font-medium" *ngIf="!isMinimized"
-          >Rattrapage</span
-        >
+  class="flex flex-col h-screen overflow-hidden bg-gray-800 text-gray-300 transition-all duration-300 ease-in-out"
+  [style.width]="isMinimized ? '5rem' : '16rem'">
+  
+  <!-- Header avec bouton de toggle -->
+  <div class="flex items-center justify-between p-4 border-b border-gray-700">
+    <div class="flex items-center overflow-hidden transition-all duration-300" [class.opacity-0]="isMinimized">
+      <img src="assets/images/logo_um6ss.png" alt="Logo" class="w-8 h-8 rounded-full">
+      <span class="ml-3 text-lg font-semibold whitespace-nowrap">Absence App</span>
+    </div>
+    <button 
+      (click)="toggleSidebar()"
+      class="p-1 rounded-full hover:bg-gray-700 transition-colors duration-200">
+      <i class="bi text-xl" [class.bi-caret-left-fill]="!isMinimized" [class.bi-caret-right-fill]="isMinimized"></i>
+    </button>
+  </div>
+
+  <!-- Menu items -->
+  <div class="flex-1 overflow-y-auto py-4 px-2 scrollbar-thin scrollbar-thumb-gray-600">
+    <!-- Section Examens -->
+    <div *ngIf="role != 'scolarite'" class="mb-6">
+      <h3 class="px-3 mb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider" *ngIf="!isMinimized">Examens</h3>
+      <a 
+        *ngFor="let item of examensMenuItems"
+        [routerLink]="item.link"
+        routerLinkActive="bg-blue-600 text-white"
+        class="flex items-center p-3 my-1 rounded-lg hover:bg-gray-700 transition-colors duration-200 group">
+        <i class="bi text-lg mr-3 group-hover:text-white" [class]="item.icon"></i>
+        <span class="text-sm whitespace-nowrap" *ngIf="!isMinimized">{{ item.title }}</span>
       </a>
     </div>
-    <div
-      class="flex flex-col items-center w-full mt-2 border-t border-gray-700"
-      *ngIf="role == 'scolarite' || 'super-admin'"
-    >
-      <a
-        class="flex text-2xl items-center w-full h-12 px-3 mt-2 rounded hover:bg-gray-700 hover:text-gray-300"
-        routerLink="cours"
-        routerLinkActive="bg-gray-700"
-      >
-        <i
-          class="bi bi-journal-bookmark-fill bg-transparent translate-x-1 mr-1"
-        ></i>
-        <span class="ml-2 text-sm font-medium" *ngIf="!isMinimized">Cours</span>
-      </a>
-      <a
-        *ngIf="role == 'scolarite'"
-        class="flex text-2xl items-center w-full h-12 px-3 mt-2 rounded hover:bg-gray-700 hover:text-gray-300"
-        routerLink="add-cours"
-        routerLinkActive="bg-gray-700"
-      >
-        <i class="bi bi-journal-plus bg-transparent translate-x-1 mr-1"></i>
-        <span class="ml-2 text-sm font-medium" *ngIf="!isMinimized"
-          >Ajouter cours</span
-        >
+
+    <!-- Section Cours -->
+    <div *ngIf="role == 'scolarite' || 'super-admin'" class="mb-6">
+      <h3 class="px-3 mb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider" *ngIf="!isMinimized">Cours</h3>
+      <a 
+        *ngFor="let item of coursMenuItems"
+        [routerLink]="item.link"
+        routerLinkActive="bg-blue-600 text-white"
+        class="flex items-center p-3 my-1 rounded-lg hover:bg-gray-700 transition-colors duration-200 group">
+        <i class="bi text-lg mr-3 group-hover:text-white" [class]="item.icon"></i>
+        <span class="text-sm whitespace-nowrap" *ngIf="!isMinimized">{{ item.title }}</span>
       </a>
     </div>
-    <div
-      class="flex flex-col items-center w-full mt-2 border-t border-gray-700"
-      *ngIf="role == 'admin' || role == 'super-admin'"
-    >
-      <a
-        class="flex text-2xl items-center w-full h-12 px-3 mt-2 rounded hover:bg-gray-700 hover:text-gray-300"
-        routerLink="add-etudiant"
-        routerLinkActive="bg-gray-700"
-      >
-        <i class="bi bi-person-add bg-transparent translate-x-1 mr-1"></i>
-        <span class="ml-2 text-sm font-medium" *ngIf="!isMinimized"
-          >Ajouter Etudiant</span
-        >
-      </a>
-      <a
-        class="flex text-2xl items-center w-full h-12 px-3 mt-2 rounded hover:bg-gray-700 hover:text-gray-300"
-        routerLink="etudiants"
-        routerLinkActive="bg-gray-700"
-      >
-        <i class="bi bi-people-fill bg-transparent translate-x-1 mr-1"></i>
-        <span class="ml-2 text-sm font-medium" *ngIf="!isMinimized"
-          >Etudiants</span
-        >
-      </a>
-    </div>
-    <div
-      class="flex flex-col items-center w-full mt-2 border-t border-gray-700"
-      *ngIf="role == 'super-admin'"
-    >
-      <a
-        class="flex text-2xl items-center w-full h-12 px-3 mt-2 rounded hover:bg-gray-700 hover:text-gray-300"
-        routerLink="add-user"
-        routerLinkActive="bg-gray-700"
-      >
-        <i class="bi bi-person-plus-fill bg-transparent mr-1 translate-x-1"></i>
-        <span class="ml-2 text-sm font-medium" *ngIf="!isMinimized"
-          >Ajouter Utilisateur</span
-        >
-      </a>
-      <a
-        class="flex text-2xl items-center w-full h-12 px-3 mt-2 rounded hover:bg-gray-700 hover:text-gray-300"
-        routerLink="users"
-        routerLinkActive="bg-gray-700"
-      >
-        <i class="bi bi-people-fill bg-transparent translate-x-1 mr-1"></i>
-        <span class="ml-2 text-sm font-medium" *ngIf="!isMinimized">Users</span>
+
+    <!-- Section Administration -->
+    <div *ngIf="role == 'admin' || role == 'super-admin'" class="mb-6">
+      <h3 class="px-3 mb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider" *ngIf="!isMinimized">Administration</h3>
+      <a 
+        *ngFor="let item of adminMenuItems"
+        [routerLink]="item.link"
+        routerLinkActive="bg-blue-600 text-white"
+        class="flex items-center p-3 my-1 rounded-lg hover:bg-gray-700 transition-colors duration-200 group">
+        <i class="bi text-lg mr-3 group-hover:text-white" [class]="item.icon"></i>
+        <span class="text-sm whitespace-nowrap" *ngIf="!isMinimized">{{ item.title }}</span>
       </a>
     </div>
   </div>
-  <a
-    (click)="logout()"
-    class="flex items-center justify-center w-full h-16 mt-auto bg-gray-800 hover:bg-gray-700 hover:text-gray-300"
-  >
-    <i class="bi bi-box-arrow-left bg-transparent"></i>
-    <span class="ml-2 text-sm font-medium" *ngIf="!isMinimized">Logout</span>
-  </a>
+
+  <!-- Footer -->
+  <div class="p-4 border-t border-gray-700">
+    <button 
+      (click)="logout()"
+      class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 transition-colors duration-200 group">
+      <i class="bi bi-box-arrow-left text-lg mr-3 group-hover:text-red-400"></i>
+      <span class="text-sm whitespace-nowrap" *ngIf="!isMinimized">Déconnexion</span>
+    </button>
+  </div>
 </div>

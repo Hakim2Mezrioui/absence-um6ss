@@ -1,10 +1,11 @@
+/* Conservez votre backImage existant */
 .backImage {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-image: url("../../../assets/images/um6ss_login.png") ;
+    background-image: url("../../../assets/images/um6ss_login.png");
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
@@ -21,96 +22,149 @@
     background-color: rgba(0, 0, 0, 0.5);
 }
 
+/* Nouveau style pour le formulaire */
 .loginForm {
-    width: fit-content;
-    background-color: rgba(217, 217, 217, 0.5);
-    --width: 35em;
-    width: var(--width);
+    width: 850px;
+    background-color: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
     display: flex;
     margin: auto;
-    margin-top: calc(100vh/2 - 530px/2)
+    margin-top: calc(100vh/2 - 530px/2);
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
 .side-form {
-    background-color: rgba(255, 255, 255, 0.7);
-    height: 480px;
-    width: 219px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(245,245,245,0.9) 100%);
+    width: 40%;
+    padding: 2rem;
     display: flex;
-    width: calc(var(--width) / 4)
+    align-items: center;
+    justify-content: center;
 }
 
-.content-form {
-    padding: 1em;
-    width: calc(var(--width) - var(--width) / 4);
-    background-color: rgba(0, 0, 0, 0.377);
-    /* width: 100%; */
+.logo-container {
+    text-align: center;
 }
 
 .logo {
-    width: 7em;
-    display: block;
-    margin: auto;
+    width: 120px;
+    height: auto;
+    margin-bottom: 1.5rem;
 }
 
-h4 {
-    color: white;
-    width: 18em;
-    margin-bottom: 3.5em;
-    margin-top: 1em;
-    font-family: Roboto Condensed;
-    text-wrap: balance;
+.app-name {
+    color: #2c3e50;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    font-family: 'Roboto Condensed', sans-serif;
 }
 
-.form-group {
-    margin-block: 1em;
-    width: 100%;
-}
-
-.form-group label {
-    display: block;
-    background-color: rgb(217, 217, 217);
-    padding: .0em 1.5em;
-    border-radius: .2em;
-    margin-bottom: .3em;
-    font-size: 1em;
-    width: 10em;
-    text-align: center;
-    font-weight: bold;
-    text-transform: uppercase;
-    font-family: arial;
-}
-
-.form-group input {
-    background-color: rgba(0, 0, 0, 0.7);
-    padding: .8em 1em;
-    display: block;
-    width: -webkit-fill-available;
-    outline: none;
-    border: none;
-    color: white;
-    width: 100%;
-}
-
-.form-group input:hover {
+.content-form {
+    width: 60%;
+    padding: 3rem;
     background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
-.form-group input:focus {
-    background-color: rgba(0, 0, 0, 0.9);
+.welcome-section {
+    margin-bottom: 2.5rem;
 }
 
-.form-action button {
-    display: block;
+.welcome-section h4 {
+    color: white;
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    font-family: 'Roboto Condensed', sans-serif;
+}
+
+.welcome-section .subtitle {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.input-container {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.input-container input {
     width: 100%;
-    background-color: white;
-    border: none;
-    padding: .5em 1em;
-    margin-top: 3.5em;
+    padding: 1rem 1rem 1rem 2.5rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    color: white;
+    font-size: 1rem;
+    transition: all 0.3s ease;
 }
 
-.form-action button:hover {
-    background-color: rgb(241, 241, 241);
+.input-container input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    background-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
 }
-.form-action button:active {
-    background-color: white;
+
+.input-container label {
+    position: absolute;
+    left: 2.5rem;
+    top: 1rem;
+    color: rgba(255, 255, 255, 0.7);
+    transition: all 0.3s ease;
+    pointer-events: none;
+    font-size: 0.9rem;
+}
+
+.input-container input:focus + label,
+.input-container input:not(:placeholder-shown) + label {
+    top: -0.6rem;
+    left: 1rem;
+    font-size: 0.75rem;
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 0 0.5rem;
+    color: white;
+    border-radius: 3px;
+}
+
+.input-icon {
+    position: absolute;
+    left: 1rem;
+    top: 1rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1rem;
+}
+
+.login-btn {
+    width: 100%;
+    padding: 1rem;
+    background: linear-gradient(to right, #3b82f6, #6366f1);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    margin-top: 1.5rem;
+}
+
+.login-btn:hover {
+    background: linear-gradient(to right, #2563eb, #4f46e5);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
+}
+
+.login-btn:active {
+    transform: translateY(0);
 }

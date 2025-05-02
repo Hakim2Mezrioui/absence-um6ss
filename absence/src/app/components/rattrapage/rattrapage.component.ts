@@ -53,6 +53,7 @@ export class RattrapageComponent implements OnInit {
     { id: 4, name: 'esgb' },
     { id: 5, name: 'medecine anglophone' },
     { id: 6, name: 'fsts' },
+    { id: 6, name: 'sante public' },
   ];
 
   promotions = [

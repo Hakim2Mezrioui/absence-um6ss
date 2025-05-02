@@ -1,228 +1,184 @@
-<!-- <div class="w-full flex justify-center">
-  <div class="custom-width">
-    <div class="form-group border-collapse m-auto my-4" style="width: 37em">
-      <label
-        for="search"
-        class="bg-green-50 text-green-700 rounded-t-md px-6 py-2 flex items-center"
-        >Search ...</label
-      >
-      <input
-        id="search"
-        class="bg-green-50 text-green-700 rounded-b-md px-6 py-2 flex items-center outline-none w-full"
-        #valSearch
-        (input)="handleSearch($event)"
-      />
+<div class="flex flex-col md:flex-row justify-between items-center gap-4 p-4 bg-white rounded-lg shadow-sm border border-gray-100">
+  <!-- Barre de recherche élégante -->
+  <div class="relative w-full md:w-auto flex-1">
+    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+      <i class="bi bi-search text-gray-400"></i>
     </div>
-
-    <p-table
-      #dt
-      [value]="cours"
-      dataKey="id"
-      editMode="row"
-      [tableStyle]="{
-        'min-width': '30rem',
-        width: '100%',
-        marginTop: '2rem',
-        margin: 'auto'
-      }"
-      [rows]="10"
-      [showCurrentPageReport]="true"
-      [rowsPerPageOptions]="[10, 50, 100]"
-      [globalFilterFields]="['title', 'date', 'groupe', 'faculte', 'promotion']"
-      [paginator]="true"
-      paginatorPosition="bottom"
-    >
-      <ng-template pTemplate="header">
-        <tr>
-          <th pSortableColumn="title" style="width: 20%">
-            title <p-sortIcon field="title"></p-sortIcon>
-          </th>
-          <th pSortableColumn="date" style="width: 20%">
-            date <p-sortIcon field="date"></p-sortIcon>
-          </th>
-          <th pSortableColumn="hour_debut" style="width: 20%">
-            Depart <p-sortIcon field="hour_debut"></p-sortIcon>
-          </th>
-          <th pSortableColumn="hour_fin" style="width: 20%">
-            Fin <p-sortIcon field="hour_fin"></p-sortIcon>
-          </th>
-          <th pSortableColumn="promotion" style="width: 20%">
-            Promotion <p-sortIcon field="promotion"></p-sortIcon>
-          </th>
-          <th pSortableColumn="faculte" style="width: 20%">
-            Faculte <p-sortIcon field="faculte"></p-sortIcon>
-          </th>
-        </tr>
-      </ng-template>
-      <ng-template pTemplate="body" let-cours let-ri="rowIndex">
-        <tr>
-          <td>
-            {{ cours.title }}
-          </td>
-          <td>
-            {{ cours.date }}
-          </td>
-          <td>
-            {{ cours.hour_debut }}
-          </td>
-          <td>
-            {{ cours.hour_fin }}
-          </td>
-          <td>
-            {{ cours.promotion }}
-          </td>
-          <td>
-            {{ cours.faculte }}
-          </td>
-        </tr>
-      </ng-template>
-    </p-table>
-
-    <div class="border-none m-auto my-4">
-      <button
-        (click)="handleExport()"
-        class="w-fit outline-none bg-green-50 px-5 py-2 hover:bg-green-100 active:bg-green-200"
-      >
-        Exporter
-      </button>
-    </div>
-  </div>
-</div>
-
--->
-
-<div class="flex justify-between ms-40">
-  <div class="flex gap-1 items-center">
     <input
       #searchVal
-      value=""
-      placeholder="Rechercher..."
-      class="py-1 -translate-y-2 ms-36 form-control mt-4"
+      type="text"
+      class="w-full pl-10 pr-4 py-2.5 text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+      placeholder="Rechercher un examen..."
       (keydown.enter)="handleSearch(searchVal.value)"
     />
-    <i
+    <button
       (click)="handleSearch(searchVal.value)"
-      class="bi bi-search cursor-pointer bg-blue-900 active:bg-blue-900 hover:bg-blue-800 text-white p-1 px-2 rounded translate-y-1"
-    ></i>
+      class="absolute right-2.5 bottom-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-3 py-1 text-sm transition-colors"
+    >
+      <i class="bi bi-arrow-right"></i>
+    </button>
   </div>
-  <div *ngIf="role == 'super-admin' || role == 'admin'" class="flex">
-    <div *ngIf="role == 'super-admin'" class="relative group p-0">
+
+  <!-- Menu déroulant élégant -->
+  <div *ngIf="role == 'super-admin' || role == 'admin'" class="w-full md:w-auto">
+    <div class="relative inline-block text-left">
       <button
-        class="bg-blue-900 hover:bg-blue-800 rounded-sm text-white px-4 py-1 my-3 mx-3"
+        type="button"
+        (click)="toggleDropdown()"
+        class="inline-flex items-center gap-2 rounded-md bg-gradient-to-r from-blue-600 to-blue-500 px-4 py-2 text-sm font-medium text-white shadow hover:from-blue-700 hover:to-blue-600 transition"
       >
-        Filtrer par faculte <i class="bi bi-caret-down-fill"></i>
+        <i class="bi bi-funnel-fill"></i>
+        Filtrer par faculté
+        <svg
+          class="w-4 h-4 transition-transform duration-200"
+          [ngClass]="{ 'rotate-180': isDropdownOpen }"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
       </button>
-
-      <ul
-        class="hidden z-50 group-hover:block bg-blue-100 absolute right-0 shadow-md mx-3 text-center"
+    
+      <!-- Dropdown -->
+      <div
+        class="absolute left-1/2 transform -translate-x-1/2 mt-2 z-20 mt-2 w-64 rounded-xl bg-white shadow-xl ring-1 ring-gray-200 transition transform origin-top scale-95 opacity-0 pointer-events-none"
+        [ngClass]="{
+          'scale-100 opacity-100 pointer-events-auto': isDropdownOpen
+        }"
       >
-        <li
-          (click)="filterByFaculte('pharmacie')"
-          class="cursor-pointer px-16 text-sm py-2 hover:bg-blue-200"
-        >
-          Pharmacie
-        </li>
-        <li
-          (click)="filterByFaculte('dentaire')"
-          class="cursor-pointer px-16 text-sm py-2 hover:bg-blue-200"
-        >
-          Dentaire
-        </li>
-        <li
-          (click)="filterByFaculte('esgb')"
-          class="cursor-pointer px-16 text-sm py-2 hover:bg-blue-200"
-        >
-          ESG
-        </li>
-        <li
-          (click)="filterByFaculte('medecine')"
-          class="cursor-pointer px-16 text-sm py-2 hover:bg-blue-200"
-        >
-          Médecine
-        </li>
-        <li
-          (click)="filterByFaculte('fsts')"
-          class="cursor-pointer px-16 text-sm py-2 hover:bg-blue-200"
-        >
-          FSTS
-        </li>
-        <li
-          (click)="filterByFaculte('toutes')"
-          class="cursor-pointer px-16 text-sm py-2 hover:bg-blue-200"
-        >
-          Toutes
-        </li>
-      </ul>
+        <ul class="py-2">
+          <li *ngFor="let faculty of faculties">
+            <a
+              href="#"
+              (click)="filterByFaculte(faculty.value); $event.preventDefault()"
+              class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition rounded-md"
+            >
+              <span class="inline-flex h-8 w-8 items-center justify-center rounded-md bg-blue-100 text-blue-600">
+                <i class="bi bi-building"></i>
+              </span>
+              <span>{{ faculty.label }}</span>
+            </a>
+          </li>
+        </ul>
+      </div>
     </div>
+    
+    
   </div>
 </div>
 
-<div class="adjust-content">
 
-  <div *ngFor="let cours of cours; let i = index" class="row">
-    <app-cours-item [cours]="cours"></app-cours-item>
-  </div>
+<div class="min-h-screen flex flex-col">
+  <!-- Main Content - flex-grow pour occuper l'espace disponible -->
+  <main class="flex-grow">
+    <!-- Cas où aucun cours n'est trouvé -->
+    <div *ngIf="!loading && cours.length === 0" 
+         class="empty-state flex flex-col justify-center items-center text-center px-4 py-32 mt-[15%]"> <!-- py-32 pour un grand espacement -->
+      <div class="text-blue-600 mb-6">
+        <i class="bi bi-search text-6xl"></i>
+      </div>
+      <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4">Aucun cours trouvé</h2>
+      <p class="text-gray-500 max-w-md mb-8">
+        Désolé, nous n'avons trouvé aucun cours correspondant à votre recherche.
+        Essayez de modifier vos critères ou vérifiez plus tard.
+      </p>
+      
+      <!-- Espace supplémentaire avant le footer -->
+      <div class="h-20"></div> <!-- Espace supplémentaire -->
+    </div>
 
-  <div *ngIf="!loading && cours.length == 0" class="h-full flex justify-center items-center">
-    <h1 class="text-center text-blue-900 font-bold text-3xl mb-32">Not Found</h1>
-  </div>
-  
+    <!-- Cas normal avec cours -->
+    <div *ngIf="!loading && cours.length > 0" class="py-8 px-4">
+      <div class="max-w-4xl mx-auto">
+        <div class="grid grid-cols-1 gap-6">
+          <div *ngFor="let coursItem of cours; trackBy: trackById">
+            <app-cours-item [cours]="coursItem" class="w-full h-full"></app-cours-item>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
 </div>
-<nav *ngIf="this.cours.length > 0" class="flex justify-center mt-5 pb-5">
-  <ul class="flex items-center -space-x-px h-8 text-sm">
+<nav *ngIf="cours.length > 0" class="flex justify-center mt-8 pb-8">
+  <ul class="flex items-center gap-1 h-10 text-sm">
+    <!-- Flèche précédente -->
     <li>
-      <a
+      <button
         (click)="back()"
-        class="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+        class="flex items-center justify-center p-2 h-10 w-10 rounded-full text-gray-600 hover:bg-gray-100 transition-colors duration-200"
+        [disabled]="actualPage === 1"
+        [class.opacity-50]="actualPage === 1"
+        [class.cursor-not-allowed]="actualPage === 1"
       >
-        <span class="sr-only">Previous</span>
-        <svg
-          class="w-2.5 h-2.5 rtl:rotate-180"
-          aria-hidden="true"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 6 10"
-        >
-          <path
-            stroke="currentColor"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M5 1 1 5l4 4"
-          />
+        <span class="sr-only">Précédent</span>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
         </svg>
-      </a>
+      </button>
     </li>
-    <li *ngFor="let page of [].constructor(totalPages); let i = index">
-      <a
-        [ngClass]="actualPage == i + 1 ? 'bg-slate-900' : 'bg-white'"
-        (click)="getPage(i + 1)"
-        class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 border border-gray-300 hover:bg-gray-100 hover:text-gray-700  dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-        >{{ i + 1 }}</a
+
+    <!-- Premier numéro -->
+    <li *ngIf="actualPage > 2">
+      <button
+        (click)="getPage(1)"
+        class="flex items-center justify-center h-10 w-10 rounded-full text-gray-600 hover:bg-gray-100 transition-colors duration-200"
       >
+        1
+      </button>
     </li>
+
+    <!-- Points de suspension si nécessaire -->
+    <li *ngIf="actualPage > 3" class="flex items-end px-1 h-10 text-gray-400">
+      ...
+    </li>
+
+    <!-- Numéros centraux (toujours 3 visibles) -->
+    <ng-container *ngFor="let page of getVisiblePages()">
+      <li>
+        <button
+          (click)="getPage(page)"
+          class="flex items-center justify-center h-10 w-10 rounded-full transition-colors duration-200"
+          [class.bg-blue-600]="actualPage === page"
+          [class.text-white]="actualPage === page"
+          [class.text-gray-600]="actualPage !== page"
+          [class.hover:bg-gray-100]="actualPage !== page"
+        >
+          {{ page }}
+        </button>
+      </li>
+    </ng-container>
+
+    <!-- Points de suspension si nécessaire -->
+    <li *ngIf="actualPage < totalPages - 2" class="flex items-end px-1 h-10 text-gray-400">
+      ...
+    </li>
+
+    <!-- Dernier numéro -->
+    <li *ngIf="actualPage < totalPages - 1">
+      <button
+        (click)="getPage(totalPages)"
+        class="flex items-center justify-center h-10 w-10 rounded-full text-gray-600 hover:bg-gray-100 transition-colors duration-200"
+      >
+        {{ totalPages }}
+      </button>
+    </li>
+
+    <!-- Flèche suivante -->
     <li>
-      <a
+      <button
         (click)="next()"
-        class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+        class="flex items-center justify-center p-2 h-10 w-10 rounded-full text-gray-600 hover:bg-gray-100 transition-colors duration-200"
+        [disabled]="actualPage === totalPages"
+        [class.opacity-50]="actualPage === totalPages"
+        [class.cursor-not-allowed]="actualPage === totalPages"
       >
-        <span class="sr-only">Next</span>
-        <svg
-          class="w-2.5 h-2.5 rtl:rotate-180"
-          aria-hidden="true"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 6 10"
-        >
-          <path
-            stroke="currentColor"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="m1 9 4-4-4-4"
-          />
+        <span class="sr-only">Suivant</span>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
         </svg>
-      </a>
+      </button>
     </li>
   </ul>
 </nav>

@@ -2,34 +2,53 @@
 
 <form #f="ngForm" (submit)="onSubmit()" class="loginForm">
   <div class="side-form">
-    <img src="../../../assets/images/logo_um6ss.png" alt="" class="logo" />
+    <div class="logo-container">
+      <img src="../../../assets/images/logo_um6ss.png" alt="UM6SS Logo" class="logo" />
+      <h2 class="app-name">Gestion des abscences</h2>
+    </div>
   </div>
+  
   <div class="content-form">
-    <div>
-      <h4>Bienvenue dant notre application de gestion des absenes</h4>
+    <div class="welcome-section">
+      <h4>Bienvenue dans notre application de gestion des absences</h4>
+      <p class="subtitle">Connectez-vous pour accéder à votre espace</p>
     </div>
+    
     <div class="form-group">
-      <label for="identifiant">Identifiant</label>
-      <input
-        type="text"
-        id="identifiant"
-        name="email"
-        placeholder="Enter your email"
-        ngModel
-      />
+      <div class="input-container">
+        <input
+          type="text"
+          id="identifiant"
+          name="email"
+          placeholder=" "
+          ngModel
+          required
+        />
+        <label for="identifiant">Identifiant</label>
+        <i class="bi bi-person-fill input-icon"></i>
+      </div>
     </div>
+    
     <div class="form-group">
-      <label for="password">Password</label>
-      <input
-        type="password"
-        id="password"
-        name="password"
-        placeholder="Enter your password"
-        ngModel
-      />
+      <div class="input-container">
+        <input
+          type="password"
+          id="password"
+          name="password"
+          placeholder=" "
+          ngModel
+          required
+        />
+        <label for="password">Mot de passe</label>
+        <i class="bi bi-lock-fill input-icon"></i>
+      </div>
     </div>
+    
     <div class="form-action">
-      <button>LOGIN</button>
+      <button class="login-btn">
+        <span>CONNEXION</span>
+        <i class="bi bi-arrow-right"></i>
+      </button>
     </div>
   </div>
 </form>

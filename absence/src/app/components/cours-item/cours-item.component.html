@@ -1,106 +1,141 @@
-<div
-  class="relative cours bg-green-100"
-  [ngClass]="[
-    getCoursStatusClass(),
-    course.faculte == 'pharmacie'
-      ? 'border-l-4 border-l-green-800'
-      : course.faculte.toLowerCase() == 'medecine'
-      ? 'border-l-4 border-l-blue-800'
-      : course.faculte.toLowerCase() == 'dentaire'
-      ? 'border-l-4 border-l-violet-500'
-      : course.faculte.toLowerCase() == 'esgb'
-      ? 'border-l-4 border-l-blue-300'
-      : course.faculte.toLowerCase() == 'fsts'
-      ? 'border-l-4 border-l-red-700'
-      : 'border-l-4 border-l-blue-800'
-  ]"
->
-  <h3
-    [ngClass]="statut == 'archivé' ? 'text-red-800' : 'text-green-800'"
-    class="font-bold text-md"
-  >
-    {{ course.title | titlecase }}
-  </h3>
-  <div class="mt-2 grid grid-cols-4 gap-3 items-start">
-    <div>
-      <div class="flex justify-between w-48">
-        <h6 class="font-bold">Faculte :</h6>
-        <p>{{ course.faculte | titlecase }}</p>
-      </div>
-      <div class="flex justify-between w-48">
-        <h6 class="font-bold">Promotion :</h6>
-        <p>{{ course.promotion }}</p>
-      </div>
-      <div class="flex justify-between w-48">
-        <h6 class="font-bold">Groupe :</h6>
-        <p>{{ course.groupe }}</p>
-      </div>
-    </div>
-    <div>
-      <div class="flex justify-between w-48">
-        <h6 class="font-bold">Date :</h6>
-        <p>{{ course.date | date : "shortDate" }}</p>
-      </div>
-      <div class="flex justify-between w-48">
-        <h6 class="font-bold">heurs :</h6>
-        <!-- <p>De {{ course.hour_debut | date: 'HH:mm' }} a {{ course.hour_fin | date: 'HH:mm' }}</p> -->
-        <p>
-          {{ course.hour_debut | date : "shortTime" }}-{{
-            course.hour_fin | date : "shortTime"
-          }}
-        </p>
-      </div>
-      <div class="flex justify-between w-48">
-        <h6 class="font-bold">Tolerance :</h6>
-        <p>
-          {{ course.tolerance}}
-        </p>
-      </div>
+<div class="relative overflow-hidden my-2">
+  <!-- Carte principale avec nouveau fond élégant -->
+  <div class="rounded-xl shadow-2xl overflow-hidden transition-all duration-300 hover:shadow-3xl w-full max-w-4xl backdrop-blur-sm"
+       [ngClass]="{
+         'bg-gradient-to-br from-emerald-50/80 to-teal-50/80 ring-2 ring-emerald-200': statut === 'en cours',
+         'bg-gradient-to-br from-rose-50/80 to-amber-50/80 ring-2 ring-rose-200': statut === 'terminé',
+         'bg-gradient-to-br from-slate-50/80 to-gray-100/80 ring-2 ring-slate-200': statut === 'en attente'
+       }">
+    
+    <!-- Bandeau latéral coloré (version plus sophistiquée) -->
+    <div class="absolute left-0 top-0 h-full w-1"
+         [ngClass]="{
+           'bg-gradient-to-b from-emerald-400 to-teal-500': statut === 'en cours',
+           'bg-gradient-to-b from-rose-400 to-amber-500': statut === 'terminé',
+           'bg-gradient-to-b from-slate-400 to-gray-500': statut === 'en attente'
+         }"></div>
 
-      <div *ngIf="course.faculte === 'fsts'" class="flex justify-between w-48">
-        <h6 class="font-bold">Option :</h6>
-        <p>{{ course.option | uppercase }}</p>
+    <!-- En-tête avec titre et badge de statut -->
+    <div class="p-6 pb-4">
+      <div class="flex justify-between items-start">
+        <div>
+          <h3 class="text-2xl font-bold text-gray-900 mb-1">{{ course.title | titlecase }}</h3>
+          <div class="flex items-center space-x-3">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium shadow-sm"
+                  [ngClass]="{
+                    'bg-emerald-100 text-emerald-800 shadow-emerald-200/50': statut === 'en cours',
+                    'bg-rose-100 text-rose-800 shadow-rose-200/50': statut === 'terminé',
+                    'bg-slate-100 text-slate-800 shadow-slate-200/50': statut === 'en attente'
+                  }">
+              {{ statut }}
+            </span>
+            <span class="text-sm text-gray-600">
+              <i class="bi bi-building mr-1"></i> {{ course.faculte | titlecase }}
+            </span>
+          </div>
+        </div>
+        
+        <!-- Boutons admin (affichés conditionnellement) -->
+        <div *ngIf="role == 'scolarite'" class="flex space-x-2">
+          <button (click)="onUpdate(course.id!)" 
+                  class="text-gray-500 hover:text-blue-600 transition-colors p-1 hover:scale-110">
+            <i class="bi bi-pencil-square text-lg"></i>
+          </button>
+          <button (click)="onDelete(course.id!)" 
+                  class="text-gray-500 hover:text-red-600 transition-colors p-1 hover:scale-110">
+            <i class="bi bi-trash text-lg"></i>
+          </button>
+        </div>
       </div>
     </div>
-    <div>
-      <!-- <div class="flex justify-between w-36">
-        <h6 class="font-bold">pointage :</h6>
-        <p>{{ course.hour_debut_pointage }}</p>
-      </div> -->
-      <div class="flex justify-between w-36">
-        <h6 class="font-bold">Statut :</h6>
-        <p>
-          <span class="relative">
-            <span
-              [ngClass]="statut == 'terminé' ? 'bg-red-500' : statut == 'en attente' ? 'bg-slate-500' : 'bg-green-500'"
-              class="absolute -left-1 top-0.5 inline-flex h-1 w-1 animate-ping rounded-full opacity-75"
-            ></span>
-          </span>
-          <span> {{ this.statut }} </span>
-        </p>
+
+    <!-- Contenu principal en grille responsive -->
+    <div class="px-6 pb-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Colonne 1: Détails du cours -->
+        <div class="space-y-4">
+          <div class="flex items-center">
+            <div class="bg-white/50 p-2 rounded-lg mr-3 shadow-sm">
+              <i class="bi bi-people-fill text-gray-600"></i>
+            </div>
+            <div>
+              <p class="text-xs text-gray-600">Promotion</p>
+              <p class="font-medium text-gray-900">{{ course.promotion }}</p>
+            </div>
+          </div>
+          
+          <div class="flex items-center">
+            <div class="bg-white/50 p-2 rounded-lg mr-3 shadow-sm">
+              <i class="bi bi-collection-fill text-gray-600"></i>
+            </div>
+            <div>
+              <p class="text-xs text-gray-600">Groupe</p>
+              <p class="font-medium text-gray-900">{{ course.groupe }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Colonne 2: Horaires -->
+        <div class="space-y-4">
+          <div class="flex items-center">
+            <div class="bg-white/50 p-2 rounded-lg mr-3 shadow-sm">
+              <i class="bi bi-calendar-date text-gray-600"></i>
+            </div>
+            <div>
+              <p class="text-xs text-gray-600">Date</p>
+              <p class="font-medium text-gray-900">{{ course.date | date:'fullDate':'':'fr' }}</p>
+            </div>
+          </div>
+          
+          <div class="flex items-center">
+            <div class="bg-white/50 p-2 rounded-lg mr-3 shadow-sm">
+              <i class="bi bi-clock-fill text-gray-600"></i>
+            </div>
+            <div>
+              <p class="text-xs text-gray-600">Horaire</p>
+              <p class="font-medium text-gray-900">
+                {{ course.hour_debut | date:'HH:mm' }} - {{ course.hour_fin | date:'HH:mm' }}
+                <span class="text-xs text-gray-500 ml-1">(tolérance: {{ course.tolerance }} min)</span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Colonne 3: Actions -->
+        <div class="flex flex-col justify-between">
+          <div *ngIf="course.faculte === 'fsts'" class="flex items-center mb-4">
+            <div class="bg-white/50 p-2 rounded-lg mr-3 shadow-sm">
+              <i class="bi bi-tag-fill text-gray-600"></i>
+            </div>
+            <div>
+              <p class="text-xs text-gray-600">Option</p>
+              <p class="font-medium text-gray-900">{{ course.option | uppercase }}</p>
+            </div>
+          </div>
+          
+          <button (click)="onExplore(course)"
+                  class="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white py-3 px-4 rounded-lg shadow-lg transition-all duration-300 flex items-center justify-center space-x-2 group">
+            <span class="font-medium">Explorer le cours</span>
+            <i class="bi bi-arrow-right-short text-xl group-hover:translate-x-1 transition-transform"></i>
+          </button>
+        </div>
       </div>
     </div>
-    <div class="ml-10">
-      <button
-        (click)="onExplore(course)"
-        class="explorer bg-blue-400 hover:bg-blue-300 active:bg-blue-400 w-32 py-0 text-white rounded-sm flex justify-center gap-2"
-      >
-        <b>Explorer</b>
-        <i class="bi bi-caret-right-fill"></i>
-      </button>
+
+    <!-- Pied de carte avec indication visuelle du statut -->
+    <div class="px-6 py-3 border-t border-gray-200/50 flex justify-between items-center">
+      <div class="flex items-center">
+        <span class="h-2 w-2 rounded-full mr-2"
+              [ngClass]="{
+                'bg-emerald-500': statut === 'en cours',
+                'bg-rose-500': statut === 'terminé',
+                'bg-slate-500': statut === 'en attente'
+              }"></span>
+        <span class="text-xs text-gray-600">Statut mis à jour: {{ statut }}</span>
+      </div>
+      <div class="text-xs text-gray-500">ID: {{ course.id }}</div>
     </div>
   </div>
-
-  <i
-    *ngIf="role == 'scolarite'"
-    (click)="onDelete(course.id!)"
-    class="bi bi-trash absolute top-0 right-0 translate-x-3 -translate-y-3 bg-red-800 text-white px-2 py-1 hover:bg-red-700 active:bg-red-800 rounded-md"
-  ></i>
-  <i
-    *ngIf="role == 'scolarite'"
-    (click)="onUpdate(course.id!)"
-    class="bi bi-pencil absolute top-0 right-0 -translate-x-6 -translate-y-3 bg-blue-700 text-white px-2 py-1 hover:bg-blue-600 active:bg-blue-700 rounded-md"
-  ></i>
 </div>
 
 <app-loading *ngIf="isLoading"></app-loading>

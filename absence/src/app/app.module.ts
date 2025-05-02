@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { LOCALE_ID, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { RouterModule } from '@angular/router';
 import { AppRoutingModule } from './app-routing.module';
@@ -47,6 +47,10 @@ import { ImportCoursComponent } from './components/import-cours/import-cours.com
 import { CoursItemComponent } from './components/cours-item/cours-item.component';
 import { FooterComponent } from './components/footer/footer.component';
 import { UpdateExameComponent } from './components/update-exame/update-exame.component';
+import { registerLocaleData } from '@angular/common';
+import localeFr from '@angular/common/locales/fr';
+registerLocaleData(localeFr, 'fr');
+// import { FrenchDatePipe } from './french-date.pipe';
 
 @NgModule({
   declarations: [
@@ -100,6 +104,7 @@ import { UpdateExameComponent } from './components/update-exame/update-exame.com
     MessageService,
     DatePipe,
     { provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true },
+    { provide: LOCALE_ID, useValue: "fr-FR" }
   ],
   bootstrap: [AppComponent],
 })

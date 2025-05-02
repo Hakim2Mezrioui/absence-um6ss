@@ -13,6 +13,8 @@ import { ToastrService } from 'ngx-toastr';
 })
 export class ImportExamensComponent implements OnInit {
   loading: boolean = false;
+  selectedFile: File | null = null;  // Add this property
+
   constructor(
     private http: HttpClient,
     private messageService: MessageService,
@@ -27,25 +29,36 @@ export class ImportExamensComponent implements OnInit {
   }
 
   async onFileSelected(event: Event) {
-    this.loading = true;
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      const file: File = input.files[0];
-      const formData = new FormData();
-      formData.append('file', file, file.name);
-      this.examenService.importer(formData).subscribe(
-        (response) => {
-          this.loading = false;
-          this.toast.success('File has been uploaded successfully');
-          input.value = ''; // Reset the input
-          this.router.navigate(['examens-list']);
-        },
-        (error) => {
-          this.loading = false;
-          this.toast.error('Error uploading file');
-          input.value = ''; // Reset the input
-        }
-      );
+      this.selectedFile = input.files[0];  // Set the selected file
+      // Don't start loading yet - let user see the preview first
     }
+  }
+
+  uploadFile() {
+    if (!this.selectedFile) return;
+    
+    this.loading = true;
+    const formData = new FormData();
+    formData.append('file', this.selectedFile, this.selectedFile.name);
+    
+    this.examenService.importer(formData).subscribe(
+      (response) => {
+        this.loading = false;
+        this.toast.success('File has been uploaded successfully');
+        this.selectedFile = null; // Clear the selected file
+        this.router.navigate(['examens-list']);
+      },
+      (error) => {
+        this.loading = false;
+        this.toast.error('Error uploading file');
+        this.selectedFile = null; // Clear the selected file
+      }
+    );
+  }
+
+  removeFile() {
+    this.selectedFile = null;
   }
 }
