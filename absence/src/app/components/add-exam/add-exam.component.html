@@ -1,7 +1,9 @@
 <div class="body min-h-screen p-6">
   <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
     <!-- Header avec bouton d'import -->
-    <div class="flex justify-between items-center p-6 bg-gradient-to-r from-blue-800 to-blue-600">
+    <div
+      class="flex justify-between items-center p-6 bg-gradient-to-r from-blue-800 to-blue-600"
+    >
       <h2 class="text-xl font-bold text-white">Paramétrage des Examens</h2>
       <button
         (click)="goToImportScreen()"
@@ -18,9 +20,13 @@
       <div class="grid md:grid-cols-2 gap-8 mb-8">
         <!-- Titre -->
         <div class="form-group">
-          <label class="block text-gray-700 text-sm font-medium mb-2">Titre</label>
+          <label class="block text-gray-700 text-sm font-medium mb-2"
+            >Titre</label
+          >
           <div class="relative">
-            <i class="bi bi-card-heading absolute left-3 top-3 text-gray-400"></i>
+            <i
+              class="bi bi-card-heading absolute left-3 top-3 text-gray-400"
+            ></i>
             <input
               type="text"
               name="title"
@@ -33,9 +39,13 @@
 
         <!-- Date -->
         <div class="form-group">
-          <label class="block text-gray-700 text-sm font-medium mb-2">Date</label>
+          <label class="block text-gray-700 text-sm font-medium mb-2"
+            >Date</label
+          >
           <div class="relative">
-            <i class="bi bi-calendar-date absolute left-3 top-3 text-gray-400"></i>
+            <i
+              class="bi bi-calendar-date absolute left-3 top-3 text-gray-400"
+            ></i>
             <input
               type="date"
               name="date"
@@ -49,16 +59,22 @@
 
       <!-- Horaires -->
       <div class="mb-8">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+        <h3
+          class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2"
+        >
           <i class="bi bi-clock"></i>
           <span>Horaires</span>
         </h3>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <!-- Heure Début -->
           <div class="form-group">
-            <label class="block text-gray-700 text-sm font-medium mb-2">Heure de début</label>
+            <label class="block text-gray-700 text-sm font-medium mb-2"
+              >Heure de début</label
+            >
             <div class="relative">
-              <i class="bi bi-clock-fill absolute left-3 top-3 text-gray-400"></i>
+              <i
+                class="bi bi-clock-fill absolute left-3 top-3 text-gray-400"
+              ></i>
               <input
                 type="time"
                 name="hour_debut"
@@ -71,9 +87,13 @@
 
           <!-- Heure Fin -->
           <div class="form-group">
-            <label class="block text-gray-700 text-sm font-medium mb-2">Heure de fin</label>
+            <label class="block text-gray-700 text-sm font-medium mb-2"
+              >Heure de fin</label
+            >
             <div class="relative">
-              <i class="bi bi-clock-fill absolute left-3 top-3 text-gray-400"></i>
+              <i
+                class="bi bi-clock-fill absolute left-3 top-3 text-gray-400"
+              ></i>
               <input
                 type="time"
                 name="hour_fin"
@@ -86,7 +106,9 @@
 
           <!-- Heure Pointage -->
           <div class="form-group">
-            <label class="block text-gray-700 text-sm font-medium mb-2">Heure de pointage</label>
+            <label class="block text-gray-700 text-sm font-medium mb-2"
+              >Heure de pointage</label
+            >
             <div class="relative">
               <i class="bi bi-alarm absolute left-3 top-3 text-gray-400"></i>
               <input
@@ -103,15 +125,26 @@
 
       <!-- Filtres -->
       <div class="mb-8">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+        <h3
+          class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2"
+        >
           <i class="bi bi-funnel"></i>
           <span>Filtres</span>
         </h3>
-        
-        <div [ngClass]="role == 'super-admin' ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-1 md:grid-cols-2'" class="grid gap-4">
+
+        <div
+          [ngClass]="
+            role == 'super-admin'
+              ? 'grid-cols-1 md:grid-cols-3'
+              : 'grid-cols-1 md:grid-cols-2'
+          "
+          class="grid gap-4"
+        >
           <!-- Faculté (super-admin seulement) -->
           <div *ngIf="role == 'super-admin'" class="form-group">
-            <label class="block text-gray-700 text-sm font-medium mb-2">Faculté</label>
+            <label class="block text-gray-700 text-sm font-medium mb-2"
+              >Faculté</label
+            >
             <div class="relative">
               <i class="bi bi-building absolute left-3 top-3 text-gray-400"></i>
               <select
@@ -121,48 +154,68 @@
                 (change)="faculteChange(faculte.value)"
                 class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white transition-all"
               >
-                <option value="" disabled selected>Sélectionner la faculté</option>
+                <option value="" disabled selected>
+                  Sélectionner la faculté
+                </option>
                 <option value="medecine">Médecine</option>
                 <option value="pharmacie">Pharmacie</option>
                 <option value="dentaire">Dentaire</option>
                 <option value="fsts">FSTS</option>
-                <option value="sante public">Santé Public</option>
+                <option value="santé public">Santé Public</option>
               </select>
             </div>
           </div>
 
           <!-- Promotion -->
           <div class="form-group">
-            <label class="block text-gray-700 text-sm font-medium mb-2">Promotion</label>
+            <label class="block text-gray-700 text-sm font-medium mb-2"
+              >Promotion</label
+            >
             <div class="relative">
-              <i class="bi bi-people-fill absolute left-3 top-3 text-gray-400"></i>
+              <i
+                class="bi bi-people-fill absolute left-3 top-3 text-gray-400"
+              ></i>
               <select
                 name="promotion"
                 ngModel
                 class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white transition-all"
               >
-                <option value="" disabled selected>Sélectionner la promotion</option>
+                <option value="" disabled selected>
+                  Sélectionner la promotion
+                </option>
                 <option value="1ère annee">1ère année</option>
                 <option value="2ème annee">2ème année</option>
                 <option value="3ème annee">3ème année</option>
-                <option *ngIf="selectedFaculte !== 'fsts'" value="4ème annee">4ème année</option>
-                <option *ngIf="selectedFaculte !== 'fsts'" value="5ème annee">5ème année</option>
-                <option *ngIf="selectedFaculte !== 'fsts'" value="6ème annee">6ème année</option>
+                <option *ngIf="selectedFaculte !== 'fsts'" value="4ème annee">
+                  4ème année
+                </option>
+                <option *ngIf="selectedFaculte !== 'fsts'" value="5ème annee">
+                  5ème année
+                </option>
+                <option *ngIf="selectedFaculte !== 'fsts'" value="6ème annee">
+                  6ème année
+                </option>
               </select>
             </div>
           </div>
 
           <!-- Statut -->
           <div class="form-group">
-            <label class="block text-gray-700 text-sm font-medium mb-2">Statut</label>
+            <label class="block text-gray-700 text-sm font-medium mb-2"
+              >Statut</label
+            >
             <div class="relative">
-              <i class="bi bi-info-circle absolute left-3 top-3 text-gray-400"></i>
+              <i
+                class="bi bi-info-circle absolute left-3 top-3 text-gray-400"
+              ></i>
               <select
                 name="statut"
                 ngModel
                 class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white transition-all"
               >
-                <option value="" disabled selected>Sélectionner le statut</option>
+                <option value="" disabled selected>
+                  Sélectionner le statut
+                </option>
                 <option value="en cours">En cours</option>
                 <option value="archivé">Archivé</option>
               </select>
@@ -171,9 +224,14 @@
         </div>
 
         <!-- Options FSTS -->
-        <div *ngIf="selectedFaculte == 'fsts'" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+        <div
+          *ngIf="selectedFaculte == 'fsts'"
+          class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4"
+        >
           <div class="form-group">
-            <label class="block text-gray-700 text-sm font-medium mb-2">Option</label>
+            <label class="block text-gray-700 text-sm font-medium mb-2"
+              >Option</label
+            >
             <div class="relative">
               <i class="bi bi-tag absolute left-3 top-3 text-gray-400"></i>
               <select
@@ -181,9 +239,13 @@
                 ngModel
                 class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white transition-all"
               >
-                <option value="" disabled selected>Sélectionner l'option</option>
+                <option value="" disabled selected>
+                  Sélectionner l'option
+                </option>
                 <option value="IP">Infirmier Polyvalent</option>
-                <option value="INP">Infirmier en Néonatologie et Pédiatrie</option>
+                <option value="INP">
+                  Infirmier en Néonatologie et Pédiatrie
+                </option>
                 <option value="IBO">Infirmier au Bloc Opératoire</option>
                 <option value="IAR">Infirmier en Anesthésie Réanimation</option>
                 <option value="OR">Orthophonie</option>

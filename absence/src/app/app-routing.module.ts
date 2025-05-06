@@ -135,7 +135,7 @@ const routes: Routes = [
       {
         path: 'import-cours',
         component: ImportCoursComponent,
-        canActivate: [ScolariteGuard],
+        canActivate: [SuperAdminAndScolariteGuard],
       },
     ],
   },

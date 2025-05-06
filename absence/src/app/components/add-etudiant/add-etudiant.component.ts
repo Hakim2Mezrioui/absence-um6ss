@@ -18,6 +18,7 @@ export class AddEtudiantComponent implements OnInit {
   role: String = 'user';
   selectedFaculte!: String;
   selectedFile: File | null = null;
+  userFaculte!: String;
 
   constructor(
     private router: Router,
@@ -29,6 +30,9 @@ export class AddEtudiantComponent implements OnInit {
   ngOnInit(): void {
     this.startupService.page.next('Ajouter étudiant');
     this.startupService.role.subscribe((value) => (this.role = value));
+    this.startupService.userFaculte.subscribe(
+      (value) => (this.userFaculte = value)
+    );
   }
 
   faculteChange(name: String) {
@@ -40,23 +44,39 @@ export class AddEtudiantComponent implements OnInit {
   }
 
   validateData(): boolean {
-    if (
-      !this.form.value.name ||
-      !this.form.value.matricule ||
-      !this.form.value.promotion ||
-      !this.form.value.faculte ||
-      !this.form.value.groupe
-    ) {
-      this.toastr.error('All fields are required!', 'Validation Error');
+    const formValues = this.form.value;
+  
+    // Vérification des champs obligatoires
+    if (!formValues.name) {
+      this.toastr.error('Le nom est obligatoire !', 'Erreur de Validation');
       return false;
     }
-    if (this.form.value.matricule.toString().length < 6) {
+    if (!formValues.matricule) {
+      this.toastr.error('Le matricule est obligatoire !', 'Erreur de Validation');
+      return false;
+    }
+    if (!formValues.promotion) {
+      this.toastr.error('La promotion est obligatoire !', 'Erreur de Validation');
+      return false;
+    }
+    if (!formValues.faculte) {
+      this.toastr.error('La faculté est obligatoire !', 'Erreur de Validation');
+      return false;
+    }
+    if (!formValues.groupe) {
+      this.toastr.error('Le groupe est obligatoire !', 'Erreur de Validation');
+      return false;
+    }
+  
+    // Validation spécifique pour le matricule
+    if (formValues.matricule.toString().length < 6) {
       this.toastr.error(
-        'Matricule must be at least 6 characters long!',
-        'Validation Error'
+        'Le matricule doit contenir au moins 6 caractères !', 
+        'Erreur de Validation'
       );
       return false;
     }
+  
     return true;
   }
 
@@ -90,11 +110,15 @@ export class AddEtudiantComponent implements OnInit {
   // }
 
   onSubmit(e: any) {
-    // if (!this.validateData()) {
-    //   return;
-    // }
-  
-    // this.loading = true;
+    if (this.userFaculte) {
+      this.form.value.faculte = this.userFaculte;
+    }
+
+    if (!this.validateData()) {
+      return;
+    }
+
+    this.loading = true;
 
     const formData = new FormData();
     formData.append('matricule', this.form.value.matricule);
@@ -111,7 +135,7 @@ export class AddEtudiantComponent implements OnInit {
     // for (let pair of (formData as any).entries()) {
     //   console.log(pair[0] + ': ' + pair[1]);
     // }
-  
+
     this.etudiantService.ajouter(formData).subscribe(
       (response) => {
         this.loading = false;

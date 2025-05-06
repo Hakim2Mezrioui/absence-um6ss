@@ -22,6 +22,7 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::get("etudiants", [EtudiantController::class, "index"]);
 Route::post("import-etudiants", [EtudiantController::class, "ImportEtudiants"]);
 Route::get("fetchEtudiantByPromotion", [EtudiantController::class, "fetchEtudiantByPromotion"]);
+Route::get("fetchEtudiantByFaculte", [EtudiantController::class, "fetchEtudiantByFaculte"]);
 Route::get("etudiant/{matricule}", [EtudiantController::class, "show"]);
 Route::post("add-etudiant", [EtudiantController::class, "store"]);
 Route::put('/update-etudiant/{matricule}', [EtudiantController::class, 'update']);

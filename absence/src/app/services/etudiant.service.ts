@@ -12,7 +12,6 @@ export class EtudiantService {
   constructor(private http: HttpClient) {}
 
   ajouter(etudiant: FormData) {
-    console.log(etudiant);
     // return this.http.post(`${this.baseUrl}/add-etudiant`, {
     //   matricule: etudiant.matricule,
     //   name: etudiant.name,
@@ -28,7 +27,7 @@ export class EtudiantService {
 
   fetch(): Observable<Etudiant[]> {
     return this.http
-      .get(`${this.baseUrl}/fetch-etudiants`)
+      .get(`${this.baseUrl}/fetchEtudiantByFaculte`)
       .pipe(
         map((response: any) => {
           return response.etudiants.map((item: any) => {
@@ -48,6 +47,29 @@ export class EtudiantService {
         })
       );
   }
+
+    fetchByFaculte(faculte: string) {
+      return this.http.get(`${this.baseUrl}/fetchEtudiantByFaculte`, {
+        params: { faculte: faculte }
+      }).pipe(
+        map((response: any) => {
+          return response.etudiants.map((item: any) => {
+            return new Etudiant(
+              item.matricule,
+              item.name,
+              item.promotion,
+              item.faculte,
+              item.groupe,
+              undefined,
+              item.option
+            );
+          });
+        }),
+        tap((etudiants: Etudiant[]) => {
+          this.etudiant = etudiants;
+        })
+      );
+    }
 
   delete(id: number) {
     return this.http.delete(`${this.baseUrl}/delete-etudiants/${id}`, {});

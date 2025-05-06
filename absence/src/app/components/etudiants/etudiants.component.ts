@@ -31,16 +31,23 @@ export class EtudiantsComponent implements OnInit {
 
   ngOnInit(): void {
     this.loading = true;
-    this.etudiantService.fetch().subscribe((etudiants) => {
-      this.etudiants = etudiants;
-      this.loading = false;
-    });
-    this.startupService.page.next('Etudiants');
-
-    this.startupService.role.subscribe((value) => (this.role = value));
     this.startupService.userFaculte.subscribe(
       (value) => (this.userFaculte = value)
     );
+    if(this.userFaculte) {
+      this.etudiantService.fetchByFaculte(this.userFaculte.toString()).subscribe((etudiants) => {
+        this.etudiants = etudiants;
+        this.loading = false;
+      });
+    } else {
+      this.etudiantService.fetch().subscribe((etudiants) => {
+        this.etudiants = etudiants;
+        this.loading = false;
+      });
+    }
+    this.startupService.page.next('Etudiants');
+
+    this.startupService.role.subscribe((value) => (this.role = value));
   }
 
   handleSearch(e: Event) {
