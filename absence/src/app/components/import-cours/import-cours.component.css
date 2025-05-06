@@ -1,6 +1,22 @@
 .body {
-    height: 94vh;
+    height: 80vh;
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+/* Animation fluide pour le contenu */
+.group:hover .group-hover\:-translate-y-1 {
+    transform: translateY(-4px);
+}
+
+/* Effet 'glass' raffiné */
+.bg-gradient-to-br {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+/* Transition des ombres */
+.shadow-xl {
+    transition: box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }

@@ -56,6 +56,8 @@ export class UpdateCoursComponent implements OnInit {
           response.option ?? '',
           response.id
         );
+
+        this.selectedFaculte = response.faculte;
       },
       (error) => {
         console.log(error);

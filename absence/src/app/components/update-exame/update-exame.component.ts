@@ -53,6 +53,8 @@ export class UpdateExameComponent implements OnInit {
           response.examen.promotion,
           response.examen.statut
         );
+
+        this.selectedFaculte = response.examen.faculte;
       },
       (error) => {
         console.log(error);
@@ -116,7 +118,10 @@ export class UpdateExameComponent implements OnInit {
     );
   }
 
-  faculteChange(name: String) {
-    this.selectedFaculte = name;
+  faculteChange(event: Event): void {
+    const target = event.target as HTMLSelectElement;
+    if (target) {
+      this.selectedFaculte = target.value;
+    }
   }
 }

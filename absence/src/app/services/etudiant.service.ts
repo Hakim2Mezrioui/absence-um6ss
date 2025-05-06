@@ -1,15 +1,17 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnInit } from '@angular/core';
 import { Etudiant } from '../models/Etudiant';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, map, Observable, Subject, tap } from 'rxjs';
+import { StartupService } from './startup.service';
 
 @Injectable({
   providedIn: 'root',
 })
-export class EtudiantService {
+export class EtudiantService implements OnInit {
   baseUrl: string = 'http://127.0.0.1:8000/api';
   etudiant: Etudiant[] = [];
-  constructor(private http: HttpClient) {}
+  role!: String;
+  constructor(private http: HttpClient, private startupService: StartupService) {}
 
   ajouter(etudiant: FormData) {
     // return this.http.post(`${this.baseUrl}/add-etudiant`, {
@@ -23,11 +25,17 @@ export class EtudiantService {
     return this.http.post(`${this.baseUrl}/add-etudiant`, etudiant);
   }
 
+  ngOnInit(): void {
+    this.startupService.role.subscribe((role) => {
+      this.role = role;
+    });
+  }
+
   importer() {}
 
   fetch(): Observable<Etudiant[]> {
     return this.http
-      .get(`${this.baseUrl}/fetchEtudiantByFaculte`)
+      .get(`${this.baseUrl}/fetch-etudiants`)
       .pipe(
         map((response: any) => {
           return response.etudiants.map((item: any) => {
