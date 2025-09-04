@@ -83,6 +83,68 @@ class RattrapageService extends BaseService
     }
 
     /**
+     * Récupérer les rattrapages avec pagination et filtres avancés
+     */
+    public function getRattrapagesPaginatedWithFilters(int $size = 10, int $page = 1, array $filters = []): LengthAwarePaginator
+    {
+        $query = Rattrapage::query();
+
+        // Filtre par recherche (nom)
+        if (!empty($filters['search'])) {
+            $query->where('name', 'like', '%' . $filters['search'] . '%');
+        }
+
+        // Filtre par date exacte
+        if (!empty($filters['date'])) {
+            $query->whereDate('date', '=', $filters['date']);
+        }
+        
+        // Filtre par date (à partir de)
+        if (!empty($filters['date_from'])) {
+            $query->whereDate('date', '>=', $filters['date_from']);
+        }
+        
+        // Filtre par date (jusqu'à)
+        if (!empty($filters['date_to'])) {
+            $query->whereDate('date', '<=', $filters['date_to']);
+        }
+
+        // Filtre par heure de début
+        if (!empty($filters['start_hour'])) {
+            $query->whereTime('start_hour', '>=', $filters['start_hour']);
+        }
+
+        // Filtre par heure de fin
+        if (!empty($filters['end_hour'])) {
+            $query->whereTime('end_hour', '<=', $filters['end_hour']);
+        }
+
+        // Tri
+        $sortBy = $filters['sort_by'] ?? 'date';
+        $sortDirection = $filters['sort_direction'] ?? 'desc';
+        
+        // Validation des colonnes de tri
+        $allowedSortColumns = ['date', 'name', 'start_hour', 'end_hour', 'created_at'];
+        if (!in_array($sortBy, $allowedSortColumns)) {
+            $sortBy = 'date';
+        }
+        
+        $allowedSortDirections = ['asc', 'desc'];
+        if (!in_array($sortDirection, $allowedSortDirections)) {
+            $sortDirection = 'desc';
+        }
+
+        // Tri spécial pour les colonnes de type time
+        if ($sortBy === 'start_hour' || $sortBy === 'end_hour') {
+            $query->orderByRaw("TIME($sortBy) $sortDirection");
+        } else {
+            $query->orderBy($sortBy, $sortDirection);
+        }
+
+        return $query->paginate($size, ['*'], 'page', $page);
+    }
+
+    /**
      * Vérifier si un rattrapage existe
      */
     public function rattrapageExists(int $id): bool

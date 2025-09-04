@@ -14,9 +14,11 @@ return new class extends Migration
         Schema::create('salles', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('etage');
+            $table->integer('etage');
             $table->string('batiment');
             $table->foreignId('etablissement_id')->constrained('etablissements')->onDelete('cascade');
+            $table->integer('capacite')->nullable();
+            $table->text('description')->nullable();
             $table->timestamps();
         });
     }

@@ -10,11 +10,24 @@ use Carbon\Carbon;
 class AbsenceService
 {
     /**
+     * Constante pour les relations d'absence avec toutes les relations de l'étudiant
+     */
+    const ABSENCE_RELATIONS = [
+        'etudiant.promotion', 
+        'etudiant.etablissement', 
+        'etudiant.ville', 
+        'etudiant.group', 
+        'etudiant.option',
+        'cours', 
+        'examen'
+    ];
+
+    /**
      * Get all absences
      */
     public function getAllAbsences(): Collection
     {
-        return Absence::with(['etudiant', 'cours', 'examen'])
+        return Absence::with(self::ABSENCE_RELATIONS)
                       ->orderByDesc('date_absence')
                       ->get();
     }
@@ -24,7 +37,7 @@ class AbsenceService
      */
     public function getAbsenceById(int $id): ?Absence
     {
-        return Absence::with(['etudiant', 'cours', 'examen'])->find($id);
+        return Absence::with(self::ABSENCE_RELATIONS)->find($id);
     }
 
     /**
@@ -43,7 +56,7 @@ class AbsenceService
         $absence = Absence::find($id);
         if ($absence) {
             $absence->update($data);
-            return $absence->fresh(['etudiant', 'cours', 'examen']);
+            return $absence->fresh(self::ABSENCE_RELATIONS);
         }
         return null;
     }
@@ -65,13 +78,16 @@ class AbsenceService
      */
     public function searchAbsences(string $searchTerm): Collection
     {
-        return Absence::with(['etudiant', 'cours', 'examen'])
+        return Absence::with(self::ABSENCE_RELATIONS)
                       ->where(function($query) use ($searchTerm) {
                           $query->where('type_absence', 'LIKE', "%{$searchTerm}%")
                                 ->orWhere('motif', 'LIKE', "%{$searchTerm}%")
                                 ->orWhereHas('etudiant', function($subQuery) use ($searchTerm) {
                                     $subQuery->where('nom', 'LIKE', "%{$searchTerm}%")
-                                             ->orWhere('prenom', 'LIKE', "%{$searchTerm}%");
+                                             ->orWhere('prenom', 'LIKE', "%{$searchTerm}%")
+                                             ->orWhere('first_name', 'LIKE', "%{$searchTerm}%")
+                                             ->orWhere('last_name', 'LIKE', "%{$searchTerm}%")
+                                             ->orWhere('matricule', 'LIKE', "%{$searchTerm}%");
                                 });
                       })
                       ->orderByDesc('date_absence')
@@ -86,7 +102,7 @@ class AbsenceService
         $skip = ($page - 1) * $perPage;
         
         $total = Absence::count();
-        $absences = Absence::with(['etudiant', 'cours', 'examen'])
+        $absences = Absence::with(self::ABSENCE_RELATIONS)
                            ->orderByDesc('date_absence')
                            ->skip($skip)
                            ->take($perPage)
@@ -119,7 +135,13 @@ class AbsenceService
      */
     public function getAbsencesByCours(int $coursId): Collection
     {
-        return Absence::with(['etudiant'])
+        return Absence::with([
+                          'etudiant.promotion', 
+                          'etudiant.etablissement', 
+                          'etudiant.ville', 
+                          'etudiant.group', 
+                          'etudiant.option'
+                      ])
                       ->where('cours_id', $coursId)
                       ->orderByDesc('date_absence')
                       ->get();
@@ -130,7 +152,13 @@ class AbsenceService
      */
     public function getAbsencesByExamen(int $examenId): Collection
     {
-        return Absence::with(['etudiant'])
+        return Absence::with([
+                          'etudiant.promotion', 
+                          'etudiant.etablissement', 
+                          'etudiant.ville', 
+                          'etudiant.group', 
+                          'etudiant.option'
+                      ])
                       ->where('examen_id', $examenId)
                       ->orderByDesc('date_absence')
                       ->get();
@@ -144,7 +172,7 @@ class AbsenceService
         $absence = Absence::find($id);
         if ($absence) {
             $absence->update($data);
-            return $absence->fresh(['etudiant', 'cours', 'examen']);
+            return $absence->fresh(self::ABSENCE_RELATIONS);
         }
         return null;
     }
@@ -154,7 +182,7 @@ class AbsenceService
      */
     public function getAbsencesByDateRange(string $dateDebut, string $dateFin): Collection
     {
-        return Absence::with(['etudiant', 'cours', 'examen'])
+        return Absence::with(self::ABSENCE_RELATIONS)
                       ->whereBetween('date_absence', [$dateDebut, $dateFin])
                       ->orderByDesc('date_absence')
                       ->get();
@@ -165,7 +193,7 @@ class AbsenceService
      */
     public function getAbsencesByType(string $type): Collection
     {
-        return Absence::with(['etudiant', 'cours', 'examen'])
+        return Absence::with(self::ABSENCE_RELATIONS)
                       ->where('type_absence', $type)
                       ->orderByDesc('date_absence')
                       ->get();
@@ -176,7 +204,7 @@ class AbsenceService
      */
     public function getAbsencesByJustification(bool $justifiee): Collection
     {
-        return Absence::with(['etudiant', 'cours', 'examen'])
+        return Absence::with(self::ABSENCE_RELATIONS)
                       ->where('justifiee', $justifiee)
                       ->orderByDesc('date_absence')
                       ->get();
@@ -199,7 +227,13 @@ class AbsenceService
      */
     public function getAbsencesByCoursAndDateRange(int $coursId, string $dateDebut, string $dateFin): Collection
     {
-        return Absence::with(['etudiant'])
+        return Absence::with([
+                          'etudiant.promotion', 
+                          'etudiant.etablissement', 
+                          'etudiant.ville', 
+                          'etudiant.group', 
+                          'etudiant.option'
+                      ])
                       ->where('cours_id', $coursId)
                       ->whereBetween('date_absence', [$dateDebut, $dateFin])
                       ->orderByDesc('date_absence')
@@ -320,7 +354,16 @@ class AbsenceService
      */
     public function getAbsencesWithStudentDetails(): Collection
     {
-        return Absence::with(['etudiant:id,nom,prenom,matricule', 'cours:id,title', 'examen:id,title'])
+        return Absence::with([
+                          'etudiant:id,matricule,first_name,last_name,promotion_id,etablissement_id,ville_id,group_id,option_id',
+                          'etudiant.promotion:id,name', 
+                          'etudiant.etablissement:id,name', 
+                          'etudiant.ville:id,name', 
+                          'etudiant.group:id,title', 
+                          'etudiant.option:id,name',
+                          'cours:id,name', 
+                          'examen:id,title'
+                      ])
                       ->orderByDesc('date_absence')
                       ->get();
     }

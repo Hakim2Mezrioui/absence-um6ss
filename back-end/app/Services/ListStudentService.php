@@ -77,11 +77,18 @@ class ListStudentService extends BaseService
     }
 
     /**
-     * Récupérer les étudiants par rattrapage
+     * Récupérer les étudiants par rattrapage avec toutes leurs relations
      */
     public function getStudentsByRattrapage(int $rattrapageId): Collection
     {
-        return ListStudent::with('etudiant')
+        return ListStudent::with([
+            'etudiant.promotion',
+            'etudiant.etablissement',
+            'etudiant.ville',
+            'etudiant.group',
+            'etudiant.option',
+            'rattrapage'
+        ])
             ->where('rattrapage_id', $rattrapageId)
             ->get();
     }

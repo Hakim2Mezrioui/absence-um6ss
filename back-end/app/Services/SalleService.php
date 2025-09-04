@@ -19,7 +19,7 @@ class SalleService
      */
     public function getAllSalles(): Collection
     {
-        return Salle::orderBy('name')->get();
+        return Salle::with('etablissement')->orderBy('name')->get();
     }
 
     /**
@@ -27,7 +27,7 @@ class SalleService
      */
     public function getSalleById(int $id): ?Salle
     {
-        return Salle::find($id);
+        return Salle::with('etablissement')->find($id);
     }
 
     /**
@@ -89,7 +89,8 @@ class SalleService
      */
     public function getSallesByEtablissement(int $etablissementId): Collection
     {
-        return Salle::where('etablissement_id', $etablissementId)
+        return Salle::with('etablissement')
+                   ->where('etablissement_id', $etablissementId)
                    ->orderBy('name')
                    ->get();
     }

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Salle extends Model
 {
-    protected $fillable = ['name', 'etage', 'batiment', 'etablissement_id'];
+    protected $fillable = ['name', 'etage', 'batiment', 'etablissement_id', 'capacite', 'description'];
     
     public function etablissement()
     {

@@ -10,6 +10,12 @@ use PDO;
 use PDOException;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\GroupService;
+// Commenté temporairement en attendant l'activation de l'extension GD
+// use PhpOffice\PhpSpreadsheet\Spreadsheet;
+// use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+// use PhpOffice\PhpSpreadsheet\Style\Alignment;
+// use PhpOffice\PhpSpreadsheet\Style\Border;
+// use PhpOffice\PhpSpreadsheet\Style\Fill;
 
 class EtudiantController extends Controller
 {
@@ -22,9 +28,42 @@ class EtudiantController extends Controller
         $page = $request->get('page', 1);
         $perPage = $request->get('per_page', 10);
         
-        // Récupérer les étudiants avec pagination et relations
-        $etudiants = Etudiant::with(['ville', 'group', 'option', 'etablissement', 'promotion'])
-            ->paginate($perPage, ['*'], 'page', $page);
+        // Construire la requête avec les relations
+        $query = Etudiant::with(['ville', 'group', 'option', 'etablissement', 'promotion']);
+        
+        // Appliquer les filtres
+        if ($request->has('searchValue') && !empty($request->get('searchValue'))) {
+            $searchValue = $request->get('searchValue');
+            $query->where(function($q) use ($searchValue) {
+                $q->where('first_name', 'LIKE', "%{$searchValue}%")
+                  ->orWhere('last_name', 'LIKE', "%{$searchValue}%")
+                  ->orWhere('email', 'LIKE', "%{$searchValue}%")
+                  ->orWhere('matricule', 'LIKE', "%{$searchValue}%");
+            });
+        }
+        
+        if ($request->has('promotion_id') && !empty($request->get('promotion_id'))) {
+            $query->where('promotion_id', $request->get('promotion_id'));
+        }
+        
+        if ($request->has('group_id') && !empty($request->get('group_id'))) {
+            $query->where('group_id', $request->get('group_id'));
+        }
+        
+        if ($request->has('ville_id') && !empty($request->get('ville_id'))) {
+            $query->where('ville_id', $request->get('ville_id'));
+        }
+        
+        if ($request->has('etablissement_id') && !empty($request->get('etablissement_id'))) {
+            $query->where('etablissement_id', $request->get('etablissement_id'));
+        }
+        
+        if ($request->has('option_id') && !empty($request->get('option_id'))) {
+            $query->where('option_id', $request->get('option_id'));
+        }
+        
+        // Récupérer les étudiants avec pagination
+        $etudiants = $query->paginate($perPage, ['*'], 'page', $page);
         
         // Formater la réponse selon la structure attendue par Angular
         return response()->json([
@@ -617,5 +656,601 @@ class EtudiantController extends Controller
                 'message' => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Import students using modern structure (nouvelle méthode)
+     */
+    public function importEtudiantsModern(Request $request) 
+    {
+        // Validation de l'authentification
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Authentication required'], 401);
+        }
+
+        // Validation du fichier
+        $request->validate([
+            'file' => 'required|file|mimes:csv,txt|max:10240', // 10MB max
+        ]);
+
+        if (!$request->hasFile('file')) {
+            return response()->json(['message' => 'No file uploaded'], 400);
+        }
+
+        $file = $request->file('file');
+        $path = $file->getRealPath();
+
+        // Récupérer les options d'importation
+        $importOptions = null;
+        if ($request->has('import_options')) {
+            $importOptions = json_decode($request->input('import_options'), true);
+        }
+
+        $useDefaultValues = $importOptions['useDefaultValues'] ?? false;
+        $defaultValues = $importOptions['defaultValues'] ?? [];
+        $duplicateMode = $importOptions['duplicateMode'] ?? 'update';
+
+        try {
+            // Ouvrir le fichier
+            $handle = fopen($path, 'r');
+            if ($handle === false) {
+                return response()->json(['message' => 'Unable to open file'], 400);
+            }
+
+            // Détecter le délimiteur
+            $firstLine = fgets($handle);
+            $delimiter = $this->detectDelimiter($firstLine);
+            rewind($handle);
+
+            // Parser le CSV
+            $data = [];
+            while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
+                $data[] = $row;
+            }
+            fclose($handle);
+
+            if (empty($data)) {
+                return response()->json(['message' => 'File is empty'], 400);
+            }
+
+            // En-têtes (première ligne)
+            $headers = array_shift($data);
+            $headers = array_map('trim', $headers);
+            $headers = array_map('strtolower', $headers);
+
+            // Définir les colonnes requises en fonction du mode
+            if ($useDefaultValues) {
+                $requiredColumns = ['matricule', 'first_name', 'last_name', 'email'];
+                $optionalColumns = ['promotion_id', 'etablissement_id', 'ville_id', 'group_id', 'option_id'];
+            } else {
+                $requiredColumns = [
+                    'matricule', 'first_name', 'last_name', 'email', 
+                    'promotion_id', 'etablissement_id', 'ville_id', 'group_id', 'option_id'
+                ];
+                $optionalColumns = [];
+            }
+
+            // Validation des colonnes requises
+            foreach ($requiredColumns as $column) {
+                if (!in_array($column, $headers)) {
+                    return response()->json([
+                        'message' => "Missing required column: {$column}",
+                        'required_columns' => $requiredColumns,
+                        'found_columns' => $headers,
+                        'mode' => $useDefaultValues ? 'simplified' : 'complete'
+                    ], 400);
+                }
+            }
+
+            // Traitement des données
+            $created = 0;
+            $updated = 0;
+            $errors = 0;
+            $errorDetails = [];
+
+            foreach ($data as $index => $row) {
+                $lineNumber = $index + 2; // +2 car on a supprimé l'en-tête et les index commencent à 0
+                
+                try {
+                    // Assurer que la ligne a le bon nombre de colonnes
+                    if (count($row) !== count($headers)) {
+                        $errorDetails[] = [
+                            'line' => $lineNumber,
+                            'message' => 'Number of columns does not match headers'
+                        ];
+                        $errors++;
+                        continue;
+                    }
+
+                    // Créer un tableau associatif
+                    $studentData = array_combine($headers, array_map('trim', $row));
+
+                    // Validation des données
+                    if (empty($studentData['matricule']) || empty($studentData['email'])) {
+                        $errorDetails[] = [
+                            'line' => $lineNumber,
+                            'message' => 'Matricule and email are required'
+                        ];
+                        $errors++;
+                        continue;
+                    }
+
+                    // Préparer les données à sauvegarder
+                    $dataToSave = [
+                        'matricule' => $studentData['matricule'],
+                        'first_name' => $studentData['first_name'],
+                        'last_name' => $studentData['last_name'],
+                        'email' => $studentData['email'],
+                        'password' => bcrypt('password123'), // Mot de passe par défaut
+                    ];
+
+                    // Ajouter les IDs selon le mode
+                    if ($useDefaultValues) {
+                        // Utiliser les valeurs par défaut de la configuration
+                        $dataToSave['promotion_id'] = (int) $defaultValues['promotion_id'];
+                        $dataToSave['etablissement_id'] = (int) $defaultValues['etablissement_id'];
+                        $dataToSave['ville_id'] = (int) $defaultValues['ville_id'];
+                        $dataToSave['group_id'] = (int) $defaultValues['group_id'];
+                        $dataToSave['option_id'] = (int) $defaultValues['option_id'];
+                        
+                        // Si des colonnes optionnelles sont présentes dans le CSV, les utiliser
+                        foreach ($optionalColumns as $column) {
+                            if (in_array($column, $headers) && !empty($studentData[$column])) {
+                                $dataToSave[$column] = (int) $studentData[$column];
+                            }
+                        }
+                    } else {
+                        // Utiliser les valeurs du CSV
+                        $dataToSave['promotion_id'] = (int) $studentData['promotion_id'];
+                        $dataToSave['etablissement_id'] = (int) $studentData['etablissement_id'];
+                        $dataToSave['ville_id'] = (int) $studentData['ville_id'];
+                        $dataToSave['group_id'] = (int) $studentData['group_id'];
+                        $dataToSave['option_id'] = (int) $studentData['option_id'];
+                    }
+
+                    // Vérifier si l'étudiant existe déjà
+                    $existingStudent = Etudiant::where('matricule', $studentData['matricule'])
+                                              ->orWhere('email', $studentData['email'])
+                                              ->first();
+
+                    // Gérer les doublons selon le mode configuré
+                    if ($existingStudent) {
+                        if ($duplicateMode === 'skip') {
+                            continue; // Ignorer ce doublon
+                        } elseif ($duplicateMode === 'error') {
+                            $errorDetails[] = [
+                                'line' => $lineNumber,
+                                'message' => 'Duplicate student found: ' . $studentData['matricule']
+                            ];
+                            $errors++;
+                            continue;
+                        }
+                        // Mode 'update' - continuer avec la mise à jour
+                    }
+
+                    if ($existingStudent) {
+                        // Mettre à jour l'étudiant existant
+                        $existingStudent->update($dataToSave);
+                        $updated++;
+                    } else {
+                        // Créer un nouvel étudiant
+                        Etudiant::create($dataToSave);
+                        $created++;
+                    }
+
+                } catch (\Exception $e) {
+                    $errorDetails[] = [
+                        'line' => $lineNumber,
+                        'message' => $e->getMessage()
+                    ];
+                    $errors++;
+                }
+            }
+
+            // Réponse de succès
+            return response()->json([
+                'message' => 'Import completed successfully',
+                'summary' => [
+                    'total_processed' => count($data),
+                    'created' => $created,
+                    'updated' => $updated,
+                    'errors' => $errors
+                ],
+                'error_details' => $errorDetails,
+                'status' => 200
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error processing file',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Export students to CSV file (compatible with Excel)
+     */
+    public function exportEtudiants(Request $request)
+    {
+        try {
+            // Construire la requête avec les relations
+            $query = Etudiant::with(['ville', 'group', 'option', 'etablissement', 'promotion']);
+            
+            // Appliquer les filtres
+            if ($request->has('searchValue') && !empty($request->get('searchValue'))) {
+                $searchValue = $request->get('searchValue');
+                $query->where(function($q) use ($searchValue) {
+                    $q->where('first_name', 'LIKE', "%{$searchValue}%")
+                      ->orWhere('last_name', 'LIKE', "%{$searchValue}%")
+                      ->orWhere('email', 'LIKE', "%{$searchValue}%")
+                      ->orWhere('matricule', 'LIKE', "%{$searchValue}%");
+                });
+            }
+            
+            if ($request->has('promotion_id') && !empty($request->get('promotion_id'))) {
+                $query->where('promotion_id', $request->get('promotion_id'));
+            }
+            
+            if ($request->has('group_id') && !empty($request->get('group_id'))) {
+                $query->where('group_id', $request->get('group_id'));
+            }
+            
+            if ($request->has('ville_id') && !empty($request->get('ville_id'))) {
+                $query->where('ville_id', $request->get('ville_id'));
+            }
+            
+            if ($request->has('etablissement_id') && !empty($request->get('etablissement_id'))) {
+                $query->where('etablissement_id', $request->get('etablissement_id'));
+            }
+            
+            if ($request->has('option_id') && !empty($request->get('option_id'))) {
+                $query->where('option_id', $request->get('option_id'));
+            }
+
+            // Récupérer les étudiants
+            $etudiants = $query->get();
+
+            // Debug: Log le nombre d'étudiants trouvés
+            \Log::info('Export étudiants - Nombre trouvé: ' . $etudiants->count());
+
+            // Si aucun étudiant trouvé, créer des données d'exemple pour le test
+            if ($etudiants->count() === 0) {
+                \Log::info('Aucun étudiant trouvé - Création de données d\'exemple');
+                $etudiants = collect([
+                    (object) [
+                        'id' => 'DEMO',
+                        'matricule' => 'DEMO001',
+                        'first_name' => 'Test',
+                        'last_name' => 'Export',
+                        'email' => 'test@example.com',
+                        'promotion' => (object) ['name' => 'Test Promotion'],
+                        'group' => (object) ['title' => 'Test Groupe'],
+                        'ville' => (object) ['name' => 'Test Ville'],
+                        'etablissement' => (object) ['name' => 'Test Établissement'],
+                        'option' => (object) ['name' => 'Test Option'],
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]
+                ]);
+            }
+
+            // Créer le contenu CSV
+            $csvContent = [];
+            
+            // En-têtes - TOUJOURS inclus
+            $headers = [
+                'ID',
+                'Matricule', 
+                'Prénom',
+                'Nom',
+                'Email',
+                'Promotion',
+                'Groupe',
+                'Ville',
+                'Établissement',
+                'Option',
+                'Date de création',
+                'Dernière modification'
+            ];
+            
+            $csvContent[] = $headers;
+
+            // Données des étudiants
+            foreach ($etudiants as $etudiant) {
+                $csvContent[] = [
+                    $etudiant->id,
+                    $etudiant->matricule,
+                    $etudiant->first_name,
+                    $etudiant->last_name,
+                    $etudiant->email,
+                    $etudiant->promotion ? $etudiant->promotion->name : 'N/A',
+                    $etudiant->group ? $etudiant->group->title : 'N/A',
+                    $etudiant->ville ? $etudiant->ville->name : 'N/A',
+                    $etudiant->etablissement ? $etudiant->etablissement->name : 'N/A',
+                    $etudiant->option ? $etudiant->option->name : 'N/A',
+                    $etudiant->created_at ? $etudiant->created_at->format('d/m/Y H:i') : 'N/A',
+                    $etudiant->updated_at ? $etudiant->updated_at->format('d/m/Y H:i') : 'N/A'
+                ];
+            }
+
+            // Ajouter des informations de rapport
+            $csvContent[] = []; // Ligne vide
+            $csvContent[] = ['=== INFORMATIONS DU RAPPORT ==='];
+            $csvContent[] = ['Rapport généré le', now()->format('d/m/Y à H:i:s')];
+            $csvContent[] = ['Nombre total d\'étudiants', count($etudiants)];
+            $csvContent[] = ['Filtres appliqués', $this->getAppliedFiltersText($request)];
+
+            // Debug: Log le contenu CSV avant écriture
+            \Log::info('Export étudiants - Contenu CSV:', ['lines' => count($csvContent), 'first_few' => array_slice($csvContent, 0, 3)]);
+
+            // Générer le fichier CSV avec nom descriptif
+            $fileName = 'Etudiants_UM6SS_' . now()->format('Y-m-d_H-i-s') . '.csv';
+            $tempFile = tempnam(sys_get_temp_dir(), $fileName);
+
+            \Log::info('Export étudiants - Fichier temporaire: ' . $tempFile);
+
+            $file = fopen($tempFile, 'w');
+            
+            if (!$file) {
+                throw new \Exception('Impossible de créer le fichier temporaire: ' . $tempFile);
+            }
+            
+            // Ajouter BOM pour UTF-8 (pour que Excel reconnaisse les accents)
+            fwrite($file, "\xEF\xBB\xBF");
+            
+            // Écrire les données CSV
+            foreach ($csvContent as $row) {
+                $result = fputcsv($file, $row, ';'); // Utiliser ';' comme séparateur pour Excel français
+                if ($result === false) {
+                    \Log::error('Erreur lors de l\'écriture de la ligne CSV: ' . json_encode($row));
+                }
+            }
+            
+            // IMPORTANT: Forcer l'écriture sur le disque
+            fflush($file);
+            fclose($file);
+            
+            // Vérifier que le fichier a bien été créé et n'est pas vide
+            if (!file_exists($tempFile)) {
+                throw new \Exception('Le fichier temporaire n\'a pas été créé correctement');
+            }
+            
+            $fileSize = filesize($tempFile);
+            \Log::info('Export étudiants - Taille du fichier: ' . $fileSize . ' bytes');
+            
+            if ($fileSize === 0) {
+                throw new \Exception('Le fichier généré est vide');
+            }
+            
+            // Debug: Lire le début du fichier pour vérifier le contenu
+            $fileContent = file_get_contents($tempFile, false, null, 0, 200);
+            \Log::info('Export étudiants - Début du contenu: ' . substr($fileContent, 0, 100));
+
+            // Retourner le fichier en téléchargement avec headers optimisés
+            return response()->download($tempFile, $fileName, [
+                'Content-Type' => 'application/csv',
+                'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+                'Content-Length' => $fileSize,
+                'Cache-Control' => 'no-cache, no-store, must-revalidate',
+                'Pragma' => 'no-cache',
+                'Expires' => '0'
+            ])->deleteFileAfterSend(true);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Erreur lors de l\'exportation',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Générer le texte des filtres appliqués
+     */
+    private function getAppliedFiltersText(Request $request): string
+    {
+        $filters = [];
+        
+        if ($request->has('searchValue') && !empty($request->get('searchValue'))) {
+            $filters[] = 'Recherche: ' . $request->get('searchValue');
+        }
+        
+        if ($request->has('promotion_id') && !empty($request->get('promotion_id'))) {
+            $promotion = \App\Models\Promotion::find($request->get('promotion_id'));
+            $filters[] = 'Promotion: ' . ($promotion ? $promotion->name : 'ID ' . $request->get('promotion_id'));
+        }
+        
+        if ($request->has('group_id') && !empty($request->get('group_id'))) {
+            $group = \App\Models\Group::find($request->get('group_id'));
+            $filters[] = 'Groupe: ' . ($group ? $group->title : 'ID ' . $request->get('group_id'));
+        }
+        
+        if ($request->has('ville_id') && !empty($request->get('ville_id'))) {
+            $ville = \App\Models\Ville::find($request->get('ville_id'));
+            $filters[] = 'Ville: ' . ($ville ? $ville->name : 'ID ' . $request->get('ville_id'));
+        }
+        
+        if ($request->has('etablissement_id') && !empty($request->get('etablissement_id'))) {
+            $etablissement = \App\Models\Etablissement::find($request->get('etablissement_id'));
+            $filters[] = 'Établissement: ' . ($etablissement ? $etablissement->name : 'ID ' . $request->get('etablissement_id'));
+        }
+        
+        if ($request->has('option_id') && !empty($request->get('option_id'))) {
+            $option = \App\Models\Option::find($request->get('option_id'));
+            $filters[] = 'Option: ' . ($option ? $option->name : 'ID ' . $request->get('option_id'));
+        }
+
+        return empty($filters) ? 'Aucun filtre appliqué' : implode(', ', $filters);
+    }
+
+    /**
+     * Test method to check students data for export
+     */
+    public function testExportEtudiants(Request $request)
+    {
+        try {
+            // Construire la requête avec les relations
+            $query = Etudiant::with(['ville', 'group', 'option', 'etablissement', 'promotion']);
+            
+            // Récupérer les étudiants
+            $etudiants = $query->get();
+            
+            return response()->json([
+                'success' => true,
+                'total_etudiants' => $etudiants->count(),
+                'sample_data' => $etudiants->take(3)->map(function($etudiant) {
+                    return [
+                        'id' => $etudiant->id,
+                        'matricule' => $etudiant->matricule,
+                        'first_name' => $etudiant->first_name,
+                        'last_name' => $etudiant->last_name,
+                        'email' => $etudiant->email,
+                        'promotion' => $etudiant->promotion ? $etudiant->promotion->name : null,
+                        'group' => $etudiant->group ? $etudiant->group->title : null,
+                        'ville' => $etudiant->ville ? $etudiant->ville->name : null,
+                        'etablissement' => $etudiant->etablissement ? $etudiant->etablissement->name : null,
+                        'option' => $etudiant->option ? $etudiant->option->name : null,
+                    ];
+                }),
+                'message' => 'Test réussi - ' . $etudiants->count() . ' étudiants trouvés'
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'message' => 'Erreur lors du test'
+            ], 500);
+        }
+    }
+
+    /**
+     * Export students using streaming response (alternative method)
+     */
+    public function exportEtudiantsStream(Request $request)
+    {
+        try {
+            // Construire la requête avec les relations
+            $query = Etudiant::with(['ville', 'group', 'option', 'etablissement', 'promotion']);
+            
+            // Appliquer les filtres (même logique que la méthode principale)
+            if ($request->has('searchValue') && !empty($request->get('searchValue'))) {
+                $searchValue = $request->get('searchValue');
+                $query->where(function($q) use ($searchValue) {
+                    $q->where('first_name', 'LIKE', "%{$searchValue}%")
+                      ->orWhere('last_name', 'LIKE', "%{$searchValue}%")
+                      ->orWhere('email', 'LIKE', "%{$searchValue}%")
+                      ->orWhere('matricule', 'LIKE', "%{$searchValue}%");
+                });
+            }
+            
+            if ($request->has('promotion_id') && !empty($request->get('promotion_id'))) {
+                $query->where('promotion_id', $request->get('promotion_id'));
+            }
+            
+            if ($request->has('group_id') && !empty($request->get('group_id'))) {
+                $query->where('group_id', $request->get('group_id'));
+            }
+            
+            if ($request->has('ville_id') && !empty($request->get('ville_id'))) {
+                $query->where('ville_id', $request->get('ville_id'));
+            }
+            
+            if ($request->has('etablissement_id') && !empty($request->get('etablissement_id'))) {
+                $query->where('etablissement_id', $request->get('etablissement_id'));
+            }
+            
+            if ($request->has('option_id') && !empty($request->get('option_id'))) {
+                $query->where('option_id', $request->get('option_id'));
+            }
+
+            // Récupérer les étudiants
+            $etudiants = $query->get();
+
+            // Nom du fichier
+            $fileName = 'etudiants_' . now()->format('Y-m-d_H-i-s') . '.csv';
+
+            // Utiliser une réponse en streaming
+            return response()->stream(function() use ($etudiants, $request) {
+                $handle = fopen('php://output', 'w');
+                
+                // BOM pour UTF-8
+                fwrite($handle, "\xEF\xBB\xBF");
+                
+                // En-têtes
+                fputcsv($handle, [
+                    'ID', 'Matricule', 'Prénom', 'Nom', 'Email', 
+                    'Promotion', 'Groupe', 'Ville', 'Établissement', 'Option',
+                    'Date de création', 'Dernière modification'
+                ], ';');
+                
+                // Données des étudiants
+                foreach ($etudiants as $etudiant) {
+                    fputcsv($handle, [
+                        $etudiant->id,
+                        $etudiant->matricule,
+                        $etudiant->first_name,
+                        $etudiant->last_name,
+                        $etudiant->email,
+                        $etudiant->promotion ? $etudiant->promotion->name : 'N/A',
+                        $etudiant->group ? $etudiant->group->title : 'N/A',
+                        $etudiant->ville ? $etudiant->ville->name : 'N/A',
+                        $etudiant->etablissement ? $etudiant->etablissement->name : 'N/A',
+                        $etudiant->option ? $etudiant->option->name : 'N/A',
+                        $etudiant->created_at ? $etudiant->created_at->format('d/m/Y H:i') : 'N/A',
+                        $etudiant->updated_at ? $etudiant->updated_at->format('d/m/Y H:i') : 'N/A'
+                    ], ';');
+                }
+                
+                // Informations du rapport
+                fputcsv($handle, [], ';'); // Ligne vide
+                fputcsv($handle, ['=== INFORMATIONS DU RAPPORT ==='], ';');
+                fputcsv($handle, ['Rapport généré le', now()->format('d/m/Y à H:i:s')], ';');
+                fputcsv($handle, ['Nombre total d\'étudiants', $etudiants->count()], ';');
+                fputcsv($handle, ['Filtres appliqués', $this->getAppliedFiltersText($request)], ';');
+                
+                fclose($handle);
+            }, 200, [
+                'Content-Type' => 'text/csv',
+                'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+                'Cache-Control' => 'no-cache, no-store, must-revalidate',
+                'Pragma' => 'no-cache',
+                'Expires' => '0'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Erreur lors de l\'exportation en streaming',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Export ultra-simple for testing - Must work
+     */
+    public function exportSimple(Request $request)
+    {
+        // Méthode streaming ultra-simple
+        $fileName = 'test_export_' . now()->format('Y-m-d_H-i-s') . '.csv';
+
+        return response()->stream(function() {
+            echo "\xEF\xBB\xBF"; // BOM UTF-8
+            echo "ID;Matricule;Prénom;Nom;Email\n";
+            echo "1;MAT001;Ahmed;Benali;ahmed@test.com\n";
+            echo "2;MAT002;Fatima;Alami;fatima@test.com\n";
+            echo "3;MAT003;Mohamed;Rachid;mohamed@test.com\n";
+            echo "\n";
+            echo "=== INFORMATIONS ===\n";
+            echo "Fichier de test généré le;" . now()->format('d/m/Y à H:i:s') . "\n";
+            echo "Type;Export de test ultra-simple\n";
+        }, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0'
+        ]);
     }
 }

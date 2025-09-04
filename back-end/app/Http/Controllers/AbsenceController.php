@@ -33,7 +33,15 @@ class AbsenceController extends Controller
 
         $skip = ($page - 1) * $size;
 
-        $query = Absence::with(['etudiant', 'cours', 'examen']);
+        $query = Absence::with([
+            'etudiant.promotion', 
+            'etudiant.etablissement', 
+            'etudiant.ville', 
+            'etudiant.group', 
+            'etudiant.option',
+            'cours', 
+            'examen'
+        ]);
 
         // Appliquer les filtres
         if (!empty($etudiantId)) {
@@ -66,8 +74,31 @@ class AbsenceController extends Controller
                 $q->where('type_absence', 'LIKE', "%{$searchValue}%")
                   ->orWhere('motif', 'LIKE', "%{$searchValue}%")
                   ->orWhereHas('etudiant', function($subQ) use ($searchValue) {
-                      $subQ->where('nom', 'LIKE', "%{$searchValue}%")
-                           ->orWhere('prenom', 'LIKE', "%{$searchValue}%");
+                      $subQ->where('first_name', 'LIKE', "%{$searchValue}%")
+                           ->orWhere('last_name', 'LIKE', "%{$searchValue}%")
+                           ->orWhere('matricule', 'LIKE', "%{$searchValue}%")
+                           ->orWhere('email', 'LIKE', "%{$searchValue}%");
+                  })
+                  ->orWhereHas('etudiant.promotion', function($subQ) use ($searchValue) {
+                      $subQ->where('name', 'LIKE', "%{$searchValue}%");
+                  })
+                  ->orWhereHas('etudiant.etablissement', function($subQ) use ($searchValue) {
+                      $subQ->where('name', 'LIKE', "%{$searchValue}%");
+                  })
+                  ->orWhereHas('etudiant.ville', function($subQ) use ($searchValue) {
+                      $subQ->where('name', 'LIKE', "%{$searchValue}%");
+                  })
+                  ->orWhereHas('etudiant.group', function($subQ) use ($searchValue) {
+                      $subQ->where('title', 'LIKE', "%{$searchValue}%");
+                  })
+                  ->orWhereHas('etudiant.option', function($subQ) use ($searchValue) {
+                      $subQ->where('name', 'LIKE', "%{$searchValue}%");
+                  })
+                  ->orWhereHas('cours', function($subQ) use ($searchValue) {
+                      $subQ->where('name', 'LIKE', "%{$searchValue}%");
+                  })
+                  ->orWhereHas('examen', function($subQ) use ($searchValue) {
+                      $subQ->where('title', 'LIKE', "%{$searchValue}%");
                   });
             });
         }

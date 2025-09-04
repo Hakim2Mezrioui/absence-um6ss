@@ -191,10 +191,60 @@ class ListStudentController extends Controller
     {
         $students = $this->listStudentService->getStudentsByRattrapage((int) $rattrapageId);
 
+        // Structurer les données pour inclure toutes les relations
+        $formattedStudents = $students->map(function ($listStudent) {
+            return [
+                'id' => $listStudent->id,
+                'etudiant_id' => $listStudent->etudiant_id,
+                'rattrapage_id' => $listStudent->rattrapage_id,
+                'created_at' => $listStudent->created_at,
+                'updated_at' => $listStudent->updated_at,
+                'etudiant' => [
+                    'id' => $listStudent->etudiant->id,
+                    'matricule' => $listStudent->etudiant->matricule,
+                    'first_name' => $listStudent->etudiant->first_name,
+                    'last_name' => $listStudent->etudiant->last_name,
+                    'full_name' => $listStudent->etudiant->full_name,
+                    'email' => $listStudent->etudiant->email,
+                    'photo' => $listStudent->etudiant->photo,
+                    'promotion' => $listStudent->etudiant->promotion ? [
+                        'id' => $listStudent->etudiant->promotion->id,
+                        'name' => $listStudent->etudiant->promotion->name,
+                        'year' => $listStudent->etudiant->promotion->year,
+                    ] : null,
+                    'etablissement' => $listStudent->etudiant->etablissement ? [
+                        'id' => $listStudent->etudiant->etablissement->id,
+                        'name' => $listStudent->etudiant->etablissement->name,
+                        'address' => $listStudent->etudiant->etablissement->address,
+                    ] : null,
+                    'ville' => $listStudent->etudiant->ville ? [
+                        'id' => $listStudent->etudiant->ville->id,
+                        'name' => $listStudent->etudiant->ville->name,
+                    ] : null,
+                    'group' => $listStudent->etudiant->group ? [
+                        'id' => $listStudent->etudiant->group->id,
+                        'name' => $listStudent->etudiant->group->name,
+                    ] : null,
+                    'option' => $listStudent->etudiant->option ? [
+                        'id' => $listStudent->etudiant->option->id,
+                        'name' => $listStudent->etudiant->option->name,
+                    ] : null,
+                ],
+                'rattrapage' => $listStudent->rattrapage ? [
+                    'id' => $listStudent->rattrapage->id,
+                    'name' => $listStudent->rattrapage->name,
+                    'date' => $listStudent->rattrapage->date,
+                    'start_time' => $listStudent->rattrapage->start_time,
+                    'end_time' => $listStudent->rattrapage->end_time,
+                ] : null,
+            ];
+        });
+
         return response()->json([
             'success' => true,
-            'data' => $students,
-            'count' => $students->count()
+            'data' => $formattedStudents,
+            'count' => $students->count(),
+            'message' => 'Étudiants récupérés avec succès avec toutes leurs relations'
         ]);
     }
 

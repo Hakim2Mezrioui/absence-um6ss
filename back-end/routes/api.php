@@ -41,6 +41,7 @@ Route::put("users/{id}", [AuthController::class, "update"]); // Nouvelle route
 Route::middleware('auth:sanctum')->group(function () {
 // Routes spéciales pour les étudiants (AVANT les ressources)
 Route::post("import-etudiants", [EtudiantController::class, "ImportEtudiants"]);
+Route::post("import-students-modern", [EtudiantController::class, "importEtudiantsModern"]);
 
 // Route pour les statistiques
 Route::get("statistics", [StatisticController::class, "getAllStatistics"]);
@@ -54,6 +55,12 @@ Route::delete("etudiant/{matricule}", [EtudiantController::class, "destroyByMatr
 
 // Route pour les options de filtre des étudiants
 Route::get('/etudiants/filter-options', [EtudiantController::class, 'getFilterOptions']);
+// Route pour l'exportation des étudiants
+Route::get('/export-etudiants', [EtudiantController::class, 'exportEtudiants']);
+// Route de test pour vérifier les étudiants
+Route::get('/test-export-etudiants', [EtudiantController::class, 'testExportEtudiants']);
+// Route d'export avec streaming (méthode alternative)
+Route::get('/export-etudiants-stream', [EtudiantController::class, 'exportEtudiantsStream']);
 Route::apiResource('etudiants', EtudiantController::class);
 
 // Group routes - API Resource (remplace les 6 routes individuelles)
@@ -82,6 +89,10 @@ Route::get('/examens/salles', [ExamenController::class, 'getSalles']);
 Route::get('/examens/filter-options', [ExamenController::class, 'getFilterOptions']);
 
 
+// Routes spécifiques pour les établissements AVANT la ressource
+Route::get('etablissements/statistics', [EtablissementController::class, 'getStatistics']);
+Route::get('etablissements/all', [EtablissementController::class, 'allEtablissements']);
+
 // CRUD complet pour les établissements (routes de ressources)
 Route::apiResource('etablissements', EtablissementController::class);
 Route::apiResource('examens', ExamenController::class);
@@ -92,6 +103,10 @@ Route::apiResource('examens', ExamenController::class);
 // Public routes for students
 Route::get("test-etudiants", [EtudiantController::class, "index"]);
 Route::get("test-etudiants-count", [EtudiantController::class, "testStudentsCount"]);
+
+// Routes d'export publiques pour test (sans authentification)
+Route::get('/export-simple-public', [EtudiantController::class, 'exportSimple']);
+Route::get('/export-etudiants-public', [EtudiantController::class, 'exportEtudiantsStream']);
 
 Route::get('/cours', [CoursController::class, 'index']);
 Route::get('/cours/{id}', [CoursController::class, 'show']);

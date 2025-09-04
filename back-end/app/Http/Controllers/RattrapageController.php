@@ -16,14 +16,26 @@ class RattrapageController extends Controller
     }
 
     /**
-     * Afficher la liste paginée des rattrapages
+     * Afficher la liste paginée des rattrapages avec filtres
      */
     public function index(Request $request): JsonResponse
     {
         $size = $request->get('size', 10);
         $page = $request->get('page', 1);
+        
+        // Récupérer les filtres
+        $filters = [
+            'search' => $request->get('search', ''),
+            'date' => $request->get('date', ''),
+            'date_from' => $request->get('date_from', ''),
+            'date_to' => $request->get('date_to', ''),
+            'start_hour' => $request->get('start_hour', ''),
+            'end_hour' => $request->get('end_hour', ''),
+            'sort_by' => $request->get('sort_by', 'date'),
+            'sort_direction' => $request->get('sort_direction', 'desc')
+        ];
 
-        $rattrapages = $this->rattrapageService->getRattrapagesPaginated($size, $page);
+        $rattrapages = $this->rattrapageService->getRattrapagesPaginatedWithFilters($size, $page, $filters);
 
         return response()->json([
             'success' => true,
@@ -32,8 +44,13 @@ class RattrapageController extends Controller
                 'current_page' => $rattrapages->currentPage(),
                 'last_page' => $rattrapages->lastPage(),
                 'per_page' => $rattrapages->perPage(),
-                'total' => $rattrapages->total()
-            ]
+                'total' => $rattrapages->total(),
+                'has_next_page' => $rattrapages->hasMorePages(),
+                'has_prev_page' => $rattrapages->currentPage() > 1
+            ],
+            'filters_applied' => array_filter($filters, function($value) {
+                return !empty($value);
+            })
         ]);
     }
 
@@ -84,13 +101,7 @@ class RattrapageController extends Controller
                 ], 400);
             }
 
-            // Vérifier les conflits d'horaires
-            if ($this->rattrapageService->checkTimeConflictsForDate($validatedData['date'], $validatedData['start_hour'], $validatedData['end_hour'])) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Conflit d\'horaires détecté pour cette date'
-                ], 400);
-            }
+
 
             $rattrapage = $this->rattrapageService->createRattrapage($validatedData);
 
@@ -136,13 +147,7 @@ class RattrapageController extends Controller
             'date' => 'required|date'
         ]);
 
-        // Vérifier les conflits d'horaires (exclure l'ID actuel)
-        if ($this->rattrapageService->checkTimeConflictsForDate($validatedData['date'], $validatedData['start_hour'], $validatedData['end_hour'], (int) $id)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Conflit d\'horaires détecté pour cette date'
-            ], 400);
-        }
+
 
         $rattrapage = $this->rattrapageService->updateRattrapage((int) $id, $validatedData);
 
