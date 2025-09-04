@@ -1,0 +1,288 @@
+/* ===== STYLES GLOBAUX MATERIAL DESIGN MODERNE ===== */
+
+/* ===== SNACKBAR PERSONNALISÉS ===== */
+.snack-success {
+  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%) !important;
+  color: white !important;
+  border-radius: 12px !important;
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3) !important;
+}
+
+.snack-success .mat-mdc-snack-bar-label {
+  color: white !important;
+  font-weight: 500 !important;
+}
+
+.snack-error {
+  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%) !important;
+  color: white !important;
+  border-radius: 12px !important;
+  box-shadow: 0 6px 20px rgba(244, 67, 54, 0.3) !important;
+}
+
+.snack-error .mat-mdc-snack-bar-label {
+  color: white !important;
+  font-weight: 500 !important;
+}
+
+.mat-mdc-snack-bar-container {
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+/* ===== BOUTONS AMÉLIORÉS ===== */
+.mat-mdc-raised-button {
+  border-radius: 12px !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+
+.mat-mdc-raised-button:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2) !important;
+}
+
+.mat-mdc-outlined-button {
+  border-radius: 12px !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+  border-width: 1.5px !important;
+  transition: all 0.3s ease !important;
+}
+
+.mat-mdc-outlined-button:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+.mat-mdc-icon-button {
+  border-radius: 50% !important;
+  transition: all 0.3s ease !important;
+}
+
+.mat-mdc-icon-button:hover {
+  transform: scale(1.1) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* ===== CARDS AMÉLIORÉES ===== */
+.mat-mdc-card {
+  border-radius: 16px !important;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.1),
+    0 2px 6px rgba(0, 0, 0, 0.05) !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+  overflow: hidden !important;
+}
+
+.mat-mdc-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 
+    0 8px 25px rgba(0, 0, 0, 0.15),
+    0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* ===== PROGRESS BAR ===== */
+.mat-mdc-progress-bar {
+  border-radius: 8px !important;
+  overflow: hidden !important;
+}
+
+.mat-mdc-progress-bar .mat-mdc-progress-bar-buffer {
+  background: rgba(63, 81, 181, 0.1) !important;
+}
+
+.mat-mdc-progress-bar .mat-mdc-progress-bar-fill::after {
+  background: linear-gradient(90deg, #3f51b5, #5c6bc0, #3f51b5) !important;
+  background-size: 200% 100% !important;
+  animation: shimmer 2s infinite !important;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ===== DIALOGS ===== */
+.mat-mdc-dialog-container {
+  border-radius: 20px !important;
+  overflow: hidden !important;
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.25),
+    0 12px 25px rgba(0, 0, 0, 0.15) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+/* ===== MENUS ET SELECTS ===== */
+.mat-mdc-menu-panel {
+  border-radius: 12px !important;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+  backdrop-filter: blur(10px) !important;
+  overflow: hidden !important;
+}
+
+.mat-mdc-menu-item {
+  border-radius: 8px !important;
+  margin: 4px 8px !important;
+  transition: all 0.2s ease !important;
+}
+
+.mat-mdc-menu-item:hover {
+  background: rgba(63, 81, 181, 0.08) !important;
+  transform: translateX(4px) !important;
+}
+
+.mat-mdc-select-panel {
+  border-radius: 12px !important;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+  backdrop-filter: blur(10px) !important;
+  overflow: hidden !important;
+}
+
+.mat-mdc-option {
+  border-radius: 8px !important;
+  margin: 4px 8px !important;
+  transition: all 0.2s ease !important;
+}
+
+.mat-mdc-option:hover {
+  background: rgba(63, 81, 181, 0.08) !important;
+}
+
+.mat-mdc-option.mat-mdc-option-active {
+  background: rgba(63, 81, 181, 0.12) !important;
+  color: #3f51b5 !important;
+  font-weight: 500 !important;
+}
+
+/* ===== TOOLTIPS ===== */
+.mat-mdc-tooltip {
+  background: rgba(33, 33, 33, 0.95) !important;
+  color: white !important;
+  border-radius: 8px !important;
+  font-size: 12px !important;
+  padding: 8px 12px !important;
+  backdrop-filter: blur(10px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* ===== DATEPICKER ===== */
+.mat-datepicker-popup {
+  border-radius: 16px !important;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2) !important;
+  overflow: hidden !important;
+}
+
+.mat-calendar-header {
+  background: linear-gradient(135deg, #3f51b5 0%, #5c6bc0 100%) !important;
+}
+
+.mat-calendar-body-selected {
+  background: #3f51b5 !important;
+  border-radius: 50% !important;
+}
+
+.mat-calendar-body-cell:hover {
+  background: rgba(63, 81, 181, 0.1) !important;
+  border-radius: 50% !important;
+}
+
+/* ===== RIPPLE EFFECTS ===== */
+.mat-ripple-element {
+  background: rgba(63, 81, 181, 0.2) !important;
+}
+
+/* ===== SCROLLBAR GLOBAL ===== */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #c1c1c1 #f1f1f1;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #c1c1c1 0%, #a1a1a1 100%);
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #a1a1a1 0%, #888 100%);
+}
+
+/* ===== ANIMATIONS GLOBALES ===== */
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideInFromBottom {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeInScale 0.3s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideInFromBottom 0.4s ease-out;
+}
+
+/* ===== RESPONSIVE AMÉLIORATIONS ===== */
+@media (max-width: 768px) {
+  .mat-mdc-dialog-container {
+    margin: 16px !important;
+    max-height: calc(100vh - 32px) !important;
+    border-radius: 16px !important;
+  }
+  
+  .mat-mdc-snack-bar-container {
+    margin: 16px !important;
+    max-width: calc(100vw - 32px) !important;
+  }
+}
+
+/* ===== THÈME SOMBRE SUPPORT ===== */
+.dark-theme .mat-mdc-card {
+  background: rgba(45, 45, 45, 0.9) !important;
+  color: #fff !important;
+}
+
+.dark-theme .mat-mdc-dialog-container {
+  background: rgba(30, 30, 30, 0.95) !important;
+  color: #fff !important;
+}
+
+.dark-theme .mat-mdc-menu-panel {
+  background: rgba(45, 45, 45, 0.95) !important;
+  color: #fff !important;
+}
+
+.dark-theme .mat-mdc-select-panel {
+  background: rgba(45, 45, 45, 0.95) !important;
+  color: #fff !important;
+}

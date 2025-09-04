@@ -19,11 +19,13 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'first_name',
+        'last_name',
         'email',
         'password',
-        'role',
-        'faculte',
+        'role_id',
+        'post_id',
+        'etablissement_id',
     ];
 
     /**
@@ -47,5 +49,34 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Get the user's full name.
+     */
+    public function getFullNameAttribute()
+    {
+        return "{$this->first_name} {$this->last_name}";
+    }
+
+    /**
+     * Get the role that owns the user.
+     */
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
+
+    /**
+     * Get the post that owns the user.
+     */
+    public function post()
+    {
+        return $this->belongsTo(Post::class);
+    }
+
+    public function etablissement()
+    {
+        return $this->belongsTo(Etablissement::class);
     }
 }

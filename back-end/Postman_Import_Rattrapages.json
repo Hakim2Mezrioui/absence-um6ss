@@ -1,0 +1,154 @@
+{
+  "info": {
+    "name": "Import Rattrapages API",
+    "description": "Collection Postman pour tester l'API d'importation des rattrapages",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Import Rattrapages - Succès",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "description": "Token d'authentification"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": "database/csv/rattrapages_example.csv",
+              "description": "Fichier CSV des rattrapages"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/api/rattrapages/import",
+          "host": ["{{base_url}}"],
+          "path": ["api", "rattrapages", "import"]
+        },
+        "description": "Test d'importation réussie avec un fichier CSV valide"
+      },
+      "response": []
+    },
+    {
+      "name": "Import Rattrapages - Erreurs de validation",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "description": "Token d'authentification"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": "database/csv/rattrapages_test_errors.csv",
+              "description": "Fichier CSV avec des erreurs de validation"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/api/rattrapages/import",
+          "host": ["{{base_url}}"],
+          "path": ["api", "rattrapages", "import"]
+        },
+        "description": "Test d'importation avec un fichier contenant des erreurs de validation"
+      },
+      "response": []
+    },
+    {
+      "name": "Import Rattrapages - Fichier manquant",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "description": "Token d'authentification"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": []
+        },
+        "url": {
+          "raw": "{{base_url}}/api/rattrapages/import",
+          "host": ["{{base_url}}"],
+          "path": ["api", "rattrapages", "import"]
+        },
+        "description": "Test d'importation sans fichier (erreur attendue)"
+      },
+      "response": []
+    },
+    {
+      "name": "Import Rattrapages - Type de fichier invalide",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "description": "Token d'authentification"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": "README.md",
+              "description": "Fichier texte non-CSV (erreur attendue)"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/api/rattrapages/import",
+          "host": ["{{base_url}}"],
+          "path": ["api", "rattrapages", "import"]
+        },
+        "description": "Test d'importation avec un type de fichier non supporté"
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000",
+      "description": "URL de base de l'API"
+    },
+    {
+      "key": "token",
+      "value": "YOUR_AUTH_TOKEN_HERE",
+      "description": "Token d'authentification (remplacer par votre token)"
+    }
+  ]
+} 

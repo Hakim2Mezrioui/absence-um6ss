@@ -1,0 +1,840 @@
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    
+    <!-- Header Principal avec design moderne -->
+    <div class="mb-8">
+      <div class="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              🎓 Gestion des Étudiants
+            </h1>
+            <p class="mt-3 text-lg text-gray-600">Consultez et gérez tous les étudiants de votre établissement</p>
+          </div>
+          
+          <!-- Actions principales avec design moderne -->
+          <div class="flex gap-4">
+            <button 
+              mat-raised-button
+              color="primary"
+              (click)="navigateToAddStudent()"
+              [disabled]="loading"
+              class="flex items-center gap-3 px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            >
+              <mat-icon class="text-xl">add</mat-icon>
+              <span class="font-semibold">Ajouter un étudiant</span>
+            </button>
+            
+            <button 
+              mat-stroked-button
+              color="accent"
+              (click)="navigateToImport()"
+              [disabled]="loading"
+              class="flex items-center gap-3 px-6 py-3 rounded-xl border-2 hover:bg-accent hover:text-white transition-all duration-300"
+            >
+              <mat-icon class="text-xl">upload</mat-icon>
+              <span class="font-semibold">Importer</span>
+            </button>
+            
+            <button 
+              mat-stroked-button
+              color="primary"
+              (click)="exportEtudiants()"
+              [disabled]="loading"
+              class="flex items-center gap-3 px-6 py-3 rounded-xl border-2 hover:bg-primary hover:text-white transition-all duration-300"
+            >
+              <mat-icon class="text-xl" *ngIf="!loading">download</mat-icon>
+              <mat-spinner diameter="20" *ngIf="loading"></mat-spinner>
+              <span class="font-semibold">
+                {{ loading ? 'Exportation...' : 'Exporter' }}
+              </span>
+            </button>
+            
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions en lot avec design moderne -->
+    <div *ngIf="getSelectedCount() > 0" class="mb-6">
+      <div class="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl shadow-lg p-6 text-white">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="bg-white bg-opacity-20 rounded-full p-3">
+              <mat-icon class="text-white text-2xl">group</mat-icon>
+            </div>
+            <div>
+              <div class="text-2xl font-bold">{{ getSelectedCount() }}</div>
+              <div class="text-blue-100">étudiant(s) sélectionné(s)</div>
+            </div>
+          </div>
+          <div class="flex gap-3">
+            <button 
+              mat-stroked-button
+              color="warn"
+              (click)="deleteSelectedEtudiants()"
+              class="flex items-center gap-3 px-6 py-3 rounded-xl border-white text-white hover:bg-white hover:text-red-600 transition-all duration-300"
+            >
+              <mat-icon>delete</mat-icon>
+              <span class="font-semibold">Supprimer la sélection</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filtres avec design ultra élégant et professionnel -->
+    <div class="mb-8">
+      <!-- Cartes de statistiques élégantes -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <!-- Carte Total Étudiants -->
+        <div class="group relative overflow-hidden bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+          <div class="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-indigo-50/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div class="relative p-6">
+            <div class="flex items-center justify-between mb-4">
+              <div class="w-12 h-12 bg-gradient-to-br from-slate-700 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                <mat-icon class="text-white text-xl">school</mat-icon>
+              </div>
+              <div class="text-right">
+                <div class="text-3xl font-bold text-gray-900 group-hover:text-blue-700 transition-colors duration-300">{{ etudiants.length }}</div>
+                <div class="text-sm text-gray-500 group-hover:text-blue-600 transition-colors duration-300">Total Étudiants</div>
+              </div>
+            </div>
+            <div class="h-1 bg-gray-200 rounded-full overflow-hidden">
+              <div class="h-full bg-gradient-to-r from-slate-600 to-blue-500 rounded-full transition-all duration-1000" 
+                   [style.width.%]="Math.min((etudiants.length / 1000) * 100, 100)"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Carte Filtres Actifs -->
+        <div class="group relative overflow-hidden bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+          <div class="absolute inset-0 bg-gradient-to-br from-emerald-50/50 to-teal-50/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div class="relative p-6">
+            <div class="flex items-center justify-between mb-4">
+              <div class="w-12 h-12 bg-gradient-to-br from-slate-700 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
+                <mat-icon class="text-white text-xl">tune</mat-icon>
+              </div>
+              <div class="text-right">
+                <div class="text-3xl font-bold text-gray-900 group-hover:text-emerald-700 transition-colors duration-300">{{ getActiveFiltersCount() }}</div>
+                <div class="text-sm text-gray-500 group-hover:text-emerald-600 transition-colors duration-300">Filtres Actifs</div>
+              </div>
+            </div>
+            <div class="h-1 bg-gray-200 rounded-full overflow-hidden">
+              <div class="h-full bg-gradient-to-r from-slate-600 to-emerald-500 rounded-full transition-all duration-1000" 
+                   [style.width.%]="Math.min((getActiveFiltersCount() / 5) * 100, 100)"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Carte Résultats -->
+        <div class="group relative overflow-hidden bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+          <div class="absolute inset-0 bg-gradient-to-br from-purple-50/50 to-indigo-50/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div class="relative p-6">
+            <div class="flex items-center justify-between mb-4">
+              <div class="w-12 h-12 bg-gradient-to-br from-slate-700 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                <mat-icon class="text-white text-xl">analytics</mat-icon>
+              </div>
+              <div class="text-right">
+                <div class="text-3xl font-bold text-gray-900 group-hover:text-purple-700 transition-colors duration-300">{{ total }}</div>
+                <div class="text-sm text-gray-500 group-hover:text-purple-600 transition-colors duration-300">Résultats</div>
+              </div>
+            </div>
+            <div class="h-1 bg-gray-200 rounded-full overflow-hidden">
+              <div class="h-full bg-gradient-to-r from-slate-600 to-purple-500 rounded-full transition-all duration-1000" 
+                   [style.width.%]="Math.min((total / 1000) * 100, 100)"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interface de filtres principale -->
+      <div class="relative">
+        <!-- Fond avec effet de profondeur -->
+        <div class="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-blue-50/30 rounded-3xl blur-3xl opacity-60"></div>
+        
+        <!-- Carte principale -->
+        <div class="relative bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
+          <!-- En-tête sophistiqué -->
+          <div class="relative overflow-hidden">
+            <div class="absolute inset-0 bg-slate-800"></div>
+            <div class="absolute inset-0 bg-gradient-to-r from-white/5 to-white/10 opacity-30"></div>
+            
+            <div class="relative px-8 py-8">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                  <div class="relative">
+                    <div class="w-16 h-16 bg-slate-600 rounded-2xl flex items-center justify-center shadow-2xl">
+                      <mat-icon class="text-white text-3xl">filter_alt</mat-icon>
+                    </div>
+                    <div class="absolute -top-2 -right-2 w-6 h-6 bg-slate-500 rounded-full flex items-center justify-center shadow-lg">
+                      <div class="w-2 h-2 bg-white rounded-full"></div>
+                    </div>
+                  </div>
+                  <div>
+                    <h2 class="text-3xl font-bold text-white mb-2">Filtres & Recherche</h2>
+                    <p class="text-gray-200 text-lg">Affinez vos résultats avec précision</p>
+                  </div>
+                </div>
+                
+                <!-- Bouton de réinitialisation élégant -->
+                <button 
+                  (click)="clearFilters()"
+                  class="group relative overflow-hidden bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl px-6 py-3 text-white hover:bg-white/20 transition-all duration-300 flex items-center gap-3"
+                >
+                  <div class="relative">
+                    <mat-icon class="text-white group-hover:rotate-180 transition-transform duration-500">refresh</mat-icon>
+                  </div>
+                  <span class="font-medium">Réinitialiser</span>
+                  <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                </button>
+              </div>
+
+              <!-- Indicateur de filtres actifs -->
+              <div *ngIf="getActiveFiltersCount() > 0" class="mt-6 flex items-center gap-3">
+                <div class="flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2">
+                  <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                  <span class="text-white text-sm font-medium">
+                    {{ getActiveFiltersCount() }} filtre{{ getActiveFiltersCount() > 1 ? 's' : '' }} actif{{ getActiveFiltersCount() > 1 ? 's' : '' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contenu des filtres -->
+          <div class="p-8">
+            <form [formGroup]="filtersForm" class="space-y-8">
+              <!-- Section de recherche globale -->
+              <div class="space-y-4">
+                <div class="flex items-center gap-3 mb-4">
+                  <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                    <mat-icon class="text-white text-sm">search</mat-icon>
+                  </div>
+                  <h3 class="text-xl font-semibold text-gray-800">Recherche Globale</h3>
+                </div>
+                
+                <div class="relative group">
+                  <div class="absolute inset-0 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl blur opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+                  <div class="relative">
+                <input
+                  type="text"
+                  placeholder="Rechercher par nom, prénom, email, matricule..."
+                  [value]="globalFilterValue"
+                  (input)="onGlobalFilterChange($event)"
+                      class="w-full pl-16 pr-6 py-5 text-lg text-gray-900 placeholder-gray-500 bg-white border-2 border-gray-200 rounded-2xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none transition-all duration-300 group-hover:border-blue-300 group-hover:shadow-lg"
+                  autocomplete="off"
+                  spellcheck="false"
+                >
+                    <div class="absolute left-5 top-1/2 transform -translate-y-1/2">
+                      <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                        <mat-icon class="text-white text-lg">search</mat-icon>
+                      </div>
+                    </div>
+                    <div class="absolute right-5 top-1/2 transform -translate-y-1/2">
+                      <div class="bg-gray-100 text-gray-500 text-xs px-3 py-1 rounded-full font-medium">
+                        ⌨️ Entrée
+                      </div>
+                    </div>
+                  </div>
+                  <p class="text-sm text-gray-500 mt-3 ml-5">Tapez pour filtrer en temps réel ou appuyez sur Entrée pour une recherche avancée</p>
+                </div>
+              </div>
+
+              <!-- Séparateur élégant -->
+              <div class="relative">
+                <div class="absolute inset-0 flex items-center">
+                  <div class="w-full border-t border-gray-200"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                  <span class="px-6 bg-white text-gray-500 font-semibold text-lg flex items-center gap-2">
+                    <div class="w-1 h-1 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full"></div>
+                    Filtres Spécialisés
+                    <div class="w-1 h-1 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full"></div>
+                  </span>
+                </div>
+            </div>
+
+              <!-- Grille de filtres -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+              
+              <!-- Promotion -->
+                <div class="group">
+                  <div class="bg-gradient-to-br from-white to-blue-50/30 rounded-2xl p-5 border border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-lg">
+                    <div class="flex items-center gap-3 mb-4">
+                      <div class="w-8 h-8 bg-gradient-to-br from-slate-600 to-blue-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <mat-icon class="text-white text-sm">school</mat-icon>
+                      </div>
+                      <h4 class="font-semibold text-gray-800 group-hover:text-blue-700 transition-colors duration-300">Promotion</h4>
+                    </div>
+                    <select 
+                    formControlName="promotion_id" 
+                      class="w-full px-4 py-3 bg-white rounded-xl border border-gray-200 focus:border-blue-500 focus:outline-none transition-all duration-200 text-gray-700 hover:border-blue-300"
+                  >
+                      <option value="">Toutes les promotions</option>
+                      <option *ngFor="let promotion of filterOptions.promotions" [value]="promotion.id">
+                      {{ promotion.name }}
+                      </option>
+                    </select>
+                  </div>
+              </div>
+
+              <!-- Groupe -->
+                <div class="group">
+                  <div class="bg-gradient-to-br from-white to-emerald-50/30 rounded-2xl p-5 border border-gray-200 hover:border-emerald-300 transition-all duration-300 hover:shadow-lg">
+                    <div class="flex items-center gap-3 mb-4">
+                      <div class="w-8 h-8 bg-gradient-to-br from-slate-600 to-emerald-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <mat-icon class="text-white text-sm">group</mat-icon>
+                      </div>
+                      <h4 class="font-semibold text-gray-800 group-hover:text-emerald-700 transition-colors duration-300">Groupe</h4>
+                    </div>
+                    <select 
+                    formControlName="group_id" 
+                      class="w-full px-4 py-3 bg-white rounded-xl border border-gray-200 focus:border-emerald-500 focus:outline-none transition-all duration-200 text-gray-700 hover:border-emerald-300"
+                  >
+                      <option value="">Tous les groupes</option>
+                      <option *ngFor="let group of filterOptions.groups" [value]="group.id">
+                      {{ group.title }}
+                      </option>
+                    </select>
+                  </div>
+              </div>
+
+              <!-- Ville -->
+                <div class="group">
+                  <div class="bg-gradient-to-br from-white to-orange-50/30 rounded-2xl p-5 border border-gray-200 hover:border-orange-300 transition-all duration-300 hover:shadow-lg">
+                    <div class="flex items-center gap-3 mb-4">
+                      <div class="w-8 h-8 bg-gradient-to-br from-slate-600 to-orange-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <mat-icon class="text-white text-sm">location_city</mat-icon>
+                      </div>
+                      <h4 class="font-semibold text-gray-800 group-hover:text-orange-700 transition-colors duration-300">Ville</h4>
+                    </div>
+                    <select 
+                    formControlName="ville_id" 
+                      class="w-full px-4 py-3 bg-white rounded-xl border border-gray-200 focus:border-orange-500 focus:outline-none transition-all duration-200 text-gray-700 hover:border-orange-300"
+                  >
+                      <option value="">Toutes les villes</option>
+                      <option *ngFor="let ville of filterOptions.villes" [value]="ville.id">
+                      {{ ville.name }}
+                      </option>
+                    </select>
+                  </div>
+              </div>
+
+              <!-- Établissement -->
+                <div class="group">
+                  <div class="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-5 border border-gray-200 hover:border-purple-300 transition-all duration-300 hover:shadow-lg">
+                    <div class="flex items-center gap-3 mb-4">
+                      <div class="w-8 h-8 bg-gradient-to-br from-slate-600 to-purple-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <mat-icon class="text-white text-sm">business</mat-icon>
+                      </div>
+                      <h4 class="font-semibold text-gray-800 group-hover:text-purple-700 transition-colors duration-300">Établissement</h4>
+                    </div>
+                    <select 
+                    formControlName="etablissement_id" 
+                      class="w-full px-4 py-3 bg-white rounded-xl border border-gray-200 focus:border-purple-500 focus:outline-none transition-all duration-200 text-gray-700 hover:border-purple-300"
+                  >
+                      <option value="">Tous les établissements</option>
+                      <option *ngFor="let etablissement of filterOptions.etablissements" [value]="etablissement.id">
+                      {{ etablissement.name }}
+                      </option>
+                    </select>
+                  </div>
+              </div>
+
+              <!-- Option -->
+                <div class="group">
+                  <div class="bg-gradient-to-br from-white to-indigo-50/30 rounded-2xl p-5 border border-gray-200 hover:border-indigo-300 transition-all duration-300 hover:shadow-lg">
+                    <div class="flex items-center gap-3 mb-4">
+                      <div class="w-8 h-8 bg-gradient-to-br from-slate-600 to-indigo-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <mat-icon class="text-white text-sm">book</mat-icon>
+                      </div>
+                      <h4 class="font-semibold text-gray-800 group-hover:text-indigo-700 transition-colors duration-300">Option</h4>
+                    </div>
+                    <select 
+                    formControlName="option_id" 
+                      class="w-full px-4 py-3 bg-white rounded-xl border border-gray-200 focus:border-indigo-500 focus:outline-none transition-all duration-200 text-gray-700 hover:border-indigo-300"
+                  >
+                      <option value="">Toutes les options</option>
+                      <option *ngFor="let option of filterOptions.options" [value]="option.id">
+                      {{ option.name }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Barre d'actions élégante -->
+              <div class="bg-gradient-to-r from-gray-50 to-blue-50 rounded-2xl p-6 border border-gray-200">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <!-- Indicateurs visuels -->
+                  <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-2">
+                      <div class="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+                      <span class="text-sm text-gray-600 font-medium">
+                        Filtres actifs : 
+                        <span class="text-blue-600 font-semibold">
+                          {{ getActiveFiltersCount() }} critère(s)
+                        </span>
+                      </span>
+                    </div>
+                    
+                                        <!-- Tags des filtres actifs -->
+                    <div class="flex flex-wrap gap-2">
+                      <span *ngIf="filtersForm.get('promotion_id')?.value" class="bg-gray-100 text-gray-800 text-xs px-3 py-1 rounded-full font-medium border border-gray-200">
+                        Promotion
+                      </span>
+                      <span *ngIf="filtersForm.get('group_id')?.value" class="bg-gray-100 text-gray-800 text-xs px-3 py-1 rounded-full font-medium border border-gray-200">
+                        Groupe
+                      </span>
+                      <span *ngIf="filtersForm.get('ville_id')?.value" class="bg-gray-100 text-gray-800 text-xs px-3 py-1 rounded-full font-medium border border-gray-200">
+                        Ville
+                      </span>
+                      <span *ngIf="filtersForm.get('etablissement_id')?.value" class="bg-gray-100 text-gray-800 text-xs px-3 py-1 rounded-full font-medium border border-gray-200">
+                        Établissement
+                      </span>
+                      <span *ngIf="filtersForm.get('option_id')?.value" class="bg-gray-100 text-gray-800 text-xs px-3 py-1 rounded-full font-medium border border-gray-200">
+                        Option
+                      </span>
+                      <span *ngIf="globalFilterValue.trim()" class="bg-gray-100 text-gray-800 text-xs px-3 py-1 rounded-full font-medium border border-gray-200">
+                        Recherche
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <!-- Boutons d'action -->
+                  <div class="flex gap-3">
+                    <button 
+                      type="button"
+                      (click)="applyFilters()"
+                      class="bg-slate-800 hover:bg-slate-700 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center gap-2"
+                    >
+                      <mat-icon class="text-lg">check_circle</mat-icon>
+                      Appliquer
+                    </button>
+                    
+                    <button 
+                      type="button"
+                      (click)="resetFilters()"
+                      class="bg-gray-600 hover:bg-gray-500 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center gap-2"
+                    >
+                      <mat-icon class="text-lg">restore</mat-icon>
+                      Réinitialiser
+                    </button>
+                  </div>
+              </div>
+            </div>
+          </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Datatable Ultra-Optimisé avec Design Moderne -->
+    <div class="bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
+      <!-- En-tête du datatable avec design premium -->
+      <div class="bg-slate-800 text-white p-6">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-slate-600 rounded-2xl flex items-center justify-center shadow-2xl">
+              <mat-icon class="text-white text-2xl">table_chart</mat-icon>
+            </div>
+            <div>
+              <h2 class="text-2xl font-bold">Liste des Étudiants</h2>
+              <p class="text-gray-300 text-sm">Gérez et consultez tous vos étudiants</p>
+            </div>
+          </div>
+          
+          <!-- Statistiques en temps réel -->
+          <div class="flex items-center gap-6">
+            <div class="text-center">
+              <div class="text-2xl font-bold text-gray-200">{{ etudiants.length }}</div>
+              <div class="text-xs text-gray-400">Affichés</div>
+            </div>
+            <div class="text-center">
+              <div class="text-2xl font-bold text-gray-200">{{ total }}</div>
+              <div class="text-xs text-gray-400">Total</div>
+            </div>
+            <div class="text-center">
+              <div class="text-2xl font-bold text-gray-200">{{ getSelectedCount() }}</div>
+              <div class="text-xs text-gray-400">Sélectionnés</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barre d'outils avec actions rapides -->
+      <div class="bg-gradient-to-r from-gray-50 to-blue-50 px-6 py-4 border-b border-gray-200">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <!-- Indicateur de chargement -->
+            <div *ngIf="loading" class="flex items-center gap-2 text-blue-600">
+              <mat-spinner diameter="20"></mat-spinner>
+              <span class="text-sm font-medium">Chargement...</span>
+            </div>
+            
+            <!-- Indicateur d'erreur -->
+            <div *ngIf="error && !loading" class="flex items-center gap-2 text-red-600">
+              <mat-icon class="text-sm">error</mat-icon>
+              <span class="text-sm font-medium">{{ error }}</span>
+            </div>
+            
+            <!-- Indicateur de succès -->
+            <div *ngIf="success" class="flex items-center gap-2 text-green-600">
+              <mat-icon class="text-sm">check_circle</mat-icon>
+              <span class="text-sm font-medium">{{ success }}</span>
+            </div>
+          </div>
+          
+          <!-- Actions rapides -->
+          <div class="flex items-center gap-3">
+            <div class="bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-200">
+              <span class="text-sm font-medium text-gray-700">
+                {{ getStartIndex() }} - {{ getEndIndex() }}
+              </span>
+              <span class="text-gray-500 ml-1">sur {{ total }}</span>
+            </div>
+            
+            <button 
+              *ngIf="getSelectedCount() > 0"
+              (click)="deleteSelectedEtudiants()"
+              class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-2 hover:scale-105"
+            >
+              <mat-icon class="text-sm">delete_sweep</mat-icon>
+              Supprimer ({{ getSelectedCount() }})
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Contenu principal du datatable -->
+      <div class="p-6">
+        <!-- États spéciaux -->
+        <div *ngIf="loading" class="flex justify-center items-center py-20">
+          <div class="text-center">
+            <div class="relative">
+              <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
+                <mat-icon class="text-white text-3xl">school</mat-icon>
+              </div>
+              <div class="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full flex items-center justify-center">
+                <div class="w-2 h-2 bg-white rounded-full animate-bounce"></div>
+              </div>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-700 mb-2">Chargement des étudiants...</h3>
+            <p class="text-gray-500">Veuillez patienter pendant que nous récupérons vos données</p>
+          </div>
+        </div>
+
+        <div *ngIf="error && !loading" class="text-center py-20">
+          <div class="max-w-md mx-auto">
+            <div class="w-24 h-24 bg-gradient-to-br from-red-200 to-red-300 rounded-full flex items-center justify-center mx-auto mb-6">
+              <mat-icon class="text-4xl text-red-500">error_outline</mat-icon>
+            </div>
+            <h3 class="text-2xl font-semibold text-red-700 mb-3">Erreur de chargement</h3>
+            <p class="text-red-600 mb-6">{{ error }}</p>
+            <button
+              (click)="loadEtudiants()"
+              class="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-xl font-medium transition-all duration-200 flex items-center gap-2 mx-auto"
+            >
+              <mat-icon>refresh</mat-icon>
+              Réessayer
+            </button>
+          </div>
+        </div>
+
+        <!-- Datatable principal avec design ultra-moderne -->
+        <div *ngIf="!loading && !error" class="overflow-hidden">
+          <div class="bg-gradient-to-r from-gray-50 to-blue-50 rounded-2xl p-1 mb-6">
+            <table mat-table [dataSource]="etudiants" matSort class="w-full modern-table">
+              
+              <!-- Colonne de sélection avec design amélioré -->
+              <ng-container matColumnDef="select">
+                <th mat-header-cell *matHeaderCellDef class="w-16 px-4 py-4">
+                  <div class="flex justify-center">
+                    <mat-checkbox
+                      (change)="onSelectAll()"
+                      [checked]="selectAll"
+                      [indeterminate]="selectedEtudiants.length > 0 && selectedEtudiants.length < etudiants.length"
+                      class="text-blue-600 hover:scale-110 transition-transform duration-200"
+                    >
+                    </mat-checkbox>
+                  </div>
+                </th>
+                <td mat-cell *matCellDef="let etudiant" class="w-16 px-4 py-4">
+                  <div class="flex justify-center">
+                    <mat-checkbox
+                      (change)="onSelectEtudiant(etudiant)"
+                      [checked]="isSelected(etudiant.id)"
+                      class="text-blue-600 hover:scale-110 transition-transform duration-200"
+                    >
+                    </mat-checkbox>
+                  </div>
+                </td>
+              </ng-container>
+
+              <!-- Colonne Étudiant simplifiée -->
+              <ng-container matColumnDef="etudiant">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header class="min-w-80 px-6 py-4">
+                  <div class="flex items-center gap-3 text-gray-700">
+                    <div class="w-8 h-8 bg-gradient-to-br from-slate-100 to-slate-200 rounded-xl flex items-center justify-center shadow-sm border border-slate-300">
+                      <mat-icon class="text-slate-600 text-sm">person</mat-icon>
+                    </div>
+                    <span class="font-semibold">Étudiant</span>
+                  </div>
+                </th>
+                <td mat-cell *matCellDef="let etudiant" class="px-6 py-4">
+                  <div class="flex items-center gap-4">
+                    <div class="relative">
+                      <div class="w-12 h-12 rounded-xl bg-slate-600 text-white flex items-center justify-center font-bold text-sm shadow-lg">
+                        {{ getInitials(etudiant) }}
+                      </div>
+                      <div class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full">
+                        <div class="w-1 h-1 bg-white rounded-full m-1"></div>
+                      </div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div class="font-semibold text-gray-900">
+                        {{ getFullName(etudiant) }}
+                      </div>
+                      <div class="text-sm text-gray-500 flex items-center gap-2">
+                        <div class="w-4 h-4 bg-gray-100 rounded-full flex items-center justify-center">
+                          <mat-icon class="text-gray-500" style="font-size: 10px;">badge</mat-icon>
+                        </div>
+                        <span class="font-mono">{{ etudiant.matricule }}</span>
+                      </div>
+                      <div class="text-sm text-gray-500 flex items-center gap-2 mt-1">
+                        <div class="w-4 h-4 bg-blue-100 rounded-full flex items-center justify-center">
+                          <mat-icon class="text-blue-500" style="font-size: 10px;">email</mat-icon>
+                        </div>
+                        <span class="truncate max-w-48">{{ etudiant.email }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </ng-container>
+
+              <!-- Colonne Promotion simplifiée -->
+              <ng-container matColumnDef="promotion">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header class="min-w-40 px-6 py-4">
+                  <div class="flex items-center gap-3 text-gray-700">
+                    <div class="w-8 h-8 bg-gradient-to-br from-slate-100 to-slate-200 rounded-xl flex items-center justify-center shadow-sm border border-slate-300">
+                      <mat-icon class="text-slate-600 text-sm">school</mat-icon>
+                    </div>
+                    <span class="font-semibold">Promotion</span>
+                  </div>
+                </th>
+                <td mat-cell *matCellDef="let etudiant" class="px-6 py-4">
+                  <div class="text-center">
+                    <div class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-50 to-blue-100/70 text-blue-800 px-3 py-2 rounded-lg font-medium border border-blue-200">
+                      <div class="w-5 h-5 bg-blue-200 rounded-full flex items-center justify-center">
+                        <mat-icon class="text-blue-700" style="font-size: 12px;">school</mat-icon>
+                      </div>
+                      <span>{{ etudiant.promotion?.name || 'N/A' }}</span>
+                    </div>
+                    <div *ngIf="etudiant.group?.title" class="text-xs text-gray-500 mt-1 flex items-center justify-center gap-1">
+                      <div class="w-3 h-3 bg-gray-200 rounded-full flex items-center justify-center">
+                        <mat-icon class="text-gray-500" style="font-size: 8px;">group</mat-icon>
+                      </div>
+                      <span>{{ etudiant.group?.title }}</span>
+                    </div>
+                  </div>
+                </td>
+              </ng-container>
+
+
+
+                            <!-- Colonne Actions simplifiée -->
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef class="min-w-44 px-6 py-4">
+                  <div class="flex items-center gap-3 text-gray-700">
+                    <div class="w-8 h-8 bg-gradient-to-br from-slate-100 to-slate-200 rounded-xl flex items-center justify-center shadow-sm border border-slate-300">
+                      <mat-icon class="text-slate-600 text-sm">settings</mat-icon>
+                    </div>
+                    <span class="font-semibold">Actions</span>
+                  </div>
+                </th>
+                <td mat-cell *matCellDef="let etudiant" class="px-6 py-4">
+                  <div class="flex items-center justify-center gap-3">
+                    <!-- Bouton Voir détails avec style moderne -->
+                    <div class="group relative">
+                      <button
+                        mat-icon-button
+                        matTooltip="Voir tous les détails"
+                        (click)="viewEtudiantDetails(etudiant)"
+                        class="relative w-10 h-10 bg-white border-2 border-blue-200 text-blue-600 rounded-full hover:bg-blue-50 hover:border-blue-400 transition-all duration-300 hover:scale-110 shadow-md hover:shadow-lg"
+                      >
+                        <mat-icon class="text-lg">visibility</mat-icon>
+                        <div class="absolute inset-0 bg-blue-100 rounded-full scale-0 group-hover:scale-100 transition-transform duration-300 opacity-20"></div>
+                      </button>
+                    </div>
+                    
+                    <!-- Bouton Modifier avec style moderne -->
+                    <div class="group relative">
+                      <button
+                        mat-icon-button
+                        matTooltip="Modifier l'étudiant"
+                        (click)="openEditModal(etudiant)"
+                        class="relative w-10 h-10 bg-white border-2 border-emerald-200 text-emerald-600 rounded-full hover:bg-emerald-50 hover:border-emerald-400 transition-all duration-300 hover:scale-110 shadow-md hover:shadow-lg"
+                      >
+                        <mat-icon class="text-lg">edit</mat-icon>
+                        <div class="absolute inset-0 bg-emerald-100 rounded-full scale-0 group-hover:scale-100 transition-transform duration-300 opacity-20"></div>
+                      </button>
+                    </div>
+                    
+                    <!-- Menu d'actions avec style moderne -->
+                    <div class="group relative">
+                      <button
+                        mat-icon-button
+                        [matMenuTriggerFor]="actionsMenu"
+                        matTooltip="Plus d'actions"
+                        class="relative w-10 h-10 bg-white border-2 border-gray-200 text-gray-600 rounded-full hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 hover:scale-110 shadow-md hover:shadow-lg"
+                      >
+                        <mat-icon class="text-lg">more_vert</mat-icon>
+                        <div class="absolute inset-0 bg-gray-100 rounded-full scale-0 group-hover:scale-100 transition-transform duration-300 opacity-20"></div>
+                      </button>
+                    </div>
+
+                    <mat-menu #actionsMenu="matMenu" class="modern-menu">
+                      <!-- Contact -->
+                      <button mat-menu-item (click)="sendEmail(etudiant)" class="flex items-center gap-3 p-3 hover:bg-blue-50 rounded-lg transition-colors duration-200">
+                        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                          <mat-icon class="text-blue-600 text-sm">email</mat-icon>
+                        </div>
+                        <div>
+                          <div class="font-medium text-gray-900">Envoyer un email</div>
+                          <div class="text-xs text-gray-500">Contact direct</div>
+                        </div>
+                      </button>
+                      
+                      <!-- Historique -->
+                      <button mat-menu-item (click)="viewHistory(etudiant)" class="flex items-center gap-3 p-3 hover:bg-purple-50 rounded-lg transition-colors duration-200">
+                        <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                          <mat-icon class="text-purple-600 text-sm">history</mat-icon>
+                        </div>
+                        <div>
+                          <div class="font-medium text-gray-900">Voir l'historique</div>
+                          <div class="text-xs text-gray-500">Activités passées</div>
+                        </div>
+                      </button>
+                      
+                      <!-- Separator -->
+                      <div class="border-t border-gray-100 my-1"></div>
+                      
+                      <!-- Supprimer -->
+                      <button mat-menu-item (click)="confirmDelete(etudiant)" class="flex items-center gap-3 p-3 hover:bg-red-50 rounded-lg transition-colors duration-200">
+                        <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                          <mat-icon class="text-red-600 text-sm">delete</mat-icon>
+                        </div>
+                        <div>
+                          <div class="font-medium text-red-700">Supprimer</div>
+                          <div class="text-xs text-red-500">Action irréversible</div>
+                        </div>
+                      </button>
+                    </mat-menu>
+                  </div>
+                </td>
+              </ng-container>
+
+              <!-- Définition des lignes avec design moderne -->
+              <tr mat-header-row *matHeaderRowDef="displayedColumns" class="modern-header-row"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;" 
+                  class="modern-data-row hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-300 border-b border-gray-100 hover:border-blue-200 hover:shadow-md"
+                  [class.selected-row]="isSelected(row.id)">
+            </table>
+          </div>
+
+          <!-- Pagination ultra-moderne -->
+          <div class="mt-8">
+            <div class="bg-gradient-to-r from-gray-50 to-blue-50 rounded-2xl p-4 border border-gray-200">
+              <mat-paginator
+                #paginator
+                [length]="total"
+                [pageSize]="perPage"
+                [pageSizeOptions]="[5, 10, 20, 50]"
+                showFirstLastButtons
+                aria-label="Sélectionner la page"
+                class="modern-paginator">
+              </mat-paginator>
+            </div>
+          </div>
+        </div>
+
+        <!-- État vide avec design élégant -->
+        <div *ngIf="!loading && !error && etudiants.length === 0" class="text-center py-20">
+          <div class="max-w-md mx-auto">
+            <div class="relative">
+              <div class="w-32 h-32 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center mx-auto mb-8">
+                <mat-icon class="text-5xl text-gray-400">people_outline</mat-icon>
+              </div>
+              <div class="absolute -top-4 -right-4 w-8 h-8 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full flex items-center justify-center">
+                <div class="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+              </div>
+            </div>
+            <h3 class="text-3xl font-bold text-gray-700 mb-4">Aucun étudiant trouvé</h3>
+            <p class="text-gray-500 mb-8 text-lg">Aucun étudiant ne correspond à vos critères de recherche.</p>
+            <button
+              (click)="navigateToAddStudent()"
+              class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-10 py-4 rounded-2xl font-semibold shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 flex items-center gap-3 mx-auto"
+            >
+              <mat-icon class="text-xl">add</mat-icon>
+              Ajouter le premier étudiant
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Statistiques avec design moderne -->
+    <div class="mt-8 grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg p-6 text-white">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-3xl font-bold">{{ etudiants.length }}</div>
+            <div class="text-blue-100">Total Étudiants</div>
+          </div>
+          <div class="bg-white bg-opacity-20 rounded-full p-3">
+            <mat-icon class="text-white text-2xl">people</mat-icon>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-lg p-6 text-white">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-3xl font-bold">{{ filterOptions.promotions.length }}</div>
+            <div class="text-green-100">Promotions</div>
+          </div>
+          <div class="bg-white bg-opacity-20 rounded-full p-3">
+            <mat-icon class="text-white text-2xl">school</mat-icon>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-lg p-6 text-white">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-3xl font-bold">{{ filterOptions.groups.length }}</div>
+            <div class="text-purple-100">Groupes</div>
+          </div>
+          <div class="bg-white bg-opacity-20 rounded-full p-3">
+            <mat-icon class="text-white text-2xl">group</mat-icon>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl shadow-lg p-6 text-white">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-3xl font-bold">{{ filterOptions.villes.length }}</div>
+            <div class="text-orange-100">Villes</div>
+          </div>
+          <div class="bg-white bg-opacity-20 rounded-full p-3">
+            <mat-icon class="text-white text-2xl">location_city</mat-icon>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

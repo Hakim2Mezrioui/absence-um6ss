@@ -1,0 +1,444 @@
+<div class="promotions-container">
+  <!-- En-tête avec titre et actions principales -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">
+        <mat-icon class="page-icon">school</mat-icon>
+        Gestion des Promotions
+      </h1>
+      <p class="page-description">
+        Gérez les promotions et leurs paramètres académiques
+      </p>
+    </div>
+    <div class="header-actions">
+      <button 
+        mat-raised-button 
+        color="primary" 
+        class="add-button"
+        (click)="openAddDialog()"
+        [disabled]="loading">
+        <mat-icon>add</mat-icon>
+        Ajouter une promotion
+      </button>
+    </div>
+  </div>
+
+  <!-- Barre de recherche et filtres -->
+  <div class="search-filters-container">
+    <mat-card class="search-card">
+      <mat-card-content>
+        <div class="search-row">
+          <mat-form-field class="search-field modern-input" appearance="fill">
+            <mat-label>Rechercher une promotion</mat-label>
+            <input 
+              matInput 
+              placeholder="Tapez le nom de la promotion..."
+              [(ngModel)]="searchValue"
+              (input)="onSearchChange($event)"
+              [disabled]="loading">
+            <mat-icon matSuffix class="search-icon">search</mat-icon>
+          </mat-form-field>
+
+          <button 
+            class="clear-filters-btn"
+            (click)="clearFilters()"
+            [disabled]="loading"
+            matTooltip="Effacer tous les filtres">
+            <mat-icon>refresh</mat-icon>
+            <span>Réinitialiser</span>
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Statistiques -->
+  <div class="stats-container" *ngIf="!loading">
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon class="stat-icon">school</mat-icon>
+          <div class="stat-info">
+            <span class="stat-value">{{ totalPromotions }}</span>
+            <span class="stat-label">Total Promotions</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Table des promotions -->
+  <mat-card class="table-card">
+    <mat-card-header>
+      <mat-card-title>
+        <div class="table-header">
+          <span>Liste des Promotions</span>
+          <div class="table-actions">
+            <div class="items-per-page-container">
+              <span class="items-label">Afficher</span>
+              <div class="page-size-selector">
+                <button 
+                  *ngFor="let size of [5, 10, 25, 50]" 
+                  class="page-size-btn"
+                  [class.active]="pageSize === size"
+                  (click)="setPageSize(size)"
+                  [disabled]="loading">
+                  {{ size }}
+                </button>
+              </div>
+              <span class="items-label">éléments</span>
+            </div>
+            
+            <div class="results-info">
+              <span class="results-text">
+                {{ (currentPage - 1) * pageSize + 1 }}-{{ Math.min(currentPage * pageSize, totalPromotions) }} 
+                sur {{ totalPromotions }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </mat-card-title>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <!-- État de chargement -->
+      <div *ngIf="loading" class="loading-container">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Chargement des promotions...</p>
+      </div>
+
+      <!-- Message d'erreur -->
+      <div *ngIf="error && !loading" class="error-container">
+        <mat-icon class="error-icon">error</mat-icon>
+        <p class="error-message">{{ error }}</p>
+        <button mat-raised-button color="primary" (click)="loadPromotions()">
+          <mat-icon>refresh</mat-icon>
+          Réessayer
+        </button>
+      </div>
+
+      <!-- Table -->
+      <div *ngIf="!loading && !error" class="table-container">
+        <table mat-table [dataSource]="promotions" class="promotions-table">
+          
+          <!-- Colonne Nom -->
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>Nom de la Promotion</th>
+            <td mat-cell *matCellDef="let promotion">
+              <div class="promotion-info">
+                <span class="promotion-name">{{ promotion.name }}</span>
+                <span class="promotion-id">ID: {{ promotion.id }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Dates -->
+          <ng-container matColumnDef="dates">
+            <th mat-header-cell *matHeaderCellDef>Dates</th>
+            <td mat-cell *matCellDef="let promotion">
+              <div class="dates-cell">
+                <div class="date-item">
+                  <span class="date-label">Créé:</span>
+                  <span class="date-value">{{ formatDate(promotion.created_at) }}</span>
+                </div>
+                <div class="date-item" *ngIf="promotion.updated_at !== promotion.created_at">
+                  <span class="date-label">Modifié:</span>
+                  <span class="date-value">{{ formatDate(promotion.updated_at) }}</span>
+                </div>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Actions -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let promotion">
+              <div class="actions-cell">
+                <button 
+                  mat-icon-button 
+                  color="primary" 
+                  matTooltip="Modifier"
+                  (click)="openEditDialog(promotion)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                
+                <button 
+                  mat-icon-button 
+                  color="accent" 
+                  matTooltip="Voir détails"
+                  (click)="openDetailsDialog(promotion)">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                
+                <button 
+                  mat-icon-button 
+                  color="warn" 
+                  matTooltip="Supprimer"
+                  (click)="confirmDelete(promotion)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+
+        <!-- Message si aucune promotion -->
+        <div *ngIf="promotions.length === 0" class="no-data-container">
+          <mat-icon class="no-data-icon">school</mat-icon>
+          <h3>Aucune promotion trouvée</h3>
+          <p>{{ searchValue ? 'Aucune promotion ne correspond à votre recherche.' : 'Commencez par ajouter votre première promotion.' }}</p>
+          <button mat-raised-button color="primary" (click)="openAddDialog()">
+            <mat-icon>add</mat-icon>
+            Ajouter une promotion
+          </button>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div *ngIf="!loading && !error && promotions.length > 0" class="pagination-container">
+        <div class="custom-pagination">
+          <div class="pagination-info">
+            <span class="pagination-text">
+              Page {{ currentPage }} sur {{ Math.ceil(totalPromotions / pageSize) }}
+            </span>
+          </div>
+          
+          <div class="pagination-controls">
+            <button 
+              class="pagination-btn"
+              [disabled]="currentPage === 1 || loading"
+              (click)="goToPage(1)"
+              matTooltip="Première page">
+              <mat-icon>first_page</mat-icon>
+            </button>
+            
+            <button 
+              class="pagination-btn"
+              [disabled]="currentPage === 1 || loading"
+              (click)="goToPage(currentPage - 1)"
+              matTooltip="Page précédente">
+              <mat-icon>chevron_left</mat-icon>
+            </button>
+            
+            <div class="page-numbers">
+              <button 
+                *ngFor="let page of getVisiblePages()"
+                class="page-btn"
+                [class.active]="page === currentPage"
+                [disabled]="loading"
+                (click)="goToPage(page)">
+                {{ page }}
+              </button>
+            </div>
+            
+            <button 
+              class="pagination-btn"
+              [disabled]="currentPage === Math.ceil(totalPromotions / pageSize) || loading"
+              (click)="goToPage(currentPage + 1)"
+              matTooltip="Page suivante">
+              <mat-icon>chevron_right</mat-icon>
+            </button>
+            
+            <button 
+              class="pagination-btn"
+              [disabled]="currentPage === Math.ceil(totalPromotions / pageSize) || loading"
+              (click)="goToPage(Math.ceil(totalPromotions / pageSize))"
+              matTooltip="Dernière page">
+              <mat-icon>last_page</mat-icon>
+            </button>
+          </div>
+          
+          <div class="quick-jump">
+            <span class="jump-label">Aller à :</span>
+            <input 
+              type="number" 
+              class="page-input"
+              [value]="currentPage"
+              [min]="1"
+              [max]="Math.ceil(totalPromotions / pageSize)"
+              (keyup.enter)="jumpToPage($event)"
+              [disabled]="loading"
+              placeholder="Page">
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<!-- Dialog pour ajouter/modifier une promotion -->
+<div *ngIf="showDialog" class="dialog-overlay" (click)="closeDialog()">
+  <mat-card class="dialog-card" (click)="$event.stopPropagation()">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>{{ isEditMode ? 'edit' : 'add' }}</mat-icon>
+        {{ isEditMode ? 'Modifier la promotion' : 'Ajouter une promotion' }}
+      </mat-card-title>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <form [formGroup]="promotionForm" (ngSubmit)="onSubmit()">
+        <div class="form-row">
+          <mat-form-field appearance="fill" class="full-width modern-input-dialog">
+            <mat-label>Nom de la promotion</mat-label>
+            <input 
+              matInput 
+              formControlName="name" 
+              placeholder="Ex: L1 Informatique 2024"
+              required>
+            <mat-icon matSuffix class="input-icon">school</mat-icon>
+            <mat-error *ngIf="promotionForm.get('name')?.hasError('required')">
+              Le nom est requis
+            </mat-error>
+            <mat-error *ngIf="promotionForm.get('name')?.hasError('maxlength')">
+              Le nom ne peut pas dépasser 255 caractères
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="dialog-actions">
+          <button 
+            type="button" 
+            mat-button 
+            (click)="closeDialog()"
+            [disabled]="dialogLoading">
+            Annuler
+          </button>
+          <button 
+            type="submit" 
+            mat-raised-button 
+            color="primary"
+            [disabled]="promotionForm.invalid || dialogLoading">
+            <mat-spinner *ngIf="dialogLoading" diameter="20"></mat-spinner>
+            <mat-icon *ngIf="!dialogLoading">{{ isEditMode ? 'save' : 'add' }}</mat-icon>
+            {{ isEditMode ? 'Modifier' : 'Ajouter' }}
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<!-- Dialog de détails -->
+<div *ngIf="showDetailsDialog" class="dialog-overlay" (click)="closeDetailsDialog()">
+  <mat-card class="dialog-card details-dialog" (click)="$event.stopPropagation()">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>info</mat-icon>
+        Détails de la promotion
+      </mat-card-title>
+    </mat-card-header>
+    
+    <mat-card-content *ngIf="selectedPromotion">
+      <div class="details-content">
+        <div class="detail-section">
+          <h3>Informations générales</h3>
+          <div class="detail-item">
+            <span class="detail-label">Nom:</span>
+            <span class="detail-value">{{ selectedPromotion.name }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">ID:</span>
+            <span class="detail-value">{{ selectedPromotion.id }}</span>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h3>Historique</h3>
+          <div class="detail-item">
+            <span class="detail-label">Date de création:</span>
+            <span class="detail-value">{{ formatDateTime(selectedPromotion.created_at) }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Dernière modification:</span>
+            <span class="detail-value">{{ formatDateTime(selectedPromotion.updated_at) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dialog-actions">
+        <button mat-button (click)="closeDetailsDialog()">
+          Fermer
+        </button>
+        <button mat-raised-button color="primary" (click)="openEditDialog(selectedPromotion)">
+          <mat-icon>edit</mat-icon>
+          Modifier
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<!-- Dialog de confirmation de suppression -->
+<div *ngIf="showDeleteDialog" class="dialog-overlay confirmation-overlay" (click)="closeDeleteDialog()">
+  <div class="confirmation-dialog" (click)="$event.stopPropagation()">
+    <div class="confirmation-header">
+      <div class="warning-icon-container">
+        <mat-icon class="warning-icon">warning</mat-icon>
+      </div>
+      <h2 class="confirmation-title">Confirmer la suppression</h2>
+    </div>
+    
+    <div class="confirmation-content">
+      <div class="promotion-info-card" *ngIf="promotionToDelete">
+        <div class="promotion-preview">
+          <mat-icon class="promotion-preview-icon">school</mat-icon>
+          <div class="promotion-details">
+            <span class="promotion-name-preview">{{ promotionToDelete.name }}</span>
+            <span class="promotion-id-preview">ID: {{ promotionToDelete.id }}</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="warning-message">
+        <p class="main-warning">
+          Êtes-vous sûr de vouloir supprimer cette promotion ?
+        </p>
+        <p class="sub-warning">
+          <mat-icon class="small-warning-icon">info</mat-icon>
+          Cette action est <strong>irréversible</strong> et supprimera définitivement toutes les données associées.
+        </p>
+      </div>
+      
+      <div class="consequences-list">
+        <div class="consequence-item">
+          <mat-icon class="consequence-icon error">cancel</mat-icon>
+          <span>Suppression de la promotion de la base de données</span>
+        </div>
+        <div class="consequence-item">
+          <mat-icon class="consequence-icon warning">warning</mat-icon>
+          <span>Impact possible sur les étudiants associés</span>
+        </div>
+        <div class="consequence-item">
+          <mat-icon class="consequence-icon info">info</mat-icon>
+          <span>Révision des groupes et cours liés recommandée</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="confirmation-actions">
+      <button 
+        mat-button 
+        class="cancel-button"
+        (click)="closeDeleteDialog()"
+        [disabled]="deleteLoading">
+        <mat-icon>close</mat-icon>
+        Annuler
+      </button>
+      
+      <button 
+        mat-raised-button 
+        color="warn"
+        class="delete-button"
+        (click)="confirmDeletePromotion()"
+        [disabled]="deleteLoading">
+        <mat-spinner *ngIf="deleteLoading" diameter="20" class="button-spinner"></mat-spinner>
+        <mat-icon *ngIf="!deleteLoading">delete_forever</mat-icon>
+        {{ deleteLoading ? 'Suppression...' : 'Supprimer définitivement' }}
+      </button>
+    </div>
+  </div>
+</div>

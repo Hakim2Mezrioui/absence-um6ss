@@ -1,0 +1,48 @@
+<div class="flex h-screen bg-gray-50">
+  <!-- Sidebar -->
+  <app-sidebar [isCollapsed]="isSidebarCollapsed"></app-sidebar>
+  
+  <!-- Contenu principal -->
+  <div class="flex-1 flex flex-col overflow-hidden"
+       [ngClass]="{'ml-64': !isSidebarCollapsed, 'ml-16': isSidebarCollapsed}">
+    
+    <!-- Header principal -->
+    <header class="bg-white shadow-sm border-b border-gray-200 z-40">
+      <div class="flex items-center justify-between px-6 py-4">
+        <!-- Bouton toggle sidebar -->
+        <button 
+          (click)="toggleSidebar()"
+          class="p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+          <span class="material-icons text-gray-600">menu</span>
+        </button>
+        
+        <!-- Titre de la page -->
+        <div class="flex-1 text-center">
+          <h1 class="text-xl font-semibold text-gray-900">Gestion UM6SS</h1>
+        </div>
+        
+        <!-- Actions utilisateur -->
+        <div class="flex items-center space-x-4">
+          <!-- Notifications -->
+          <button class="p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200 relative">
+            <span class="material-icons text-gray-600">notifications</span>
+            <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+          </button>
+          
+          <!-- Profil utilisateur -->
+          <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+              <span class="material-icons text-white text-sm">account_circle</span>
+            </div>
+            <span class="text-sm font-medium text-gray-700">Admin</span>
+          </div>
+        </div>
+      </div>
+    </header>
+    
+    <!-- Contenu principal avec scroll -->
+    <main class="flex-1 overflow-y-auto p-6">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

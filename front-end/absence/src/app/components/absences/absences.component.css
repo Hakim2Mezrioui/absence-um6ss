@@ -1,0 +1,342 @@
+/* Animations et styles personnalisés pour le composant absences */
+
+/* Animation de pulsation pour les indicateurs */
+@keyframes pulse-soft {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Animation de flottement pour les cartes */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.float-animation {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Effet de brillance sur les boutons */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.shimmer-effect {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Amélioration des champs de formulaire */
+.modern-input ::ng-deep .mat-mdc-form-field {
+  --mdc-filled-text-field-container-shape: 12px;
+  --mdc-outlined-text-field-container-shape: 12px;
+}
+
+.modern-input ::ng-deep .mat-mdc-text-field-wrapper {
+  border-radius: 12px;
+}
+
+.modern-select ::ng-deep .mat-mdc-form-field {
+  --mdc-filled-text-field-container-shape: 12px;
+  --mdc-outlined-text-field-container-shape: 12px;
+}
+
+/* Effet de verre dépoli pour les modals */
+.backdrop-blur-custom {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Animation d'apparition */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 30px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+/* Animation de rotation pour les icônes */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
+/* Effet de brillance sur les cartes au survol */
+.card-shine::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.card-shine:hover::before {
+  left: 100%;
+}
+
+/* Style pour les badges de statut */
+.status-badge {
+  position: relative;
+  overflow: hidden;
+}
+
+.status-badge::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.3s;
+}
+
+.status-badge:hover::after {
+  left: 100%;
+}
+
+/* Animation pour les statistiques */
+@keyframes countUp {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.count-animation {
+  animation: countUp 0.6s ease-out;
+}
+
+/* Amélioration de l'accessibilité */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Responsive design amélioré */
+@media (max-width: 768px) {
+  .mobile-stack {
+    flex-direction: column !important;
+    gap: 1rem !important;
+  }
+  
+  .mobile-full-width {
+    width: 100% !important;
+  }
+}
+
+/* Effet de parallaxe subtil */
+.parallax-bg {
+  background-attachment: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+/* Amélioration des scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(45deg, #3b82f6, #6366f1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(45deg, #2563eb, #4f46e5);
+}
+
+/* Styles pour les inputs personnalisés */
+.custom-input-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.custom-input-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
+  transition: left 0.6s;
+}
+
+.custom-input-container:focus-within::before {
+  left: 100%;
+}
+
+/* Animation pour les suggestions */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.suggestions-container {
+  animation: slideDown 0.3s ease-out;
+}
+
+/* Effet de pulsation pour l'indicateur de recherche active */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(59, 130, 246, 0);
+  }
+}
+
+.search-indicator {
+  animation: pulse-glow 2s infinite;
+}
+
+/* Style pour les select personnalisés */
+select:focus {
+  outline: none;
+}
+
+select option {
+  padding: 10px;
+  background: white;
+  color: #374151;
+}
+
+select option:hover {
+  background: #f3f4f6;
+}
+
+/* Animation pour les boutons d'action */
+@keyframes buttonPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.action-button:active {
+  animation: buttonPulse 0.2s ease-in-out;
+}
+
+/* Amélioration des focus indicators */
+.custom-input:focus-within {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.custom-select:focus-within {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+/* Pattern décoratif animé */
+@keyframes patternMove {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 50px 50px;
+  }
+}
+
+.animated-pattern {
+  animation: patternMove 20s linear infinite;
+}
+
+/* Effet de brillance sur les pills */
+.filter-pill {
+  position: relative;
+  overflow: hidden;
+}
+
+.filter-pill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.5s;
+}
+
+.filter-pill:hover::after {
+  left: 100%;
+}
+
+/* Animation pour les métriques */
+@keyframes numberIncrement {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.metric-number {
+  animation: numberIncrement 0.5s ease-out;
+}

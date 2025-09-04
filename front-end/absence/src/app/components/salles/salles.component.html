@@ -1,0 +1,287 @@
+<div class="salles-container">
+  <!-- Header -->
+  <div class="header-section">
+    <div class="title-section">
+      <h1>
+        <mat-icon>meeting_room</mat-icon>
+        Gestion des Salles
+      </h1>
+      <p>Gérez les salles de vos établissements</p>
+    </div>
+
+    <div class="actions-section">
+      <button mat-raised-button color="primary" (click)="openAddDialog()" [disabled]="loading">
+        <mat-icon>add</mat-icon>
+        Ajouter une salle
+      </button>
+      <button mat-stroked-button (click)="loadSalles()" [disabled]="loading">
+        <mat-icon>refresh</mat-icon>
+        Actualiser
+      </button>
+    </div>
+  </div>
+
+  <!-- Statistiques -->
+  <div class="stats-cards" *ngIf="!loading">
+    <div class="stat-card">
+      <mat-icon>meeting_room</mat-icon>
+      <div class="stat-content">
+        <span class="stat-number">{{ totalSalles }}</span>
+        <span class="stat-label">Salles</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <mat-icon>business</mat-icon>
+      <div class="stat-content">
+        <span class="stat-number">{{ uniqueEtablissements }}</span>
+        <span class="stat-label">Établissements</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <mat-icon>apartment</mat-icon>
+      <div class="stat-content">
+        <span class="stat-number">{{ uniqueBatiments }}</span>
+        <span class="stat-label">Bâtiments</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <mat-icon>stairs</mat-icon>
+      <div class="stat-content">
+        <span class="stat-number">{{ uniqueEtages }}</span>
+        <span class="stat-label">Étages</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interface de Filtrage Ultra-Moderne -->
+  <div class="filters-section">
+    <div class="filters-container">
+      
+      <!-- Section de Recherche Premium -->
+      <div class="search-section">
+        <div class="search-header">
+          <div class="search-icon-wrapper">
+            <mat-icon class="search-main-icon">search</mat-icon>
+          </div>
+          <div class="search-title">
+            <h2>Recherche Intelligente</h2>
+            <p>Trouvez instantanément la salle parfaite</p>
+          </div>
+        </div>
+        
+        <div class="search-input-container">
+          <mat-form-field appearance="outline" class="premium-search-field">
+            <mat-label>Rechercher une salle</mat-label>
+            <input matInput 
+                   [(ngModel)]="searchTerm" 
+                   (input)="onSearchChange()"
+                   placeholder="Nom, bâtiment, description..."
+                   [disabled]="loading"
+                   class="search-input">
+            <mat-icon matSuffix class="search-suffix-icon">search</mat-icon>
+          </mat-form-field>
+          
+          <button mat-mini-fab 
+                  color="accent"
+                  (click)="clearSearch()" 
+                  [disabled]="!searchTerm || loading"
+                  matTooltip="Effacer la recherche"
+                  class="clear-search-btn">
+            <mat-icon>clear</mat-icon>
+          </button>
+        </div>
+        
+        <!-- Indicateur de résultats -->
+        <div class="search-results-indicator" *ngIf="searchTerm">
+          <mat-icon>info</mat-icon>
+          <span>{{ filteredSalles.length }} résultat(s) trouvé(s)</span>
+        </div>
+      </div>
+
+      <!-- Filtres Avancés -->
+      <div class="advanced-filters">
+        <div class="filters-header">
+          <div class="filters-icon-wrapper">
+            <mat-icon class="filters-main-icon">tune</mat-icon>
+          </div>
+          <div class="filters-title">
+            <h3>Filtres Avancés</h3>
+            <p>Affinez votre recherche</p>
+          </div>
+          
+          <!-- Badge de filtres actifs -->
+          <div class="active-filters-badge" *ngIf="hasActiveFilters()">
+            <mat-icon>filter_alt</mat-icon>
+            <span>{{ getActiveFiltersCount() }}</span>
+          </div>
+        </div>
+
+        <div class="filters-grid">
+          <!-- Filtre Établissement -->
+          <div class="filter-item">
+            <mat-form-field appearance="outline" class="premium-filter-field">
+              <mat-label>
+                <mat-icon class="field-icon">business</mat-icon>
+                Établissement
+              </mat-label>
+              <mat-select [(ngModel)]="selectedEtablissement" (selectionChange)="onFilterChange()">
+                <mat-option value="" class="all-option">
+                  <mat-icon>select_all</mat-icon>
+                  Tous les établissements
+                </mat-option>
+                <mat-option *ngFor="let etablissement of etablissements" [value]="etablissement.id">
+                  <mat-icon>business</mat-icon>
+                  {{ etablissement.name }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <!-- Filtre Bâtiment -->
+          <div class="filter-item">
+            <mat-form-field appearance="outline" class="premium-filter-field">
+              <mat-label>
+                <mat-icon class="field-icon">apartment</mat-icon>
+                Bâtiment
+              </mat-label>
+              <mat-select [(ngModel)]="selectedBatiment" (selectionChange)="onFilterChange()">
+                <mat-option value="" class="all-option">
+                  <mat-icon>select_all</mat-icon>
+                  Tous les bâtiments
+                </mat-option>
+                <mat-option *ngFor="let batiment of uniqueBatimentsList" [value]="batiment">
+                  <mat-icon>apartment</mat-icon>
+                  {{ batiment }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <!-- Filtre Étage -->
+          <div class="filter-item">
+            <mat-form-field appearance="outline" class="premium-filter-field">
+              <mat-label>
+                <mat-icon class="field-icon">stairs</mat-icon>
+                Étage
+              </mat-label>
+              <mat-select [(ngModel)]="selectedEtage" (selectionChange)="onFilterChange()">
+                <mat-option value="" class="all-option">
+                  <mat-icon>select_all</mat-icon>
+                  Tous les étages
+                </mat-option>
+                <mat-option *ngFor="let etage of uniqueEtagesList" [value]="etage">
+                  <mat-icon>stairs</mat-icon>
+                  Étage {{ etage }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <!-- Actions des filtres -->
+          <div class="filter-actions">
+            <button mat-raised-button 
+                    color="warn"
+                    (click)="clearFilters()" 
+                    [disabled]="!hasActiveFilters() || loading"
+                    class="clear-filters-btn">
+              <mat-icon>filter_list_off</mat-icon>
+              Réinitialiser
+            </button>
+          </div>
+        </div>
+      </div>
+
+
+
+    </div>
+  </div>
+
+  <!-- Indicateur de chargement -->
+  <div class="loading-section" *ngIf="loading">
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    <p>Chargement des salles...</p>
+  </div>
+
+  <!-- Message d'erreur -->
+  <div class="error-section" *ngIf="error && !loading">
+    <mat-card class="error-card">
+      <mat-card-content>
+        <div class="error-content">
+          <mat-icon>error</mat-icon>
+          <div>
+            <h3>Erreur de chargement</h3>
+            <p>{{ error }}</p>
+          </div>
+          <button mat-raised-button color="primary" (click)="loadSalles()">
+            Réessayer
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Liste des salles -->
+  <div class="salles-grid" *ngIf="!loading && !error">
+    <div class="salles-list" *ngIf="filteredSalles.length > 0">
+      <mat-card *ngFor="let salle of filteredSalles; trackBy: trackBySalle" class="salle-card">
+        <mat-card-header>
+          <div mat-card-avatar class="salle-avatar">
+            <mat-icon>meeting_room</mat-icon>
+          </div>
+          <mat-card-title>{{ salle.name }}</mat-card-title>
+          <mat-card-subtitle>
+            {{ salle.etablissement?.name || 'Établissement non défini' }}
+          </mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+          <div class="salle-details">
+            <div class="detail-item">
+              <mat-icon>apartment</mat-icon>
+              <span>Bâtiment: {{ salle.batiment }}</span>
+            </div>
+            <div class="detail-item">
+              <mat-icon>stairs</mat-icon>
+              <span>Étage: {{ salle.etage }}</span>
+            </div>
+            <div class="detail-item" *ngIf="salle.capacite">
+              <mat-icon>people</mat-icon>
+              <span>Capacité: {{ salle.capacite }} places</span>
+            </div>
+            <div class="detail-item" *ngIf="salle.description">
+              <mat-icon>description</mat-icon>
+              <span>{{ salle.description }}</span>
+            </div>
+          </div>
+        </mat-card-content>
+
+        <mat-card-actions align="end">
+          <button mat-icon-button (click)="editSalle(salle)" matTooltip="Modifier">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button color="warn" (click)="deleteSalle(salle)" matTooltip="Supprimer">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+
+    <!-- Message aucun résultat -->
+    <div class="no-results" *ngIf="filteredSalles.length === 0 && !loading">
+      <mat-card class="no-results-card">
+        <mat-card-content>
+          <div class="no-results-content">
+            <mat-icon>search_off</mat-icon>
+            <h3>Aucune salle trouvée</h3>
+            <p *ngIf="hasActiveFilters()">Essayez de modifier vos critères de recherche</p>
+            <p *ngIf="!hasActiveFilters()">Aucune salle n'est encore enregistrée</p>
+            <button mat-raised-button color="primary" (click)="openAddDialog()" *ngIf="!hasActiveFilters()">
+              <mat-icon>add</mat-icon>
+              Ajouter la première salle
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

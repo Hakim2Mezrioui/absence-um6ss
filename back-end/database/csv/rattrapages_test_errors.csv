@@ -1,0 +1,7 @@
+name,date,start_hour,end_hour
+Rattrapage Valide,15/01/2025,09:00,11:00
+Rattrapage Date Invalide,invalid-date,10:00,12:00
+Rattrapage Heure Invalide,16/01/2025,invalid-time,12:00
+Rattrapage Heure Fin Avant Debut,17/01/2025,14:00,10:00
+Rattrapage Date Passe,01/01/2020,09:00,11:00
+Rattrapage Nom Vide,,18/01/2025,09:00,11:00 

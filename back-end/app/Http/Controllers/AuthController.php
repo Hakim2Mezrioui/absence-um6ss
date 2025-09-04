@@ -43,20 +43,25 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6',
-            "role" => ["required", "string", "in:admin,user,super-admin"],
+            'role_id' => 'required|integer|exists:roles,id',
+            'post_id' => 'required|integer|exists:posts,id',
+            'etablissement_id' => 'nullable|integer|exists:etablissements,id',
         ]);
 
         $user = User::create([
-            'name' => $request->name,
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            "role" => $request->role,
+            'role_id' => $request->role_id,
+            'post_id' => $request->post_id,
+            'etablissement_id' => $request->etablissement_id,
         ]);
 
-        // $token = Auth::login($user);
         $token = $user->createToken('token')->plainTextToken;
         $cookie = cookie('jwt', $token, 5);
 
@@ -69,72 +74,149 @@ class AuthController extends Controller
                 'type' => 'bearer',
             ]
         ])->withCookie($cookie);
-
     }
 
     public function logout(Request $request) {
         $request->user()->tokens()->delete();
-        return response()->json(["message"=> "The use is logouted "], 200);
+        return response()->json(["message" => "The user is logged out"], 200);
     }
 
     public function create(Request $request) {
-        // Validation avec des règles plus sécurisées
+        // Validation avec des règles correspondant au schéma de la table
         $request->validate([
-            "name" => ["required", "string", "max:255"],
+            "first_name" => ["required", "string", "max:255"],
+            "last_name" => ["required", "string", "max:255"],
             "email" => ["required", "string", "email", "max:255", "unique:users,email"],
-            "password" => ["required", "string", "min:8"],
-            "role" => ["required", "string", "in:admin,user,super-admin,scolarite"], // Limité aux rôles valides
+            "password" => ["required", "string", "min:6"],
+            "role_id" => ["required", "integer", "exists:roles,id"],
+            "post_id" => ["required", "integer", "exists:posts,id"],
+            "etablissement_id" => ["nullable", "integer", "exists:etablissements,id"],
         ]);
-    
+
         try {
-            // Création de l'utilisateur avec un mot de passe haché
+            // Création de l'utilisateur avec les bons champs
             $user = User::create([
-                "name" => $request->name,
+                "first_name" => $request->first_name,
+                "last_name" => $request->last_name,
                 "email" => $request->email,
-                "password" => Hash::make($request->password), // Hachage du mot de passe
-                "role" => $request->role,
-                "faculte" => $request->faculte,
+                "password" => Hash::make($request->password),
+                "role_id" => $request->role_id,
+                "post_id" => $request->post_id,
+                "etablissement_id" => $request->etablissement_id,
             ]);
-    
-            return response()->json(["message" => "Utilisateur créé avec succès"], 201);
+
+            return response()->json([
+                "message" => "Utilisateur créé avec succès",
+                "user" => $user
+            ], 201);
         } catch (\Exception $e) {
-            return response()->json(["message" => "Erreur lors de la création de l'utilisateur", "error" => $e->getMessage()], 500);
+            return response()->json([
+                "message" => "Erreur lors de la création de l'utilisateur", 
+                "error" => $e->getMessage()
+            ], 500);
         }
     }
 
-    public function delete(Request $request) {
-    
-    }
+    // Supprimer cette fonction vide
+    // public function delete(Request $request) {
+    // }
 
     public function users() {
         try {
-            $users = User::all();
+            $users = User::with(['role', 'post', 'etablissement'])->get(); // Ajouter les relations
             return response()->json([
-                "users"=> $users,
-                ]);
-
+                "users" => $users,
+            ]);
         } catch (\Exception $e) {
             return response()->json([
                 "message" => "Erreur lors de la récupération des utilisateurs",
                 "error" => $e->getMessage(),
             ], 500);
         }
-
     }
 
     public function user(Request $request)
     {
-        return Auth::user();
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(["message" => "User not authenticated"], 401);
+        }
+        return response()->json(["user" => $user]);
+    }
+
+    public function show($id) {
+        try {
+            $user = User::with(['role', 'post', 'etablissement'])->findOrFail($id);
+            return response()->json([
+                "status" => "success",
+                "user" => $user
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status" => "error",
+                "message" => "Utilisateur non trouvé",
+                "error" => $e->getMessage()
+            ], 404);
+        }
     }
 
     public function destroy(Request $request, $id) {
-        $user = User::findOrFail($id);
-        if(!$user) {
-            return response()->json(["message"=> "User not found"],404);
+        try {
+            $user = User::findOrFail($id);
+            $user->delete();
+            return response()->json([
+                "message" => "User deleted successfully",
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                "message" => "User not found or error occurred",
+                "error" => $e->getMessage()
+            ], 404);
         }
-        $user->delete();
-        return response()->json([
-            "message"=> "user deleted succesfully",
-        ]);
+    }
+
+    public function update(Request $request, $id) {
+        try {
+            $user = User::findOrFail($id);
+            
+            // Validation des données de mise à jour
+            $request->validate([
+                "first_name" => ["sometimes", "string", "max:255"],
+                "last_name" => ["sometimes", "string", "max:255"],
+                "email" => ["sometimes", "string", "email", "max:255", "unique:users,email," . $id],
+                "password" => ["sometimes", "string", "min:6"],
+                "role_id" => ["sometimes", "integer", "exists:roles,id"],
+                "post_id" => ["sometimes", "integer", "exists:posts,id"],
+                "etablissement_id" => ["sometimes", "nullable", "integer", "exists:etablissements,id"],
+            ]);
+
+            // Mise à jour des champs fournis
+            $updateData = $request->only([
+                'first_name', 'last_name', 'email', 'role_id', 'post_id', 'etablissement_id'
+            ]);
+
+            // Hacher le mot de passe si fourni
+            if ($request->has('password')) {
+                $updateData['password'] = Hash::make($request->password);
+            }
+
+            $user->update($updateData);
+
+            // Recharger l'utilisateur avec les relations
+            $user->load(['role', 'post', 'etablissement']);
+
+            return response()->json([
+                "status" => "success",
+                "message" => "Utilisateur mis à jour avec succès",
+                "user" => $user
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                "status" => "error",
+                "message" => "Erreur lors de la mise à jour de l'utilisateur",
+                "error" => $e->getMessage()
+            ], 500);
+        }
     }
 }

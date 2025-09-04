@@ -1,0 +1,136 @@
+/* Styles pour le formulaire d'ajout d'étudiant */
+
+/* Style global du formulaire */
+.mat-mdc-form-field {
+  width: 100%;
+}
+
+/* Amélioration des champs de saisie */
+.mat-mdc-form-field .mat-mdc-text-field-wrapper {
+  border-radius: 12px;
+}
+
+.mat-mdc-form-field.mat-form-field-appearance-outline .mat-mdc-form-field-outline {
+  border-radius: 12px;
+}
+
+/* Style des labels */
+.mat-mdc-form-field-label {
+  color: #6b7280;
+}
+
+/* Focus states */
+.mat-mdc-form-field.mat-focused .mat-mdc-form-field-label {
+  color: #3b82f6;
+}
+
+.mat-mdc-form-field.mat-focused .mat-mdc-form-field-outline-thick {
+  color: #3b82f6;
+}
+
+/* Style des erreurs */
+.mat-mdc-form-field-error {
+  color: #ef4444;
+  font-size: 0.875rem;
+}
+
+/* Style des boutons */
+.mat-mdc-raised-button {
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.mat-mdc-raised-button:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.mat-mdc-outlined-button {
+  border-radius: 12px;
+  border: 2px solid;
+  transition: all 0.3s ease;
+}
+
+/* Style des select */
+.mat-mdc-select-trigger {
+  border-radius: 12px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-section {
+  animation: fadeIn 0.6s ease-out;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .grid-cols-2 {
+    grid-template-columns: 1fr;
+  }
+  
+  .flex-row {
+    flex-direction: column;
+  }
+  
+  .gap-4 {
+    gap: 1rem;
+  }
+}
+
+/* Style pour les icônes */
+.mat-icon {
+  vertical-align: middle;
+}
+
+/* Hover effects pour les sections */
+.bg-gradient-to-br:hover {
+  transform: translateY(-2px);
+  transition: transform 0.3s ease;
+}
+
+/* Style des notifications */
+.success-snackbar {
+  background-color: #10b981 !important;
+  color: white !important;
+}
+
+.error-snackbar {
+  background-color: #ef4444 !important;
+  color: white !important;
+}
+
+/* Loading state */
+.mat-mdc-progress-spinner {
+  margin: 0 auto;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+

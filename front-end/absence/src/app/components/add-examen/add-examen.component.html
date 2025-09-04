@@ -1,0 +1,265 @@
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">Ajouter un Examen</h1>
+          <p class="mt-2 text-gray-600">Créez un nouvel examen pour votre établissement</p>
+        </div>
+        <button 
+          routerLink="/dashboard/examens"
+          class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center gap-2"
+        >
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Retour aux examens
+        </button>
+      </div>
+    </div>
+
+    <!-- Formulaire -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <form [formGroup]="examenForm" (ngSubmit)="onSubmit()" class="space-y-6">
+        
+        <!-- Titre de l'examen -->
+        <div>
+          <label for="title" class="block text-sm font-medium text-gray-700 mb-2">
+            Titre de l'examen <span class="text-red-500">*</span>
+          </label>
+          <input
+            id="title"
+            type="text"
+            formControlName="title"
+            placeholder="Ex: Examen de Mathématiques - Semestre 1"
+            [class]="isFieldInvalid('title') 
+              ? 'w-full px-3 py-2 border border-red-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500'
+              : 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'"
+          >
+          <div *ngIf="isFieldInvalid('title')" class="mt-1 text-sm text-red-600">
+            {{ getErrorMessage('title') }}
+          </div>
+        </div>
+
+        <!-- Date et Heures -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label for="date" class="block text-sm font-medium text-gray-700 mb-2">
+              Date <span class="text-red-500">*</span>
+            </label>
+            <input
+              id="date"
+              type="date"
+              formControlName="date"
+              [class]="isFieldInvalid('date') 
+                ? 'w-full px-3 py-2 border border-red-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500'
+                : 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'"
+            >
+            <div *ngIf="isFieldInvalid('date')" class="mt-1 text-sm text-red-600">
+              {{ getErrorMessage('date') }}
+            </div>
+          </div>
+
+          <div>
+            <label for="heure_debut" class="block text-sm font-medium text-gray-700 mb-2">
+              Heure de début <span class="text-red-500">*</span>
+            </label>
+            <input
+              id="heure_debut"
+              type="time"
+              formControlName="heure_debut"
+              [class]="isFieldInvalid('heure_debut') 
+                ? 'w-full px-3 py-2 border border-red-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500'
+                : 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'"
+            >
+            <div *ngIf="isFieldInvalid('heure_debut')" class="mt-1 text-sm text-red-600">
+              {{ getErrorMessage('heure_debut') }}
+            </div>
+          </div>
+
+          <div>
+            <label for="heure_fin" class="block text-sm font-medium text-gray-700 mb-2">
+              Heure de fin <span class="text-red-500">*</span>
+            </label>
+            <input
+              id="heure_fin"
+              type="time"
+              formControlName="heure_fin"
+              [class]="isFieldInvalid('heure_fin') 
+                ? 'w-full px-3 py-2 border border-red-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500'
+                : 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'"
+            >
+            <div *ngIf="isFieldInvalid('heure_fin')" class="mt-1 text-sm text-red-600">
+              {{ getErrorMessage('heure_fin') }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Type d'examen et Année universitaire -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="type_examen_id" class="block text-sm font-medium text-gray-700 mb-2">
+              Type d'examen <span class="text-red-500">*</span>
+            </label>
+            <select
+              id="type_examen_id"
+              formControlName="type_examen_id"
+              [class]="isFieldInvalid('type_examen_id') 
+                ? 'w-full px-3 py-2 border border-red-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500'
+                : 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'"
+            >
+              <option value="">Sélectionner un type</option>
+              <option *ngFor="let type of typesExamen" [value]="type.id">
+                {{ type.name }}
+              </option>
+            </select>
+            <div *ngIf="isFieldInvalid('type_examen_id')" class="mt-1 text-sm text-red-600">
+              {{ getErrorMessage('type_examen_id') }}
+            </div>
+          </div>
+
+          <div>
+            <label for="annee_universitaire" class="block text-sm font-medium text-gray-700 mb-2">
+              Année universitaire <span class="text-red-500">*</span>
+            </label>
+            <input
+              id="annee_universitaire"
+              type="text"
+              formControlName="annee_universitaire"
+              placeholder="Ex: 2023-2024"
+              [class]="isFieldInvalid('annee_universitaire') 
+                ? 'w-full px-3 py-2 border border-red-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500'
+                : 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'"
+            >
+            <div *ngIf="isFieldInvalid('annee_universitaire')" class="mt-1 text-sm text-red-600">
+              {{ getErrorMessage('annee_universitaire') }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Établissement et Promotion -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="etablissement_id" class="block text-sm font-medium text-gray-700 mb-2">
+              Établissement <span class="text-red-500">*</span>
+            </label>
+            <select
+              id="etablissement_id"
+              formControlName="etablissement_id"
+              [class]="isFieldInvalid('etablissement_id') 
+                ? 'w-full px-3 py-2 border border-red-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500'
+                : 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'"
+            >
+              <option value="">Sélectionner un établissement</option>
+              <option *ngFor="let etablissement of etablissements" [value]="etablissement.id">
+                {{ etablissement.name }}
+              </option>
+            </select>
+            <div *ngIf="isFieldInvalid('etablissement_id')" class="mt-1 text-sm text-red-600">
+              {{ getErrorMessage('etablissement_id') }}
+            </div>
+          </div>
+
+          <div>
+            <label for="promotion_id" class="block text-sm font-medium text-gray-700 mb-2">
+              Promotion <span class="text-red-500">*</span>
+            </label>
+            <select
+              id="promotion_id"
+              formControlName="promotion_id"
+              [class]="isFieldInvalid('promotion_id') 
+                ? 'w-full px-3 py-2 border border-red-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500'
+                : 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'"
+            >
+              <option value="">Sélectionner une promotion</option>
+              <option *ngFor="let promotion of promotions" [value]="promotion.id">
+                {{ promotion.name }}
+              </option>
+            </select>
+            <div *ngIf="isFieldInvalid('promotion_id')" class="mt-1 text-sm text-red-600">
+              {{ getErrorMessage('promotion_id') }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Option et Salle -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="option_id" class="block text-sm font-medium text-gray-700 mb-2">
+              Option
+            </label>
+            <select
+              id="option_id"
+              formControlName="option_id"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="">Sélectionner une option (optionnel)</option>
+              <option *ngFor="let option of options" [value]="option.id">
+                {{ option.name }}
+              </option>
+            </select>
+          </div>
+
+          <div>
+            <label for="salle_id" class="block text-sm font-medium text-gray-700 mb-2">
+              Salle <span class="text-red-500">*</span>
+            </label>
+            <select
+              id="salle_id"
+              formControlName="salle_id"
+              [class]="isFieldInvalid('salle_id') 
+                ? 'w-full px-3 py-2 border border-red-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500'
+                : 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'"
+            >
+              <option value="">Sélectionner une salle</option>
+              <option *ngFor="let salle of salles" [value]="salle.id">
+                {{ salle.name }}
+              </option>
+            </select>
+            <div *ngIf="isFieldInvalid('salle_id')" class="mt-1 text-sm text-red-600">
+              {{ getErrorMessage('salle_id') }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Messages d'erreur -->
+        <div *ngIf="error" class="bg-red-50 border border-red-200 rounded-md p-4">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm text-red-800">{{ error }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Boutons d'action -->
+        <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
+          <button
+            type="button"
+            (click)="resetForm()"
+            class="px-6 py-3 border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 rounded-lg transition-colors duration-200"
+          >
+            Réinitialiser
+          </button>
+          <button
+            type="submit"
+            [disabled]="loading"
+            class="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg transition-colors duration-200 flex items-center gap-2"
+          >
+            <svg *ngIf="loading" class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span *ngIf="!loading">Créer l'examen</span>
+            <span *ngIf="loading">Création en cours...</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

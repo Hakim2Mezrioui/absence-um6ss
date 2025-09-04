@@ -21,9 +21,22 @@ class DatabaseSeeder extends Seeder
         // ]);
 
         $this->call([
-            FaculteSeeder::class,
-            // ClassSeeder::class,
-            ExamenSeeder::class,
+            VilleSeeder::class,
+            EtablissementSeeder::class,
+            PromotionSeeder::class,
+            RoleSeeder::class,
+            PostSeeder::class,
+            TypeCoursSeeder::class,
+            TypeExamenSeeder::class,
+            SalleSeeder::class,
+            OptionSeeder::class,
+            GroupSeeder::class,        // Déplacé avant ExamenSeeder
+            ExamenSeeder::class,       // Maintenant après GroupSeeder
+            EtudiantSeeder::class,
+            CoursSeeder::class,
+            UserSeeder::class,
+            AbsenceSeeder::class,      // Après ExamenSeeder
+            RattrapageSeeder::class,
         ]);
     }
 }

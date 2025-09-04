@@ -5,72 +5,116 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Examen;
 use DateTime;
+use Illuminate\Support\Facades\Log;
 
 class ExamenController extends Controller
 {
-    function index(Request $request) {
-        $size = $request->query('size', 6);
+    public function index(Request $request)
+    {
+        // Get query parameters with defaults
+        $size = $request->query('size', 10);
         $page = $request->query('page', 1); 
-        $statut = $request->query('statut', "tous"); 
-        $faculte = $request->query("faculte", "toutes");
+        $etablissement_id = $request->query("etablissement_id", null);
+        $promotion_id = $request->query("promotion_id", null);
+        $salle_id = $request->query("salle_id", null);
+        $group_id = $request->query("group_id", null);
+        $ville_id = $request->query("ville_id", null);
         $searchValue = $request->query("searchValue", "");
+        $date = $request->query("date", "");
 
-        $skip = ($page - 1) * $size;
+        // Validate pagination parameters
+        $size = max(1, min(100, (int) $size)); // Limit size between 1 and 100
+        $page = max(1, (int) $page);
 
-        $query = Examen::query();
+        $query = Examen::with(['etablissement', 'promotion', 'typeExamen', 'salle', 'option', 'group', 'ville']);
 
-        // Appliquer le filtre sur le statut si nécessaire
-        if (!empty($statut) && $statut !== "tous") {
-            $query->where("statut", $statut);
+        // Apply filters
+        $this->applyFilters($query, $etablissement_id, $promotion_id, $salle_id, $group_id, $ville_id, $searchValue, $date);
+
+        // Get total count before pagination
+        $total = $query->count();
+
+        // Calculate pagination
+        $totalPages = ceil($total / $size);
+        $currentPage = min($page, $totalPages > 0 ? $totalPages : 1);
+
+        // Get paginated results
+        $examens = $query->orderBy('created_at', 'desc')
+                        ->offset(($currentPage - 1) * $size)
+                        ->limit($size)
+                        ->get();
+
+        return response()->json([
+            "data" => $examens,
+            "current_page" => $currentPage,
+            "per_page" => $size,
+            "total" => $total,
+            "last_page" => $totalPages,
+            "has_next_page" => $currentPage < $totalPages,
+            "has_prev_page" => $currentPage > 1
+        ]);
+    }
+
+    private function applyFilters($query, $etablissement_id, $promotion_id, $salle_id, $group_id, $ville_id, $searchValue, $date) {
+        // Apply establishment filter by ID
+        if (!empty($etablissement_id)) {
+            $query->where('etablissement_id', $etablissement_id);
         }
 
-        // Appliquer le filtre sur la faculté si nécessaire
-        if (!empty($faculte) && $faculte !== "toutes") {
-            $query->where("faculte", $faculte);
+        // Apply promotion filter by ID
+        if (!empty($promotion_id)) {
+            $query->where('promotion_id', $promotion_id);
         }
-        if (!empty($searchValue) && $searchValue !== "") {
+
+        // Apply salle filter by ID
+        if (!empty($salle_id)) {
+            $query->where('salle_id', $salle_id);
+        }
+
+        // Apply group filter by ID
+        if (!empty($group_id)) {
+            $query->where('group_id', $group_id);
+        }
+
+        // Apply ville filter by ID
+        if (!empty($ville_id)) {
+            $query->where('ville_id', $ville_id);
+        }
+
+        // Apply search filter
+        if (!empty($searchValue)) {
             $query->where("title", "LIKE", "%{$searchValue}%");
         }
 
-        // Obtenir le total des résultats avant la pagination
-        $total = $query->count();
-
-        // Appliquer la pagination
-        $examens = $query->limit($size)->skip($skip)->orderBy('created_at', 'desc')->get();
-
-        // Calcul du nombre total de pages
-        $totalPages = ($size > 0) ? ceil($total / $size) : 1;
-
-        // Retourner la réponse JSON
-        return response()->json([
-            "examens" => $examens,
-            "totalPages" => $totalPages,
-            "total" => $total, // Ajout pour debug si nécessaire
-            "status" => 200
-        ]);
-
-
-        // if($statut && $statut != "tous") {
-        //     $examens = Examen::where("statut", $statut)->limit($size)->skip($skip)->get();
-        //     $total = Examen::where('statut', $statut)->count();
-        //     $totalPages = ceil($total / $size);
-        // } 
-        // else {
-        //     $examens = Examen::limit($size)->skip($skip)->get();
-        //     $total = Examen::count();
-        //     $totalPages = ceil($total / $size);
-        // }
-
-
-        // return response()->json([
-        //     "examens" => $examens,
-        //     "totalPages" => $totalPages,
-        //     "status" => 200
-        // ]);
+        // Apply date filter
+        if (!empty($date)) {
+            try {                
+                // Try to parse the date in Y-m-d format first
+                $formattedDate = DateTime::createFromFormat('Y-m-d', $date);
+                if (!$formattedDate) {
+                    // If that fails, try d/m/Y format
+                    $formattedDate = DateTime::createFromFormat('d/m/Y', $date);
+                }
+                
+                if ($formattedDate) {
+                    $formattedDateString = $formattedDate->format('Y-m-d');
+                    Log::info('Formatted date: ' . $formattedDateString);
+                    $query->whereDate("date", $formattedDateString);
+                    
+                    //Log the SQL query
+                    Log::info('SQL Query: ' . $query->toSql());
+                    Log::info('Query Bindings: ' . json_encode($query->getBindings()));
+                } else {
+                    Log::info('Failed to parse date');
+                }
+            } catch (\Exception $e) {
+                Log::error('Date parsing error: ' . $e->getMessage());
+            }
+        }
     }
 
-    function show(Request $request) {
-        $examen = Examen::find($request->id);
+    function show($id) {
+        $examen = Examen::with(['etablissement', 'promotion', 'typeExamen', 'salle'])->find($id);
         if (!$examen) {
             return response()->json(["message" => "Examen not found", "status" => 404], 404);
         }
@@ -78,47 +122,57 @@ class ExamenController extends Controller
         return response()->json(["examen" => $examen, "status" => 200], 200);
     }
 
-    function store(Request $request) {
+    public function store(Request $request) {
         // Validate the request input
         $request->validate([
             'title' => 'required|string|max:255',
             'date' => 'required|date',
-            'hour_debut' => 'required|after:hour_debut_pointage',
-            'hour_debut_pointage' => 'required',
-            'hour_fin' => 'required|after:hour_debut',
-            'faculte' => 'required|string|max:255',
-            'promotion' => 'required|in:1ère annee,2ème annee,3ème annee,4ème annee,5ème annee,6ème annee',
-            'statut' => 'required|in:archivé,en cours',
+            'heure_debut' => 'required',
+            'heure_fin' => 'required',
+            'option_id' => 'nullable|exists:options,id',
+            'salle_id' => 'required|exists:salles,id',
+            'promotion_id' => 'required|exists:promotions,id',
+            'type_examen_id' => 'required|exists:types_examen,id',
+            'etablissement_id' => 'required|exists:etablissements,id',
+            'annee_universitaire' => 'required|string|max:255',
+            'group_id' => 'required|exists:groups,id',
+            'ville_id' => 'required|exists:villes,id',
         ]);
 
         // Create a new Examen
         $examen = Examen::create([
             'title' => $request->title,
             'date' => $request->date,
-            'hour_debut' => $request->hour_debut,
-            'hour_debut_pointage' => $request->hour_debut_pointage,
-            'hour_fin' => $request->hour_fin,
-            'faculte' => $request->faculte,
-            'promotion' => $request->promotion,
-            'statut' => $request->statut,
-            'option' => $request->option ?? '',
+            'heure_debut' => $request->heure_debut,
+            'heure_fin' => $request->heure_fin,
+            'option_id' => $request->option_id,
+            'salle_id' => $request->salle_id,
+            'promotion_id' => $request->promotion_id,
+            'type_examen_id' => $request->type_examen_id,
+            'etablissement_id' => $request->etablissement_id,
+            'annee_universitaire' => $request->annee_universitaire,
+            'group_id' => $request->group_id,
+            'ville_id' => $request->ville_id,
         ]);
 
         // Return the newly created Examen as a JSON response
         return response()->json(['response' => $examen], 201);
     }
 
-    function update(Request $request, $id) {
+    public function update(Request $request, $id) {
         // Validate the request input
         $request->validate([
             'title' => 'required|string|max:255',
             'date' => 'required|date',
-            'hour_debut' => 'required',
-            'hour_debut_pointage' => 'required',
-            'hour_fin' => 'required',
-            'faculte' => 'required|string|max:255',
-            'promotion' => 'required|in:1ère annee,2ème annee,3ème annee,4ème annee,5ème annee,6ème annee',
-            'statut' => 'required|in:archivé,en cours',
+            'heure_debut' => 'required',
+            'heure_fin' => 'required',
+            'option_id' => 'nullable|exists:options,id',
+            'salle_id' => 'required|exists:salles,id',
+            'promotion_id' => 'required|exists:promotions,id',
+            'type_examen_id' => 'required|exists:types_examen,id',
+            'etablissement_id' => 'required|exists:etablissements,id',
+            'group_id' => 'required|exists:groups,id',
+            'ville_id' => 'required|exists:villes,id',
         ]);
 
         // Find the Examen by id
@@ -127,131 +181,136 @@ class ExamenController extends Controller
             return response()->json(['message' => 'Examen not found'], 404);
         }
 
-
         // Update the Examen with the new data
-        $examen->update($request->only(['title', 'date', 'hour_debut', 'hour_debut_pointage', 'hour_fin', 'faculte', 'promotion', 'statut']));
+        $examen->update($request->only(['title', 'date', 'heure_debut', 'heure_fin', 'option_id', 'salle_id', 'promotion_id', 'type_examen_id', 'etablissement_id', 'group_id', 'ville_id']));
 
         // Return the updated Examen as a JSON response
         return response()->json($examen, 200);
     }
 
-    // function ImportExamens(Request $request) {
-    //     if ($request->hasFile('file')) {
-    //         $file = $request->file('file');
-    //         $path = $file->getRealPath();
+    function ImportExamens(Request $request) {
+        if (!$request->hasFile('file')) {
+            return response()->json(['message' => 'Aucun fichier téléchargé'], 400);
+        }
 
-    //         // Open the file for reading
-    //         $handle = fopen($path, 'r');
-    //         if ($handle === false) {
-    //             return response()->json(['message' => 'Unable to open file'], 400);
-    //         }
-            
-    //         $firstLine = fgets($handle);
-    //         $delimiter = $this->detectDelimiter($firstLine);
-    //         // Read the first line to get the headers
-    //         $header = fgetcsv($handle, 0, $delimiter);
-
-    //         // Ensure the header keys are trimmed and lowercased
-    //         $header = array_map('trim', $header);
-    //         $header = array_map('strtolower', $header);
-
-
-    //         rewind($handle);
-
-    //         // Parse the CSV file and insert data into the database
-    //         while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
-    //             $row = array_map('trim', $row);
-    //             $examenData = array_combine($header, $row);
-
-    //             $date = DateTime::createFromFormat('d/m/Y', $examenData['date']);
-    //             $examenData['date'] = $date ? $date->format('Y-m-d') : null;
-    //             Examen::create([
-    //                 'title' => $examenData['title'],
-    //                 'date' => $examenData['date'],
-    //                 'hour_debut' => $examenData['hour_debut'],
-    //                 'hour_debut_pointage' => $examenData['hour_debut_pointage'],
-    //                 'hour_fin' => $examenData['hour_fin'],
-    //                 'faculte' => $examenData['faculte'],
-    //                 'promotion' => $examenData['promotion'],
-    //                 'statut' => $examenData['statut'],
-    //             ]);
-    //         }
-
-    //         // Close the file
-    //         fclose($handle);
-
-    //         return response()->json(['message' => 'Examens imported successfully'], 200);
-    //     }
-
-    //     return response()->json(['message' => 'No file uploaded'], 400);
-    // }
-
-function ImportExamens(Request $request) {
-    if ($request->hasFile('file')) {
         $file = $request->file('file');
-        $path = $file->getRealPath();
-
-        // Open the file for reading
-        $handle = fopen($path, 'r');
-        if ($handle === false) {
-            return response()->json(['message' => 'Unable to open file'], 400);
-        }
         
-        $firstLine = fgets($handle);
-        $delimiter = $this->detectDelimiter($firstLine);
-        rewind($handle);
-
-        // Read the first line to get the headers
-        $header = fgetcsv($handle, 0, $delimiter);
-        if (!$header) {
-            return response()->json(['message' => 'Invalid CSV format'], 400);
+        // Vérifier le type de fichier
+        $allowedTypes = ['csv', 'txt'];
+        $fileExtension = strtolower($file->getClientOriginalExtension());
+        
+        if (!in_array($fileExtension, $allowedTypes)) {
+            return response()->json(['message' => 'Type de fichier non supporté. Utilisez CSV ou TXT'], 400);
         }
 
-        // Ensure the header keys are trimmed and lowercased
-        $header = array_map('trim', $header);
-        $header = array_map('strtolower', $header);
-
-        $examens = [];
-
-        // Parse the CSV file and insert data into the database
-        while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
-            $row = array_map('trim', $row);
-            $examenData = array_combine($header, $row);
+        try {
+            $path = $file->getRealPath();
+            $handle = fopen($path, 'r');
             
-            // return response()->json($examenData);
+            if ($handle === false) {
+                return response()->json(['message' => 'Impossible d\'ouvrir le fichier'], 400);
+            }
+            
+            // Détecter le délimiteur
+            $firstLine = fgets($handle);
+            $delimiter = $this->detectDelimiter($firstLine);
+            rewind($handle);
 
-            // if (isset($examenData['date'])) {
-            //     $date = DateTime::createFromFormat('d/m/Y', $examenData['date']);
-            //     $examenData['date'] = $date ? $date->format('Y-m-d') : null;
-            // }
+            // Lire les en-têtes
+            $header = fgetcsv($handle, 0, $delimiter);
+            if (!$header) {
+                fclose($handle);
+                return response()->json(['message' => 'Format CSV invalide'], 400);
+            }
 
-            $examens[] = [
-                'title' => $examenData['title'],
-                'date' => $examenData['date'],
-                'hour_debut' => $examenData['hour_debut'],
-                'hour_debut_pointage' => $examenData['hour_debut_pointage'],
-                'hour_fin' => $examenData['hour_fin'],
-                'faculte' => $examenData['faculte'],
-                'promotion' => $examenData['promotion'],
-                'statut' => $examenData['statut'],
-            ];
+            // Normaliser les en-têtes
+            $header = array_map(function($h) {
+                return strtolower(trim($h));
+            }, $header);
+
+            // Vérifier les en-têtes requis
+            $requiredHeaders = ['title', 'date', 'heure_debut', 'heure_fin', 'salle_id', 'promotion_id', 'type_examen_id', 'etablissement_id', 'group_id', 'ville_id'];
+            $missingHeaders = array_diff($requiredHeaders, $header);
+            
+            if (!empty($missingHeaders)) {
+                fclose($handle);
+                return response()->json([
+                    'message' => 'En-têtes manquants: ' . implode(', ', $missingHeaders),
+                    'required_headers' => $requiredHeaders,
+                    'found_headers' => $header
+                ], 400);
+            }
+
+            $examens = [];
+            $errors = [];
+            $lineNumber = 1; // Commencer à 1 car on a déjà lu l'en-tête
+
+            // Lire et traiter chaque ligne
+            while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
+                $lineNumber++;
+                $row = array_map('trim', $row);
+                
+                // Ignorer les lignes vides
+                if (empty(array_filter($row))) {
+                    continue;
+                }
+
+                try {
+                    $examenData = array_combine($header, $row);
+                    
+                    // Valider et transformer les données
+                    $validatedData = $this->validateAndTransformExamenData($examenData, $lineNumber);
+                    
+                    if ($validatedData) {
+                        $examens[] = $validatedData;
+                    }
+                } catch (\Exception $e) {
+                    $errors[] = [
+                        'line' => $lineNumber,
+                        'data' => $row,
+                        'error' => $e->getMessage()
+                    ];
+                }
+            }
+
+            fclose($handle);
+
+            // Si il y a des erreurs, les retourner
+            if (!empty($errors)) {
+                return response()->json([
+                    'message' => 'Erreurs détectées lors de l\'importation',
+                    'errors' => $errors,
+                    'total_errors' => count($errors)
+                ], 400);
+            }
+
+            // Insérer les données dans la base
+            if (!empty($examens)) {
+                try {
+                    Examen::insert($examens);
+                    
+                    return response()->json([
+                        'message' => count($examens) . ' examens importés avec succès',
+                        'imported_count' => count($examens),
+                        'data' => $examens
+                    ], 200);
+                } catch (\Exception $e) {
+                    return response()->json([
+                        'message' => 'Erreur lors de l\'insertion en base de données',
+                        'error' => $e->getMessage()
+                    ], 500);
+                }
+            }
+
+            return response()->json(['message' => 'Aucune donnée valide trouvée dans le fichier'], 400);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erreur lors du traitement du fichier',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        // Close the file
-        fclose($handle);
-
-        // Insert data into the database
-        if (!empty($examens)) {
-            Examen::insert($examens);
-            return response()->json(['message' => 'Examens imported successfully', 'data' => $examens], 200);
-        }
-
-        return response()->json(['message' => 'No valid data found in CSV'], 400);
     }
-
-    return response()->json(['message' => 'No file uploaded'], 400);
-}
-
 
     private function detectDelimiter($line)
     {
@@ -265,11 +324,11 @@ function ImportExamens(Request $request) {
         return array_search(max($counts), $counts);
     }
 
-    function destroy($id) {
+    public function destroy($id) {
         // Find the Examen by id
         $examen = Examen::find($id);
 
-        if (!$examen) {
+        if (empty($examen)) {
             return response()->json(['message' => 'Examen not found'], 404);
         }
 
@@ -280,7 +339,167 @@ function ImportExamens(Request $request) {
         return response()->json(['message' => 'Examen deleted successfully'], 200);
     }
 
-    function search() {
+    /**
+     * Get all establishments for filter dropdown
+     */
+    public function getEtablissements()
+    {
+        $etablissements = \App\Models\Etablissement::select('id', 'name')->get();
+        return response()->json(['etablissements' => $etablissements]);
+    }
+
+    /**
+     * Get all promotions for filter dropdown
+     */
+    public function getPromotions()
+    {
+        $promotions = \App\Models\Promotion::select('id', 'name')->get();
+        return response()->json(['promotions' => $promotions]);
+    }
+
+    /**
+     * Get all salles for filter dropdown
+     */
+    public function getSalles()
+    {
+        $salles = \App\Models\Salle::select('id', 'name', 'etage', 'batiment')->get();
+        return response()->json(['salles' => $salles]);
+    }
+
+    /**
+     * Get all filter options in one request
+     */
+    public function getFilterOptions()
+    {
+        $etablissements = \App\Models\Etablissement::select('id', 'name')->get();
+        $promotions = \App\Models\Promotion::select('id', 'name')->get();
+        $salles = \App\Models\Salle::select('id', 'name', 'etage', 'batiment')->get();
+        $options = \App\Models\Option::select('id', 'name')->get();
+        $groups = \App\Models\Group::select('id', 'title')->get();
+        $villes = \App\Models\Ville::select('id', 'name')->get();
+
+        return response()->json([
+            'etablissements' => $etablissements,
+            'promotions' => $promotions,
+            'salles' => $salles,
+            'options' => $options,
+            'groups' => $groups,
+            'villes' => $villes
+        ]);
+    }
+
+    /**
+     * Valider et transformer les données d'un examen
+     */
+    private function validateAndTransformExamenData(array $data, int $lineNumber): ?array
+    {
+        // Vérifier que les champs requis ne sont pas vides
+        $requiredFields = ['title', 'date', 'heure_debut', 'heure_fin', 'salle_id', 'promotion_id', 'type_examen_id', 'etablissement_id', 'group_id', 'ville_id'];
         
+        foreach ($requiredFields as $field) {
+            if (empty($data[$field])) {
+                throw new \Exception("Le champ '$field' est requis à la ligne $lineNumber");
+            }
+        }
+
+        // Valider et formater la date
+        $date = $this->parseDate($data['date']);
+        if (!$date) {
+            throw new \Exception("Format de date invalide à la ligne $lineNumber. Utilisez YYYY-MM-DD ou DD/MM/YYYY");
+        }
+
+        // Valider et formater les heures
+        $heureDebut = $this->parseTime($data['heure_debut']);
+        $heureFin = $this->parseTime($data['heure_fin']);
+        
+        if (!$heureDebut || !$heureFin) {
+            throw new \Exception("Format d'heure invalide à la ligne $lineNumber. Utilisez HH:MM ou HH:MM:SS");
+        }
+
+        // Vérifier que l'heure de fin est après l'heure de début
+        if ($heureDebut >= $heureFin) {
+            throw new \Exception("L'heure de fin doit être après l'heure de début à la ligne $lineNumber");
+        }
+
+        // Vérifier que les IDs existent
+        $this->validateForeignKeys($data, $lineNumber);
+
+        return [
+            'title' => $data['title'],
+            'date' => $date,
+            'heure_debut' => $heureDebut,
+            'heure_fin' => $heureFin,
+            'option_id' => !empty($data['option_id']) ? $data['option_id'] : null,
+            'salle_id' => $data['salle_id'],
+            'promotion_id' => $data['promotion_id'],
+            'type_examen_id' => $data['type_examen_id'],
+            'etablissement_id' => $data['etablissement_id'],
+            'group_id' => $data['group_id'],
+            'ville_id' => $data['ville_id'],
+            'created_at' => now(),
+            'updated_at' => now()
+        ];
+    }
+
+    /**
+     * Parser une date depuis différents formats
+     */
+    private function parseDate(string $dateString): ?string
+    {
+        $formats = ['Y-m-d', 'd/m/Y', 'd-m-Y', 'm/d/Y'];
+        
+        foreach ($formats as $format) {
+            $date = DateTime::createFromFormat($format, $dateString);
+            if ($date !== false) {
+                return $date->format('Y-m-d');
+            }
+        }
+        
+        return null;
+    }
+
+    /**
+     * Parser une heure depuis différents formats
+     */
+    private function parseTime(string $timeString): ?string
+    {
+        $formats = ['H:i', 'H:i:s', 'G:i', 'G:i:s'];
+        
+        foreach ($formats as $format) {
+            $time = DateTime::createFromFormat($format, $timeString);
+            if ($time !== false) {
+                return $time->format('H:i:s');
+            }
+        }
+        
+        return null;
+    }
+
+    /**
+     * Valider que les clés étrangères existent
+     */
+    private function validateForeignKeys(array $data, int $lineNumber): void
+    {
+        $foreignKeys = [
+            'salle_id' => \App\Models\Salle::class,
+            'promotion_id' => \App\Models\Promotion::class,
+            'type_examen_id' => \App\Models\TypeExamen::class,
+            'etablissement_id' => \App\Models\Etablissement::class,
+            'group_id' => \App\Models\Group::class,
+            'ville_id' => \App\Models\Ville::class
+        ];
+
+        if (!empty($data['option_id'])) {
+            $foreignKeys['option_id'] = \App\Models\Option::class;
+        }
+
+        foreach ($foreignKeys as $field => $modelClass) {
+            if (!empty($data[$field])) {
+                $exists = $modelClass::find($data[$field]);
+                if (!$exists) {
+                    throw new \Exception("L'ID {$data[$field]} pour '$field' n'existe pas à la ligne $lineNumber");
+                }
+            }
+        }
     }
 }

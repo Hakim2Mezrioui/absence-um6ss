@@ -1,0 +1,394 @@
+{
+  "info": {
+    "name": "API Examens - Tests",
+    "description": "Collection pour tester l'API des examens avec les nouveaux champs group_id et ville_id",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{auth_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000/api",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "votre_token_ici",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Récupérer tous les examens",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/examens?size=10&page=1",
+          "host": ["{{base_url}}"],
+          "path": ["examens"],
+          "query": [
+            {
+              "key": "size",
+              "value": "10"
+            },
+            {
+              "key": "page",
+              "value": "1"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "2. Récupérer tous les examens avec filtres",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/examens?size=5&page=1&etablissement_id=1&promotion_id=1&group_id=1&ville_id=1&searchValue=math&date=2025-01-15",
+          "host": ["{{base_url}}"],
+          "path": ["examens"],
+          "query": [
+            {
+              "key": "size",
+              "value": "5"
+            },
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "etablissement_id",
+              "value": "1"
+            },
+            {
+              "key": "promotion_id",
+              "value": "1"
+            },
+            {
+              "key": "group_id",
+              "value": "1"
+            },
+            {
+              "key": "ville_id",
+              "value": "1"
+            },
+            {
+              "key": "searchValue",
+              "value": "math"
+            },
+            {
+              "key": "date",
+              "value": "2025-01-15"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "3. Récupérer un examen spécifique",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/examens/1",
+          "host": ["{{base_url}}"],
+          "path": ["examens", "1"]
+        }
+      }
+    },
+    {
+      "name": "4. Créer un nouvel examen",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Examen de Mathématiques Avancées\",\n  \"date\": \"2025-02-15\",\n  \"heure_debut\": \"09:00:00\",\n  \"heure_fin\": \"11:00:00\",\n  \"annee_universitaire\": \"2024-2025\",\n  \"group_id\": 1,\n  \"ville_id\": 1,\n  \"etablissement_id\": 1,\n  \"promotion_id\": 1,\n  \"type_examen_id\": 1,\n  \"salle_id\": 1,\n  \"option_id\": 1\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/examens",
+          "host": ["{{base_url}}"],
+          "path": ["examens"]
+        }
+      }
+    },
+    {
+      "name": "5. Créer un examen sans option",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Examen de Physique\",\n  \"date\": \"2025-02-16\",\n  \"heure_debut\": \"14:00:00\",\n  \"heure_fin\": \"16:00:00\",\n  \"annee_universitaire\": \"2024-2025\",\n  \"group_id\": 2,\n  \"ville_id\": 2,\n  \"etablissement_id\": 1,\n  \"promotion_id\": 1,\n  \"type_examen_id\": 2,\n  \"salle_id\": 2\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/examens",
+          "host": ["{{base_url}}"],
+          "path": ["examens"]
+        }
+      }
+    },
+    {
+      "name": "6. Modifier un examen existant",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Examen de Mathématiques Avancées - Modifié\",\n  \"date\": \"2025-02-20\",\n  \"heure_debut\": \"10:00:00\",\n  \"heure_fin\": \"12:00:00\",\n  \"annee_universitaire\": \"2024-2025\",\n  \"group_id\": 2,\n  \"ville_id\": 2,\n  \"etablissement_id\": 1,\n  \"promotion_id\": 1,\n  \"type_examen_id\": 1,\n  \"salle_id\": 2,\n  \"option_id\": 2\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/examens/1",
+          "host": ["{{base_url}}"],
+          "path": ["examens", "1"]
+        }
+      }
+    },
+    {
+      "name": "7. Supprimer un examen",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/examens/1",
+          "host": ["{{base_url}}"],
+          "path": ["examens", "1"]
+        }
+      }
+    },
+    {
+      "name": "8. Récupérer les options de filtre",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/examens/filter-options",
+          "host": ["{{base_url}}"],
+          "path": ["examens", "filter-options"]
+        }
+      }
+    },
+    {
+      "name": "9. Test de validation - Champs manquants",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Examen incomplet\",\n  \"date\": \"2025-02-15\"\n  // group_id et ville_id manquants - devrait échouer\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/examens",
+          "host": ["{{base_url}}"],
+          "path": ["examens"]
+        }
+      }
+    },
+    {
+      "name": "10. Test de validation - Heure fin avant heure début",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Examen avec heures invalides\",\n  \"date\": \"2025-02-15\",\n  \"heure_debut\": \"11:00:00\",\n  \"heure_fin\": \"09:00:00\",\n  \"annee_universitaire\": \"2024-2025\",\n  \"group_id\": 1,\n  \"ville_id\": 1,\n  \"etablissement_id\": 1,\n  \"promotion_id\": 1,\n  \"type_examen_id\": 1,\n  \"salle_id\": 1\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/examens",
+          "host": ["{{base_url}}"],
+          "path": ["examens"]
+        }
+      }
+    },
+    {
+      "name": "11. Test de validation - ID inexistant",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Examen avec ID inexistant\",\n  \"date\": \"2025-02-15\",\n  \"heure_debut\": \"09:00:00\",\n  \"heure_fin\": \"11:00:00\",\n  \"annee_universitaire\": \"2024-2025\",\n  \"group_id\": 999,\n  \"ville_id\": 999,\n  \"etablissement_id\": 999,\n  \"promotion_id\": 999,\n  \"type_examen_id\": 999,\n  \"salle_id\": 999\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/examens",
+          "host": ["{{base_url}}"],
+          "path": ["examens"]
+        }
+      }
+    },
+    {
+      "name": "12. Filtrage par groupe",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/examens?group_id=1&size=20",
+          "host": ["{{base_url}}"],
+          "path": ["examens"],
+          "query": [
+            {
+              "key": "group_id",
+              "value": "1"
+            },
+            {
+              "key": "size",
+              "value": "20"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "13. Filtrage par ville",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/examens?ville_id=1&size=20",
+          "host": ["{{base_url}}"],
+          "path": ["examens"],
+          "query": [
+            {
+              "key": "ville_id",
+              "value": "1"
+            },
+            {
+              "key": "size",
+              "value": "20"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "14. Recherche par titre",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/examens?searchValue=mathématique&size=10",
+          "host": ["{{base_url}}"],
+          "path": ["examens"],
+          "query": [
+            {
+              "key": "searchValue",
+              "value": "mathématique"
+            },
+            {
+              "key": "size",
+              "value": "10"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "15. Filtrage par date",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/examens?date=2025-01-15&size=10",
+          "host": ["{{base_url}}"],
+          "path": ["examens"],
+          "query": [
+            {
+              "key": "date",
+              "value": "2025-01-15"
+            },
+            {
+              "key": "size",
+              "value": "10"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

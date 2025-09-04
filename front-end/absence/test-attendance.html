@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Navigation Attendance</title>
+</head>
+<body>
+    <h1>Test de Navigation vers Attendance</h1>
+    
+    <h2>Test des paramètres d'URL</h2>
+    <p>Cliquez sur ce lien pour tester la navigation vers l'attendance :</p>
+    
+    <a href="/dashboard/attendance?date=2025-01-15&hour1=09:00&hour2=11:00&promotion_id=1&etablissement_id=1&option_id=1">
+        Test Navigation Attendance
+    </a>
+    
+    <h2>Paramètres de test :</h2>
+    <ul>
+        <li>Date: 2025-01-15</li>
+        <li>Heure début: 09:00</li>
+        <li>Heure fin: 11:00</li>
+        <li>Promotion ID: 1</li>
+        <li>Établissement ID: 1</li>
+        <li>Option ID: 1</li>
+    </ul>
+    
+    <h2>Vérifications à faire :</h2>
+    <ol>
+        <li>Vérifier que l'URL change bien vers /dashboard/attendance</li>
+        <li>Vérifier que les paramètres sont bien transmis</li>
+        <li>Vérifier que le composant AttendanceComponent se charge</li>
+        <li>Vérifier que l'API est appelée avec les bons paramètres</li>
+    </ol>
+</body>
+</html>

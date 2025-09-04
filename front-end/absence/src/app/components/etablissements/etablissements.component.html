@@ -1,0 +1,500 @@
+<div class="etablissements-container">
+  <!-- Header -->
+  <div class="header-section">
+    <div class="title-section">
+      <h1>
+        <mat-icon>business</mat-icon>
+        Gestion des Établissements
+      </h1>
+      <p>Gérez vos établissements d'enseignement</p>
+    </div>
+
+    <div class="actions-section">
+      <button mat-raised-button color="primary" (click)="openAddDialog()" [disabled]="loading">
+        <mat-icon>add</mat-icon>
+        Ajouter un établissement
+      </button>
+      <button mat-stroked-button (click)="loadEtablissements()" [disabled]="loading">
+        <mat-icon>refresh</mat-icon>
+        Actualiser
+      </button>
+    </div>
+  </div>
+
+  <!-- Statistiques -->
+  <div class="stats-cards" *ngIf="!loading">
+    <div class="stat-card">
+      <mat-icon>business</mat-icon>
+      <div class="stat-content">
+        <span class="stat-number">{{ totalEtablissements }}</span>
+        <span class="stat-label">Établissements</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <mat-icon>location_city</mat-icon>
+      <div class="stat-content">
+        <span class="stat-number">{{ uniqueVilles }}</span>
+        <span class="stat-label">Villes</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <mat-icon>verified</mat-icon>
+      <div class="stat-content">
+        <span class="stat-number">{{ etablissements.length }}</span>
+        <span class="stat-label">Affichés</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtres et recherche optimisés -->
+  <div class="filters-section">
+    <div class="filters-header">
+      <div class="filters-title">
+        <mat-icon>tune</mat-icon>
+        <span>Filtres & Recherche</span>
+      </div>
+      <div class="active-filters-indicator" *ngIf="hasActiveFilters()">
+        <mat-icon>filter_list</mat-icon>
+        <span>{{ getActiveFiltersCount() }} filtre(s) actif(s)</span>
+      </div>
+    </div>
+
+    <div class="filters-controls">
+      <!-- Barre de recherche avec conteneur personnalisé -->
+      <div class="search-container">
+        <div class="custom-input-container">
+          <label class="input-label" [class.floating]="searchFocused">
+            <mat-icon>search</mat-icon>
+            Rechercher un établissement
+          </label>
+          <div class="input-wrapper">
+            <input type="text"
+                   class="custom-input"
+                   placeholder="Tapez le nom de l'établissement..."
+                   [(ngModel)]="searchValue"
+                   (input)="onSearchChange($event)"
+                   (focus)="searchFocused = true"
+                   (blur)="searchFocused = false"
+                   (keyup.enter)="applyFilters()">
+            <button class="clear-input-btn" 
+                    *ngIf="searchValue"
+                    (click)="clearSearch()"
+                    matTooltip="Effacer la recherche">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+          <div class="input-hint" *ngIf="searchValue && searchResults">
+            <mat-icon>info</mat-icon>
+            {{ searchResults }} résultat(s) trouvé(s)
+          </div>
+        </div>
+      </div>
+
+      <!-- Filtre par ville avec conteneur personnalisé -->
+      <div class="filter-container">
+        <div class="custom-select-container">
+          <label class="select-label" [class.floating]="selectFocused">
+            <mat-icon>location_on</mat-icon>
+            Filtrer par ville
+          </label>
+          <div class="select-wrapper">
+            <mat-select [(value)]="selectedVille" 
+                        (selectionChange)="applyFilters()"
+                        (focus)="selectFocused = true"
+                        (blur)="selectFocused = false"
+                        class="custom-select"
+                        [placeholder]="getVillePlaceholder()">
+              <mat-option value="">
+                <span class="all-option">
+                  <mat-icon>location_city</mat-icon>
+                  Toutes les villes
+                </span>
+              </mat-option>
+              <mat-optgroup label="Villes disponibles" *ngIf="villes.length > 0">
+                <mat-option *ngFor="let ville of villes; trackBy: trackByVille" [value]="ville.id">
+                  <span class="ville-option">
+                    <mat-icon>place</mat-icon>
+                    {{ ville.name }}
+                    <span class="ville-count" *ngIf="getEtablissementsCountByVille(ville.id) > 0">
+                      ({{ getEtablissementsCountByVille(ville.id) }})
+                    </span>
+                  </span>
+                </mat-option>
+              </mat-optgroup>
+              <mat-option disabled *ngIf="villes.length === 0">
+                <span class="no-villes">Aucune ville disponible</span>
+              </mat-option>
+            </mat-select>
+          </div>
+          <div class="select-hint" *ngIf="selectedVille">
+            <mat-icon>info</mat-icon>
+            Affichage des établissements de {{ getSelectedVilleName() }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions des filtres -->
+      <div class="filter-actions">
+        <button mat-stroked-button 
+                (click)="clearFilters()" 
+                [disabled]="!hasActiveFilters()"
+                class="clear-filters-btn"
+                matTooltip="Réinitialiser tous les filtres">
+          <mat-icon>clear_all</mat-icon>
+          Effacer les filtres
+        </button>
+        
+        <button mat-flat-button 
+                color="primary"
+                (click)="applyFilters()"
+                class="apply-filters-btn"
+                [disabled]="loading">
+          <mat-icon>refresh</mat-icon>
+          Actualiser
+        </button>
+      </div>
+    </div>
+
+    <!-- Résumé des filtres actifs -->
+    <div class="active-filters-summary" *ngIf="hasActiveFilters()">
+      <div class="filter-chips">
+        <mat-chip-set>
+          <mat-chip *ngIf="searchValue" 
+                    (removed)="clearSearch()" 
+                    removable="true"
+                    class="search-chip">
+            <mat-icon matChipAvatar>search</mat-icon>
+            Recherche: "{{ searchValue }}"
+            <mat-icon matChipRemove>cancel</mat-icon>
+          </mat-chip>
+          
+          <mat-chip *ngIf="selectedVille" 
+                    (removed)="clearVilleFilter()" 
+                    removable="true"
+                    class="ville-chip">
+            <mat-icon matChipAvatar>place</mat-icon>
+            Ville: {{ getSelectedVilleName() }}
+            <mat-icon matChipRemove>cancel</mat-icon>
+          </mat-chip>
+        </mat-chip-set>
+      </div>
+    </div>
+  </div>
+
+  <!-- Message d'erreur -->
+  <div class="error-message" *ngIf="error">
+    <mat-icon>error</mat-icon>
+    <span>{{ error }}</span>
+    <button mat-button (click)="loadEtablissements()">Réessayer</button>
+  </div>
+
+  <!-- Loader -->
+  <div class="loading-container" *ngIf="loading">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Chargement des établissements...</p>
+  </div>
+
+  <!-- Liste des établissements -->
+  <div class="etablissements-grid" *ngIf="!loading && !error">
+    <!-- Carte pour chaque établissement -->
+    <div class="etablissement-card" *ngFor="let etablissement of etablissements; trackBy: trackByEtablissement">
+      <div class="card-header">
+        <div class="card-title">
+          <mat-icon>business</mat-icon>
+          <h3>{{ etablissement.name }}</h3>
+        </div>
+        <div class="card-actions">
+          <button mat-icon-button 
+                  matTooltip="Modifier"
+                  (click)="openEditDialog(etablissement)">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button 
+                  matTooltip="Supprimer"
+                  color="warn"
+                  (click)="openDeleteDialog(etablissement)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <div class="card-content">
+        <div class="info-row">
+          <mat-icon>location_on</mat-icon>
+          <span>{{ etablissement.ville?.name || 'Ville non définie' }}</span>
+        </div>
+
+        <div class="establishment-details">
+          <div class="detail-item">
+            <mat-icon>business</mat-icon>
+            <span>Établissement d'enseignement</span>
+          </div>
+          <div class="detail-item">
+            <mat-icon>access_time</mat-icon>
+            <span>Actif</span>
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <small class="creation-date">
+            Créé le {{ formatDate(etablissement.created_at) }}
+          </small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Message si aucun établissement -->
+    <div class="no-data" *ngIf="etablissements.length === 0">
+      <mat-icon>business_center</mat-icon>
+      <h3>Aucun établissement trouvé</h3>
+      <p *ngIf="hasActiveFilters()">Essayez de modifier vos critères de recherche</p>
+      <p *ngIf="!hasActiveFilters()">Commencez par ajouter votre premier établissement</p>
+      <button mat-raised-button color="primary" (click)="openAddDialog()">
+        <mat-icon>add</mat-icon>
+        Ajouter un établissement
+      </button>
+    </div>
+  </div>
+
+  <!-- Pagination Premium -->
+  <div class="pagination-section-premium" *ngIf="!loading && etablissements.length > 0">
+    <div class="pagination-header">
+      <div class="pagination-stats">
+        <div class="stats-main">
+          <mat-icon>dataset</mat-icon>
+          <span class="range-display">
+            {{ (currentPage - 1) * pageSize + 1 }}-{{ Math.min(currentPage * pageSize, totalEtablissements) }}
+          </span>
+          <span class="total-display">sur {{ totalEtablissements }}</span>
+        </div>
+        <div class="stats-secondary">
+          <mat-icon>speed</mat-icon>
+          <span>{{ etablissements.length }} chargés</span>
+        </div>
+      </div>
+
+      <!-- Sélecteur de taille élégant -->
+      <div class="page-size-container">
+        <div class="custom-select-container size-selector">
+          <label class="select-label">
+            <mat-icon>view_list</mat-icon>
+            Par page
+          </label>
+          <div class="select-wrapper">
+            <mat-select [(value)]="pageSize" 
+                        (selectionChange)="onPageSizeChange()"
+                        class="custom-select size-select"
+                        placeholder="Choisissez une taille">
+              <mat-option value="5">
+                <span class="size-option">
+                  <mat-icon>looks_5</mat-icon>
+                  5 éléments
+                </span>
+              </mat-option>
+              <mat-option value="10">
+                <span class="size-option">
+                  <mat-icon>looks_one</mat-icon>
+                  10 éléments
+                </span>
+              </mat-option>
+              <mat-option value="25">
+                <span class="size-option">
+                  <mat-icon>apps</mat-icon>
+                  25 éléments
+                </span>
+              </mat-option>
+              <mat-option value="50">
+                <span class="size-option">
+                  <mat-icon>view_module</mat-icon>
+                  50 éléments
+                </span>
+              </mat-option>
+            </mat-select>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="pagination-controls-premium">
+      <!-- Bouton première page -->
+      <button class="nav-btn first-btn" 
+              [disabled]="currentPage === 1"
+              (click)="goToPage(1)"
+              matTooltip="Première page">
+        <mat-icon>first_page</mat-icon>
+      </button>
+
+      <!-- Bouton page précédente -->
+      <button class="nav-btn prev-btn"
+              [disabled]="currentPage === 1"
+              (click)="goToPage(currentPage - 1)"
+              matTooltip="Page précédente">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+
+      <!-- Indicateur de page central premium -->
+      <div class="page-indicator-premium">
+        <div class="page-display">
+          <span class="page-current">{{ currentPage }}</span>
+          <span class="page-separator">/</span>
+          <span class="page-total">{{ totalPages }}</span>
+        </div>
+        <div class="page-progress">
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="(currentPage / totalPages) * 100"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bouton page suivante -->
+      <button class="nav-btn next-btn"
+              [disabled]="currentPage === totalPages"
+              (click)="goToPage(currentPage + 1)"
+              matTooltip="Page suivante">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+
+      <!-- Bouton dernière page -->
+      <button class="nav-btn last-btn"
+              [disabled]="currentPage === totalPages"
+              (click)="goToPage(totalPages)"
+              matTooltip="Dernière page">
+        <mat-icon>last_page</mat-icon>
+      </button>
+    </div>
+
+    <!-- Navigation rapide -->
+    <div class="quick-nav" *ngIf="totalPages > 5">
+      <span class="quick-nav-label">
+        <mat-icon>skip_next</mat-icon>
+        Navigation rapide
+      </span>
+      <div class="quick-nav-buttons">
+        <button class="quick-btn" 
+                *ngFor="let page of getQuickNavPages()" 
+                [class.active]="page === currentPage"
+                [disabled]="page === '...'"
+                (click)="page !== '...' && goToPage(+page)">
+          {{ page }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Dialog pour ajouter/modifier un établissement -->
+<div class="modal-overlay" *ngIf="showDialog" (click)="closeDialogOnOverlay($event)">
+  <div class="modal-dialog" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>
+        <mat-icon>{{ isEditMode ? 'edit' : 'add' }}</mat-icon>
+        {{ isEditMode ? 'Modifier l\'établissement' : 'Ajouter un établissement' }}
+      </h2>
+      <button mat-icon-button (click)="closeDialog()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <form [formGroup]="etablissementForm" (ngSubmit)="saveEtablissement()">
+      <div class="modal-content">
+        <!-- Nom de l'établissement avec conteneur personnalisé -->
+        <div class="custom-input-container modal-field">
+          <label class="input-label" [class.floating]="nameFocused">
+            <mat-icon>business</mat-icon>
+            Nom de l'établissement
+          </label>
+          <div class="input-wrapper">
+            <input type="text"
+                   class="custom-input"
+                   placeholder="Ex: Université Mohammed V"
+                   formControlName="name"
+                   (focus)="nameFocused = true"
+                   (blur)="nameFocused = false"
+                   required>
+          </div>
+          <div class="input-error" *ngIf="etablissementForm.get('name')?.hasError('required') && etablissementForm.get('name')?.touched">
+            <mat-icon>error</mat-icon>
+            Le nom est obligatoire
+          </div>
+          <div class="input-error" *ngIf="etablissementForm.get('name')?.hasError('minlength') && etablissementForm.get('name')?.touched">
+            <mat-icon>error</mat-icon>
+            Le nom doit contenir au moins 2 caractères
+          </div>
+        </div>
+
+        <!-- Ville avec conteneur personnalisé -->
+        <div class="custom-select-container modal-field">
+          <label class="select-label" [class.floating]="villeFocused">
+            <mat-icon>location_on</mat-icon>
+            Ville
+          </label>
+          <div class="select-wrapper">
+            <mat-select formControlName="ville_id" 
+                        class="custom-select"
+                        (focus)="villeFocused = true"
+                        (blur)="villeFocused = false"
+                        placeholder="Choisissez une ville"
+                        required>
+              <mat-option value="">Sélectionner une ville</mat-option>
+              <mat-option *ngFor="let ville of villes" [value]="ville.id">
+                {{ ville.name }}
+              </mat-option>
+            </mat-select>
+          </div>
+          <div class="input-error" *ngIf="etablissementForm.get('ville_id')?.hasError('required') && etablissementForm.get('ville_id')?.touched">
+            <mat-icon>error</mat-icon>
+            La ville est obligatoire
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" mat-stroked-button (click)="closeDialog()" [disabled]="dialogLoading">
+          Annuler
+        </button>
+        <button type="submit" 
+                mat-raised-button 
+                color="primary" 
+                [disabled]="etablissementForm.invalid || dialogLoading">
+          <mat-spinner diameter="20" *ngIf="dialogLoading"></mat-spinner>
+          <mat-icon *ngIf="!dialogLoading">{{ isEditMode ? 'save' : 'add' }}</mat-icon>
+          {{ isEditMode ? 'Modifier' : 'Ajouter' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Dialog de confirmation de suppression -->
+<div class="modal-overlay" *ngIf="showDeleteDialog" (click)="closeDeleteDialog()">
+  <div class="modal-dialog delete-dialog" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>
+        <mat-icon color="warn">warning</mat-icon>
+        Confirmer la suppression
+      </h2>
+    </div>
+
+    <div class="modal-content">
+      <p class="main-text">Êtes-vous sûr de vouloir supprimer l'établissement <strong>{{ etablissementToDelete?.name }}</strong> ?</p>
+      <p class="warning-text">
+        <mat-icon>info</mat-icon>
+        Cette action est irréversible et peut affecter les données liées (étudiants, promotions, etc.).
+      </p>
+    </div>
+
+    <div class="modal-actions">
+      <button mat-stroked-button (click)="closeDeleteDialog()" [disabled]="deleteLoading">
+        Annuler
+      </button>
+      <button mat-raised-button 
+              color="warn" 
+              (click)="confirmDelete()" 
+              [disabled]="deleteLoading">
+        <mat-spinner diameter="20" *ngIf="deleteLoading"></mat-spinner>
+        <mat-icon *ngIf="!deleteLoading">delete</mat-icon>
+        Supprimer
+      </button>
+    </div>
+  </div>
+</div>

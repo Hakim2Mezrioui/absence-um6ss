@@ -1,0 +1,366 @@
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    
+    <!-- Header avec breadcrumb -->
+    <div class="mb-8">
+      <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+        <!-- Breadcrumb -->
+        <nav class="flex mb-4" aria-label="Breadcrumb">
+          <ol class="inline-flex items-center space-x-1 md:space-x-3">
+            <li class="inline-flex items-center">
+              <button 
+                (click)="goBack()" 
+                class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200"
+              >
+                <mat-icon class="w-4 h-4 mr-2">school</mat-icon>
+                Étudiants
+              </button>
+            </li>
+            <li>
+              <div class="flex items-center">
+                <mat-icon class="w-6 h-6 text-gray-400">chevron_right</mat-icon>
+                <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">Ajouter un étudiant</span>
+              </div>
+            </li>
+          </ol>
+        </nav>
+
+        <!-- Titre principal -->
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              ➕ Ajouter un Étudiant
+            </h1>
+            <p class="mt-2 text-lg text-gray-600">Créez un nouveau profil étudiant dans le système</p>
+          </div>
+          
+          <!-- Actions rapides -->
+          <div class="flex gap-3">
+            <button 
+              mat-stroked-button
+              color="primary"
+              (click)="goBack()"
+              [disabled]="loading"
+              class="flex items-center gap-2 px-6 py-3 rounded-xl"
+            >
+              <mat-icon>arrow_back</mat-icon>
+              <span class="font-semibold">Retour</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Formulaire principal -->
+    <div class="bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
+      <!-- En-tête du formulaire -->
+      <div class="bg-slate-800 text-white p-8">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="w-16 h-16 bg-slate-600 rounded-2xl flex items-center justify-center shadow-2xl">
+              <mat-icon class="text-white text-3xl">person_add</mat-icon>
+            </div>
+            <div>
+              <h2 class="text-3xl font-bold">Nouveau Profil Étudiant</h2>
+              <p class="text-gray-300 text-lg">Remplissez les informations ci-dessous</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contenu du formulaire -->
+      <div class="p-8">
+        <!-- Messages d'état -->
+        <div *ngIf="loading" class="mb-6 flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <mat-spinner diameter="24"></mat-spinner>
+          <span class="text-blue-700 font-medium">Création de l'étudiant en cours...</span>
+        </div>
+
+        <div *ngIf="error" class="mb-6 flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl p-4">
+          <mat-icon class="text-red-500">error</mat-icon>
+          <span class="text-red-700 font-medium">{{ error }}</span>
+        </div>
+
+        <div *ngIf="success" class="mb-6 flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl p-4">
+          <mat-icon class="text-green-500">check_circle</mat-icon>
+          <span class="text-green-700 font-medium">{{ success }}</span>
+        </div>
+
+        <!-- Formulaire -->
+        <form [formGroup]="studentForm" (ngSubmit)="onSubmit()" class="space-y-8">
+          
+          <!-- Section Informations Personnelles -->
+          <div class="bg-gradient-to-br from-gray-50 to-blue-50/30 rounded-2xl p-6 border border-gray-200">
+            <div class="flex items-center gap-3 mb-6">
+              <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                <mat-icon class="text-white text-lg">person</mat-icon>
+              </div>
+              <h3 class="text-2xl font-semibold text-gray-800">Informations Personnelles</h3>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Prénom -->
+              <div class="space-y-2">
+                <label class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                  <mat-icon class="text-sm text-blue-500">badge</mat-icon>
+                  Prénom <span class="text-red-500">*</span>
+                </label>
+                <mat-form-field appearance="outline" class="w-full">
+                  <input 
+                    matInput 
+                    formControlName="first_name"
+                    placeholder="Saisissez le prénom"
+                  >
+                  <mat-error *ngIf="studentForm.get('first_name')?.hasError('required')">
+                    Le prénom est requis
+                  </mat-error>
+                </mat-form-field>
+              </div>
+
+              <!-- Nom -->
+              <div class="space-y-2">
+                <label class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                  <mat-icon class="text-sm text-blue-500">badge</mat-icon>
+                  Nom de famille <span class="text-red-500">*</span>
+                </label>
+                <mat-form-field appearance="outline" class="w-full">
+                  <input 
+                    matInput 
+                    formControlName="last_name"
+                    placeholder="Saisissez le nom de famille"
+                  >
+                  <mat-error *ngIf="studentForm.get('last_name')?.hasError('required')">
+                    Le nom de famille est requis
+                  </mat-error>
+                </mat-form-field>
+              </div>
+
+              <!-- Email -->
+              <div class="space-y-2">
+                <label class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                  <mat-icon class="text-sm text-blue-500">email</mat-icon>
+                  Adresse email <span class="text-red-500">*</span>
+                </label>
+                <mat-form-field appearance="outline" class="w-full">
+                  <input 
+                    matInput 
+                    formControlName="email"
+                    type="email"
+                    placeholder="exemple@email.com"
+                  >
+                  <mat-error *ngIf="studentForm.get('email')?.hasError('required')">
+                    L'email est requis
+                  </mat-error>
+                  <mat-error *ngIf="studentForm.get('email')?.hasError('email')">
+                    Format d'email invalide
+                  </mat-error>
+                </mat-form-field>
+              </div>
+
+              <!-- Matricule -->
+              <div class="space-y-2">
+                <label class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                  <mat-icon class="text-sm text-blue-500">confirmation_number</mat-icon>
+                  Matricule <span class="text-red-500">*</span>
+                </label>
+                <mat-form-field appearance="outline" class="w-full">
+                  <input 
+                    matInput 
+                    formControlName="matricule"
+                    placeholder="Ex: ETU2024001"
+                  >
+                  <mat-error *ngIf="studentForm.get('matricule')?.hasError('required')">
+                    Le matricule est requis
+                  </mat-error>
+                </mat-form-field>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section Affectation Académique -->
+          <div class="bg-gradient-to-br from-gray-50 to-purple-50/30 rounded-2xl p-6 border border-gray-200">
+            <div class="flex items-center gap-3 mb-6">
+              <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                <mat-icon class="text-white text-lg">school</mat-icon>
+              </div>
+              <h3 class="text-2xl font-semibold text-gray-800">Affectation Académique</h3>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Ville -->
+              <div class="space-y-2">
+                <label class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                  <mat-icon class="text-sm text-purple-500">location_city</mat-icon>
+                  Ville <span class="text-red-500">*</span>
+                </label>
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-select 
+                    formControlName="ville_id"
+                    placeholder="Sélectionnez une ville"
+                  >
+                    <mat-option value="">Sélectionnez une ville</mat-option>
+                    <mat-option *ngFor="let ville of filterOptions.villes" [value]="ville.id">
+                      {{ ville.name }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-error *ngIf="studentForm.get('ville_id')?.hasError('required')">
+                    La ville est requise
+                  </mat-error>
+                </mat-form-field>
+              </div>
+
+              <!-- Établissement -->
+              <div class="space-y-2">
+                <label class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                  <mat-icon class="text-sm text-purple-500">business</mat-icon>
+                  Établissement <span class="text-red-500">*</span>
+                </label>
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-select 
+                    formControlName="etablissement_id"
+                    placeholder="Sélectionnez un établissement"
+                  >
+                    <mat-option value="">Sélectionnez un établissement</mat-option>
+                    <mat-option *ngFor="let etablissement of filterOptions.etablissements" [value]="etablissement.id">
+                      {{ etablissement.name }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-error *ngIf="studentForm.get('etablissement_id')?.hasError('required')">
+                    L'établissement est requis
+                  </mat-error>
+                </mat-form-field>
+              </div>
+
+              <!-- Promotion -->
+              <div class="space-y-2">
+                <label class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                  <mat-icon class="text-sm text-purple-500">school</mat-icon>
+                  Promotion <span class="text-red-500">*</span>
+                </label>
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-select 
+                    formControlName="promotion_id"
+                    placeholder="Sélectionnez une promotion"
+                  >
+                    <mat-option value="">Sélectionnez une promotion</mat-option>
+                    <mat-option *ngFor="let promotion of filterOptions.promotions" [value]="promotion.id">
+                      {{ promotion.name }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-error *ngIf="studentForm.get('promotion_id')?.hasError('required')">
+                    La promotion est requise
+                  </mat-error>
+                </mat-form-field>
+              </div>
+
+              <!-- Groupe -->
+              <div class="space-y-2">
+                <label class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                  <mat-icon class="text-sm text-purple-500">group</mat-icon>
+                  Groupe <span class="text-red-500">*</span>
+                </label>
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-select 
+                    formControlName="group_id"
+                    placeholder="Sélectionnez un groupe"
+                  >
+                    <mat-option value="">Sélectionnez un groupe</mat-option>
+                    <mat-option *ngFor="let group of filterOptions.groups" [value]="group.id">
+                      {{ group.title }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-error *ngIf="studentForm.get('group_id')?.hasError('required')">
+                    Le groupe est requis
+                  </mat-error>
+                </mat-form-field>
+              </div>
+
+              <!-- Option -->
+              <div class="space-y-2 md:col-span-2">
+                <label class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                  <mat-icon class="text-sm text-purple-500">book</mat-icon>
+                  Option <span class="text-red-500">*</span>
+                </label>
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-select 
+                    formControlName="option_id"
+                    placeholder="Sélectionnez une option"
+                  >
+                    <mat-option value="">Sélectionnez une option</mat-option>
+                    <mat-option *ngFor="let option of filterOptions.options" [value]="option.id">
+                      {{ option.name }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-error *ngIf="studentForm.get('option_id')?.hasError('required')">
+                    L'option est requise
+                  </mat-error>
+                </mat-form-field>
+              </div>
+            </div>
+          </div>
+
+          <!-- Boutons d'action -->
+          <div class="flex justify-between items-center pt-6 border-t border-gray-200">
+            <button 
+              type="button"
+              mat-stroked-button
+              color="primary"
+              (click)="goBack()"
+              [disabled]="loading"
+              class="flex items-center gap-3 px-8 py-3 rounded-xl"
+            >
+              <mat-icon>arrow_back</mat-icon>
+              <span class="font-semibold">Annuler</span>
+            </button>
+
+            <div class="flex gap-4">
+              <button 
+                type="button"
+                mat-stroked-button
+                (click)="resetForm()"
+                [disabled]="loading"
+                class="flex items-center gap-3 px-8 py-3 rounded-xl"
+              >
+                <mat-icon>refresh</mat-icon>
+                <span class="font-semibold">Réinitialiser</span>
+              </button>
+
+              <button 
+                type="submit"
+                mat-raised-button
+                color="primary"
+                [disabled]="studentForm.invalid || loading"
+                class="flex items-center gap-3 px-10 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
+                <mat-icon *ngIf="!loading">save</mat-icon>
+                <span class="font-semibold">
+                  {{ loading ? 'Création...' : 'Créer l\'Étudiant' }}
+                </span>
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Section d'aide -->
+    <div class="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200">
+      <div class="flex items-start gap-4">
+        <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+          <mat-icon class="text-blue-600 text-xl">help</mat-icon>
+        </div>
+        <div>
+          <h4 class="text-lg font-semibold text-blue-900 mb-2">💡 Conseils pour l'ajout d'étudiants</h4>
+          <ul class="text-blue-800 space-y-1 text-sm">
+            <li>• Assurez-vous que le matricule est unique dans le système</li>
+            <li>• L'adresse email doit être valide et accessible à l'étudiant</li>
+            <li>• Vérifiez que l'établissement et la promotion correspondent</li>
+            <li>• Le groupe doit être disponible pour la promotion sélectionnée</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

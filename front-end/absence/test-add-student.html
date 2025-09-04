@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Navigation Add Student</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .test-button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 16px;
+        }
+        .test-button:hover {
+            background: #2563eb;
+        }
+        .test-result {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border-left: 4px solid #3b82f6;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Test de Navigation vers Add Student</h1>
+        
+        <div class="test-result">
+            <h3>Instructions de test :</h3>
+            <ol>
+                <li>Ouvrez votre application Angular sur <code>http://localhost:4200</code></li>
+                <li>Connectez-vous et allez sur la page des étudiants</li>
+                <li>Testez chaque bouton ci-dessous dans l'ordre</li>
+                <li>Regardez la console du navigateur (F12)</li>
+            </ol>
+        </div>
+
+        <h2>Tests de Navigation Directe</h2>
+        
+        <button class="test-button" onclick="testDirectNavigation()">
+            🔗 Test 1: Navigation Directe
+        </button>
+        
+        <button class="test-button" onclick="testLocationChange()">
+            📍 Test 2: window.location
+        </button>
+        
+        <button class="test-button" onclick="testUrlConstruction()">
+            🔧 Test 3: Vérifier URL
+        </button>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        function testDirectNavigation() {
+            console.log('🧪 Test Navigation Directe');
+            const url = 'http://localhost:4200/dashboard/add-student';
+            console.log('URL de test:', url);
+            
+            // Ouvrir dans un nouvel onglet pour tester
+            window.open(url, '_blank');
+            
+            addResult('Test 1: Ouverture en nouvel onglet - ' + url);
+        }
+
+        function testLocationChange() {
+            console.log('🧪 Test Location Change');
+            const currentUrl = window.location.href;
+            console.log('URL actuelle:', currentUrl);
+            
+            if (currentUrl.includes('localhost:4200')) {
+                window.location.href = '/dashboard/add-student';
+            } else {
+                window.location.href = 'http://localhost:4200/dashboard/add-student';
+            }
+            
+            addResult('Test 2: Redirection via window.location');
+        }
+
+        function testUrlConstruction() {
+            console.log('🧪 Test Construction URL');
+            
+            const baseUrl = 'http://localhost:4200';
+            const route = '/dashboard/add-student';
+            const fullUrl = baseUrl + route;
+            
+            console.log('Base URL:', baseUrl);
+            console.log('Route:', route);
+            console.log('URL complète:', fullUrl);
+            
+            addResult(`Test 3: URL construite: ${fullUrl}`);
+            
+            // Test d'accessibilité
+            fetch(fullUrl, {method: 'GET', mode: 'no-cors'})
+                .then(() => {
+                    addResult('✅ URL accessible');
+                    console.log('✅ URL accessible');
+                })
+                .catch(error => {
+                    addResult('❌ URL non accessible: ' + error.message);
+                    console.error('❌ URL non accessible:', error);
+                });
+        }
+
+        function addResult(message) {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = 'test-result';
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            results.appendChild(div);
+        }
+
+        // Auto-test au chargement
+        window.onload = function() {
+            addResult('🚀 Page de test chargée. Prêt pour les tests.');
+            console.log('🚀 Page de test chargée');
+        };
+    </script>
+</body>
+</html>
+

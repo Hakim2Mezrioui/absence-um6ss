@@ -1,510 +1,267 @@
-matricule;name;promotion;faculte;groupe
-243967;AZOUADELLY YOANN-CHRISTIAN KYLE;1ere annee;pharmacie;1
-243962;ADA ETOUGHE Grace Prunelle;1ere annee;pharmacie;1
-243281;AIT IRHLI JAD;1ere annee;pharmacie;1
-241410;ABBASSI Houssam;1ere annee;pharmacie;1
-241126;ABDELLAOUI MAANE Selma;1ere annee;pharmacie;1
-240990;ADDI Ismail;1ere annee;pharmacie;1
-241254;ADERDOUR NOUR EL HOUDA;1ere annee;pharmacie;1
-240955;ADNANE Samia;1ere annee;pharmacie;1
-241130;AFIFI Nour;1ere annee;pharmacie;1
-241264;EL JANAN Layla;1ere annee;pharmacie;1
-242570;AGOURI Chaimaa;1ere annee;pharmacie;1
-241175;AKKARI Ayman;1ere annee;pharmacie;1
-241005;ARRACHIDI amira;1ere annee;pharmacie;1
-241295;ASSAKKACH Malak;1ere annee;pharmacie;1
-241387;BADRI yousra;1ere annee;pharmacie;1
-242065;BEKKARI HIBA;1ere annee;pharmacie;1
-241447;BELKOUCHI Amira;1ere annee;pharmacie;1
-241439;BELLAHCEN Radia;1ere annee;pharmacie;1
-241049;BEN ABBOU DOHA;1ere annee;pharmacie;1
-241170;BENBRAHIM Safoua;1ere annee;pharmacie;1
-241075;BENYAHYA RIM;1ere annee;pharmacie;1
-241344;BOUBAKRI Ghita;1ere annee;pharmacie;1
-241526;BOUKRIM Jihane;1ere annee;pharmacie;1
-241016;BOUMKOUK Lina;1ere annee;pharmacie;1
-241086;CHABI Fatimazahra;1ere annee;pharmacie;1
-241519;CHARIF Hafsa;1ere annee;pharmacie;1
-241158;CHOKAIRY fatima zahra;1ere annee;pharmacie;1
-240591;DAMANE douaa;1ere annee;pharmacie;1
-240915;DOUMAJD OUMNIA;1ere annee;pharmacie;1
-241024;DRISSI EL BOUZAIDI Ghita;1ere annee;pharmacie;1
-240987;ECHARIF CHEFCHAOUNI ESSOUNNI Abla;1ere annee;pharmacie;1
-241165;EL ALAMI Hiba;1ere annee;pharmacie;1
-241067;EL BOUCHTAOUI Meryem;1ere annee;pharmacie;1
-240921;EL BOURKADI Fahd;1ere annee;pharmacie;1
-241362;EL IDRISSI Tasnime;1ere annee;pharmacie;1
-232138;ELHAYBA ATIKA;1ere annee;pharmacie;1
-241853;ELRHERBI Zineb;1ere annee;pharmacie;1
-241000;ERRADI Marwa;1ere annee;pharmacie;1
-240648;EZZAKI ikram;1ere annee;pharmacie;1
-210839;EZZIRARI INASS;1ere annee;pharmacie;2
-241306;FARES amani;1ere annee;pharmacie;2
-240556;FASSI FIHRI Abla;1ere annee;pharmacie;2
-240643;GHAZZALI RANIA;1ere annee;pharmacie;2
-241041;GHELFANE MALAK;1ere annee;pharmacie;2
-240539;GUERBAZ Lina;1ere annee;pharmacie;2
-241053;HADDIOUI NASREDDINE;2eme annee;pharmacie;2
-241320;HADDIOUI yassmine;2eme annee;pharmacie;2
-241113;HAJBAOUI yasmine;2eme annee;pharmacie;2
-241060;HANINE Taha;1ere annee;pharmacie;2
-241501;HAZZAZ ABOUAMAL Hamza;1ere annee;pharmacie;2
-241539;IDOULAHIANE Rayhana;1ere annee;pharmacie;2
-241246;JABRANE soukaina;1ere annee;pharmacie;2
-241495;JENNANE Nada;1ere annee;pharmacie;2
-241473;KHALIL Lina;1ere annee;pharmacie;2
-241141;KHLAFA rania;1ere annee;pharmacie;2
-240533;KOUNSSANE Khadija;1ere annee;pharmacie;2
-241559;KOURSAOUI RANYA;1ere annee;pharmacie;2
-241313;LACHGUAR Houria;1ere annee;pharmacie;2
-241480;LACHKAR ILYAS;1ere annee;pharmacie;2
-241052;LAHNIN Maryam;1ere annee;pharmacie;2
-241549;LAMALEM houssam;1ere annee;pharmacie;2
-242204;LEKBOURI Jawhara;1ere annee;pharmacie;2
-242198;LEKNIZI Salwa;1ere annee;pharmacie;2
-241109;LOTFI Fatima zahra;1ere annee;pharmacie;2
-230833;MOUJOUD ABDELHAMID;1ere annee;pharmacie;2
-243435;MOUNFALOTI DINA;1ere annee;pharmacie;2
-240820;MAAMAR Sara;1ere annee;pharmacie;2
-240973;MAJDOUBI Fatima zahra;1ere annee;pharmacie;2
-241907;MALIHI Khawla;1ere annee;pharmacie;2
-241103;MANSOURI khadija;1ere annee;pharmacie;2
-241194;MAZIGHI manar;1ere annee;pharmacie;2
-241211;MAZOUZ NADA;1ere annee;pharmacie;2
-230684;MECHTALY JAD;1ere annee;pharmacie;2
-240550;MELLOUK sirine;2eme annee;pharmacie;2
-241599;MOUFID Amira;1ere annee;pharmacie;2
-241897;NABIL SANA;1ere annee;pharmacie;2
-241223;NACIRI Malak;1ere annee;pharmacie;2
-242208;NAJAH IDRISSI Ghita;1ere annee;pharmacie;2
-241219;OUARZAZI Yousra;1ere annee;pharmacie;2
-241236;OUASSIFA SARA;1ere annee;pharmacie;2
-240932;RGUITI yassir;1ere annee;pharmacie;2
-241598;RJILA SAFAE;2eme annee;pharmacie;2
-241260;SAMANI Meryem;1ere annee;pharmacie;2
-240584;SANA Rhalem;1ere annee;pharmacie;2
-241196;SAOUAF Lina;1ere annee;pharmacie;2
-241233;SEBTI Yasmine;2eme annee;pharmacie;2
-240904;SEFIANI Inasse;2eme annee;pharmacie;2
-241187;TALHA NACIRI Rita;1ere annee;pharmacie;2
-241154;TALIH Mohamed Ali;1ere annee;pharmacie;2
-241332;TAZI Fatima Azzahrae;2eme annee;pharmacie;2
-241401;TEBBAA Safae;2eme annee;pharmacie;2
-240965;TERRO Salwa;1ere annee;pharmacie;2
-240968;ZEROUAL Amine;2eme annee;pharmacie;2
-230300;ABOUZAID Abdelkader;2eme annee;pharmacie;2
-230630;AIT BEN ALI SARA;2eme annee;pharmacie;2
-230792;AKDI Nada;2eme annee;pharmacie;2
-230378;AKHARRAZ LINA;2eme annee;pharmacie;2
-140048;AKHETTAB yassmine;2eme annee;pharmacie;2
-230805;ALAOUI zineb;2eme annee;pharmacie;2
-230446;ALID Rania;2eme annee;pharmacie;2
-230727;AMAR Jihane;2eme annee;pharmacie;2
-230725;BAYAZID oumaima;2eme annee;pharmacie;2
-230555;BELGHMI mohamed;2eme annee;pharmacie;2
-230801;BELKADI Mohamed;2eme annee;pharmacie;2
-230740;BELMAL zayd;2eme annee;pharmacie;2
-230572;BENCHADLI Zakaria;2eme annee;pharmacie;2
-230982;BENRARHRHAYE Aya;2eme annee;pharmacie;2
-230748;BOUKSASSE OUMAIMA;2eme annee;pharmacie;2
-230782;BRIH fatima;2eme annee;pharmacie;2
-230343;CHARAF Chorouk;2eme annee;pharmacie;2
-230737;CHARRAFI Fatima Ezzahraa;2eme annee;pharmacie;2
-230750;CHERIF D'OUEZZAN Soulaimane;2eme annee;pharmacie;2
-231654;CODJO  CELESTE ;2eme annee;pharmacie;2
-230794;DAD SARA;2eme annee;pharmacie;2
-230715;DERRABI Lina;2eme annee;pharmacie;2
-230683;DOU-NASSRE yasmine;2eme annee;pharmacie;2
-230980;EL BADOURI SAAD;2eme annee;pharmacie;2
-230685;EL BOUSSAIRI Lina;2eme annee;pharmacie;2
-231231;EL FAIZE LINA;2eme annee;pharmacie;2
-230302;EL HAJEB Douae;2eme annee;pharmacie;3
-230824;EL IDRISSI NOHA;2eme annee;pharmacie;3
-230898;EL KHATABI Khadija;2eme annee;pharmacie;3
-230288;EL MBARKI HOUSSAME;2eme annee;pharmacie;3
-230729;EL OUAHMANI SARAH;2eme annee;pharmacie;3
-230817;ELARCHI Hiba;2eme annee;pharmacie;3
-231062;ELBAIDEK Douaa;2eme annee;pharmacie;3
-230290;ELFAHLI Riham;2eme annee;pharmacie;3
-230392;ELKASITI Fatimazahra;2eme annee;pharmacie;3
-230830;ELLOUXE Aya;2eme annee;pharmacie;3
-230525;ENNAJI Siham;2eme annee;pharmacie;3
-221030;ETTOUATI MOHAMED;2eme annee;pharmacie;3
-230425;FALAHI CAMELIA;2eme annee;pharmacie;3
-230829;FARID Hiba;2eme annee;pharmacie;3
-230995;FENNANE ismail;2eme annee;pharmacie;3
-230743;FOUAD Assia;2eme annee;pharmacie;3
-230292;GUENOUN Hajar;2eme annee;pharmacie;3
-230538;HAFIDI AYA;2eme annee;pharmacie;3
-230957;HAMDADE DALAL;2eme annee;pharmacie;3
-230979;HAMDI Ghalia;2eme annee;pharmacie;3
-230788;HIDOUNE Imane;2eme annee;pharmacie;3
-230316;HILALOU narjisse;2eme annee;pharmacie;3
-210860;ICHADROUAN NOUR EL HOUDA;2eme annee;pharmacie;3
-230796;IDGHARNANE Lina;2eme annee;pharmacie;3
-230974;ISPIKEN Imane;2eme annee;pharmacie;3
-230364;JROUNDI RANIA;2eme annee;pharmacie;3
-230816;KABBAJ Ghali;2eme annee;pharmacie;3
-140046;KABBAJ Mohamed amine;2eme annee;pharmacie;3
-230828;KHALID Maria;2eme annee;pharmacie;3
-230365;LAASRI Taha;2eme annee;pharmacie;3
-230432;LAKHDARI ISRAA;2eme annee;pharmacie;3
-231007;LAMJABBAR adil;2eme annee;pharmacie;3
-230839;LIMOURAT Fatima-zahra;2eme annee;pharmacie;3
-230826;LYAZGHI MALAK;2eme annee;pharmacie;3
-230410;MASDOURI SALSABIL;2eme annee;pharmacie;3
-231009;MEDICHE Omar;2eme annee;pharmacie;3
-230713;MOUAFIK hiba;2eme annee;pharmacie;3
-230381;MRIOUD LINA;2eme annee;pharmacie;3
-230427;NAZIR ANAS;2eme annee;pharmacie;3
-230604;NOUBIR Aya;2eme annee;pharmacie;3
-230504;OUADRHIRI MARIA;2eme annee;pharmacie;3
-231011;OUDGHIRI KAOUACHE Mohamed jalil;2eme annee;pharmacie;3
-230671;OULD CHHAIBA douae;2eme annee;pharmacie;3
-230694;OUSSAMA MOHAMED TAHA;2eme annee;pharmacie;3
-230999;RADI Yasmine;2eme annee;pharmacie;3
-231106;RAHALI Douae;2eme annee;pharmacie;3
-230764;RAMDANI RAYAN;2eme annee;pharmacie;3
-230595;REDWANE Meryem;2eme annee;pharmacie;3
-230221;SAANANE ELGHALIA;2eme annee;pharmacie;3
-230681;SABRI Ines;2eme annee;pharmacie;3
-230767;SAOUI Nouhaila;2eme annee;pharmacie;3
-230278;SBAAI WIJDANE;2eme annee;pharmacie;3
-230795;TAZI Adam;2eme annee;pharmacie;3
-221071;WADIH HIBA;2eme annee;pharmacie;3
-230670;WAHBI Nada;2eme annee;pharmacie;3
-230339;WEQQASSE MOHAMED AMINE;2eme annee;pharmacie;3
-230214;YOUMELAHNA Houda;2eme annee;pharmacie;3
-230772;ZAHID IBRAHIM;2eme annee;pharmacie;3
-230719;ZEKRI Salma;2eme annee;pharmacie;3
-230469;ZENOBI Rayane;2eme annee;pharmacie;3
-230674;ZIDANI Yakout;2eme annee;pharmacie;3
-230639;ZOUMI KENZA;2eme annee;pharmacie;3
-220351;ABOULYAZID Ilyas;3eme annee;pharmacie;3
-220504;ADIL nouhaila;3eme annee;pharmacie;4
-220750;AHEDDOUN safae;3eme annee;pharmacie;4
-220865;LAHLOU MAHA;3eme annee;pharmacie;4
-220920;AIT HAMMOU Safae;3eme annee;pharmacie;4
-243590;AKDI KHADIJA;3eme annee;pharmacie;4
-220778;AKASBI Fatima-zahra;3eme annee;pharmacie;4
-220823;ALHIANE SAFAE;3eme annee;pharmacie;4
-243585;AGBALU DOUAE;3eme annee;pharmacie;4
-220885;AMRANI Rim;3eme annee;pharmacie;4
-220321;ANSARI Rachida;3eme annee;pharmacie;4
-220782;ASRI Mohammed Yahya;3eme annee;pharmacie;4
-220442;ATTAR Fatima Zahra;3eme annee;pharmacie;4
-220555;AZZOUZI Yazid;3eme annee;pharmacie;4
-220813;BALLOUK Hamza;3eme annee;pharmacie;4
-221126;BARAZOUKI MERIEME;3eme annee;pharmacie;4
-243599;BAZIR HANAA;3eme annee;pharmacie;4
-220631;BEKKAOUI Maria;3eme annee;pharmacie;4
-231503;BALQUIS Mohamed;3eme annee;pharmacie;4
-220603;BELASRI RANIA AHLAM;3eme annee;pharmacie;4
-220956;BENNANI Hiba;3eme annee;pharmacie;4
-220522;BENNANI Selma;3eme annee;pharmacie;4
-220748;BOUGOTAYA INASSE;3eme annee;pharmacie;4
-220874;BENRAIHANE Amina;3eme annee;pharmacie;4
-243602;BENFAIDA AHMED;3eme annee;pharmacie;4
-221091;BENTASSIL Aya;3eme annee;pharmacie;4
-200271;BOUHAIR FATIMA EZZAHRA;3eme annee;pharmacie;4
-220502;BOUHLALI Alae;3eme annee;pharmacie;4
-220974;BOULAARACH Dina;3eme annee;pharmacie;4
-140037;BOUZAZIA ABDELMOUHAIMIN;3eme annee;pharmacie;4
-220678;CABRANE Mohamed Anouar;3eme annee;pharmacie;4
-243604;CHIKER HAFSSA;3eme annee;pharmacie;4
-243592;CHARRATI FATIMA;3eme annee;pharmacie;4
-200418;CHAKIR Haytem;3eme annee;pharmacie;4
-220332;CHARIT Boutayna;3eme annee;pharmacie;4
-243533;CHEBCHOUB SAMY;3eme annee;pharmacie;4
-220606;CHEFAOUI ilyas;3eme annee;pharmacie;4
-220619;DAFAL Hiba;3eme annee;pharmacie;4
-180060;DJAZI  MOHAMED AYMEN;3eme annee;pharmacie;4
-220540;DOUICH Fatima-Ezzahrae;3eme annee;pharmacie;4
-220641;EL ABBADI Wahiba;3eme annee;pharmacie;4
-210836;ELBAKAY AYA;3eme annee;pharmacie;4
-220713;EL BARDI Imane;3eme annee;pharmacie;4
-220764;EL FAROUK riham;3eme annee;pharmacie;4
-220733;EL FAKRI Wissal;3eme annee;pharmacie;4
-220735;EL BOUZIDI Radia;3eme annee;pharmacie;4
-221059;EL GHAZLANI ALAE;3eme annee;pharmacie;4
-220872;EL GHIFARI Manal;3eme annee;pharmacie;4
-243582;EL JAY KHADIJA;3eme annee;pharmacie;4
-220702;EL MERS AYA;3eme annee;pharmacie;4
-220680;EL MOQRI Sanae;3eme annee;pharmacie;4
-221021;EL OUAHABI Douae;3eme annee;pharmacie;4
-220780;EL OUAZZANI HIBA;3eme annee;pharmacie;4
-243576;EL KHALFAOUI HASSANI WISSAL;3eme annee;pharmacie;4
-243603;ELKHOMSI HIBA;3eme annee;pharmacie;4
-221104;ELBEHJA Asmae;3eme annee;pharmacie;4
-221279;ELFERNANI Abdelhadi;3eme annee;pharmacie;4
-220790;ELGDAH Yahya;3eme annee;pharmacie;4
-220985;ELGHRIBI saad;3eme annee;pharmacie;4
-220909;ELIMADI Nissrine;3eme annee;pharmacie;4
-220577;ESSABIRI adam;3eme annee;pharmacie;4
-210492;EZZOUBAIHI Safae;3eme annee;pharmacie;4
-220786;FARAJ Nouha;3eme annee;pharmacie;4
-220866;FARID Sofia;3eme annee;pharmacie;4
-220996;FICHTALI Fatima zahraa;3eme annee;pharmacie;4
-243580;GALUIA YASSINE;3eme annee;pharmacie;4
-220862;Ghazaoui Soukaina;3eme annee;pharmacie;4
-221004;HAJAMA Aya;3eme annee;pharmacie;4
-220981;HARTI Alaa-eddine;3eme annee;pharmacie;4
-210466;HARTI Aya;3eme annee;pharmacie;4
-220424;HASSI BASMA;3eme annee;pharmacie;4
-243589;IKRAM AYA;3eme annee;pharmacie;4
-220911;IDALI Safouane;3eme annee;pharmacie;4
-220838;IFKIREN Ikram;3eme annee;pharmacie;4
-220805;JAWHARY Nada;3eme annee;pharmacie;5
-220822;JERROUDI Ouafae;3eme annee;pharmacie;5
-220629;KABBAJ Sara;3eme annee;pharmacie;5
-220545;KAMAL imane;3eme annee;pharmacie;5
-210713;KATFY AYA;3eme annee;pharmacie;5
-220718;KESBAOUI MOHAMED-ZAID;3eme annee;pharmacie;5
-220460;KHAMLACH Ghita;3eme annee;pharmacie;5
-220833;KOUSSA AYA;3eme annee;pharmacie;5
-221550;KRICHEN YASMINE;3eme annee;pharmacie;5
-211988;LAITI Hajar;3eme annee;pharmacie;5
-220855;LAMLIH rania;3eme annee;pharmacie;5
-220518;MAAROUF mouna;3eme annee;pharmacie;5
-220652;MAHIR Salma;3eme annee;pharmacie;5
-220397;MAZHAR HADIL;3eme annee;pharmacie;5
-210494;MFADDEL Mohamed;3eme annee;pharmacie;5
-220549;MIFTAH AYA;3eme annee;pharmacie;5
-220743;MOTYA Ikram;3eme annee;pharmacie;5
-221069;MOUATARIF AYA;3eme annee;pharmacie;5
-243591;MOUSSADDAK  FADOUA;3eme annee;pharmacie;5
-220427;MOUNIB OMar;3eme annee;pharmacie;5
-220340;MOUNJI IMANE;3eme annee;pharmacie;5
-220969;NAIR Hamza;3eme annee;pharmacie;5
-220527;OUAHIDI Ahlem;3eme annee;pharmacie;5
-220724;OUCHKIR KENZA;3eme annee;pharmacie;5
-220497;OULEHRI ARWA;3eme annee;pharmacie;5
-243558;RAHMOUNI ZAINAB;3eme annee;pharmacie;5
-221112;RAJAB BACHA MARWA;3eme annee;pharmacie;5
-220965;RHILANE ISMAIL;3eme annee;pharmacie;5
-140036;SAAIDI Nour;3eme annee;pharmacie;5
-211989;SABBAR yasser;3eme annee;pharmacie;5
-220350;SABOUR ADAM;3eme annee;pharmacie;5
-243577;SABIR AMAL;3eme annee;pharmacie;5
-220420;SABRI Ayyoub;3eme annee;pharmacie;5
-210922;SAFOUHI JIHANE;3eme annee;pharmacie;5
-220402;SAFRI Douae;3eme annee;pharmacie;5
-220564;SAHRAOU Yassine;3eme annee;pharmacie;5
-220879;SAID ALAOUI Amine;3eme annee;pharmacie;5
-220742;Samih Mostafa Yassine;3eme annee;pharmacie;5
-220369;SGHIR Zainab;3eme annee;pharmacie;5
-221249;TAKHSSAOUI Aymane;3eme annee;pharmacie;5
-220693;TALEB-ELHOUDA Mohamed-Yassine;3eme annee;pharmacie;5
-220301;TAOUNI SARAH;3eme annee;pharmacie;5
-220723;TARASS Zineb;3eme annee;pharmacie;5
-220925;TLEMSANI BENHATTAL Lina;3eme annee;pharmacie;5
-211394;ZAIKH ISMAIL;3eme annee;pharmacie;5
-220908;ZAOUI MOATASSIM BILLAH;3eme annee;pharmacie;5
-220964;ZARIOH chaymae;3eme annee;pharmacie;5
-243584;ZRIERA YOUNES;3eme annee;pharmacie;5
-210548;AASSILA Meryem;4eme annee;pharmacie;1
-210286;ABBADI Nizar;4eme annee;pharmacie;1
-210910;ABOUZAID Nisrine;4eme annee;pharmacie;1
-210365;ACHOR ZYAD Fatima zahra;4eme annee;pharmacie;1
-211395;ADAM CHABI Raoudatou;4eme annee;pharmacie;1
-210264;AGARDI Mohamed najib;4eme annee;pharmacie;1
-210512;AIT DAOUD Fatima zohra;4eme annee;pharmacie;1
-231467;AIT SALAH Houria;4eme annee;pharmacie;1
-210878;AIT ZEMZAMI Merieme;4eme annee;pharmacie;1
-211252;ALAFARI Abdoul kader;4eme annee;pharmacie;1
-210914;ALLOUCHE Rime;4eme annee;pharmacie;1
-211155;AMMOR Hiba;4eme annee;pharmacie;1
-210324;AMOR Jihane;4eme annee;pharmacie;1
-221422;AMZAZI Latifa;4eme annee;pharmacie;1
-210416;AYOUCH Lina;4eme annee;pharmacie;1
-211384;AZMANI Ichrak;4eme annee;pharmacie;1
-210278;AZZAT Aya;4eme annee;pharmacie;1
-231522;BACHIR Salma;4eme annee;pharmacie;1
-210438;BAHADDOU Hicham;4eme annee;pharmacie;1
-211392;BAIYA Amina;4eme annee;pharmacie;1
-221441;BELAYATE Hajar;4eme annee;pharmacie;1
-210566;BELGHALI Aymane;4eme annee;pharmacie;2
-211582;BELKEBIR Fatine;4eme annee;pharmacie;2
-210582;BELMEKKI Mehdi;4eme annee;pharmacie;2
-210602;BENCHEKROUN Sara;4eme annee;pharmacie;2
-210311;BENJELLOUN Wiam;4eme annee;pharmacie;2
-211398;BENJILALI Hiba;4eme annee;pharmacie;2
-210457;BENYAHIA Ghita;4eme annee;pharmacie;2
-210282;BENZIANE Marwan;4eme annee;pharmacie;2
-210632;BERRADA Chaimae;4eme annee;pharmacie;2
-210242;BITARI Mohammed yassine;4eme annee;pharmacie;2
-210287;BOUANANE Mohamed yassine;4eme annee;pharmacie;2
-210279;BOUHAMIDI Wafaa;4eme annee;pharmacie;2
-210453;BOUKILI MAKHOUKHI Chaemae;4eme annee;pharmacie;2
-210588;BOUNAGUI Chaimaa;4eme annee;pharmacie;2
-210420;BOUROUAINE Yasmine;4eme annee;pharmacie;2
-210691;BOUTAZARZAIT Romayssae;4eme annee;pharmacie;2
-210468;CHAFIK Soukaina;4eme annee;pharmacie;2
-210504;CHAHBY Ahmed taha;4eme annee;pharmacie;2
-210904;CHARI Mohammed;4eme annee;pharmacie;2
-210428;CHOUGRAD Nouhaila;4eme annee;pharmacie;3
-210280;DAFAL Lina;4eme annee;pharmacie;3
-200109;DAKHCH Marwa;4eme annee;pharmacie;3
-210342;DERKAOUI Lina;4eme annee;pharmacie;3
-231469;ECHANBOURA Sara;4eme annee;pharmacie;3
-200232;EL BAIHI Elhoussein;4eme annee;pharmacie;3
-210846;EL BAKKOURI Maroua;4eme annee;pharmacie;3
-210316;EL BARDI Samia;4eme annee;pharmacie;3
-210249;EL HADDAJI Mohamed reda;4eme annee;pharmacie;3
-210577;EL HAITOUT Houda;4eme annee;pharmacie;3
-210856;EL HIMDY Rita;4eme annee;pharmacie;3
-210253;EL IDRISSI Sara;4eme annee;pharmacie;3
-200391;EL KHALQI Amina;4eme annee;pharmacie;3
-210450;EL KHAYAT Khaoula;4eme annee;pharmacie;3
-210584;EL MANSOURI Hiba;4eme annee;pharmacie;3
-231456;EL MENNANI Soufiane;4eme annee;pharmacie;3
-210646;EL MOUMNI Zineb;4eme annee;pharmacie;3
-210292;EL OTMANI Racha;4eme annee;pharmacie;3
-210723;ELAJOUADY Mariam;4eme annee;pharmacie;3
-200264;ELFAHLI Salma;4eme annee;pharmacie;4
-210544;ELFAHM Maryem;4eme annee;pharmacie;4
-210899;ELFATIHY Khadija;4eme annee;pharmacie;4
-231243;ELGAMRI Ilias;4eme annee;pharmacie;4
-210345;ENNAKI Hajar;4eme annee;pharmacie;4
-210500;ESSERTI Mohamed-taha;4eme annee;pharmacie;4
-210887;FETICH Soukaina;4eme annee;pharmacie;4
-221755;FILALI ANSSARI Adnane;4eme annee;pharmacie;4
-210897;FTOUHI Yasmine;4eme annee;pharmacie;4
-210682;GALZIM Ghali;4eme annee;pharmacie;4
-210241;GHOUZAILI Kawtar;4eme annee;pharmacie;4
-210270;GHRIB Mohamed amine;4eme annee;pharmacie;4
-210662;GUELZIM Hamza;4eme annee;pharmacie;4
-210505;HICHAR Nouhaila;4eme annee;pharmacie;4
-210476;HUSSEIN Taha;4eme annee;pharmacie;4
-210917;IDRISSI Sofia;4eme annee;pharmacie;4
-210678;JAID Soukaina;4eme annee;pharmacie;4
-210390;KABBAJ Zineb;4eme annee;pharmacie;4
-210596;KADRI HASSANI Ghita;4eme annee;pharmacie;4
-210277;KAMAL Yasser;4eme annee;pharmacie;5
-200443;KAZOUZ Sarra;4eme annee;pharmacie;5
-210640;KHABAMOU Hajar;4eme annee;pharmacie;5
-210606;LAAROUS Zineb;4eme annee;pharmacie;5
-231461;LAAROUSSI Salma;4eme annee;pharmacie;5
-210858;LAHLIL Taoufik;4eme annee;pharmacie;5
-210581;LASRY Douaa;4eme annee;pharmacie;5
-210361;LAZRAK Mohamed;4eme annee;pharmacie;5
-210725;LAZREQ Elmehdi;4eme annee;pharmacie;5
-210906;LAZZOUZI Khadija;4eme annee;pharmacie;5
-210496;LIKRAM Farah;4eme annee;pharmacie;5
-210567;LOUALI Camelia;4eme annee;pharmacie;5
-231462;MAHFOUD Rhita;4eme annee;pharmacie;5
-211200;MBOU INTCHALEY Amanda denise;4eme annee;pharmacie;5
-210446;MEDARHRI Hiba;4eme annee;pharmacie;5
-231460;MENNANE Nidale;4eme annee;pharmacie;5
-210497;MIQDAM Malak;4eme annee;pharmacie;6
-210498;MOKHLIS Mohammed amine;4eme annee;pharmacie;5
-210432;MOUJIB Meryem;4eme annee;pharmacie;5
-210473;MOUTAA Malak;4eme annee;pharmacie;5
-210245;N'AIT HAMMOU Houda;4eme annee;pharmacie;6
-210718;NEDAM Lina;4eme annee;pharmacie;6
-200738;OUADRHIRI Basma;4eme annee;pharmacie;6
-210485;OUAFIK Ali;4eme annee;pharmacie;6
-210850;OULDSAIDIA Kawtar;4eme annee;pharmacie;6
-210641;OUZEROUAL Omar;4eme annee;pharmacie;6
-211383;RHAYOUR Nora;4eme annee;pharmacie;6
-211333;RHISSASSI Samia;4eme annee;pharmacie;6
-210913;SADIK Anass;4eme annee;pharmacie;6
-210881;SADOUQI Kenza;4eme annee;pharmacie;6
-231454;SAID Lina;4eme annee;pharmacie;6
-210554;SAYEH Israa;4eme annee;pharmacie;6
-210333;SBAI Abla;4eme annee;pharmacie;6
-210706;SEIDA Chaima;4eme annee;pharmacie;6
-210410;SOUIZI Aya;4eme annee;pharmacie;6
-210612;TAKI IMRANI Yasmine;4eme annee;pharmacie;6
-210703;TOGHASSI Imane;4eme annee;pharmacie;6
-210916;TOUZANI Yassmine;4eme annee;pharmacie;6
-210911;ZOHRY Youssef;4eme annee;pharmacie;6
-210652;ZOUINE Hamza;4eme annee;pharmacie;6
-714507;Mezrioui Hakim;4eme annee;pharmacie;6
-200190;ACH-CHAK Afafe;5eme annee;pharmacie;1
-221578;ADNANE JAZOULI Soukaina;5eme annee;pharmacie;1
-200604;AITISSIMOUR Ghita;5eme annee;pharmacie;1
-200901;AMMOR Salma;5eme annee;pharmacie;1
-221757;BABA AHMED Mouad;5eme annee;pharmacie;1
-221572;BALLA Asma;5eme annee;pharmacie;1
-190420;BASSIR Oussama;5eme annee;pharmacie;1
-200289;BEN FARAH Khadija;5eme annee;pharmacie;1
-200350;BENTAMER Ali;5eme annee;pharmacie;1
-221784;BERRADA FATHI Wiam;5eme annee;pharmacie;1
-200196;BLAGHEN Aya;5eme annee;pharmacie;1
-200487;BOUCHGHOUL Bahia;5eme annee;pharmacie;1
-200368;BOUDAD Israa;5eme annee;pharmacie;1
-200448;BOUGHABA Malak;5eme annee;pharmacie;1
-200549;BOUGREA Aya;5eme annee;pharmacie;1
-200596;BOUKZANI Maryam;5eme annee;pharmacie;1
-200410;BOULLI Soukaina;5eme annee;pharmacie;1
-200597;CHAABANI Meryem;5eme annee;pharmacie;1
-211197;CHAFIK Walid;5eme annee;pharmacie;1
-221556;CHAKIR Zineb;5eme annee;pharmacie;1
-200375;CHBOUKI Rim;5eme annee;pharmacie;1
-200363;CHDID Yasmine;5eme annee;pharmacie;2
-200608;DERHMAIN Hanane;5eme annee;pharmacie;2
-221568;DERHMAIN Nadia;5eme annee;pharmacie;2
-221570;DIAB Imane;5eme annee;pharmacie;2
-200107;ECHLAIHI Ibtissam;5eme annee;pharmacie;2
-211198;EL AKKARI Yassine;5eme annee;pharmacie;2
-200577;EL BAIR Afaf;5eme annee;pharmacie;2
-200439;EL FADI Rehab;5eme annee;pharmacie;2
-200585;EL MALTI Mohamed othmane;5eme annee;pharmacie;2
-200106;EL MBARKI Maryam;5eme annee;pharmacie;2
-200537;EL MOUMNI Aya;5eme annee;pharmacie;2
-200409;EL OMARI Hakima;5eme annee;pharmacie;2
-200334;EL YASSAMI Ayoub;5eme annee;pharmacie;2
-200217;ELALAOUI ISMAILI Imane;5eme annee;pharmacie;2
-200587;ELKABBAJ Siham;5eme annee;pharmacie;2
-200248;ELOUELDRHIRI Yasmine;5eme annee;pharmacie;2
-221555;ESSAFI Mehdi;5eme annee;pharmacie;2
-200602;ETTABAGHI Hiba;5eme annee;pharmacie;2
-200200;ETTABAGHI Sara;5eme annee;pharmacie;2
-200543;FADILI Kaoutar;5eme annee;pharmacie;2
-200169;FAHIM Salma;5eme annee;pharmacie;2
-200567;FETHI Yasmine;5eme annee;pharmacie;3
-200607;FRAOUSSY Hiba;5eme annee;pharmacie;3
-200172;GUENNANI Meryem;5eme annee;pharmacie;3
-200282;HABBARI Salsabil;5eme annee;pharmacie;3
-200185;HALFYA Aya;5eme annee;pharmacie;3
-221574;HASSANI Boteina;5eme annee;pharmacie;3
-221588;HAYAR Hajar;5eme annee;pharmacie;3
-200417;JAAD Zineb;5eme annee;pharmacie;3
-200268;KARKOURI Douaa;5eme annee;pharmacie;3
-200437;KHYATI Sara;5eme annee;pharmacie;3
-200461;KRAFESS Rim;5eme annee;pharmacie;3
-200390;LAHLAFI Kenza;5eme annee;pharmacie;3
-200296;LAHLOU MIMI Ismail aymane;5eme annee;pharmacie;3
-200144;LAMTARQI Aya;5eme annee;pharmacie;3
-221571;LAZAAR Yasmine;5eme annee;pharmacie;3
-200145;LOK-AYBA Aya;5eme annee;pharmacie;3
-200550;MaaCHE Kawtar;5eme annee;pharmacie;3
-200372;MAJD Maryem;5eme annee;pharmacie;3
-200383;MANDARISS Hiba;5eme annee;pharmacie;3
-221549;MEDAGHRI ALAOUI Rania;5eme annee;pharmacie;3
-221257;MEHBI Meryam;5eme annee;pharmacie;3
-200153;MEKOUAR Lina;5eme annee;pharmacie;3
-221756;MEZOUAR Yasmine;5eme annee;pharmacie;4
-200241;MOUAKKIR Ismail;5eme annee;pharmacie;4
-180860;OQAIDI Hajar;5eme annee;pharmacie;4
-200703;OUAHMANE Rihabe;5eme annee;pharmacie;4
-200366;OUAIS Nassima;5eme annee;pharmacie;4
-200130;OUAZZANI TOUHAMI Mohamed yacine;5eme annee;pharmacie;4
-200234;OUBAHA Fatima zahra;5eme annee;pharmacie;4
-200580;OUHADDOU Yasmine;5eme annee;pharmacie;4
-200698;OUICHOUANI Wissal;5eme annee;pharmacie;4
-221292;OURIEMCHI Yousra;5eme annee;pharmacie;4
-200434;QANI Abir;5eme annee;pharmacie;4
-200832;RAMI Amina;5eme annee;pharmacie;4
-200415;SABIL Meryem;5eme annee;pharmacie;4
-200320;SAHMANE Faiza;5eme annee;pharmacie;4
-200431;SAMIR Haitam;5eme annee;pharmacie;4
-200370;SEBBAR Abdelhadi;5eme annee;pharmacie;4
-200609;SRIJ Safae;5eme annee;pharmacie;4
-200590;TAHIRI El mehdi;5eme annee;pharmacie;4
-200338;TARZI Badr eddine;5eme annee;pharmacie;4
-200693;TASSINE Safaa;5eme annee;pharmacie;4
-200358;ZAKARI Iliana;5eme annee;pharmacie;4
-200236;ZITI Ayman;5eme annee;pharmacie;4
-200593;ZOUHRY Rabea;5eme annee;pharmacie;4
+matricule;first_name;last_name;email;password;photo;promotion_id;etablissement_id;ville_id;group_id
+243967;YOANN-CHRISTIAN KYLE;AZOUADELLY;yoann-christian.azouadelly@example.com;pass123;;1;1;1;1
+243962;GRACE PRUNELLE;ADA ETOUGHE;grace.adaetoughe@example.com;pass123;;1;1;1;1
+243281;JAD;AIT IRHLI;jad.aitirhli@example.com;pass123;;1;1;1;1
+241410;HOUSSAM;ABBASSI;houssam.abbassi@example.com;pass123;;1;1;1;1
+241126;MAANE SELMA;ABDELLAOUI;maane.abdellaoui@example.com;pass123;;1;1;1;1
+240990;ISMAIL;ADDI;ismail.addi@example.com;pass123;;1;1;1;1
+241254;NOUR EL HOUDA;ADERDOUR;nour.aderdour@example.com;pass123;;1;1;1;1
+240955;SAMIA;ADNANE;samia.adnane@example.com;pass123;;1;1;1;1
+241130;NOUR;AFIFI;nour.afifi@example.com;pass123;;1;1;1;1
+241264;LAYLA;EL JANAN;layla.eljanan@example.com;pass123;;1;1;1;1
+242570;CHAIMAA;AGOURI;chaimaa.agouri@example.com;pass123;;1;1;1;1
+241175;AYMAN;AKKARI;ayman.akkari@example.com;pass123;;1;1;1;1
+241005;AMIRA;ARRACHIDI;amira.arrachiidi@example.com;pass123;;1;1;1;1
+241295;MALAK;ASSAKKACH;malak.assakkach@example.com;pass123;;1;1;1;1
+241387;YOUSRA;BADRI;yousra.badri@example.com;pass123;;1;1;1;1
+242065;HIBA;BEKKARI;hiba.bekkari@example.com;pass123;;1;1;1;1
+241447;AMIRA;BELKOUCHI;amira.belkouchi@example.com;pass123;;1;1;1;1
+241439;RADIA;BELLAHCEN;radia.bellahcen@example.com;pass123;;1;1;1;1
+241049;DOHA;BEN ABBOU;doha.benabbou@example.com;pass123;;1;1;1;1
+241170;SAFOUA;BENBRAHIM;safoua.benbrahim@example.com;pass123;;1;1;1;1
+241075;RIM;BENYAHYA;rim.benyahya@example.com;pass123;;1;1;1;1
+241344;GHITA;BOUBAKRI;ghita.boubakri@example.com;pass123;;1;1;1;1
+241526;JIHANE;BOUKRIM;jihane.boukrim@example.com;pass123;;1;1;1;1
+241016;LINA;BOUMKOUK;lina.boumkouk@example.com;pass123;;1;1;1;1
+241086;FATIMAZAHRA;CHABI;fatimazahra.chabi@example.com;pass123;;1;1;1;1
+241519;HAFSA;CHARIF;hafsa.charif@example.com;pass123;;1;1;1;1
+241158;FATIMA ZAHRA;CHOKAIRY;fatimazahra.chokairy@example.com;pass123;;1;1;1;1
+240591;DOUAA;DAMANE;douaa.damane@example.com;pass123;;1;1;1;1
+240915;OUMNIA;DOUMAJD;oumdia.doumajd@example.com;pass123;;1;1;1;1
+241024;GHITA;DRISSI EL BOUZAIDI;ghita.drissi@example.com;pass123;;1;1;1;1
+240987;ABLA;ECHARIF CHEFCHAOUNI ESSOUNNI;abla.echarif@example.com;pass123;;1;1;1;1
+241165;HIBA;EL ALAMI;hiba.elalami@example.com;pass123;;1;1;1;1
+241067;MERYEM;EL BOUCHTAOUI;meryem.elbouchtaoui@example.com;pass123;;1;1;1;1
+240921;FAHD;EL BOURKADI;fhd.elbourkadi@example.com;pass123;;1;1;1;1
+241362;TASNIME;EL IDRISSI;tasnime.elidrissi@example.com;pass123;;1;1;1;1
+232138;ATIKA;ELHAYBA;atika.elhayba@example.com;pass123;;1;1;1;1
+241853;ZINEB;ELRHERBI;zineb.elrherbi@example.com;pass123;;1;1;1;1
+241000;MARWA;ERRADI;marwa.erradi@example.com;pass123;;1;1;1;1
+240648;IKRAM;EZZAKI;ikram.ezzaki@example.com;pass123;;1;1;1;1
+210839;INASS;EZZIRARI;inass.ezzirari@example.com;pass123;;1;1;1;2
+241306;AMANI;FARES;amani.fares@example.com;pass123;;1;1;1;2
+240556;ABLA;FASSI FIHRI;abla.fassifihri@example.com;pass123;;1;1;1;2
+240643;RANIA;GHAZZALI;rania.ghazzali@example.com;pass123;;1;1;1;2
+241041;MALAK;GHELFANE;malak.ghelfane@example.com;pass123;;1;1;1;2
+240539;LINA;GUERBAZ;lina.guerbaz@example.com;pass123;;1;1;1;2
+241053;NASREDDINE;HADDIOUI;nasreddine.haddioui@example.com;pass123;;2;1;1;2
+241320;YASSMINE;HADDIOUI;yassmine.haddioui@example.com;pass123;;2;1;1;2
+241113;YASMINE;HAJBAOUI;yasmine.hajbaoui@example.com;pass123;;2;1;1;2
+241060;TAHA;HANINE;taha.hanine@example.com;pass123;;1;1;1;2
+241501;HAMZA;HAZZAZ ABOUAMAL;hamza.hazzaz@example.com;pass123;;1;1;1;2
+241539;RAYHANA;IDOULAHIANE;rayhana.idoulahiane@example.com;pass123;;1;1;1;2
+241246;SOUKAINA;JABRANE;soukaina.jabrane@example.com;pass123;;1;1;1;2
+241495;NADA;JENNANE;nada.jennane@example.com;pass123;;1;1;1;2
+241473;LINA;KHALIL;lina.khalil@example.com;pass123;;1;1;1;2
+241141;RANIA;KHLAFA;rania.khlafa@example.com;pass123;;1;1;1;2
+240533;KHADIJA;KOUNSSANE;khadija.kounssane@example.com;pass123;;1;1;1;2
+241559;RANYA;KOURSAOUI;ranya.koursaoui@example.com;pass123;;1;1;1;2
+241313;HOURIA;LACHGUAR;houria.lachguar@example.com;pass123;;1;1;1;2
+241480;ILYAS;LACHKAR;ilyas.lachkar@example.com;pass123;;1;1;1;2
+241052;MARYAM;LAHNIN;maryam.lahnin@example.com;pass123;;1;1;1;2
+241549;HOUSSAM;LAMALEM;houssam.lamalem@example.com;pass123;;1;1;1;2
+242204;JAWHARA;LEKBOURI;jawhara.lekbouri@example.com;pass123;;1;1;1;2
+242198;SALWA;LEKNIZI;salwa.leknizi@example.com;pass123;;1;1;1;2
+241109;FATIMA ZAHRA;LOTFI;fatimazahra.lotfi@example.com;pass123;;1;1;1;2
+230833;ABDELHAMID;MOUJOUD;abdelhamid.moujoud@example.com;pass123;;1;1;1;2
+243435;DINA;MOUNFALOTI;dina.mounfaloti@example.com;pass123;;1;1;1;2
+240820;SARA;MAAMAR;sara.maamar@example.com;pass123;;1;1;1;2
+240973;FATIMA ZAHRA;MAJDOUBI;fatimazahra.majdoubi@example.com;pass123;;1;1;1;2
+241907;KHAWLA;MALIHI;khawla.malihi@example.com;pass123;;1;1;1;2
+241103;KHADIJA;MANSOURI;khadija.mansouri@example.com;pass123;;1;1;1;2
+241194;MANAR;MAZIGHI;manar.mazighi@example.com;pass123;;1;1;1;2
+241211;NADA;MAZOUZ;nada.mazouz@example.com;pass123;;1;1;1;2
+230684;JAD;MECHTALY;jad.mechtaly@example.com;pass123;;1;1;1;2
+240550;SIRINE;MELLOUK;sirine.mellouk@example.com;pass123;;2;1;1;2
+241599;AMIRA;MOUFID;amira.moufid@example.com;pass123;;1;1;1;2
+241897;SANA;NABIL;sana.nabil@example.com;pass123;;1;1;1;2
+241223;MALAK;NACIRI;malak.naciri@example.com;pass123;;1;1;1;2
+242208;GHITA;NAJAH IDRISSI;ghita.najahidrissi@example.com;pass123;;1;1;1;2
+241219;YOUSRA;OUARZAZI;yousra.ouarzazi@example.com;pass123;;1;1;1;2
+241236;SARA;OUASSIFA;sara.ouassifa@example.com;pass123;;1;1;1;2
+240932;YASSIR;RGUITI;yassir.rguiti@example.com;pass123;;1;1;1;2
+241598;SAFAE;RJILA;safae.rjila@example.com;pass123;;2;1;1;2
+241260;MERYEM;SAMANI;meryem.samani@example.com;pass123;;1;1;1;2
+240584;RHALEM;SANA;rhalem.sana@example.com;pass123;;1;1;1;2
+241196;LINA;SAOUAF;lina.saouaf@example.com;pass123;;1;1;1;2
+241233;YASMINE;SEBTI;yasmine.sebti@example.com;pass123;;2;1;1;2
+240904;INASSE;SEFIANI;inasse.sefiani@example.com;pass123;;2;1;1;2
+241187;RITA;TALHA NACIRI;rita.talhanaciri@example.com;pass123;;1;1;1;2
+241154;MOHAMED ALI;TALIH;mohamedali.talih@example.com;pass123;;1;1;1;2
+241332;FATIMA AZZAHRAE;TAZI;fatimaazzahrae.tazi@example.com;pass123;;2;1;1;2
+241401;SAFAE;TEBBAA;safae.tebbaa@example.com;pass123;;2;1;1;2
+240965;SALWA;TERRO;salwa.terro@example.com;pass123;;1;1;1;2
+240968;AMINE;ZEROUAL;amine.zeroual@example.com;pass123;;2;1;1;2
+230300;ABDELKADER;ABOUZAID;abdelkader.abouzaid@example.com;pass123;;2;1;1;2
+230630;SARA;AIT BEN ALI;sara.aitbenali@example.com;pass123;;2;1;1;2
+230792;NADA;AKDI;nada.akdi@example.com;pass123;;2;1;1;2
+230378;LINA;AKHARRAZ;lina.akharraz@example.com;pass123;;2;1;1;2
+140048;YASSMINE;AKHETTAB;yassmine.akhettab@example.com;pass123;;2;1;1;2
+230805;ZINEB;ALAOUI;zineb.alaoui@example.com;pass123;;2;1;1;2
+230446;RANIA;ALID;rania.alid@example.com;pass123;;2;1;1;2
+230727;JIHANE;AMAR;jihane.amar@example.com;pass123;;2;1;1;2
+230725;OUAIMA;BAYAZID;ouaima.bayazid@example.com;pass123;;2;1;1;2
+230555;MOHAMED;BELGHMI;mohamed.belghmi@example.com;pass123;;2;1;1;2
+230801;MOHAMED;BELKADI;mohamed.belkadi@example.com;pass123;;2;1;1;2
+230740;ZAYD;BELMAL;zayd.belmal@example.com;pass123;;2;1;1;2
+230572;ZAKARIA;BENCHADLI;zakaria.benchadli@example.com;pass123;;2;1;1;2
+230982;AYA;BENRARHRHAYE;aya.benrarhrhaye@example.com;pass123;;2;1;1;2
+230748;OUAIMA;BOUKSASSE;ouaima.bouksasse@example.com;pass123;;2;1;1;2
+230782;FATIMA;BRIH;fatima.brih@example.com;pass123;;2;1;1;2
+230343;CHOROUK;CHARAF;chorouk.charaf@example.com;pass123;;2;1;1;2
+230737;FATIMA EZZAHRAA;CHARRAFI;fatimaezzahraa.charrafi@example.com;pass123;;2;1;1;2
+230750;SOULAIMANE;CHERIF D'OUEZZAN;soulaimane.cherif@example.com;pass123;;2;1;1;2
+231654;CELESTE;CODJO;celeste.codjo@example.com;pass123;;2;1;1;2
+230794;SARA;DAD;sara.dad@example.com;pass123;;2;1;1;2
+230715;LINA;DERRABI;lina.derrabi@example.com;pass123;;2;1;1;2
+230683;YASMINE;DOU-NASSRE;yasmine.dounassre@example.com;pass123;;2;1;1;2
+230980;SAAD;EL BADOURI;saad.elbadouri@example.com;pass123;;2;1;1;2
+230685;LINA;EL BOUSSAIRI;lina.elboussairi@example.com;pass123;;2;1;1;2
+231231;LINA;EL FAIZE;lina.elfaize@example.com;pass123;;2;1;1;2
+230302;DOUAE;EL HAJEB;douae.elhajeb@example.com;pass123;;2;1;1;3
+230824;NOHA;EL IDRISSI;noha.elidrissi@example.com;pass123;;2;1;1;3
+230898;KHADIJA;EL KHATABI;khadija.elkhatabi@example.com;pass123;;2;1;1;3
+230288;HOUSSAME;EL MBARKI;houssame.elmbarki@example.com;pass123;;2;1;1;3
+230729;SARAH;EL OUAHMANI;sarah.elouahmani@example.com;pass123;;2;1;1;3
+230817;HIBA;ELARCHI;hiba.elarchi@example.com;pass123;;2;1;1;3
+231062;DOUAA;ELBAIDEK;douaa.elbaidek@example.com;pass123;;2;1;1;3
+230290;RIHAM;ELFAHLI;riham.elfahli@example.com;pass123;;2;1;1;3
+230392;FATIMAZAHRA;ELKASITI;fatimazahra.elkasiti@example.com;pass123;;2;1;1;3
+230830;AYA;ELLOUXE;aya.ellouxe@example.com;pass123;;2;1;1;3
+230525;SIHAM;ENNAJI;siham.ennaji@example.com;pass123;;2;1;1;3
+221030;MOHAMED;ETTOUATI;mohamed.ettouati@example.com;pass123;;2;1;1;3
+230425;CAMELIA;FALAHI;camelia.falahi@example.com;pass123;;2;1;1;3
+230829;HIBA;FARID;hiba.farid@example.com;pass123;;2;1;1;3
+230995;ISMAIL;FENNANE;ismail.fennane@example.com;pass123;;2;1;1;3
+230743;ASSIA;FOUAD;assia.fouad@example.com;pass123;;2;1;1;3
+230292;HAJAR;GUENOUN;hajar.guenoun@example.com;pass123;;2;1;1;3
+230538;AYA;HAFIDI;aya.hafidi@example.com;pass123;;2;1;1;3
+230957;DALAL;HAMDADE;dalal.hamdade@example.com;pass123;;2;1;1;3
+230979;GHALIA;HAMDI;ghalia.hamdi@example.com;pass123;;2;1;1;3
+230788;IMANE;HIDOUNE;imane.hidoune@example.com;pass123;;2;1;1;3
+230316;NARJISSE;HILALOU;narjisse.hilalou@example.com;pass123;;2;1;1;3
+210860;NOUR EL HOUDA;ICHADROUAN;nourelhouda.ichadrouan@example.com;pass123;;2;1;1;3
+230796;LINA;IDGHARNANE;lina.idgharnane@example.com;pass123;;2;1;1;3
+230974;IMANE;ISPIKEN;imane.ispiken@example.com;pass123;;2;1;1;3
+230364;RANIA;JROUNDI;rania.jroundi@example.com;pass123;;2;1;1;3
+230816;GHALI;KABBAJ;ghali.kabbaj@example.com;pass123;;2;1;1;3
+140046;MOHAMED AMINE;KABBAJ;mohamedamine.kabbaj@example.com;pass123;;2;1;1;3
+230828;MARIA;KHALID;maria.khalid@example.com;pass123;;2;1;1;3
+230365;TAHA;LAASRI;taha.laasri@example.com;pass123;;2;1;1;3
+230432;ISRAA;LAKHDARI;israa.lakhdari@example.com;pass123;;2;1;1;3
+231007;ADIL;LAMJABBAR;adil.lamjabbar@example.com;pass123;;2;1;1;3
+230839;FATIMA-ZAHRA;LIMOURAT;fatimazahra.limourat@example.com;pass123;;2;1;1;3
+230826;MALAK;LYAZGHI;malak.lyazghi@example.com;pass123;;2;1;1;3
+230410;SALSABIL;MASDOURI;salsabil.masdouri@example.com;pass123;;2;1;1;3
+231009;OMAR;MEDICHE;omar.mediche@example.com;pass123;;2;1;1;3
+230713;HIBA;MOUAFIK;hiba.mouafik@example.com;pass123;;2;1;1;3
+230381;LINA;MRIOUD;lina.mrioud@example.com;pass123;;2;1;1;3
+230427;ANAS;NAZIR;anas.nazir@example.com;pass123;;2;1;1;3
+230604;AYA;NOUBIR;aya.noubir@example.com;pass123;;2;1;1;3
+230504;MARIA;OUADRHIRI;maria.ouadrhiri@example.com;pass123;;2;1;1;3
+231011;MOHAMED JALIL;OUDGHIRI KAOUACHE;mohamedjalil.oudghirikaouache@example.com;pass123;;2;1;1;3
+230671;DOUAE;OULD CHHAIBA;douae.ouldchhaiba@example.com;pass123;;2;1;1;3
+230694;MOHAMED TAHA;OUSSAMA;mohamedtaha.oussama@example.com;pass123;;2;1;1;3
+230999;YASMINE;RADI;yasmine.radi@example.com;pass123;;2;1;1;3
+231106;DOUAA;RAHALI;douaa.rahali@example.com;pass123;;2;1;1;3
+230764;RAYAN;RAMDANI;rayan.ramdani@example.com;pass123;;2;1;1;3
+230595;MERYEM;REDWANE;meryem.redwane@example.com;pass123;;2;1;1;3
+230221;ELGHALIA;SAANANE;elghalia.saanane@example.com;pass123;;2;1;1;3
+230681;INES;SABRI;ines.sabri@example.com;pass123;;2;1;1;3
+230767;NOUHAILA;SAOUI;nouhaila.saoui@example.com;pass123;;2;1;1;3
+230278;WIJDANE;SBAAI;wijdane.sbaai@example.com;pass123;;2;1;1;3
+230795;ADAM;TAZI;adam.tazi@example.com;pass123;;2;1;1;3
+221071;HIBA;WADIH;hiba.wadih@example.com;pass123;;2;1;1;3
+230670;NADA;WAHBI;nada.wahbi@example.com;pass123;;2;1;1;3
+230339;MOHAMED AMINE;WEQQASSE;mohamedamine.weqqasse@example.com;pass123;;2;1;1;3
+230214;HOUDA;YOUMELAHNA;houda.youmelahna@example.com;pass123;;2;1;1;3
+230772;IBRAHIM;ZAHID;ibrahim.zahid@example.com;pass123;;2;1;1;3
+230719;SALMA;ZEKRI;salma.zekri@example.com;pass123;;2;1;1;3
+230469;RAYANE;ZENOBI;rayane.zenobi@example.com;pass123;;2;1;1;3
+230674;YAKOUT;ZIDANI;yakout.zidani@example.com;pass123;;2;1;1;3
+230639;KENZA;ZOUMI;kenza.zoumi@example.com;pass123;;2;1;1;3
+220351;ILYAS;ABOULYAZID;ilyas.aboulyazid@example.com;pass123;;3;1;1;3
+220504;NOUHAILA;ADIL;nouhaila.adil@example.com;pass123;;3;1;1;4
+220750;SAFAE;AHEDDOUN;safae.aheddoun@example.com;pass123;;3;1;1;4
+220865;MAHA;LAHLOU;maha.lahlou@example.com;pass123;;3;1;1;4
+220920;SAFAE;AIT HAMMOU;safae.aithammou@example.com;pass123;;3;1;1;4
+243590;KHADIJA;AKDI;khadija.akdi@example.com;pass123;;3;1;1;4
+220778;FATIMA-ZAHRA;AKASBI;fatimazahra.akasbi@example.com;pass123;;3;1;1;4
+220823;SAFAE;ALHIANE;safae.alhiane@example.com;pass123;;3;1;1;4
+243585;DOUAE;AGBALU;douae.agbalu@example.com;pass123;;3;1;1;4
+220885;RIM;AMRANI;rim.amrani@example.com;pass123;;3;1;1;4
+220321;RACHIDA;ANSARI;rachida.ansari@example.com;pass123;;3;1;1;4
+220782;MOHAMMED YAHYA;ASRI;mohammedyahya.asri@example.com;pass123;;3;1;1;4
+220442;FATIMA ZAHRA;ATTAR;fatimazahra.attar@example.com;pass123;;3;1;1;4
+220555;YAZID;AZZOUZI;yazid.azzouzi@example.com;pass123;;3;1;1;4
+220813;HAMZA;BALLOUK;hamza.ballouk@example.com;pass123;;3;1;1;4
+221126;MERIEME;BARAZOUKI;merieme.barazouki@example.com;pass123;;3;1;1;4
+243599;HANAA;BAZIR;hanaa.bazir@example.com;pass123;;3;1;1;4
+220631;MARIA;BEKKAOUI;maria.bekkaoui@example.com;pass123;;3;1;1;4
+231503;MOHAMED;BALQUIS;mohamed.balquis@example.com;pass123;;3;1;1;4
+220603;RANIA AHLAM;BELASRI;raniaahlam.belasri@example.com;pass123;;3;1;1;4
+220956;HIBA;BENNANI;hiba.bennani@example.com;pass123;;3;1;1;4
+220522;SELMA;BENNANI;selma.bennani@example.com;pass123;;3;1;1;4
+220748;INASSE;BOUGOTAYA;inasse.bougotaya@example.com;pass123;;3;1;1;4
+220874;AMINA;BENRAIHANE;amina.benraihane@example.com;pass123;;3;1;1;4
+243602;AHMED;BENFAIDA;ahmed.benfaida@example.com;pass123;;3;1;1;4
+221091;AYA;BENTASSIL;aya.bentassil@example.com;pass123;;3;1;1;4
+200271;FATIMA EZZAHRA;BOUHAIR;fatimaezzahra.bouhair@example.com;pass123;;3;1;1;4
+220502;ALAE;BOUHLALI;alae.bouhlali@example.com;pass123;;3;1;1;4
+220974;DINA;BOULAARACH;dina.boulaarach@example.com;pass123;;3;1;1;4
+140037;ABDELMOUHAIMIN;BOUZAZIA;abdelmouhaimin.bouzazia@example.com;pass123;;3;1;1;4
+220678;MOHAMED ANOUAR;CABRANE;mohamedanouar.cabrane@example.com;pass123;;3;1;1;4
+243604;HAFSSA;CHIKER;hafssa.chiker@example.com;pass123;;3;1;1;4
+243592;FATIMA;CHARRATI;fatima.charrati@example.com;pass123;;3;1;1;4
+200418;HAYTEM;CHAKIR;haytem.chakir@example.com;pass123;;3;1;1;4
+220332;BOUTAYNA;CHARIT;boutayna.charit@example.com;pass123;;3;1;1;4
+243533;SAMY;CHEBCHOUB;samy.chebchoub@example.com;pass123;;3;1;1;4
+220606;ILYAS;CHEFAOUI;ilyas.chefaoui@example.com;pass123;;3;1;1;4
+220619;HIBA;DAFAL;hiba.dafal@example.com;pass123;;3;1;1;4
+180060;MOHAMED AYMEN;DJAZI;mohamedaymen.djazi@example.com;pass123;;3;1;1;4
+220540;FATIMA-EZZAHRAE;DOUICH;fatimaezzahrae.douich@example.com;pass123;;3;1;1;4
+220641;WAHIBA;EL ABBADI;wahiba.elabbadi@example.com;pass123;;3;1;1;4
+210836;AYA;ELBAKAY;aya.elbakay@example.com;pass123;;3;1;1;4
+220713;IMANE;EL BARDI;imane.elbardi@example.com;pass123;;3;1;1;4
+220764;RIHAM;EL FAROUK;riham.elfarouk@example.com;pass123;;3;1;1;4
+220733;WISSAL;EL FAKRI;wissal.elfakri@example.com;pass123;;3;1;1;4
+220735;RADIA;EL BOUZIDI;radia.elbouzidi@example.com;pass123;;3;1;1;4
+221059;ALAE;EL GHAZLANI;alae.elghazlani@example.com;pass123;;3;1;1;4
+220872;MANAL;EL GHIFARI;manal.elghifari@example.com;pass123;;3;1;1;4
+243582;KHADIJA;EL JAY;khadija.eljay@example.com;pass123;;3;1;1;4
+220702;AYA;EL MERS;aya.elmers@example.com;pass123;;3;1;1;4
+220680;SANAE;EL MOQRI;sanae.elmoqri@example.com;pass123;;3;1;1;4
+221021;DOUAE;EL OUAHABI;douae.elouahabi@example.com;pass123;;3;1;1;4
+220780;HIBA;EL OUAZZANI;hiba.elouazzani@example.com;pass123;;3;1;1;4
+243576;WISSAL;EL KHALFAOUI HASSANI;wissal.elkhalfaouihassani@example.com;pass123;;3;1;1;4
+243603;HIBA;ELKHOMSI;hiba.elkhomsi@example.com;pass123;;3;1;1;4
+221104;ASMAE;ELBEHJA;asmae.elbehja@example.com;pass123;;3;1;1;4
+221279;ABDELHADI;ELFERNANI;abdelhadi.elfermani@example.com;pass123;;3;1;1;4
+220790;YAHYA;ELGDAH;yahya.elgdah@example.com;pass123;;3;1;1;4
+220985;SAAD;ELGHRIBI;saad.elghribi@example.com;pass123;;3;1;1;4
+220909;NISSRINE;ELIMADI;nissrine.elimadi@example.com;pass123;;3;1;1;4
+220577;ADAM;ESSABIRI;adam.essabiri@example.com;pass123;;3;1;1;4
+210492;SAFAE;EZZOUBAIHI;safae.ezzoubaihi@example.com;pass123;;3;1;1;4
+220786;NOUHA;FARAJ;nouha.faraj@example.com;pass123;;3;1;1;4
+220866;SOFIA;FARID;sofia.farid@example.com;pass123;;3;1;1;4
+220996;FATIMA ZAHRAA;FICHTALI;fatimazahraa.fichtali@example.com;pass123;;3;1;1;4
+243580;YASSINE;GALUIA;yassine.galuia@example.com;pass123;;3;1;1;4
+220862;SOUKAINA;GHAZAOUI;soukaina.ghazaoui@example.com;pass123;;3;1;1;4
+221004;AYA;HAJAMA;aya.hajama@example.com;pass123;;3;1;1;4
+220981;ALAA-EDDINE;HARTI;alaaeddine.harti@example.com;pass123;;3;1;1;4
+210466;AYA;HARTI;aya.harti@example.com;pass123;;3;1;1;4
+220424;BASMA;HASSI;basma.hassi@example.com;pass123;;3;1;1;4
+243589;AYA;IKRAM;aya.ikram@example.com;pass123;;3;1;1;4
+220911;SAFOUANE;IDALI;safouane.idali@example.com;pass123;;3;1;1;4
+220838;IKRAM;IFKIREN;ikram.ifkiren@example.com;pass123;;3;1;1;4
+220805;NADA;JAWHARY;nada.jawhary@example.com;pass123;;3;1;1;5
+220822;OUAFAE;JERROUDI;ouafae.jerroudi@example.com;pass123;;3;1;1;5
+220629;SARA;KABBAJ;sara.kabbaj@example.com;pass123;;3;1;1;5
+220545;IMANE;KAMAL;imane.kamal@example.com;pass123;;3;1;1;5
+210713;AYA;KATFY;aya.katfy@example.com;pass123;;3;1;1;5
+220718;MOHAMED-ZAID;KESBAOUI;mohamedzaid.kesbaoui@example.com;pass123;;3;1;1;5
+220460;GHITA;KHAMLACH;ghita.khamlach@example.com;pass123;;3;1;1;5
+220833;AYA;KOUSSA;aya.koussa@example.com;pass123;;3;1;1;5
+221550;YASMINE;KRICHEN;yasmine.krichen@example.com;pass123;;3;1;1;5
+211988;HAJAR;LAITI;hajar.laiti@example.com;pass123;;3;1;1;5
+220855;RANIA;LAMLIH;rania.lamlih@example.com;pass123;;3;1;1;5

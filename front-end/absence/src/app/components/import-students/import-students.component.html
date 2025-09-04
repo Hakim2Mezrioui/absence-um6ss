@@ -1,0 +1,561 @@
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    
+    <!-- Header avec breadcrumb -->
+    <div class="mb-8">
+      <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+        <!-- Breadcrumb -->
+        <nav class="flex mb-4" aria-label="Breadcrumb">
+          <ol class="inline-flex items-center space-x-1 md:space-x-3">
+            <li class="inline-flex items-center">
+              <button 
+                (click)="goBack()" 
+                class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200"
+              >
+                <mat-icon class="w-4 h-4 mr-2">school</mat-icon>
+                Étudiants
+              </button>
+            </li>
+            <li>
+              <div class="flex items-center">
+                <mat-icon class="w-6 h-6 text-gray-400">chevron_right</mat-icon>
+                <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">Importer des étudiants</span>
+              </div>
+            </li>
+          </ol>
+        </nav>
+
+        <!-- Titre principal -->
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              📥 Importer des Étudiants
+            </h1>
+            <p class="mt-2 text-lg text-gray-600">Importez massivement des étudiants via un fichier CSV</p>
+          </div>
+          
+          <!-- Actions rapides -->
+          <div class="flex gap-3">
+            <button 
+              mat-stroked-button
+              color="primary"
+              (click)="downloadTemplate()"
+              class="flex items-center gap-2 px-6 py-3 rounded-xl"
+            >
+              <mat-icon>download</mat-icon>
+              <span class="font-semibold">Modèle CSV</span>
+            </button>
+            
+            <button 
+              mat-stroked-button
+              color="primary"
+              (click)="goBack()"
+              [disabled]="loading"
+              class="flex items-center gap-2 px-6 py-3 rounded-xl"
+            >
+              <mat-icon>arrow_back</mat-icon>
+              <span class="font-semibold">Retour</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Configuration élégante -->
+    <div *ngIf="showConfiguration" class="mb-8 bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
+      <!-- En-tête Configuration -->
+      <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-8">
+        <div class="flex items-center gap-4">
+          <div class="w-16 h-16 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center shadow-2xl">
+            <mat-icon class="text-white text-3xl">settings</mat-icon>
+          </div>
+          <div>
+            <h2 class="text-3xl font-bold">Configuration d'Importation</h2>
+            <p class="text-indigo-100 text-lg">Définissez les valeurs par défaut pour vos étudiants</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contenu Configuration -->
+      <div class="p-8">
+        <form [formGroup]="configForm" class="space-y-8">
+          <!-- Instructions -->
+          <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200">
+            <div class="flex items-start gap-4">
+              <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <mat-icon class="text-blue-600 text-xl">info</mat-icon>
+              </div>
+              <div>
+                <h4 class="text-lg font-semibold text-blue-900 mb-3">🎯 Configuration intelligente</h4>
+                <div class="text-blue-800 space-y-2 text-sm">
+                  <p>Configurez les valeurs par défaut qui seront automatiquement appliquées à tous les étudiants importés.</p>
+                  <p><strong>Avantage :</strong> Vous n'aurez besoin que des colonnes de base (matricule, prénom, nom, email) dans votre fichier CSV.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Grille de configuration -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            <!-- Promotion -->
+            <div class="group">
+              <div class="bg-gradient-to-br from-white to-blue-50/30 rounded-2xl p-6 border border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-lg">
+                <div class="flex items-center gap-3 mb-4">
+                  <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <mat-icon class="text-white text-lg">school</mat-icon>
+                  </div>
+                  <h4 class="font-semibold text-gray-800 group-hover:text-blue-700 transition-colors duration-300">Promotion</h4>
+                  <span class="text-red-500 text-sm">*</span>
+                </div>
+                <select 
+                  formControlName="promotion_id" 
+                  class="w-full px-4 py-3 bg-white rounded-xl border border-gray-200 focus:border-blue-500 focus:outline-none transition-all duration-200 text-gray-700 hover:border-blue-300"
+                >
+                  <option value="">Sélectionnez une promotion</option>
+                  <option *ngFor="let promotion of filterOptions.promotions" [value]="promotion.id">
+                    {{ promotion.name }}
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Établissement -->
+            <div class="group">
+              <div class="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-6 border border-gray-200 hover:border-purple-300 transition-all duration-300 hover:shadow-lg">
+                <div class="flex items-center gap-3 mb-4">
+                  <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <mat-icon class="text-white text-lg">business</mat-icon>
+                  </div>
+                  <h4 class="font-semibold text-gray-800 group-hover:text-purple-700 transition-colors duration-300">Établissement</h4>
+                  <span class="text-red-500 text-sm">*</span>
+                </div>
+                <select 
+                  formControlName="etablissement_id" 
+                  class="w-full px-4 py-3 bg-white rounded-xl border border-gray-200 focus:border-purple-500 focus:outline-none transition-all duration-200 text-gray-700 hover:border-purple-300"
+                >
+                  <option value="">Sélectionnez un établissement</option>
+                  <option *ngFor="let etablissement of filterOptions.etablissements" [value]="etablissement.id">
+                    {{ etablissement.name }}
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Ville -->
+            <div class="group">
+              <div class="bg-gradient-to-br from-white to-orange-50/30 rounded-2xl p-6 border border-gray-200 hover:border-orange-300 transition-all duration-300 hover:shadow-lg">
+                <div class="flex items-center gap-3 mb-4">
+                  <div class="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <mat-icon class="text-white text-lg">location_city</mat-icon>
+                  </div>
+                  <h4 class="font-semibold text-gray-800 group-hover:text-orange-700 transition-colors duration-300">Ville</h4>
+                  <span class="text-red-500 text-sm">*</span>
+                </div>
+                <select 
+                  formControlName="ville_id" 
+                  class="w-full px-4 py-3 bg-white rounded-xl border border-gray-200 focus:border-orange-500 focus:outline-none transition-all duration-200 text-gray-700 hover:border-orange-300"
+                >
+                  <option value="">Sélectionnez une ville</option>
+                  <option *ngFor="let ville of filterOptions.villes" [value]="ville.id">
+                    {{ ville.name }}
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Groupe -->
+            <div class="group">
+              <div class="bg-gradient-to-br from-white to-emerald-50/30 rounded-2xl p-6 border border-gray-200 hover:border-emerald-300 transition-all duration-300 hover:shadow-lg">
+                <div class="flex items-center gap-3 mb-4">
+                  <div class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <mat-icon class="text-white text-lg">group</mat-icon>
+                  </div>
+                  <h4 class="font-semibold text-gray-800 group-hover:text-emerald-700 transition-colors duration-300">Groupe</h4>
+                  <span class="text-red-500 text-sm">*</span>
+                </div>
+                <select 
+                  formControlName="group_id" 
+                  class="w-full px-4 py-3 bg-white rounded-xl border border-gray-200 focus:border-emerald-500 focus:outline-none transition-all duration-200 text-gray-700 hover:border-emerald-300"
+                >
+                  <option value="">Sélectionnez un groupe</option>
+                  <option *ngFor="let group of filterOptions.groups" [value]="group.id">
+                    {{ group.title }}
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Option -->
+            <div class="group">
+              <div class="bg-gradient-to-br from-white to-teal-50/30 rounded-2xl p-6 border border-gray-200 hover:border-teal-300 transition-all duration-300 hover:shadow-lg">
+                <div class="flex items-center gap-3 mb-4">
+                  <div class="w-10 h-10 bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <mat-icon class="text-white text-lg">book</mat-icon>
+                  </div>
+                  <h4 class="font-semibold text-gray-800 group-hover:text-teal-700 transition-colors duration-300">Option</h4>
+                  <span class="text-red-500 text-sm">*</span>
+                </div>
+                <select 
+                  formControlName="option_id" 
+                  class="w-full px-4 py-3 bg-white rounded-xl border border-gray-200 focus:border-teal-500 focus:outline-none transition-all duration-200 text-gray-700 hover:border-teal-300"
+                >
+                  <option value="">Sélectionnez une option</option>
+                  <option *ngFor="let option of filterOptions.options" [value]="option.id">
+                    {{ option.name }}
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Mode de traitement des doublons -->
+            <div class="group">
+              <div class="bg-gradient-to-br from-white to-rose-50/30 rounded-2xl p-6 border border-gray-200 hover:border-rose-300 transition-all duration-300 hover:shadow-lg">
+                <div class="flex items-center gap-3 mb-4">
+                  <div class="w-10 h-10 bg-gradient-to-br from-rose-500 to-rose-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <mat-icon class="text-white text-lg">content_copy</mat-icon>
+                  </div>
+                  <h4 class="font-semibold text-gray-800 group-hover:text-rose-700 transition-colors duration-300">Doublons</h4>
+                </div>
+                <select 
+                  [(ngModel)]="importOptions.duplicateMode"
+                  class="w-full px-4 py-3 bg-white rounded-xl border border-gray-200 focus:border-rose-500 focus:outline-none transition-all duration-200 text-gray-700 hover:border-rose-300"
+                >
+                  <option value="update">Mettre à jour</option>
+                  <option value="skip">Ignorer</option>
+                  <option value="error">Erreur</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions de configuration -->
+          <div class="flex justify-center pt-6">
+            <button 
+              type="button"
+              mat-raised-button
+              color="primary"
+              (click)="validateConfiguration()"
+              [disabled]="!configForm.valid"
+              class="flex items-center gap-3 px-12 py-4 rounded-2xl text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            >
+              <mat-icon class="text-xl">check_circle</mat-icon>
+              <span>Valider la Configuration</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Résumé de configuration (si validée) -->
+    <div *ngIf="!showConfiguration && configurationValid" class="mb-8 bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-200">
+      <div class="flex items-start justify-between">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+            <mat-icon class="text-green-600 text-xl">check_circle</mat-icon>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-green-900 mb-2">Configuration validée</h3>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 text-sm">
+              <div class="bg-white rounded-lg px-3 py-2 border border-green-200">
+                <div class="text-gray-600">Promotion</div>
+                <div class="font-medium text-green-800">{{ getOptionName('promotion', importOptions.defaultValues?.promotion_id!) }}</div>
+              </div>
+              <div class="bg-white rounded-lg px-3 py-2 border border-green-200">
+                <div class="text-gray-600">Établissement</div>
+                <div class="font-medium text-green-800">{{ getOptionName('etablissement', importOptions.defaultValues?.etablissement_id!) }}</div>
+              </div>
+              <div class="bg-white rounded-lg px-3 py-2 border border-green-200">
+                <div class="text-gray-600">Ville</div>
+                <div class="font-medium text-green-800">{{ getOptionName('ville', importOptions.defaultValues?.ville_id!) }}</div>
+              </div>
+              <div class="bg-white rounded-lg px-3 py-2 border border-green-200">
+                <div class="text-gray-600">Groupe</div>
+                <div class="font-medium text-green-800">{{ getOptionName('group', importOptions.defaultValues?.group_id!) }}</div>
+              </div>
+              <div class="bg-white rounded-lg px-3 py-2 border border-green-200">
+                <div class="text-gray-600">Option</div>
+                <div class="font-medium text-green-800">{{ getOptionName('option', importOptions.defaultValues?.option_id!) }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button 
+          mat-icon-button
+          (click)="editConfiguration()"
+          class="text-green-600 hover:bg-green-100 rounded-full"
+          matTooltip="Modifier la configuration"
+        >
+          <mat-icon>edit</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Zone d'upload principal -->
+    <div class="bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden" [class.opacity-50]="showConfiguration"
+         [class.pointer-events-none]="showConfiguration">
+      <!-- En-tête -->
+      <div class="bg-slate-800 text-white p-8">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="w-16 h-16 bg-slate-600 rounded-2xl flex items-center justify-center shadow-2xl">
+              <mat-icon class="text-white text-3xl">cloud_upload</mat-icon>
+            </div>
+            <div>
+              <h2 class="text-3xl font-bold">Importation de Fichier</h2>
+              <p class="text-gray-300 text-lg">Format supporté : CSV</p>
+            </div>
+          </div>
+          
+          <!-- Indicateur de progression -->
+          <div class="text-center" *ngIf="uploadProgress > 0">
+            <div class="text-2xl font-bold text-gray-200">{{ uploadProgress }}%</div>
+            <div class="text-sm text-gray-400">En cours...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contenu principal -->
+      <div class="p-8">
+        <!-- Messages d'état -->
+        <div *ngIf="loading" class="mb-6 flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <mat-spinner diameter="24"></mat-spinner>
+          <span class="text-blue-700 font-medium">{{ loadingMessage || 'Traitement en cours...' }}</span>
+        </div>
+
+        <div *ngIf="error" class="mb-6 flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl p-4">
+          <mat-icon class="text-red-500">error</mat-icon>
+          <span class="text-red-700 font-medium">{{ error }}</span>
+        </div>
+
+        <div *ngIf="success" class="mb-6 flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl p-4">
+          <mat-icon class="text-green-500">check_circle</mat-icon>
+          <span class="text-green-700 font-medium">{{ success }}</span>
+        </div>
+
+        <!-- Zone de dépôt de fichier -->
+        <div class="mb-8">
+          <div 
+            class="border-2 border-dashed border-gray-300 rounded-2xl p-12 text-center hover:border-blue-400 hover:bg-blue-50 transition-all duration-300"
+            [class.border-blue-500]="isDragOver"
+            [class.bg-blue-50]="isDragOver"
+            (dragover)="onDragOver($event)"
+            (dragleave)="onDragLeave($event)"
+            (drop)="onFileDropped($event)"
+          >
+            <div class="space-y-6">
+              <!-- Icône centrale -->
+              <div class="flex justify-center">
+                <div class="w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
+                  <mat-icon class="text-white text-4xl">cloud_upload</mat-icon>
+                </div>
+              </div>
+              
+              <!-- Texte principal -->
+              <div>
+                <h3 class="text-2xl font-semibold text-gray-800 mb-2">
+                  Glissez-déposez votre fichier CSV ici
+                </h3>
+                <p class="text-gray-500 text-lg">ou cliquez pour sélectionner un fichier</p>
+              </div>
+              
+              <!-- Bouton de sélection -->
+              <div>
+                <input 
+                  type="file" 
+                  #fileInput 
+                  (change)="onFileSelected($event)"
+                  accept=".csv"
+                  class="hidden"
+                >
+                <button 
+                  mat-raised-button
+                  color="primary"
+                  (click)="fileInput.click()"
+                  [disabled]="loading"
+                  class="px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  <mat-icon class="mr-2">folder_open</mat-icon>
+                  Sélectionner un fichier CSV
+                </button>
+              </div>
+              
+              <!-- Info format -->
+              <div class="text-sm text-gray-500">
+                <p><strong>Format accepté :</strong> CSV uniquement</p>
+                <p><strong>Taille max :</strong> 10 MB</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fichier sélectionné -->
+        <div *ngIf="selectedFile" class="mb-8">
+          <div class="bg-gradient-to-br from-gray-50 to-blue-50/30 rounded-2xl p-6 border border-gray-200">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                  <mat-icon class="text-blue-600">description</mat-icon>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-gray-800">{{ selectedFile.name }}</h4>
+                  <p class="text-sm text-gray-500">{{ formatFileSize(selectedFile.size) }}</p>
+                </div>
+              </div>
+              <button 
+                mat-icon-button
+                (click)="removeSelectedFile()"
+                [disabled]="loading"
+                class="text-red-500 hover:bg-red-50 rounded-full"
+              >
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Résultats d'importation -->
+        <div *ngIf="importResults" class="mb-8">
+          <div class="bg-gradient-to-br from-gray-50 to-blue-50/30 rounded-2xl p-6 border border-gray-200">
+            <div class="flex items-center gap-3 mb-6">
+              <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                <mat-icon class="text-white text-lg">analytics</mat-icon>
+              </div>
+              <h3 class="text-2xl font-semibold text-gray-800">Résultats de l'Importation</h3>
+            </div>
+
+            <!-- Statistiques d'importation -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <div class="bg-white rounded-xl p-4 border border-gray-200 text-center">
+                <div class="text-2xl font-bold text-blue-600">{{ importResults.total || 0 }}</div>
+                <div class="text-sm text-gray-500">Total traités</div>
+              </div>
+              <div class="bg-white rounded-xl p-4 border border-gray-200 text-center">
+                <div class="text-2xl font-bold text-green-600">{{ importResults.created || 0 }}</div>
+                <div class="text-sm text-gray-500">Créés</div>
+              </div>
+              <div class="bg-white rounded-xl p-4 border border-gray-200 text-center">
+                <div class="text-2xl font-bold text-orange-600">{{ importResults.updated || 0 }}</div>
+                <div class="text-sm text-gray-500">Mis à jour</div>
+              </div>
+              <div class="bg-white rounded-xl p-4 border border-gray-200 text-center">
+                <div class="text-2xl font-bold text-red-600">{{ importResults.errors || 0 }}</div>
+                <div class="text-sm text-gray-500">Erreurs</div>
+              </div>
+            </div>
+
+            <!-- Message principal -->
+            <div class="bg-white rounded-xl p-4 border border-gray-200 text-center mb-4">
+              <div class="text-lg font-semibold text-gray-800">{{ importResults.message }}</div>
+            </div>
+
+            <!-- Détails des erreurs (si présentes) -->
+            <div *ngIf="importResults.errorDetails && importResults.errorDetails.length > 0" class="bg-red-50 rounded-xl p-4 border border-red-200">
+              <h4 class="font-semibold text-red-800 mb-3 flex items-center gap-2">
+                <mat-icon class="text-red-600">error</mat-icon>
+                Détails des erreurs
+              </h4>
+              <div class="space-y-2 max-h-40 overflow-y-auto">
+                <div *ngFor="let errorDetail of importResults.errorDetails" class="text-sm text-red-700 bg-white rounded-lg p-3 border border-red-200">
+                  <span class="font-medium">Ligne {{ errorDetail.line }}:</span> {{ errorDetail.message }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Boutons d'action -->
+        <div class="flex justify-between items-center pt-6 border-t border-gray-200">
+          <button 
+            type="button"
+            mat-stroked-button
+            color="primary"
+            (click)="goBack()"
+            [disabled]="loading"
+            class="flex items-center gap-3 px-8 py-3 rounded-xl"
+          >
+            <mat-icon>arrow_back</mat-icon>
+            <span class="font-semibold">Retour à la liste</span>
+          </button>
+
+          <div class="flex gap-4">
+            <button 
+              type="button"
+              mat-stroked-button
+              (click)="resetImport()"
+              [disabled]="loading"
+              class="flex items-center gap-3 px-8 py-3 rounded-xl"
+            >
+              <mat-icon>refresh</mat-icon>
+              <span class="font-semibold">Recommencer</span>
+            </button>
+
+            <button 
+              type="button"
+              mat-raised-button
+              color="primary"
+              (click)="startImport()"
+              [disabled]="!selectedFile || loading"
+              class="flex items-center gap-3 px-10 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
+              <mat-icon *ngIf="!loading">cloud_upload</mat-icon>
+              <span class="font-semibold">
+                {{ loading ? 'Importation...' : 'Lancer l\'Importation' }}
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200">
+      <div class="flex items-start gap-4">
+        <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+          <mat-icon class="text-blue-600 text-xl">info</mat-icon>
+        </div>
+        <div>
+          <h4 class="text-lg font-semibold text-blue-900 mb-3">📋 Format du fichier CSV</h4>
+          <div class="text-blue-800 space-y-3 text-sm">
+            
+            <!-- Format avec configuration -->
+            <div *ngIf="!showConfiguration && configurationValid" class="bg-white rounded-lg p-4 border border-blue-200">
+              <p class="font-semibold text-green-800 mb-2">✨ Mode Configuration Activé</p>
+              <p><strong>Colonnes requises (simplifiées) :</strong></p>
+              <ul class="list-disc list-inside ml-4 space-y-1">
+                <li><code>matricule</code> - Numéro étudiant unique</li>
+                <li><code>first_name</code> - Prénom</li>
+                <li><code>last_name</code> - Nom de famille</li>
+                <li><code>email</code> - Adresse email</li>
+              </ul>
+              <p class="mt-2 text-green-700">
+                <strong>Avantage :</strong> Les autres valeurs (promotion, établissement, ville, groupe, option) 
+                seront automatiquement appliquées depuis votre configuration.
+              </p>
+            </div>
+
+            <!-- Format complet -->
+            <div *ngIf="showConfiguration || !configurationValid" class="bg-white rounded-lg p-4 border border-blue-200">
+              <p><strong>Colonnes obligatoires (format complet) :</strong></p>
+              <ul class="list-disc list-inside ml-4 space-y-1">
+                <li><code>matricule</code> - Numéro étudiant unique</li>
+                <li><code>first_name</code> - Prénom</li>
+                <li><code>last_name</code> - Nom de famille</li>
+                <li><code>email</code> - Adresse email</li>
+                <li><code>promotion_id</code> - ID de la promotion</li>
+                <li><code>etablissement_id</code> - ID de l'établissement</li>
+                <li><code>ville_id</code> - ID de la ville</li>
+                <li><code>group_id</code> - ID du groupe</li>
+                <li><code>option_id</code> - ID de l'option</li>
+              </ul>
+            </div>
+
+            <p class="mt-3"><strong>💡 Conseil :</strong> Configurez d'abord vos valeurs par défaut pour simplifier votre fichier CSV.</p>
+            <p><strong>📥 Téléchargement :</strong> Le modèle CSV s'adapte automatiquement à votre configuration.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,29 @@
+title,date,hour_debut,hour_debut_pointage,hour_fin,faculte,promotion,statut
+HISTOLOGIE/EMBRYOLOGIE,2025-06-02,09:00:00,08:00:00,10:00:00,medecine,1ère année,archivé
+Bactériologie Virologie,2025-06-04,09:00:00,08:00:00,10:00:00,medecine,1ère année,archivé
+Anatomie 2,2025-06-10,09:00:00,08:00:00,10:00:00,medecine,1ère année,archivé
+Hématologie/Immunologie,2025-06-12,09:00:00,08:00:00,10:00:00,medecine,1ère année,archivé
+Digital Skills,2025-06-14,09:00:00,08:00:00,10:00:00,medecine,1ère année,archivé
+Physiologie 1,2025-06-17,09:00:00,08:00:00,10:00:00,medecine,1ère année,archivé
+Anglais,2025-06-19,09:00:00,08:00:00,10:00:00,medecine,1ère année,archivé
+Sémiologie 2,2025-06-02,11:00:00,10:00:00,12:00:00,medecine,2ème année,archivé
+Maladies infectieuses Parasito/Mycologie,2025-06-04,11:00:00,10:00:00,12:00:00,medecine,2ème année,archivé
+Pharmaco Toxicologie,2025-06-10,11:00:00,10:00:00,12:00:00,medecine,2ème année,archivé
+Radiologie,2025-06-12,11:00:00,10:00:00,12:00:00,medecine,2ème année,archivé
+Hématologie Immunologie,2025-06-14,11:00:00,10:00:00,12:00:00,medecine,2ème année,archivé
+Anatomie phatologique,2025-06-17,11:00:00,10:00:00,12:00:00,medecine,2ème année,archivé
+Anglais,2025-06-19,11:00:00,10:00:00,12:00:00,medecine,2ème année,archivé
+Maladies de l'App Locomoteur,2025-06-02,13:00:00,12:00:00,14:00:00,medecine,3ème année,archivé
+Immuno-Modulation/Génétique,2025-06-04,13:00:00,12:00:00,14:00:00,medecine,3ème année,archivé
+Oncologie-Hématologie-Anapath,2025-06-10,13:00:00,12:00:00,14:00:00,medecine,3ème année,archivé
+Mal Système et Gériatrie,2025-06-12,13:00:00,12:00:00,14:00:00,medecine,3ème année,archivé
+Pharmacologie Toxicologie,2025-06-14,13:00:00,12:00:00,14:00:00,medecine,3ème année,archivé
+Maladies Système Nerveux,2025-06-17,13:00:00,12:00:00,14:00:00,medecine,3ème année,archivé
+Anglais,2025-06-19,13:00:00,12:00:00,14:00:00,medecine,3ème année,archivé
+Maladies de l'enfant,2025-06-02,15:00:00,14:00:00,16:00:00,medecine,4ème année,archivé
+Appareil Locomoteur,2025-06-04,15:00:00,14:00:00,16:00:00,medecine,4ème année,archivé
+Immuno-Pathologie,2025-06-10,15:00:00,14:00:00,16:00:00,medecine,4ème année,archivé
+Gynécologie Obstétrique,2025-06-02,17:00:00,16:00:00,18:00:00,medecine,5ème année,archivé
+Urologie & Néphrologie,2025-06-04,17:00:00,16:00:00,18:00:00,medecine,5ème année,archivé
+ORL/CMF,2025-06-10,17:00:00,16:00:00,18:00:00,medecine,5ème année,archivé
+Médecine Légal/Médecine de travail,2025-06-12,17:00:00,16:00:00,18:00:00,medecine,5ème année,archivé

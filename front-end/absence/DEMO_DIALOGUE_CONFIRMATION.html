@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Démo - Dialogue de Confirmation Élégant</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .demo-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .demo-title {
+            color: #333;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .demo-description {
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .demo-button {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 40px;
+        }
+
+        .demo-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+        }
+
+        .features-list {
+            text-align: left;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .features-list h3 {
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 5px 0;
+            color: #555;
+        }
+
+        .material-icons {
+            color: #667eea;
+        }
+
+        /* Dialogue de confirmation (copié du CSS principal) */
+        .dialog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 24px;
+            animation: overlayFadeIn 0.3s ease-out;
+        }
+
+        @keyframes overlayFadeIn {
+            from {
+                opacity: 0;
+                backdrop-filter: blur(0px);
+            }
+            to {
+                opacity: 1;
+                backdrop-filter: blur(8px);
+            }
+        }
+
+        .confirmation-dialog {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.25),
+                0 0 0 1px rgba(255, 255, 255, 0.05);
+            max-width: 650px;
+            width: 100%;
+            max-height: 90vh;
+            overflow: hidden;
+            animation: confirmationSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+        }
+
+        @keyframes confirmationSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-40px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .confirmation-header {
+            text-align: center;
+            padding: 40px 40px 24px 40px;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .confirmation-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            animation: shimmer 2s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(30deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(30deg); }
+        }
+
+        .warning-icon-container {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            margin-bottom: 16px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .warning-icon {
+            font-size: 3rem !important;
+            color: white;
+            animation: wobble 1s ease-in-out infinite;
+        }
+
+        @keyframes wobble {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-5deg); }
+            75% { transform: rotate(5deg); }
+        }
+
+        .confirmation-title {
+            margin: 0;
+            font-size: 1.75rem;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 1;
+        }
+
+        .confirmation-content {
+            padding: 32px 40px;
+        }
+
+        .promotion-info-card {
+            background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+            border: 2px solid #dee2e6;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+        }
+
+        .promotion-preview {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .promotion-preview-icon {
+            font-size: 2.5rem !important;
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 12px;
+            padding: 8px;
+        }
+
+        .promotion-details {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .promotion-name-preview {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #1a202c;
+        }
+
+        .promotion-id-preview {
+            font-size: 0.9rem;
+            color: #64748b;
+            opacity: 0.8;
+        }
+
+        .warning-message {
+            margin-bottom: 24px;
+        }
+
+        .main-warning {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1a202c;
+            margin: 0 0 12px 0;
+            text-align: center;
+        }
+
+        .sub-warning {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #fff3cd;
+            color: #856404;
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin: 0;
+            font-size: 0.95rem;
+            border-left: 4px solid #ffc107;
+        }
+
+        .consequences-list {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid #e9ecef;
+        }
+
+        .consequence-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 0;
+            font-size: 0.9rem;
+            color: #495057;
+        }
+
+        .consequence-item:not(:last-child) {
+            border-bottom: 1px solid #e9ecef;
+            margin-bottom: 8px;
+            padding-bottom: 12px;
+        }
+
+        .consequence-icon.error {
+            color: #dc3545;
+        }
+
+        .consequence-icon.warning {
+            color: #ffc107;
+        }
+
+        .consequence-icon.info {
+            color: #17a2b8;
+        }
+
+        .confirmation-actions {
+            display: flex;
+            gap: 16px;
+            padding: 32px 40px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .cancel-button {
+            flex: 1;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            border: 2px solid #6c757d;
+            color: #6c757d;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .cancel-button:hover {
+            background: #6c757d;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+        }
+
+        .delete-button {
+            flex: 2;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            border: none;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .delete-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .delete-button:hover::before {
+            left: 100%;
+        }
+
+        .delete-button:hover {
+            background: linear-gradient(135deg, #c82333 0%, #a71e2a 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <h1 class="demo-title">🗑️ Dialogue de Confirmation Élégant</h1>
+        <p class="demo-description">
+            Découvrez le nouveau dialogue de confirmation pour la suppression des promotions.
+            Une interface moderne qui remplace les alertes JavaScript basiques.
+        </p>
+        
+        <button class="demo-button" onclick="showConfirmationDialog()">
+            <span class="material-icons">warning</span>
+            Tester le dialogue
+        </button>
+
+        <div class="features-list">
+            <h3>✨ Fonctionnalités principales</h3>
+            <div class="feature-item">
+                <span class="material-icons">animation</span>
+                <span>Animations fluides et élégantes</span>
+            </div>
+            <div class="feature-item">
+                <span class="material-icons">info</span>
+                <span>Informations contextuelles détaillées</span>
+            </div>
+            <div class="feature-item">
+                <span class="material-icons">warning</span>
+                <span>Avertissements clairs sur les conséquences</span>
+            </div>
+            <div class="feature-item">
+                <span class="material-icons">phone_android</span>
+                <span>Design responsive pour tous les écrans</span>
+            </div>
+            <div class="feature-item">
+                <span class="material-icons">palette</span>
+                <span>Design cohérent avec l'interface principale</span>
+            </div>
+        </div>
+
+        <p style="color: #666; font-size: 0.9rem;">
+            Cliquez sur le bouton ci-dessus pour voir le dialogue en action !
+        </p>
+    </div>
+
+    <!-- Dialogue de confirmation -->
+    <div id="confirmationDialog" class="dialog-overlay hidden" onclick="hideConfirmationDialog()">
+        <div class="confirmation-dialog" onclick="event.stopPropagation()">
+            <div class="confirmation-header">
+                <div class="warning-icon-container">
+                    <span class="material-icons warning-icon">warning</span>
+                </div>
+                <h2 class="confirmation-title">Confirmer la suppression</h2>
+            </div>
+            
+            <div class="confirmation-content">
+                <div class="promotion-info-card">
+                    <div class="promotion-preview">
+                        <span class="material-icons promotion-preview-icon">school</span>
+                        <div class="promotion-details">
+                            <span class="promotion-name-preview">Master Génie Logiciel</span>
+                            <span class="promotion-id-preview">ID: 42</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="warning-message">
+                    <p class="main-warning">
+                        Êtes-vous sûr de vouloir supprimer cette promotion ?
+                    </p>
+                    <p class="sub-warning">
+                        <span class="material-icons">info</span>
+                        Cette action est <strong>irréversible</strong> et supprimera définitivement toutes les données associées.
+                    </p>
+                </div>
+                
+                <div class="consequences-list">
+                    <div class="consequence-item">
+                        <span class="material-icons consequence-icon error">cancel</span>
+                        <span>Suppression de la promotion de la base de données</span>
+                    </div>
+                    <div class="consequence-item">
+                        <span class="material-icons consequence-icon warning">warning</span>
+                        <span>Impact possible sur les étudiants associés</span>
+                    </div>
+                    <div class="consequence-item">
+                        <span class="material-icons consequence-icon info">info</span>
+                        <span>Révision des groupes et cours liés recommandée</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="confirmation-actions">
+                <button class="cancel-button" onclick="hideConfirmationDialog()">
+                    <span class="material-icons">close</span>
+                    Annuler
+                </button>
+                
+                <button class="delete-button" onclick="simulateDelete()">
+                    <span class="material-icons">delete_forever</span>
+                    Supprimer définitivement
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showConfirmationDialog() {
+            document.getElementById('confirmationDialog').classList.remove('hidden');
+        }
+
+        function hideConfirmationDialog() {
+            document.getElementById('confirmationDialog').classList.add('hidden');
+        }
+
+        function simulateDelete() {
+            alert('✅ Suppression simulée avec succès!\n\nDans l\'application réelle, ceci déclencherait l\'appel API de suppression.');
+            hideConfirmationDialog();
+        }
+
+        // Fermer avec Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                hideConfirmationDialog();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,303 @@
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">Import des Examens</h1>
+          <p class="mt-2 text-gray-600">Importez des examens depuis un fichier CSV ou Excel</p>
+        </div>
+        <button 
+          (click)="resetForm()"
+          class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center gap-2"
+        >
+          <span class="material-icons">refresh</span>
+          Réinitialiser
+        </button>
+      </div>
+    </div>
+
+    <!-- Formulaire d'import -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Configuration de l'import</h2>
+      
+      <form [formGroup]="importForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Établissement -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Établissement *</label>
+          <select
+            formControlName="etablissement_id"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            [class.border-red-500]="isFieldInvalid('etablissement_id')"
+          >
+            <option value="">Sélectionner un établissement</option>
+            <option *ngFor="let etablissement of etablissements" [value]="etablissement.id">
+              {{ etablissement.name }}
+            </option>
+          </select>
+          <p *ngIf="isFieldInvalid('etablissement_id')" class="mt-1 text-sm text-red-600">
+            {{ getErrorMessage('etablissement_id') }}
+          </p>
+        </div>
+
+        <!-- Promotion -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Promotion *</label>
+          <select
+            formControlName="promotion_id"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            [class.border-red-500]="isFieldInvalid('promotion_id')"
+          >
+            <option value="">Sélectionner une promotion</option>
+            <option *ngFor="let promotion of promotions" [value]="promotion.id">
+              {{ promotion.name }}
+            </option>
+          </select>
+          <p *ngIf="isFieldInvalid('promotion_id')" class="mt-1 text-sm text-red-600">
+            {{ getErrorMessage('promotion_id') }}
+          </p>
+        </div>
+
+        <!-- Année universitaire -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Année universitaire *</label>
+          <input
+            type="text"
+            formControlName="annee_universitaire"
+            placeholder="2024-2025"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            [class.border-red-500]="isFieldInvalid('annee_universitaire')"
+          >
+          <p *ngIf="isFieldInvalid('annee_universitaire')" class="mt-1 text-sm text-red-600">
+            {{ getErrorMessage('annee_universitaire') }}
+          </p>
+        </div>
+
+        <!-- Type d'examen -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Type d'examen *</label>
+          <select
+            formControlName="type_examen_id"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            [class.border-red-500]="isFieldInvalid('type_examen_id')"
+          >
+            <option value="">Sélectionner un type</option>
+            <option *ngFor="let type of typesExamen" [value]="type.id">
+              {{ type.name }}
+            </option>
+          </select>
+          <p *ngIf="isFieldInvalid('type_examen_id')" class="mt-1 text-sm text-red-600">
+            {{ getErrorMessage('type_examen_id') }}
+          </p>
+        </div>
+
+        <!-- Option -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Option</label>
+          <select
+            formControlName="option_id"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">Aucune option</option>
+            <option *ngFor="let option of options" [value]="option.id">
+              {{ option.name }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Salle -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Salle *</label>
+          <select
+            formControlName="salle_id"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            [class.border-red-500]="isFieldInvalid('salle_id')"
+          >
+            <option value="">Sélectionner une salle</option>
+            <option *ngFor="let salle of salles" [value]="salle.id">
+              {{ salle.name }}
+            </option>
+          </select>
+          <p *ngIf="isFieldInvalid('salle_id')" class="mt-1 text-sm text-red-600">
+            {{ getErrorMessage('salle_id') }}
+          </p>
+        </div>
+
+        <!-- Groupe -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Groupe *</label>
+          <select
+            formControlName="group_id"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            [class.border-red-500]="isFieldInvalid('group_id')"
+          >
+            <option value="">Sélectionner un groupe</option>
+            <option *ngFor="let group of groups" [value]="group.id">
+              {{ group.name }}
+            </option>
+          </select>
+          <p *ngIf="isFieldInvalid('group_id')" class="mt-1 text-sm text-red-600">
+            {{ getErrorMessage('group_id') }}
+          </p>
+        </div>
+
+        <!-- Ville -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Ville *</label>
+          <select
+            formControlName="ville_id"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            [class.border-red-500]="isFieldInvalid('ville_id')"
+          >
+            <option value="">Sélectionner une ville</option>
+            <option *ngFor="let ville of villes" [value]="ville.id">
+              {{ ville.name }}
+            </option>
+          </select>
+          <p *ngIf="isFieldInvalid('ville_id')" class="mt-1 text-sm text-red-600">
+            {{ getErrorMessage('ville_id') }}
+          </p>
+        </div>
+      </form>
+    </div>
+
+    <!-- Sélection de fichier -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Sélection du fichier</h2>
+      
+      <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+        <div class="flex flex-col items-center">
+          <span class="material-icons text-4xl text-gray-400 mb-4">cloud_upload</span>
+          <p class="text-lg font-medium text-gray-900 mb-2">Sélectionnez un fichier</p>
+          <p class="text-sm text-gray-500 mb-4">Formats supportés : CSV, Excel (.xlsx)</p>
+          
+          <input
+            type="file"
+            (change)="onFileSelected($event)"
+            accept=".csv,.xlsx"
+            class="hidden"
+            #fileInput
+          >
+          
+          <button
+            (click)="fileInput.click()"
+            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center gap-2"
+          >
+            <span class="material-icons">folder_open</span>
+            Choisir un fichier
+          </button>
+          
+          <p *ngIf="selectedFile" class="mt-4 text-sm text-gray-600">
+            Fichier sélectionné : <span class="font-medium">{{ selectedFile.name }}</span>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prévisualisation du fichier -->
+    <div *ngIf="filePreview.length > 0" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Prévisualisation (5 premières lignes)</h2>
+      
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th *ngFor="let header of getHeaders()" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {{ header }}
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr *ngFor="let item of filePreview" class="hover:bg-gray-50">
+              <td *ngFor="let header of getHeaders()" class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {{ item.row[header] || '' }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <p class="mt-4 text-sm text-gray-600">
+        Total des lignes à importer : <span class="font-medium">{{ importResults.total }}</span>
+      </p>
+    </div>
+
+    <!-- Bouton d'import -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+      <div class="flex justify-center">
+        <button
+          (click)="importExamens()"
+          [disabled]="loading || !selectedFile || importForm.invalid"
+          class="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-8 py-4 rounded-lg transition-colors duration-200 flex items-center gap-2 text-lg font-medium"
+        >
+          <span *ngIf="loading" class="material-icons animate-spin">hourglass_empty</span>
+          <span *ngIf="!loading" class="material-icons">cloud_upload</span>
+          {{ loading ? 'Import en cours...' : 'Importer les examens' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Messages d'erreur et de succès -->
+    <div *ngIf="error" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+      <div class="flex">
+        <span class="material-icons text-red-400 mr-3">error</span>
+        <p class="text-red-800">{{ error }}</p>
+      </div>
+    </div>
+
+    <div *ngIf="success" class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+      <div class="flex">
+        <span class="material-icons text-green-400 mr-3">check_circle</span>
+        <p class="text-green-800">{{ success }}</p>
+      </div>
+    </div>
+
+    <!-- Résultats de l'import -->
+    <div *ngIf="importResults.total > 0" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Résultats de l'import</h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+          <p class="text-2xl font-bold text-blue-600">{{ importResults.total }}</p>
+          <p class="text-sm text-blue-800">Total</p>
+        </div>
+        <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+          <p class="text-2xl font-bold text-green-600">{{ importResults.success }}</p>
+          <p class="text-sm text-green-800">Succès</p>
+        </div>
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+          <p class="text-2xl font-bold text-red-600">{{ importResults.errors }}</p>
+          <p class="text-sm text-red-800">Erreurs</p>
+        </div>
+      </div>
+
+      <!-- Détails des erreurs -->
+      <div *ngIf="importResults.details.length > 0">
+        <h3 class="text-md font-medium text-gray-900 mb-3">Détails :</h3>
+        <div class="bg-gray-50 rounded-lg p-4 max-h-64 overflow-y-auto">
+          <ul class="space-y-2">
+            <li *ngFor="let detail of importResults.details" class="text-sm text-gray-700">
+              {{ detail }}
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+      <h3 class="text-lg font-medium text-blue-900 mb-3">Instructions d'import</h3>
+      <div class="text-sm text-blue-800 space-y-2">
+        <p><strong>Format CSV attendu :</strong></p>
+        <p>Le fichier doit contenir les colonnes suivantes :</p>
+        <ul class="list-disc list-inside ml-4 space-y-1">
+          <li><strong>title</strong> : Titre de l'examen (obligatoire)</li>
+          <li><strong>date</strong> : Date de l'examen au format YYYY-MM-DD ou DD/MM/YYYY</li>
+          <li><strong>heure_debut</strong> : Heure de début au format HH:MM, HHhMM, ou HH.MM</li>
+          <li><strong>heure_fin</strong> : Heure de fin au format HH:MM, HHhMM, ou HH.MM</li>
+        </ul>
+        <p class="mt-3"><strong>Note :</strong> Les autres informations (établissement, promotion, salle, etc.) seront appliquées à tous les examens importés selon la configuration ci-dessus.</p>
+      </div>
+    </div>
+  </div>
+</div>

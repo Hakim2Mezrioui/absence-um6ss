@@ -1,0 +1,746 @@
+<div class="min-h-screen bg-gray-50">
+  <!-- Header du tableau de bord -->
+  <header class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-xl">
+    <div class="max-w-7xl mx-auto px-4 py-6">
+      <div class="flex flex-col lg:flex-row justify-between items-center gap-6">
+        <div class="text-center lg:text-left">
+          <h1 class="text-3xl lg:text-4xl font-bold flex items-center justify-center lg:justify-start gap-3">
+            Tableau de Bord UM6SS
+          </h1>
+          <p class="text-lg opacity-90 mt-2">Vue d'ensemble des statistiques éducatives</p>
+        </div>
+        <div class="flex flex-col sm:flex-row items-center gap-4">
+          <div class="bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 flex items-center gap-2">
+            <span class="material-icons text-white text-xl">account_circle</span>
+            <span *ngIf="currentUser">{{ currentUser?.first_name || 'Prénom' }} {{ currentUser?.last_name || 'Nom' }}</span>
+          </div>
+          <button class="bg-white/20 hover:bg-white/30 border border-white/30 text-white px-4 py-2 rounded-full transition-all duration-300 flex items-center gap-2 disabled:opacity-50"
+                  (click)="refreshData()"
+                  [disabled]="loading">
+            <span class="material-icons" [class.animate-spin]="loading">refresh</span>
+            Actualiser
+          </button>
+          <button class="bg-red-500/20 hover:bg-red-500/30 border border-red-400/30 text-white px-4 py-2 rounded-full transition-all duration-300 flex items-center gap-2"
+                  (click)="logout()">
+            <span class="material-icons">logout</span>
+            Déconnexion
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Filtres -->
+  <div class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm" *ngIf="statistics">
+    <div class="max-w-7xl mx-auto px-4 py-4">
+      <div class="flex flex-col lg:flex-row gap-4 lg:gap-6 items-end">
+        <div class="flex-1">
+          <label for="ville-filter" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+            <span class="material-icons text-blue-600 text-lg">location_on</span>
+            Ville
+          </label>
+          <select id="ville-filter"
+                  [(ngModel)]="selectedVille"
+                  (change)="onFilterChange()"
+                  class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+            <option *ngFor="let ville of getVilles()" [value]="ville">{{ ville }}</option>
+          </select>
+        </div>
+
+        <div class="flex-1">
+          <label for="etablissement-filter" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+            <span class="material-icons text-green-600 text-lg">business</span>
+            Établissement
+          </label>
+          <select id="etablissement-filter"
+                  [(ngModel)]="selectedEtablissement"
+                  (change)="onFilterChange()"
+                  class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+            <option *ngFor="let etab of getEtablissements()" [value]="etab">{{ etab }}</option>
+          </select>
+        </div>
+
+        <div class="flex-1">
+          <label for="promotion-filter" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+            <span class="material-icons text-yellow-600 text-lg">school</span>
+            Promotion
+          </label>
+          <select id="promotion-filter"
+                  [(ngModel)]="selectedPromotion"
+                  (change)="onFilterChange()"
+                  class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+            <option *ngFor="let promo of getPromotions()" [value]="promo">{{ promo }}</option>
+          </select>
+        </div>
+
+        <!-- Filtres masqués pour l'instant -->
+        <!-- 
+        <div class="flex-1">
+          <label for="annee-universitaire-filter" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+            <span class="material-icons text-purple-600 text-lg">calendar_today</span>
+            Année Universitaire
+          </label>
+          <select id="annee-universitaire-filter"
+                  [(ngModel)]="selectedAnneeUniversitaire"
+                  (change)="onAnneeUniversitaireChange()"
+                  class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+            <option *ngFor="let annee of getAnneesUniversitaires()" [value]="annee">{{ annee }}</option>
+          </select>
+        </div>
+
+        <div class="flex-1">
+          <label for="custom-date-filter" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+            <span class="material-icons text-orange-600 text-lg">event</span>
+            Date Spécifique
+          </label>
+          <input type="date" 
+                 id="custom-date-filter"
+                 [(ngModel)]="customDate"
+                 (change)="onCustomDateChange()"
+                 placeholder="Sélectionner une date"
+                 class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+        </div>
+        -->
+
+        <button class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-all duration-300 flex items-center gap-2"
+                (click)="resetFilters()">
+          <span class="material-icons">restart_alt</span>
+          Réinitialiser
+        </button>
+      </div>
+
+      <!-- Indicateur de filtres actifs -->
+      <div class="mt-4" *ngIf="selectedVille !== 'Toutes' || selectedEtablissement !== 'Tous' || selectedPromotion !== 'Toutes'">
+        <div class="flex items-center gap-3 text-sm text-gray-600">
+          <span class="material-icons text-blue-600">filter_list</span>
+          <span class="font-medium">Filtres actifs :</span>
+          <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold"
+                *ngIf="selectedVille !== 'Toutes'">{{ selectedVille }}</span>
+          <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold"
+                *ngIf="selectedEtablissement !== 'Tous'">{{ selectedEtablissement }}</span>
+          <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold"
+                *ngIf="selectedPromotion !== 'Toutes'">{{ selectedPromotion }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation Menu -->
+  <div class="bg-white border-b border-gray-200 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4">
+      <nav class="flex space-x-8">
+        <a routerLink="/dashboard" 
+           routerLinkActive="border-blue-500 text-blue-600" 
+           class="py-4 px-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-colors duration-200">
+          <span class="material-icons text-lg mr-2">dashboard</span>
+          Tableau de bord
+        </a>
+        <a routerLink="/dashboard/examens" 
+           routerLinkActive="border-blue-500 text-blue-600" 
+           class="py-4 px-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-colors duration-200">
+          <span class="material-icons text-lg mr-2">quiz</span>
+          Examens
+        </a>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="flex justify-center items-center min-h-96" *ngIf="loading">
+    <div class="text-center text-gray-600">
+      <span class="material-icons animate-spin text-6xl mb-4 block">refresh</span>
+      <p class="text-lg">Chargement des statistiques...</p>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div class="flex justify-center items-center min-h-96" *ngIf="error && !loading">
+    <div class="text-center bg-red-50 border border-red-200 rounded-xl p-8 max-w-md">
+      <span class="material-icons text-red-500 text-6xl mb-4 block">error</span>
+      <p class="text-red-700 mb-4">{{ error }}</p>
+      <button class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg transition-all duration-300"
+              (click)="refreshData()">Réessayer</button>
+    </div>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div class="max-w-7xl mx-auto px-4 py-8" *ngIf="statistics && !loading">
+
+
+    <!-- Statistiques générales -->
+    <section class="mb-12">
+              <h2 class="text-2xl font-bold text-gray-800 mb-6 pb-2 border-b-2 border-blue-600 inline-block flex items-center gap-3">
+          <span class="material-icons text-blue-600 text-3xl">insights</span>
+          Vue d'ensemble
+        </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500 hover:shadow-xl transition-all duration-300 group">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <span class="material-icons text-white text-2xl">people</span>
+            </div>
+            <div>
+              <h3 class="text-2xl font-bold text-gray-800">{{ formatNumber(getFilteredTotalEtudiants()) }}</h3>
+              <p class="text-gray-600 text-sm uppercase tracking-wide">Étudiants</p>
+            </div>
+          </div>
+          <div class="mt-4 pt-4 border-t border-gray-100">
+            <div class="flex items-center gap-2 text-blue-600 text-sm">
+              <span class="material-icons text-sm">trending_up</span>
+              <span>Total général</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500 hover:shadow-xl transition-all duration-300 group">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <span class="material-icons text-white text-2xl">business</span>
+            </div>
+            <div>
+              <h3 class="text-2xl font-bold text-gray-800">{{ formatNumber(statistics.data.general.total_etablissements) }}</h3>
+              <p class="text-gray-600 text-sm uppercase tracking-wide">Établissements</p>
+            </div>
+          </div>
+          <div class="mt-4 pt-4 border-t border-gray-100">
+            <div class="flex items-center gap-2 text-green-600 text-sm">
+              <span class="material-icons text-sm">location_on</span>
+              <span>Répartis géographiquement</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-yellow-500 hover:shadow-xl transition-all duration-300 group">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <span class="material-icons text-white text-2xl">groups</span>
+            </div>
+            <div>
+              <h3 class="text-2xl font-bold text-gray-800">{{ formatNumber(getFilteredTotalGroups()) }}</h3>
+              <p class="text-gray-600 text-sm uppercase tracking-wide">Groupes</p>
+            </div>
+          </div>
+          <div class="mt-4 pt-4 border-t border-gray-100">
+            <div class="flex items-center gap-2 text-yellow-600 text-sm">
+              <span class="material-icons text-sm">layers</span>
+              <span>Organisés par niveau</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-cyan-500 hover:shadow-xl transition-all duration-300 group">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <span class="material-icons text-white text-2xl">book</span>
+            </div>
+            <div>
+              <h3 class="text-2xl font-bold text-gray-800">{{ formatNumber(statistics.data.general.total_cours) }}</h3>
+              <p class="text-gray-600 text-sm uppercase tracking-wide">Cours</p>
+            </div>
+          </div>
+          <div class="mt-4 pt-4 border-t border-gray-100">
+            <div class="flex items-center gap-2 text-cyan-600 text-sm">
+              <span class="material-icons text-sm">schedule</span>
+              <span>Programmés</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-red-500 hover:shadow-xl transition-all duration-300 group">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <span class="material-icons text-white text-2xl">event_busy</span>
+            </div>
+            <div>
+              <h3 class="text-2xl font-bold text-gray-800">{{ formatNumber(statistics.data.general.total_absences) }}</h3>
+              <p class="text-gray-600 text-sm uppercase tracking-wide">Absences</p>
+            </div>
+          </div>
+          <div class="mt-4 pt-4 border-t border-gray-100">
+            <div class="flex items-center gap-2 text-red-600 text-sm">
+              <span class="material-icons text-sm">warning</span>
+              <span>À surveiller</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Performance et présence -->
+    <section class="mb-12">
+              <h2 class="text-2xl font-bold text-gray-800 mb-6 pb-2 border-b-2 border-blue-600 inline-block flex items-center gap-3">
+          <span class="material-icons text-blue-600 text-3xl">analytics</span>
+          Performance et Présence
+        </h2>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-1 bg-white rounded-xl shadow-lg p-6 text-center group hover:shadow-xl transition-all duration-300">
+          <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+            <span class="material-icons text-white text-3xl">check_circle</span>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-800 mb-6">Taux de Présence</h3>
+          <div class="relative w-32 h-32 mx-auto mb-6">
+            <svg class="w-32 h-32 transform -rotate-90" viewBox="0 0 36 36">
+              <path class="text-gray-200" stroke="currentColor" stroke-width="2" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+              <path class="text-green-500" stroke="currentColor" stroke-width="2" fill="none"
+                    [attr.stroke-dasharray]="getTauxPresence() + ', 100'"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+            </svg>
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-center">
+                <span class="text-2xl font-bold text-gray-800">{{ getTauxPresence() }}%</span>
+                <p class="text-sm text-gray-600">Présence</p>
+              </div>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="text-center">
+                              <div class="flex items-center justify-center gap-2 text-blue-600 mb-1">
+                  <span class="material-icons text-sm">people</span>
+                </div>
+              <p class="text-sm text-gray-600">Étudiants</p>
+              <p class="text-lg font-semibold text-gray-800">{{ formatNumber(getFilteredTotalEtudiants()) }}</p>
+            </div>
+            <div class="text-center">
+                              <div class="flex items-center justify-center gap-2 text-red-600 mb-1">
+                  <span class="material-icons text-sm">cancel</span>
+                </div>
+              <p class="text-sm text-gray-600">Absences</p>
+              <p class="text-lg font-semibold text-gray-800">{{ formatNumber(statistics.data.performance.total_absences) }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-2 bg-white rounded-xl shadow-lg p-6 group hover:shadow-xl transition-all duration-300">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <span class="material-icons text-white text-lg">bar_chart</span>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-800">Répartition par Promotion</h3>
+          </div>
+          <div class="h-64 flex items-end gap-3">
+            <div class="flex-1 flex items-end gap-2" *ngFor="let promo of getFilteredPromotions()">
+              <div class="relative flex-1 bg-gray-100 rounded-t-lg min-h-4 flex items-end justify-center pb-8"
+                    [style.height]="((promo?.nombre_etudiants || 0) / (getFilteredTotalEtudiants() || 1) * 100) + '%'"
+                    [style.max-height]="'100%'"
+                    [class]="getColorByValue(promo?.nombre_etudiants || 0, getFilteredTotalEtudiants() || 1)">
+                <span class="absolute -bottom-6 text-xs text-gray-600 font-medium text-center w-full">
+                  {{ formatNumber(promo?.nombre_etudiants || 0) }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="flex justify-between mt-8 text-xs text-gray-600">
+            <span *ngFor="let promo of getFilteredPromotions()" class="text-center flex-1">
+              {{ promo?.promotion_name || 'Inconnue' }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Répartition géographique -->
+    <section class="mb-12">
+              <h2 class="text-2xl font-bold text-gray-800 mb-6 pb-2 border-b-2 border-blue-600 inline-block flex items-center gap-3">
+          <span class="material-icons text-blue-600 text-3xl">public</span>
+          Répartition Géographique
+        </h2>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="bg-white rounded-xl shadow-lg p-6">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+              <span class="material-icons text-white text-lg">emoji_events</span>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-800">Top 5 Villes</h3>
+          </div>
+          <div class="space-y-4">
+            <div *ngFor="let ville of getRepartitionGeographique(); let i = index"
+                 class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                  <span class="material-icons text-white text-sm">emoji_events</span>
+                </div>
+                <span class="font-medium text-gray-800">{{ ville?.ville_name || 'Inconnue' }}</span>
+              </div>
+              <div class="text-right">
+                <p class="text-lg font-bold text-blue-600">{{ formatNumber(ville?.nombre_etudiants || 0) }}</p>
+                <p class="text-xs text-gray-500 flex items-center gap-1 justify-end">
+                  <span class="material-icons text-xs">people</span>
+                  étudiants
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <span class="material-icons text-white text-lg">groups</span>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-800">Répartition des Groupes</h3>
+          </div>
+          <div class="space-y-3">
+                        <div *ngFor="let group of getGroupsRepartition()"
+                 class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
+                  <span class="material-icons text-white text-sm">groups</span>
+                </div>
+                <span class="font-medium text-gray-800 text-sm">{{ group?.group_title || 'Groupe inconnu' }}</span>
+              </div>
+              <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-2">
+                <span class="material-icons text-sm">people</span>
+                {{ group?.student_count || 0 }} étudiants
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Cours et examens -->
+    <section class="mb-12">
+              <h2 class="text-2xl font-bold text-gray-800 mb-6 pb-2 border-b-2 border-blue-600 inline-block flex items-center gap-3">
+          <span class="material-icons text-blue-600 text-3xl">school</span>
+          Cours et Examens
+        </h2>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="bg-white rounded-xl shadow-lg p-6">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
+              <span class="material-icons text-white text-lg">book</span>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-800">Cours par Type</h3>
+          </div>
+          <div class="space-y-3">
+                        <div *ngFor="let cours of getCoursParType()"
+                 class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
+                  <span class="material-icons text-white text-sm">book</span>
+                </div>
+                <span class="font-medium text-gray-800">{{ cours?.type_name || 'Type inconnu' }}</span>
+              </div>
+                              <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-2">
+                  <span class="material-icons text-sm">schedule</span>
+                  {{ cours?.count || 0 }} cours
+                </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <span class="material-icons text-white text-lg">assignment</span>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-800">Examens par Type</h3>
+          </div>
+          <div class="space-y-3">
+                        <div *ngFor="let examen of getExamensParType()"
+                 class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
+                  <span class="material-icons text-white text-sm">assignment</span>
+                </div>
+                <span class="font-medium text-gray-800">{{ examen?.type_name || 'Type inconnu' }}</span>
+              </div>
+                              <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-2">
+                  <span class="material-icons text-sm">event</span>
+                  {{ examen?.count || 0 }} examens
+                </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Statut Temporel des Cours et Examens -->
+    <section class="mb-12">
+      <h2 class="text-2xl font-bold text-gray-800 mb-6 pb-2 border-b-2 border-blue-600 inline-block flex items-center gap-3">
+        <span class="material-icons text-blue-600 text-3xl">schedule</span>
+        Statut Temporel
+      </h2>
+      
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Statut des Cours -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
+              <span class="material-icons text-white text-lg">book</span>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-800">Statut des Cours</h3>
+          </div>
+          <div class="space-y-4">
+            <!-- Cours en cours -->
+            <div class="flex items-center justify-between p-4 bg-blue-50 rounded-lg border-l-4 border-blue-500">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                  <span class="material-icons text-white text-sm">play_circle</span>
+                </div>
+                <span class="font-medium text-gray-800">En cours</span>
+              </div>
+              <span class="bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-lg font-bold">
+                {{ getCoursStatutTemporel()?.en_cours || 0 }}
+              </span>
+            </div>
+            
+
+            
+            <!-- Cours passés -->
+            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border-l-4 border-gray-500">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-gray-500 rounded-lg flex items-center justify-center">
+                  <span class="material-icons text-white text-sm">check_circle</span>
+                </div>
+                <span class="font-medium text-gray-800">Terminés</span>
+              </div>
+              <span class="bg-gray-100 text-gray-800 px-4 py-2 rounded-full text-lg font-bold">
+                {{ getCoursStatutTemporel()?.en_passe || 0 }}
+              </span>
+            </div>
+            
+            <!-- Cours futurs -->
+            <div class="flex items-center justify-between p-4 bg-green-50 rounded-lg border-l-4 border-green-500">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                  <span class="material-icons text-white text-sm">schedule</span>
+                </div>
+                <span class="font-medium text-gray-800">À venir</span>
+              </div>
+              <span class="bg-green-100 text-green-800 px-4 py-2 rounded-full text-lg font-bold">
+                {{ getCoursStatutTemporel()?.futur || 0 }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Statut des Examens -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <span class="material-icons text-white text-lg">assignment</span>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-800">Statut des Examens</h3>
+          </div>
+          <div class="space-y-4">
+            <!-- Examens en cours -->
+            <div class="flex items-center justify-between p-4 bg-purple-50 rounded-lg border-l-4 border-purple-500">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
+                  <span class="material-icons text-white text-sm">play_circle</span>
+                </div>
+                <span class="font-medium text-gray-800">En cours</span>
+              </div>
+              <span class="bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-lg font-bold">
+                {{ getExamenStatutTemporel()?.en_cours || 0 }}
+              </span>
+            </div>
+            
+
+            
+            <!-- Examens passés -->
+            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border-l-4 border-gray-500">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-gray-500 rounded-lg flex items-center justify-center">
+                  <span class="material-icons text-white text-sm">check_circle</span>
+                </div>
+                <span class="font-medium text-gray-800">Terminés</span>
+              </div>
+              <span class="bg-gray-100 text-gray-800 px-4 py-2 rounded-full text-lg font-bold">
+                {{ getExamenStatutTemporel()?.en_passe || 0 }}
+              </span>
+            </div>
+            
+            <!-- Examens futurs -->
+            <div class="flex items-center justify-between p-4 bg-green-50 rounded-lg border-l-4 border-green-500">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                  <span class="material-icons text-white text-sm">schedule</span>
+                </div>
+                <span class="font-medium text-gray-800">À venir</span>
+              </div>
+              <span class="bg-green-100 text-green-800 px-4 py-2 rounded-full text-lg font-bold">
+                {{ getExamenStatutTemporel()?.futur || 0 }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Statistiques Détaillées par Année et Statut -->
+    <section class="mb-12">
+      <h2 class="text-2xl font-bold text-gray-800 mb-6 pb-2 border-b-2 border-blue-600 inline-block flex items-center gap-3">
+        <span class="material-icons text-blue-600 text-3xl">analytics</span>
+        Statistiques Détaillées
+      </h2>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Statistiques par Année Universitaire -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg flex items-center justify-center">
+              <span class="material-icons text-white text-lg">calendar_today</span>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-800">Par Année Universitaire</h3>
+          </div>
+          <div class="space-y-3">
+            <!-- Cours par année -->
+            <div *ngFor="let annee of getCoursParAnneeUniversitaire()" 
+                 class="flex items-center justify-between p-3 bg-indigo-50 rounded-lg border-l-4 border-indigo-500">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center">
+                  <span class="material-icons text-white text-sm">book</span>
+                </div>
+                <span class="font-medium text-gray-800">{{ annee?.annee_universitaire || 'Année inconnue' }}</span>
+              </div>
+              <span class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm font-semibold">
+                {{ annee?.count || 0 }} cours
+              </span>
+            </div>
+            
+            <!-- Examens par année -->
+            <div *ngFor="let annee of getExamensParAnneeUniversitaire()" 
+                 class="flex items-center justify-between p-3 bg-purple-50 rounded-lg border-l-4 border-purple-500">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
+                  <span class="material-icons text-white text-sm">assignment</span>
+                </div>
+                <span class="font-medium text-gray-800">{{ annee?.annee_universitaire || 'Année inconnue' }}</span>
+              </div>
+              <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-semibold">
+                {{ annee?.count || 0 }} examens
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Statistiques par Statut Temporel -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-gradient-to-br from-teal-500 to-teal-600 rounded-lg flex items-center justify-center">
+              <span class="material-icons text-white text-lg">timeline</span>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-800">Par Statut Temporel</h3>
+          </div>
+          <div class="space-y-3">
+            <!-- Cours par statut -->
+            <div *ngFor="let statut of getCoursParStatutTemporel()" 
+                 class="flex items-center justify-between p-3 bg-teal-50 rounded-lg border-l-4 border-teal-500">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center">
+                  <span class="material-icons text-white text-sm">book</span>
+                </div>
+                <span class="font-medium text-gray-800">{{ getStatutTemporelLabel(statut?.statut_temporel) }}</span>
+              </div>
+              <span class="bg-teal-100 text-teal-800 px-3 py-1 rounded-full text-sm font-semibold">
+                {{ statut?.count || 0 }} cours
+              </span>
+            </div>
+            
+            <!-- Examens par statut -->
+            <div *ngFor="let statut of getExamensParStatutTemporel()" 
+                 class="flex items-center justify-between p-3 bg-orange-50 rounded-lg border-l-4 border-orange-500">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
+                  <span class="material-icons text-white text-sm">assignment</span>
+                </div>
+                <span class="font-medium text-gray-800">{{ getStatutTemporelLabel(statut?.statut_temporel) }}</span>
+              </div>
+              <span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-semibold">
+                {{ statut?.count || 0 }} examens
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Absences et rattrapages -->
+    <section class="mb-12">
+              <h2 class="text-2xl font-bold text-gray-800 mb-6 pb-2 border-b-2 border-blue-600 inline-block flex items-center gap-3">
+          <span class="material-icons text-blue-600 text-3xl">warning</span>
+          Absences et Rattrapages
+        </h2>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="bg-white rounded-xl shadow-lg p-6">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center">
+              <span class="material-icons text-white text-lg">person_off</span>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-800">Top Absences</h3>
+          </div>
+          <div class="space-y-3">
+            <div *ngFor="let absence of getTopAbsences(); let i = index"
+                 class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-gradient-to-br from-red-500 to-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                  <span class="material-icons text-white text-sm">person_off</span>
+                </div>
+                <span class="font-medium text-gray-800 text-sm">
+                  {{ absence?.first_name || 'Prénom' }} {{ absence?.last_name || 'Nom' }}
+                </span>
+              </div>
+              <span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-2">
+                <span class="material-icons text-sm">event_busy</span>
+                {{ absence?.nombre_absences || 0 }} absences
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
+              <span class="material-icons text-white text-lg">event_note</span>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-800">Rattrapages par Mois</h3>
+          </div>
+          <div class="space-y-3">
+            <div *ngFor="let rattrapage of getRattrapagesParMois()"
+                 class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
+                  <span class="material-icons text-white text-sm">event_note</span>
+                </div>
+                <span class="font-medium text-gray-800">
+                  {{ rattrapage?.mois || 0 }}/{{ rattrapage?.annee || 0 }}
+                </span>
+              </div>
+              <span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-2">
+                <span class="material-icons text-sm">history</span>
+                {{ rattrapage?.nombre_rattrapages || 0 }} rattrapages
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Options par établissement -->
+    <section class="mb-12">
+              <h2 class="text-2xl font-bold text-gray-800 mb-6 pb-2 border-b-2 border-blue-600 inline-block flex items-center gap-3">
+          <span class="material-icons text-blue-600 text-3xl">account_tree</span>
+          Options par Établissement
+        </h2>
+      <div class="bg-white rounded-xl shadow-lg p-6">
+        <div class="space-y-4">
+          <div *ngFor="let option of getOptionsParEtablissement()"
+               class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                <span class="material-icons text-white text-sm">business</span>
+              </div>
+              <span class="font-medium text-gray-800">{{ option?.etablissement_name || 'Établissement inconnu' }}</span>
+            </div>
+            <span class="bg-indigo-100 text-indigo-800 px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2">
+              <span class="material-icons text-sm">list</span>
+              {{ option?.count || 0 }} options
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>

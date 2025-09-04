@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use PDO;
 use PDOException;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\GroupService;
 
 class EtudiantController extends Controller
 {
@@ -17,13 +18,49 @@ class EtudiantController extends Controller
      */
     public function index(Request $request)
     {
+        // Récupérer les paramètres de pagination
+        $page = $request->get('page', 1);
+        $perPage = $request->get('per_page', 10);
+        
+        // Récupérer les étudiants avec pagination et relations
+        $etudiants = Etudiant::with(['ville', 'group', 'option', 'etablissement', 'promotion'])
+            ->paginate($perPage, ['*'], 'page', $page);
+        
+        // Formater la réponse selon la structure attendue par Angular
+        return response()->json([
+            "data" => $etudiants->items(),
+            "current_page" => $etudiants->currentPage(),
+            "per_page" => $etudiants->perPage(),
+            "total" => $etudiants->total(),
+            "last_page" => $etudiants->lastPage(),
+            "has_next_page" => $etudiants->hasMorePages(),
+            "has_prev_page" => $etudiants->currentPage() > 1,
+            "status" => 200
+        ]);
+    }
+
+    /**
+     * Fetch student attendance data by comparing Biostar system data with local database
+     */
+    public function fetchStudentAttendance(Request $request)
+    {
         $date = $request->input('date', '2025-02-06'); // Default date if not provided
         $heure1 = $request->input('hour1', '08:00'); // Default start time if not provided
         $heure2 = $request->input('hour2', '10:00'); // Default end time if not provided
-        $faculte = $request->input('faculte', "pharmacie");
-        $promotion = $request->input("promotion", "1ère annee");
-        $groupe = $request->query("groupe", 0);
-        $option = $request->query("option", 0);
+        
+        // Format date and time for SQL Server compatibility
+        $formattedDate = date('Y-m-d', strtotime($date));
+        $formattedTime1 = date('H:i:s', strtotime($heure1));
+        $formattedTime2 = date('H:i:s', strtotime($heure2));
+        $promotion_id = $request->input("promotion_id", 1);
+        $etablissement_id = $request->input("etablissement_id", 1);
+        $ville_id = $request->input("ville_id", null);
+        $group_id = $request->query("group_id", null);
+        $option_id = $request->query("option_id", null);
+
+        // Initialize variables
+        $biostarResults = [];
+        $localStudents = collect();
 
         // Create a PDO connection to the SQL Server database
         $dsn = 'sqlsrv:Server=10.0.2.148;Database=BIOSTAR_TA;TrustServerCertificate=true';
@@ -34,69 +71,142 @@ class EtudiantController extends Controller
             $pdo = new PDO($dsn, $username, $password);
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-            // Execute the query using PDO
-            $sql = "SELECT * FROM punchlog WHERE CAST(bsevtdt AS date) = :date AND FORMAT(bsevtdt, 'HH:mm') BETWEEN :heure1 AND :heure2 AND devnm NOT LIKE 'TOUR%' AND devnm NOT LIKE 'ACCES HCK%'";
+            // Execute the query using PDO with proper date formatting
+            $sql = "SELECT * FROM punchlog WHERE CAST(bsevtdt AS date) = CAST(:date AS date) AND CAST(bsevtdt AS time) BETWEEN CAST(:heure1 AS time) AND CAST(:heure2 AS time) AND devnm NOT LIKE 'TOUR%' AND devnm NOT LIKE 'ACCES HCK%'";
             $stmt = $pdo->prepare($sql);
-            $stmt->execute(['date' => $date, 'heure1' => $heure1, 'heure2' => $heure2]);
+            $stmt->execute(['date' => $formattedDate, 'heure1' => $formattedTime1, 'heure2' => $formattedTime2]);
 
             // Fetch the results
             $biostarResults = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-            // Fetch students from the local database
-            // $localStudents = Etudiant::where("faculte", strtolower($faculte))->where("promotion", $promotion)->get();
-
-            $query = Etudiant::query();
-
-            if(!empty($groupe) || !$groupe == 0) {
-                $query->where('groupe', $groupe);
-            }
-
-            if(!empty($option) || !$option == 0) {
-                $query->where('option', $option);
-            }
-            
-            if(!empty($faculte) || $faculte == "") {
-                $query->where('faculte', strtolower($faculte));
-            }
-
-            if(!empty($promotion) || $promotion == "") {
-                $query->where('promotion', $promotion);
-            }   
-
-            $localStudents = $query->get();
-
-            // Compare the two sets of students
-            $faceIdStudents = collect($biostarResults)->pluck('user_id')->toArray();
-            // $faceIdStudents2 = collect($biostarResults)->map(function ($student) {
-            //     return [
-            //         'matricule' => $student['user_id'],
-            //         'bsevtdt' => Carbon::parse($student['bsevtdt'])->format('H:i:s'),
-            //     ];
-            // })->toArray();
-            // $localStudentNames = $localStudents->pluck('user_id')->toArray();
-            $localStudentMatricules = $localStudents->pluck('matricule')->toArray();
-
-
-            // $studentsWithFaceId = array_intersect($faceIdStudents, $localStudentNames);
-            $studentsWithFaceId = array_intersect($faceIdStudents, $localStudentMatricules);
-            $studentsWithFaceId = array_values(array_unique($studentsWithFaceId)); // Re-index the array
-
-            return response()->json([
-                "students_with_face_id" => $studentsWithFaceId,
-                "biostar_results" => $biostarResults,
-                "local_students" => $localStudents,
-                // "test" => $faceIdStudents2,
-            ], 200);
-            
-            // test a la maison
-            // $local_students = Etudiant::where("faculte", strtolower($faculte))->where("promotion", $promotion)->get();
-
-            // return response()->json(["local_students" => $local_students]);
-
         } catch (PDOException $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            // If Biostar connection fails, continue with empty results
+            $biostarResults = [];
         }
+        
+        // Fetch students from the local database with relations
+        $query = Etudiant::with(['ville', 'group', 'option', 'etablissement', 'promotion']);
+
+        if (!empty($group_id) && $group_id != 'null') {
+            $query->where('group_id', $group_id);
+        }
+
+        if (!empty($option_id) && $option_id != 'null') {
+            $query->where('option_id', $option_id);
+        }
+        
+        if (!empty($etablissement_id) && $etablissement_id != 'null') {
+            $query->where('etablissement_id', $etablissement_id);
+        }
+
+        if (!empty($ville_id) && $ville_id != 'null') {
+            $query->where('ville_id', $ville_id);
+        }
+
+        if (!empty($promotion_id) && $promotion_id != 'null') {
+            $query->where('promotion_id', $promotion_id);
+        }   
+
+        $localStudents = $query->get();
+            
+            // Check if any students were found
+            if ($localStudents->isEmpty()) {
+                return response()->json([
+                    "message" => "Aucun étudiant trouvé avec les critères spécifiés",
+                    "date" => $date,
+                    "heure_debut" => $heure1,
+                    "heure_fin" => $heure2,
+                    "filtres_appliques" => [
+                        'promotion_id' => $promotion_id,
+                        'etablissement_id' => $etablissement_id,
+                        'ville_id' => $ville_id,
+                        'group_id' => $group_id,
+                        'option_id' => $option_id
+                    ],
+                    "total_etudiants" => 0,
+                    "presents" => 0,
+                    "absents" => 0,
+                    "etudiants" => [],
+                    "status" => 404
+                ], 404);
+            }
+
+            
+            
+            // Get present students (those who have punched in Biostar)
+            $presentStudentMatricules = collect($biostarResults)->pluck('user_id')->toArray();
+            
+            // ici biostarResults ca marche bien
+
+            // Prepare the final response with attendance status
+            $studentsWithAttendance = $localStudents->map(function ($student) use ($presentStudentMatricules, $biostarResults) {
+                $isPresent = in_array($student->matricule, $presentStudentMatricules);
+                
+                return [
+                    'id' => $student->id,
+                    'matricule' => $student->matricule,
+                    'first_name' => $student->first_name,
+                    'last_name' => $student->last_name,
+                    'email' => $student->email,
+                    'photo' => $student->photo,
+                    'promotion' => $student->promotion,
+                    'etablissement' => $student->etablissement,
+                    'ville' => $student->ville,
+                    'group' => $student->group,
+                    'option' => $student->option,
+                    'status' => $isPresent ? 'présent' : 'absent',
+                    'punch_time' => $isPresent ? $this->getPunchTime($student->matricule, $biostarResults) : null,
+                ];
+            });
+
+            // ca marche pas bien ici
+
+            
+            return response()->json([
+                "message" => "Liste des étudiants avec statut de présence",
+                "date" => $date,
+                "heure_debut" => $heure1,
+                "heure_fin" => $heure2,
+                "total_etudiants" => $studentsWithAttendance->count(),
+                "presents" => $studentsWithAttendance->where('status', 'présent')->count(),
+                "absents" => $studentsWithAttendance->count() - $studentsWithAttendance->where('status', 'présent')->count(),
+                "etudiants" => $studentsWithAttendance,
+                "status" => 200
+            ], 200);
     }
+
+    /**
+     * Get punch time for a specific student
+     */
+    private function getPunchTime($matricule, $biostarResults)
+    {
+        $studentPunch = collect($biostarResults)->firstWhere('user_id', $matricule);
+        if ($studentPunch) {
+            return [
+                'time' => $studentPunch['bsevtdt'],
+                'device' => $studentPunch['devnm']
+            ];
+        }
+        return null;
+    }
+
+    /**
+     * Test function to check students count and sample data
+     */
+    public function testStudentsCount()
+    {
+        $totalStudents = Etudiant::count();
+        $sampleStudents = Etudiant::with(['ville', 'group', 'option', 'etablissement', 'promotion'])
+                                 ->take(3)
+                                 ->get();
+
+        return response()->json([
+            'message' => 'Test des étudiants dans la base de données',
+            'total_etudiants' => $totalStudents,
+            'echantillon_etudiants' => $sampleStudents,
+            'status' => 200
+        ]);
+    }
+
     public function ImportEtudiants(Request $request) {
         $user = $request->user();
         $faculte = "";
@@ -237,42 +347,78 @@ class EtudiantController extends Controller
     {
         // Validate the request input
         $request->validate([
-            'matricule' => 'required|integer|unique:etudiants,matricule|digits:6',
-            'name' => 'required|string|max:255',
-            'promotion' => 'required|in:1ère annee,2ème annee,3ème annee,4ème annee,5ème annee,6ème annee',
-            'faculte' => 'required|string|max:255',
+            'matricule' => 'required|string|unique:etudiants,matricule|max:255',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|email|unique:etudiants,email|max:255',
+            'password' => 'required|string|min:6',
+            'promotion_id' => 'required|exists:promotions,id',
+            'etablissement_id' => 'required|exists:etablissements,id',
+            'ville_id' => 'required|exists:villes,id',
+            'group_id' => 'required|exists:groups,id',
+            'option_id' => 'required|exists:options,id',
         ]);
 
         // Create a new Etudiant
         $etudiant = Etudiant::create([
             'matricule' => $request->input('matricule'),
-            'name' => $request->input('name'),
-            'promotion' => $request->input('promotion'),
-            'faculte' => $request->input('faculte'),
-            'option' => $request->input('option') ?? null,
-            'groupe' => $request->input('groupe'),  
+            'first_name' => $request->input('first_name'),
+            'last_name' => $request->input('last_name'),
+            'email' => $request->input('email'),
+            'password' => bcrypt($request->input('password')),
+            'promotion_id' => $request->input('promotion_id'),
+            'etablissement_id' => $request->input('etablissement_id'),
+            'ville_id' => $request->input('ville_id'),
+            'group_id' => $request->input('group_id'),
+            'option_id' => $request->input('option_id'),
         ]);
 
-        if ($request->hasFile("image")) {
-            $image = $request->file("image");
-            $imageName = $etudiant->matricule . "." . $image->getClientOriginalExtension();
-            $image->move(public_path("/images"), $imageName);
+        if ($request->hasFile("photo")) {
+            $photo = $request->file("photo");
+            $photoName = $etudiant->matricule . "." . $photo->getClientOriginalExtension();
+            $photo->move(public_path("/images"), $photoName);
 
-            // Mettre à jour l'étudiant avec le chemin de l'image
-            $etudiant->update(['image' => "/images/" . $imageName]);
+            // Mettre à jour l'étudiant avec le chemin de la photo
+            $etudiant->update(['photo' => "/images/" . $photoName]);
         }
 
-        // Return the newly created Etudiant as a JSON response
-        return response()->json($etudiant, 201);
+        // Return the newly created Etudiant with relations as a JSON response
+        return response()->json([
+            'message' => 'Étudiant créé avec succès',
+            'etudiant' => $etudiant->load(['ville', 'group', 'option', 'etablissement', 'promotion']),
+            'id' => $etudiant->id,
+            'matricule' => $etudiant->matricule,
+            'status' => 201
+        ], 201);
+    }
+
+    
+    /**
+     * Display the specified resource by ID.
+     */
+    public function show($id)
+    {
+        // Fetch the student by ID with all relations
+        $etudiant = Etudiant::with(['ville', 'group', 'option', 'etablissement', 'promotion'])
+                           ->where('id', $id)
+                           ->first();
+
+        if ($etudiant) {
+            return response()->json($etudiant, 200);
+        } else {
+            return response()->json(['message' => 'Etudiant not found'], 404);
+        }
     }
 
     /**
-     * Display the specified resource.
+     * Get student by matricule.
      */
-    public function show($matricule)
+    public function getEtudiantByMatricule($matricule)
     {
-        // Fetch the student by matricule
-        $etudiant = Etudiant::where('matricule', $matricule)->first();
+        // Fetch the student by matricule with all relations
+        $etudiant = Etudiant::with(['ville', 'group', 'option', 'etablissement', 'promotion'])
+                           ->where('matricule', $matricule)
+                           ->first();
 
         if ($etudiant) {
             return response()->json($etudiant, 200);
@@ -292,44 +438,93 @@ class EtudiantController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $matricule)
+    public function update(Request $request, $id)
     {
         // Validate the request input
         $request->validate([
-            'name' => 'sometimes|required|string|max:255',
-            'promotion' => 'sometimes|required|in:1ère annee,2ème annee,3ème annee,4ème annee,5ème annee,6ème annee',
-            'faculte' => 'sometimes|required|string|max:255',
+            'first_name' => 'sometimes|required|string|max:255',
+            'last_name' => 'sometimes|required|string|max:255',
+            'email' => 'sometimes|required|email|unique:etudiants,email,' . $id,
+            'promotion_id' => 'sometimes|required|exists:promotions,id',
+            'etablissement_id' => 'sometimes|required|exists:etablissements,id',
+            'ville_id' => 'sometimes|required|exists:villes,id',
+            'group_id' => 'sometimes|required|exists:groups,id',
+            'option_id' => 'sometimes|required|exists:options,id',
         ]);
 
-        // Find the Etudiant by matricule
-        $etudiant = Etudiant::where('matricule', $matricule)->first();
+        // Find the Etudiant by ID
+        $etudiant = Etudiant::find($id);
         if (!$etudiant) {
             return response()->json(['message' => 'Etudiant not found'], 404);
         }
 
         // Update the Etudiant with the new data
-        $etudiant->update($request->only(['name', 'promotion', 'faculte']));
+        $etudiant->update($request->only([
+            'first_name', 'last_name', 'email', 'promotion_id', 
+            'etablissement_id', 'ville_id', 'group_id', 'option_id'
+        ]));
 
-        // Return the updated Etudiant as a JSON response
-        return response()->json($etudiant, 200);
+        // Return the updated Etudiant with relations as a JSON response
+        return response()->json([
+            'message' => 'Étudiant mis à jour avec succès',
+            'etudiant' => $etudiant->load(['ville', 'group', 'option', 'etablissement', 'promotion']),
+            'status' => 200
+        ], 200);
+    }
+
+    /**
+     * Update student by matricule
+     */
+    public function updateByMatricule(Request $request, $matricule)
+    {
+        // Find the Etudiant by matricule first
+        $etudiant = Etudiant::where('matricule', $matricule)->first();
+        if (!$etudiant) {
+            return response()->json(['message' => 'Etudiant not found'], 404);
+        }
+
+        // Validate the request input
+        $request->validate([
+            'first_name' => 'sometimes|required|string|max:255',
+            'last_name' => 'sometimes|required|string|max:255',
+            'email' => 'sometimes|required|email|unique:etudiants,email,' . $etudiant->id,
+            'promotion_id' => 'sometimes|required|exists:promotions,id',
+            'etablissement_id' => 'sometimes|required|exists:etablissements,id',
+            'ville_id' => 'sometimes|required|exists:villes,id',
+            'group_id' => 'sometimes|required|exists:groups,id',
+            'option_id' => 'sometimes|required|exists:options,id',
+        ]);
+
+        // Update the Etudiant with the new data
+        $etudiant->update($request->only([
+            'first_name', 'last_name', 'email', 'promotion_id', 
+            'etablissement_id', 'ville_id', 'group_id', 'option_id'
+        ]));
+
+        // Return the updated Etudiant with relations as a JSON response
+        return response()->json([
+            'message' => 'Étudiant mis à jour avec succès',
+            'etudiant' => $etudiant->load(['ville', 'group', 'option', 'etablissement', 'promotion']),
+            'status' => 200
+        ], 200);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($matricule)
+    public function destroy($id)
     {
-        // Find the Etudiant by matricule
-        $etudiant = Etudiant::where('matricule', $matricule)->first();
+        // Find the Etudiant by ID
+        $etudiant = Etudiant::find($id);
 
         if (!$etudiant) {
             return response()->json(['message' => 'Etudiant not found'], 404);
         }
 
-        if ($etudiant->image) {
-            $imagePath = public_path($etudiant->image); // Obtenir le chemin complet de l'image
-            if (file_exists($imagePath)) {
-                unlink($imagePath); // Supprimer l'image
+        if ($etudiant->photo) {
+            $photoPath = public_path($etudiant->photo); // Obtenir le chemin complet de la photo
+            if (file_exists($photoPath)) {
+                unlink($photoPath); // Supprimer la photo
             }
         }
 
@@ -340,8 +535,87 @@ class EtudiantController extends Controller
         return response()->json(['message' => 'Etudiant deleted successfully'], 200);
     }
 
-    public function fetchEtudiants() {
-        $etudiants = Etudiant::all();
-        return response()->json(["etudiants" => $etudiants], 200);
+    /**
+     * Delete student by matricule
+     */
+    public function destroyByMatricule($matricule)
+    {
+        // Find the Etudiant by matricule
+        $etudiant = Etudiant::where('matricule', $matricule)->first();
+
+        if (!$etudiant) {
+            return response()->json(['message' => 'Etudiant not found'], 404);
+        }
+
+        if ($etudiant->photo) {
+            $photoPath = public_path($etudiant->photo); // Obtenir le chemin complet de la photo
+            if (file_exists($photoPath)) {
+                unlink($photoPath); // Supprimer la photo
+            }
+        }
+
+        // Delete the Etudiant
+        $etudiant->delete();
+
+        // Return a success response
+        return response()->json(['message' => 'Etudiant deleted successfully'], 200);
+    }
+
+    /**
+     * Get students by group using GroupService
+     */
+    public function getStudentsByGroupService(Request $request, string $groupId)
+    {
+        $groupService = new \App\Services\GroupService();
+        $students = $groupService->getStudentsByGroup($groupId);
+        
+        return response()->json([
+            'group_id' => $groupId,
+            'students' => $students,
+            'count' => $students->count()
+        ]);
+    }
+
+    /**
+     * Get groups for a specific student's etablissement
+     */
+    public function getGroupsForStudent(Request $request, string $matricule)
+    {
+        $etudiant = Etudiant::where('matricule', $matricule)->first();
+        
+        if (!$etudiant) {
+            return response()->json(['error' => 'Étudiant non trouvé'], 404);
+        }
+
+        $groupService = new \App\Services\GroupService();
+        $groups = $groupService->getGroupsByEtablissement($etudiant->etablissement_id);
+        
+        return response()->json([
+            'student' => $etudiant,
+            'available_groups' => $groups
+        ]);
+    }
+
+    /**
+     * Get filter options for students (promotions, groups, villes, etc.)
+     */
+    public function getFilterOptions()
+    {
+        try {
+            $filterOptions = [
+                'promotions' => \App\Models\Promotion::select('id', 'name')->get(),
+                'groups' => \App\Models\Group::select('id', 'title')->get(),
+                'villes' => \App\Models\Ville::select('id', 'name')->get(),
+                'etablissements' => \App\Models\Etablissement::select('id', 'name')->get(),
+                'options' => \App\Models\Option::select('id', 'name')->get(),
+            ];
+
+            return response()->json($filterOptions);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Erreur lors de la récupération des options de filtre',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }

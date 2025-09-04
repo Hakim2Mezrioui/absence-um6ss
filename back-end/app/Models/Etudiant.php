@@ -4,22 +4,75 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Etudiant extends Model
 {
     use HasFactory;
     
-    protected $primaryKey = 'matricule';
-    public $incrementing = false; // Si 'matricule' n'est pas auto-incrémenté
-    protected $keyType = 'string';
-
+    // protected $primaryKey = 'matricule'; // Commenté pour utiliser 'id' par défaut
+    // public $incrementing = false; // Commenté pour permettre l'auto-incrémentation
+    // protected $keyType = 'string'; // Commenté car 'id' est un entier
+    
     protected $fillable = [
         "matricule",
-        "name",
-        "promotion",
-        "faculte",
-        'groupe',
-        'option',
-        'image',
+        "first_name",
+        "last_name",
+        "email",
+        "password",
+        "photo",
+        "promotion_id",
+        "etablissement_id",
+        "ville_id",
+        "group_id",
+        "option_id",
     ];
+
+    /**
+     * Get the promotion that owns the etudiant.
+     */
+    public function promotion(): BelongsTo
+    {
+        return $this->belongsTo(Promotion::class);
+    }
+
+    /**
+     * Get the etablissement that owns the etudiant.
+     */
+    public function etablissement(): BelongsTo
+    {
+        return $this->belongsTo(Etablissement::class);
+    }
+
+    /**
+     * Get the ville that owns the etudiant.
+     */
+    public function ville(): BelongsTo
+    {
+        return $this->belongsTo(Ville::class);
+    }
+
+    /**
+     * Get the group that owns the etudiant.
+     */
+    public function group(): BelongsTo
+    {
+        return $this->belongsTo(Group::class);
+    }
+
+    /**
+     * Get the option that owns the etudiant.
+     */
+    public function option(): BelongsTo
+    {
+        return $this->belongsTo(Option::class);
+    }
+
+    /**
+     * Get the full name of the etudiant.
+     */
+    public function getFullNameAttribute(): string
+    {
+        return $this->first_name . ' ' . $this->last_name;
+    }
 }

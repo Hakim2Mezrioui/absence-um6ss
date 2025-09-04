@@ -1,0 +1,94 @@
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
+    
+    <!-- Logo et titre -->
+    <div class="text-center mb-8">
+      <img src="assets/images/um6ss_login.png" alt="UM6SS Logo" class="w-24 h-24 mx-auto mb-4">
+      <h1 class="text-3xl font-bold text-gray-800 mb-2">Connexion UM6SS</h1>
+      <p class="text-gray-600">Gestion des absences et présences</p>
+    </div>
+
+    <!-- Formulaire de connexion -->
+    <form #loginForm="ngForm" (ngSubmit)="onSubmit()" class="space-y-6">
+      
+      <!-- Champ Email -->
+      <div>
+        <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">
+          Email
+        </label>
+        <input 
+          type="email" 
+          id="email" 
+          name="email" 
+          [(ngModel)]="email" 
+          required 
+          class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 placeholder-gray-400"
+          (input)="clearError()"
+          placeholder="Entrez votre email">
+      </div>
+
+      <!-- Champ Mot de passe -->
+      <div>
+        <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">
+          Mot de passe
+        </label>
+        <input 
+          type="password" 
+          id="password" 
+          name="password" 
+          [(ngModel)]="password" 
+          required 
+          class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 placeholder-gray-400"
+          (input)="clearError()"
+          placeholder="Entrez votre mot de passe">
+      </div>
+
+      <!-- Message d'erreur -->
+      <div *ngIf="errorMessage" 
+           (click)="clearError()"
+           class="bg-red-50 border border-red-200 rounded-lg p-4 cursor-pointer hover:bg-red-100 transition-colors">
+        <div class="flex items-center gap-3 text-red-700">
+          <i class="bi bi-exclamation-triangle text-lg"></i>
+          <span class="flex-1">{{ errorMessage }}</span>
+          <i class="bi bi-x text-xl hover:text-red-800"></i>
+        </div>
+      </div>
+
+      <!-- Bouton de connexion -->
+      <button 
+        type="submit" 
+        [disabled]="loading"
+        class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 flex items-center justify-center gap-2">
+        <span *ngIf="!loading">
+          <i class="bi bi-box-arrow-in-right"></i>
+          Se connecter
+        </span>
+        <span *ngIf="loading">
+          <i class="bi bi-hourglass-split animate-spin"></i>
+          Connexion...
+        </span>
+      </button>
+
+      <!-- Bouton de réinitialisation -->
+      <button 
+        type="button" 
+        (click)="resetForm(loginForm)"
+        class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-6 rounded-lg transition-all duration-200 flex items-center justify-center gap-2">
+        <i class="bi bi-arrow-clockwise"></i>
+        Réinitialiser
+      </button>
+    </form>
+
+    <!-- Test Tailwind CSS -->
+    <div class="bg-green-500 text-white p-4 rounded-lg text-center mt-8">
+      <h3 class="text-xl font-bold mb-2">🎉 Test Tailwind CSS</h3>
+      <p>Si vous voyez cette carte verte avec du texte blanc, Tailwind fonctionne !</p>
+      <button class="bg-white text-green-500 px-4 py-2 rounded mt-2 hover:bg-gray-100 transition-colors">
+        Bouton Test
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Composant de chargement -->
+<app-loading *ngIf="loading"></app-loading>

@@ -1,0 +1,5 @@
+<router-outlet></router-outlet>
+<app-notification-container 
+  [notifications]="(notifications$ | async) ?? []"
+  (remove)="removeNotification($event)">
+</app-notification-container>

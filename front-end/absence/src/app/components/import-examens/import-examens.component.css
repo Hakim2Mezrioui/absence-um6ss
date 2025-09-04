@@ -1,0 +1,181 @@
+/* Styles pour le composant d'import d'examens */
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Styles pour la zone de dépôt de fichier */
+.border-dashed {
+  border-style: dashed;
+}
+
+.border-dashed:hover {
+  border-color: #3b82f6;
+  background-color: #f8fafc;
+}
+
+/* Styles pour les tableaux */
+.table-container {
+  overflow-x: auto;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+}
+
+/* Styles pour les boutons */
+.btn-primary {
+  background-color: #3b82f6;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #2563eb;
+  transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Styles pour les messages */
+.message {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.message.error {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+.message.success {
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+}
+
+.message.info {
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+}
+
+/* Styles pour les statistiques */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  text-align: center;
+  border: 1px solid;
+}
+
+.stat-card.total {
+  background-color: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.stat-card.success {
+  background-color: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.stat-card.error {
+  background-color: #fef2f2;
+  border-color: #fecaca;
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* Styles pour la prévisualisation */
+.preview-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.preview-table th,
+.preview-table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.preview-table th {
+  background-color: #f9fafb;
+  font-weight: 500;
+  color: #6b7280;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+.preview-table tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+/* Styles pour les instructions */
+.instructions {
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+}
+
+.instructions h3 {
+  color: #1e40af;
+  margin-bottom: 1rem;
+}
+
+.instructions ul {
+  margin-left: 1rem;
+}
+
+.instructions li {
+  margin-bottom: 0.25rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .preview-table {
+    font-size: 0.875rem;
+  }
+  
+  .preview-table th,
+  .preview-table td {
+    padding: 0.5rem;
+  }
+}

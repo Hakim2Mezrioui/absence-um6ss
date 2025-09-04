@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Démo - Nouveaux Styles des Zones de Texte</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            margin: 0;
+            padding: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        
+        .demo-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        
+        .demo-header h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .demo-header p {
+            color: #666;
+            font-size: 1.2rem;
+        }
+        
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+        
+        .demo-section {
+            padding: 30px;
+            border-radius: 16px;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+        }
+        
+        .demo-section h3 {
+            margin-top: 0;
+            color: #333;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+        
+        /* Simulation du style AVANT */
+        .old-style {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 12px 16px;
+            font-size: 16px;
+            width: 100%;
+            margin-bottom: 20px;
+            background: white;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+        
+        .old-style:focus {
+            outline: none;
+            border-color: #1976d2;
+        }
+        
+        .old-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #666;
+            font-weight: 500;
+        }
+        
+        /* Simulation du style APRÈS */
+        .new-style {
+            background: linear-gradient(145deg, #f8fafc 0%, #ffffff 100%);
+            border-radius: 16px;
+            border: 2px solid #e2e8f0;
+            box-shadow: 
+                0 4px 6px -1px rgba(0, 0, 0, 0.1), 
+                0 2px 4px -1px rgba(0, 0, 0, 0.06),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            padding: 16px 20px;
+            font-size: 16px;
+            width: 100%;
+            margin-bottom: 20px;
+            font-family: inherit;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        
+        .new-style:hover {
+            border-color: #667eea;
+            box-shadow: 
+                0 8px 15px rgba(103, 126, 234, 0.1),
+                0 4px 6px rgba(0, 0, 0, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            transform: translateY(-2px);
+        }
+        
+        .new-style:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 
+                0 0 0 3px rgba(103, 126, 234, 0.1),
+                0 10px 25px rgba(103, 126, 234, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 1);
+            background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+        }
+        
+        .new-label {
+            display: block;
+            margin-bottom: 12px;
+            color: #667eea;
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #667eea;
+        }
+        
+        .feature-card h4 {
+            margin-top: 0;
+            color: #333;
+            font-size: 1.2rem;
+        }
+        
+        .feature-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .icon {
+            width: 24px;
+            height: 24px;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+        
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .demo-container {
+                padding: 20px;
+                margin: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1>🎨 Nouveaux Styles des Zones de Texte</h1>
+            <p>Comparaison avant/après de l'interface des promotions</p>
+        </div>
+        
+        <div class="comparison-grid">
+            <div class="demo-section">
+                <h3>❌ Avant - Style classique</h3>
+                <label class="old-label">Rechercher une promotion</label>
+                <input type="text" class="old-style" placeholder="Nom de la promotion..." value="L1 Informatique">
+                
+                <label class="old-label">Nom de la promotion</label>
+                <input type="text" class="old-style" placeholder="Ex: L1 Informatique 2024" value="Master Génie Logiciel">
+            </div>
+            
+            <div class="demo-section">
+                <h3>✅ Après - Style moderne</h3>
+                <label class="new-label">Rechercher une promotion</label>
+                <input type="text" class="new-style" placeholder="Tapez le nom de la promotion..." value="L1 Informatique">
+                
+                <label class="new-label">Nom de la promotion</label>
+                <input type="text" class="new-style" placeholder="Ex: L1 Informatique 2024" value="Master Génie Logiciel">
+            </div>
+        </div>
+        
+        <div class="features-grid">
+            <div class="feature-card">
+                <h4>🎭 Gradients & Ombres</h4>
+                <p>Fonds dégradés subtils avec ombres multiples pour créer de la profondeur et un aspect premium.</p>
+            </div>
+            
+            <div class="feature-card">
+                <h4>🏃‍♂️ Animations Fluides</h4>
+                <p>Transitions smooth avec courbes d'animation naturelles (cubic-bezier) pour une expérience utilisateur fluide.</p>
+            </div>
+            
+            <div class="feature-card">
+                <h4>🎯 Interactions Améliorées</h4>
+                <p>Effets de survol avec élévation, focus avec ring lumineux, et animations d'icônes.</p>
+            </div>
+            
+            <div class="feature-card">
+                <h4>📱 Responsive Design</h4>
+                <p>Adaptation automatique pour mobile avec optimisations spécifiques (évite le zoom iOS).</p>
+            </div>
+            
+            <div class="feature-card">
+                <h4>🎨 Design Cohérent</h4>
+                <p>Palette de couleurs unifiée avec le thème purple/blue du header de l'application.</p>
+            </div>
+            
+            <div class="feature-card">
+                <h4>♿ Accessibilité</h4>
+                <p>Labels, contrastes et navigation clavier maintenus tout en améliorant le design visuel.</p>
+            </div>
+        </div>
+        
+        <div style="margin-top: 40px; text-align: center; padding: 20px; background: #f8f9fa; border-radius: 12px;">
+            <h3 style="color: #333; margin-bottom: 16px;">🚀 Résultat</h3>
+            <p style="color: #666; font-size: 1.1rem; margin: 0;">
+                Interface moderne, professionnelle et engageante qui améliore significativement l'expérience utilisateur 
+                tout en conservant la fonctionnalité et l'accessibilité.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

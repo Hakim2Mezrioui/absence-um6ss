@@ -1,0 +1,42 @@
+<div class="notification-toast p-4 rounded-lg border shadow-lg max-w-sm w-full transition-all duration-300 ease-in-out transform"
+     [ngClass]="getBgClass()">
+  
+  <div class="flex items-start space-x-3">
+    <!-- Icône -->
+    <div class="flex-shrink-0">
+      <span class="material-icons text-xl" [ngClass]="getIconClass()">
+        {{ getIconName() }}
+      </span>
+    </div>
+    
+    <!-- Contenu -->
+    <div class="flex-1 min-w-0">
+      <div *ngIf="notification.title" class="text-sm font-medium text-gray-900 mb-1">
+        {{ notification.title }}
+      </div>
+      <div class="text-sm text-gray-700">
+        {{ notification.message }}
+      </div>
+    </div>
+    
+    <!-- Bouton fermer -->
+    <button 
+      (click)="onClose()"
+      class="flex-shrink-0 p-1 rounded-full hover:bg-gray-200 transition-colors duration-200">
+      <span class="material-icons text-gray-400 text-sm hover:text-gray-600">close</span>
+    </button>
+  </div>
+  
+  <!-- Barre de progression -->
+  <div class="mt-3 w-full bg-gray-200 rounded-full h-1">
+    <div class="h-1 rounded-full transition-all duration-100 ease-linear"
+         [ngClass]="{
+           'bg-green-500': notification.type === 'success',
+           'bg-red-500': notification.type === 'error',
+           'bg-yellow-500': notification.type === 'warning',
+           'bg-blue-500': notification.type === 'info'
+         }"
+         [style.width.%]="100">
+    </div>
+  </div>
+</div>

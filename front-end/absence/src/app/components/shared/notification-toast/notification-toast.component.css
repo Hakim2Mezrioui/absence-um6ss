@@ -1,0 +1,58 @@
+/* Styles pour les notifications toast */
+.notification-toast {
+  animation: slideInRight 0.3s ease-out;
+  z-index: 1000;
+}
+
+/* Animation d'entrée */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Animation de sortie */
+.notification-toast.removing {
+  animation: slideOutRight 0.3s ease-in forwards;
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* Hover effects */
+.notification-toast:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Responsive design */
+@media (max-width: 640px) {
+  .notification-toast {
+    max-width: calc(100vw - 2rem);
+    margin: 0 1rem;
+  }
+}
+
+/* Focus states pour l'accessibilité */
+.notification-toast button:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Transitions fluides */
+.notification-toast * {
+  transition: all 0.2s ease-in-out;
+}

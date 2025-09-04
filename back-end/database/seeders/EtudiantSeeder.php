@@ -14,31 +14,51 @@ class EtudiantSeeder extends Seeder
     public function run(): void
     {
         $csvFile = base_path("database/csv/etudiants.csv");
+        
+        if (!file_exists($csvFile)) {
+            $this->command->error("Le fichier CSV n'existe pas: " . $csvFile);
+            return;
+        }
+
         $csvData = fopen($csvFile, 'r');
 
-        // Skip the header row
-        fgetcsv($csvData, 0, ';');
+        // Lire l'en-tête pour obtenir les noms de colonnes
+        $headers = fgetcsv($csvData, 0, ';');
+        if (!$headers) {
+            $this->command->error("Impossible de lire l'en-tête du CSV");
+            return;
+        }
 
+        $count = 0;
         while (($line = fgetcsv($csvData, 0, ';')) !== false) {
-            Etudiant::create([
-                'name' => $line[0],
-                'faculte' => $line[1],
-                'promotion' => $line[2],
-            ]);
+            if (count($line) >= count($headers)) {
+                try {
+                    // Créer un tableau associatif avec les noms de colonnes
+                    $data = array_combine($headers, $line);
+                    
+                    // Créer l'étudiant avec la structure exacte du CSV
+                    Etudiant::create([
+                        'matricule' => $data['matricule'],
+                        'first_name' => $data['first_name'],
+                        'last_name' => $data['last_name'],
+                        'email' => $data['email'],
+                        'password' => bcrypt($data['password']),
+                        'photo' => $data['photo'] ?: null,
+                        'promotion_id' => (int)$data['promotion_id'],
+                        'etablissement_id' => (int)$data['etablissement_id'],
+                        'ville_id' => (int)$data['ville_id'],
+                        'group_id' => $data['group_id'] ? (int)$data['group_id'] : null,
+                        'option_id' => 1, // option_id par défaut (Pharmacie)
+                    ]);
+                    $count++;
+                } catch (\Exception $e) {
+                    $this->command->warn("Erreur lors de la création de l'étudiant {$data['first_name']} {$data['last_name']}: " . $e->getMessage());
+                }
+            }
         }
 
         fclose($csvData);
-
-        // $transRaw = true;
-        // while($data = fgetcsv($csvData, 255, ',') !== false) {
-        //     echo $data[0];
-        //     if(!$transRaw) {
-        //         Etudiant::create([
-        //             "name" => $data[0],
-        //             "faculte" => $data[1],
-        //             "promotion" => $data[2],
-        //         ]);
-        //     }
-        // }
+        
+        $this->command->info("✅ {$count} étudiants ont été créés avec succès !");
     }
 }

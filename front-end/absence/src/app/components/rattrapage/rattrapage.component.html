@@ -1,0 +1,715 @@
+<div class="rattrapage-container">
+  <!-- Header -->
+  <div class="header">
+    <h1>Gestion des Rattrapages</h1>
+    <p class="subtitle">Organisez les rattrapages et gérez les affectations</p>
+  </div>
+
+  <!-- Tabs Navigation -->
+  <mat-tab-group [(selectedIndex)]="activeTabIndex" (selectedTabChange)="onTabChange($event)" *ngIf="!loading" class="tabs-container">
+    <mat-tab label="Affectation d'étudiants">
+      <ng-template matTabLabel>
+        <mat-icon>group</mat-icon>
+        Affectation d'étudiants
+      </ng-template>
+    </mat-tab>
+    
+    <mat-tab label="Rattrapages existants">
+      <ng-template matTabLabel>
+        <mat-icon>assignment</mat-icon>
+        Rattrapages existants
+        <mat-chip *ngIf="rattrapages.length > 0" class="tab-badge">{{ rattrapages.length }}</mat-chip>
+      </ng-template>
+    </mat-tab>
+  </mat-tab-group>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="loading" class="loading-spinner">
+    <div class="spinner"></div>
+    <span>Chargement...</span>
+  </div>
+
+  <!-- Tab Content: Affectation -->
+  <div class="tab-content" *ngIf="activeTab === 'affectation' && !loading">
+    <!-- Filters Section -->
+    <div class="filters-section">
+      <h2>Filtres de sélection</h2>
+    
+    <div class="filters-grid">
+      <!-- Search -->
+      <div class="filter-group">
+        <label for="search">Recherche</label>
+        <div class="search-input-container">
+          <input 
+            id="search"
+            #searchInput
+            type="text" 
+            [(ngModel)]="searchTerm" 
+            (input)="onSearchChange(searchInput.value)"
+            placeholder="Nom, prénom ou matricule..."
+            class="filter-input"
+            [class.searching]="isSearching"
+          >
+          <div class="search-spinner" *ngIf="isSearching">
+            <div class="mini-spinner"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Promotion -->
+      <div class="filter-group">
+        <label for="promotion">Promotion</label>
+        <select 
+          id="promotion"
+          [(ngModel)]="selectedPromotion" 
+          (change)="onFilterChange()"
+          class="filter-select"
+        >
+          <option [value]="null">Toutes les promotions</option>
+          <option *ngFor="let promotion of promotions" [value]="promotion.id">
+            {{ promotion.name }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Etablissement -->
+      <div class="filter-group">
+        <label for="etablissement">Établissement</label>
+        <select 
+          id="etablissement"
+          [(ngModel)]="selectedEtablissement" 
+          (change)="onFilterChange()"
+          class="filter-select"
+        >
+          <option [value]="null">Tous les établissements</option>
+          <option *ngFor="let etablissement of etablissements" [value]="etablissement.id">
+            {{ etablissement.name }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Option -->
+      <div class="filter-group">
+        <label for="option">Option</label>
+        <select 
+          id="option"
+          [(ngModel)]="selectedOption" 
+          (change)="onFilterChange()"
+          class="filter-select"
+        >
+          <option [value]="null">Toutes les options</option>
+          <option *ngFor="let option of options" [value]="option.id">
+            {{ option.name }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Group -->
+      <div class="filter-group">
+        <label for="group">Groupe</label>
+        <select 
+          id="group"
+          [(ngModel)]="selectedGroup" 
+          (change)="onFilterChange()"
+          class="filter-select"
+        >
+          <option [value]="null">Tous les groupes</option>
+          <option *ngFor="let group of groups" [value]="group.id">
+            {{ group.title }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Ville -->
+      <div class="filter-group">
+        <label for="ville">Ville</label>
+        <select 
+          id="ville"
+          [(ngModel)]="selectedVille" 
+          (change)="onFilterChange()"
+          class="filter-select"
+        >
+          <option [value]="null">Toutes les villes</option>
+          <option *ngFor="let ville of villes" [value]="ville.id">
+            {{ ville.name }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Filter Actions -->
+    <div class="filter-actions">
+      <button 
+        type="button" 
+        (click)="clearFilters()" 
+        class="btn btn-secondary"
+      >
+        Effacer les filtres
+      </button>
+    </div>
+  </div>
+
+      <!-- Selection Summary -->
+    <div class="selection-summary" *ngIf="!loading">
+      <div class="summary-info">
+        <span class="total-students">
+          {{ totalStudents }} étudiant(s) au total
+        </span>
+        <span class="current-page-info">
+          | Page {{ currentPage }} sur {{ totalPages }}
+        </span>
+        <span class="selected-students" *ngIf="selectedEtudiantIds.size > 0">
+          | {{ selectedEtudiantIds.size }} sélectionné(s) au total
+        </span>
+      </div>
+    
+    <div class="selection-actions">
+      <button 
+        type="button"
+        (click)="toggleAllEtudiants(true)"
+        class="btn btn-outline"
+        [disabled]="etudiants.length === 0"
+      >
+        Tout sélectionner
+      </button>
+      
+      <button 
+        type="button"
+        (click)="toggleAllEtudiants(false)"
+        class="btn btn-outline"
+        [disabled]="selectedEtudiantIds.size === 0"
+      >
+        Tout désélectionner
+      </button>
+      
+      <button 
+        type="button"
+        (click)="clearAllSelections()"
+        class="btn btn-outline btn-warning"
+        [disabled]="selectedEtudiantIds.size === 0"
+        title="Effacer toutes les sélections"
+      >
+        Effacer sélections ({{ selectedEtudiantIds.size }})
+      </button>
+      
+      <button 
+        type="button"
+        (click)="openCreateModal()"
+        class="btn btn-primary"
+        [disabled]="selectedEtudiantIds.size === 0"
+      >
+        Créer un rattrapage ({{ selectedEtudiantIds.size }})
+      </button>
+    </div>
+  </div>
+
+  <!-- Students List -->
+  <div class="students-section" *ngIf="!loading">
+    <h2>Liste des Étudiants</h2>
+    
+    <div class="students-grid" *ngIf="etudiants.length > 0">
+      <div class="student-header">
+        <div class="checkbox-column">
+          <input 
+            type="checkbox"
+            #selectAllCheckbox
+            [checked]="allFilteredSelected"
+            [indeterminate]="someFilteredSelected"
+            (change)="toggleAllEtudiants(selectAllCheckbox.checked)"
+          >
+        </div>
+        <div class="student-info">Matricule</div>
+        <div class="student-info">Nom complet</div>
+        <div class="student-info">Promotion</div>
+        <div class="student-info">Option</div>
+        <div class="student-info">Groupe</div>
+      </div>
+      
+      <div 
+        *ngFor="let etudiant of etudiants"
+        class="student-row"
+        [class.selected]="etudiant.selected"
+        (click)="toggleEtudiantSelection(etudiant)"
+      >
+        <div class="checkbox-column">
+          <input 
+            type="checkbox"
+            [checked]="etudiant.selected"
+            (click)="$event.stopPropagation()"
+            (change)="toggleEtudiantSelection(etudiant)"
+          >
+        </div>
+        <div class="student-info">{{ etudiant.matricule }}</div>
+        <div class="student-info">{{ etudiant.first_name }} {{ etudiant.last_name }}</div>
+        <div class="student-info">{{ etudiant.promotion?.name || 'N/A' }}</div>
+        <div class="student-info">{{ etudiant.option?.name || 'N/A' }}</div>
+        <div class="student-info">{{ etudiant.group?.title || 'N/A' }}</div>
+      </div>
+    </div>
+    
+    <!-- Pagination -->
+    <div class="pagination-section" *ngIf="totalPages > 1">
+      <div class="pagination-info">
+        <span>Page {{ currentPage }} sur {{ totalPages }} ({{ totalStudents }} étudiants)</span>
+      </div>
+      
+      <div class="pagination-controls">
+        <button 
+          type="button"
+          (click)="firstPage()"
+          class="btn btn-outline btn-sm"
+          [disabled]="!hasPrevPage || loading"
+          title="Première page"
+        >
+          ⏮
+        </button>
+        
+        <button 
+          type="button"
+          (click)="prevPage()"
+          class="btn btn-outline btn-sm"
+          [disabled]="!hasPrevPage || loading"
+          title="Page précédente"
+        >
+          ⏪
+        </button>
+        
+        <span class="page-numbers">
+          <button 
+            *ngFor="let page of getVisiblePages()"
+            type="button"
+            (click)="goToPage(page)"
+            class="btn btn-sm"
+            [class.btn-primary]="page === currentPage"
+            [class.btn-outline]="page !== currentPage"
+            [disabled]="loading"
+          >
+            {{ page }}
+          </button>
+        </span>
+        
+        <button 
+          type="button"
+          (click)="nextPage()"
+          class="btn btn-outline btn-sm"
+          [disabled]="!hasNextPage || loading"
+          title="Page suivante"
+        >
+          ⏩
+        </button>
+        
+        <button 
+          type="button"
+          (click)="lastPage()"
+          class="btn btn-outline btn-sm"
+          [disabled]="!hasNextPage || loading"
+          title="Dernière page"
+        >
+          ⏭
+        </button>
+      </div>
+    </div>
+    
+    <div class="no-students" *ngIf="etudiants.length === 0 && !loading">
+      <p>Aucun étudiant ne correspond aux critères de filtrage.</p>
+    </div>
+    </div>
+  </div>
+
+  <!-- Tab Content: Rattrapages -->
+  <div class="tab-content" *ngIf="activeTab === 'rattrapages' && !loading">
+    <div class="rattrapages-list-section">
+      <h2>Rattrapages existants</h2>
+      
+      <!-- Filtres pour rattrapages -->
+      <mat-card class="filters-section">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>filter_list</mat-icon>
+            Filtres de recherche
+          </mat-card-title>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <!-- Aide pour les filtres de date -->
+          <mat-card class="filter-help">
+            <mat-card-content>
+              <p><mat-icon>info</mat-icon> <strong>Aide :</strong> Utilisez soit la <strong>date exacte</strong> soit la <strong>plage de dates</strong> (date de début + date de fin), mais pas les deux en même temps.</p>
+            </mat-card-content>
+          </mat-card>
+          
+          <div class="filters-grid">
+            <!-- Recherche -->
+            <mat-form-field appearance="outline" class="filter-field">
+              <mat-label>Recherche</mat-label>
+              <input 
+                matInput
+                type="text" 
+                [(ngModel)]="rattrapagesSearchTerm" 
+                (keyup.enter)="searchRattrapages()"
+                placeholder="Nom du rattrapage..."
+              >
+              <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
+
+            <!-- Date exacte -->
+            <mat-form-field appearance="outline" class="filter-field">
+              <mat-label>Date exacte</mat-label>
+              <input 
+                matInput
+                [matDatepicker]="datePicker"
+                [(ngModel)]="rattrapagesDate" 
+                (dateChange)="onDateExactChange()"
+                placeholder="Sélectionner une date"
+              >
+              <mat-datepicker-toggle matSuffix [for]="datePicker"></mat-datepicker-toggle>
+              <mat-datepicker #datePicker></mat-datepicker>
+            </mat-form-field>
+
+            <!-- Plage de dates -->
+            <mat-form-field appearance="outline" class="filter-field">
+              <mat-label>Date de début</mat-label>
+              <input 
+                matInput
+                [matDatepicker]="dateFromPicker"
+                [(ngModel)]="rattrapagesDateFrom" 
+                (dateChange)="onDateRangeChange()"
+                placeholder="Date de début"
+              >
+              <mat-datepicker-toggle matSuffix [for]="dateFromPicker"></mat-datepicker-toggle>
+              <mat-datepicker #dateFromPicker></mat-datepicker>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="filter-field">
+              <mat-label>Date de fin</mat-label>
+              <input 
+                matInput
+                [matDatepicker]="dateToPicker"
+                [(ngModel)]="rattrapagesDateTo" 
+                (dateChange)="onDateRangeChange()"
+                placeholder="Date de fin"
+              >
+              <mat-datepicker-toggle matSuffix [for]="dateToPicker"></mat-datepicker-toggle>
+              <mat-datepicker #dateToPicker></mat-datepicker>
+            </mat-form-field>
+
+            <!-- Heure de début -->
+            <mat-form-field appearance="outline" class="filter-field">
+              <mat-label>Heure de début</mat-label>
+              <input 
+                matInput
+                type="time" 
+                [(ngModel)]="rattrapagesStartHour" 
+                placeholder="HH:MM"
+              >
+              <mat-icon matSuffix>schedule</mat-icon>
+            </mat-form-field>
+
+            <!-- Heure de fin -->
+            <mat-form-field appearance="outline" class="filter-field">
+              <mat-label>Heure de fin</mat-label>
+              <input 
+                matInput
+                type="time" 
+                [(ngModel)]="rattrapagesEndHour" 
+                placeholder="HH:MM"
+              >
+              <mat-icon matSuffix>schedule</mat-icon>
+            </mat-form-field>
+
+            <!-- Tri -->
+            <mat-form-field appearance="outline" class="filter-field">
+              <mat-label>Trier par</mat-label>
+              <mat-select [(ngModel)]="rattrapagesSortBy">
+                <mat-option value="date">Date</mat-option>
+                <mat-option value="name">Nom</mat-option>
+                <mat-option value="start_hour">Heure de début</mat-option>
+                <mat-option value="end_hour">Heure de fin</mat-option>
+                <mat-option value="created_at">Date de création</mat-option>
+              </mat-select>
+              <mat-icon matSuffix>sort</mat-icon>
+            </mat-form-field>
+
+            <!-- Direction du tri -->
+            <mat-form-field appearance="outline" class="filter-field">
+              <mat-label>Direction</mat-label>
+              <mat-select [(ngModel)]="rattrapagesSortDirection">
+                <mat-option value="desc">Décroissant</mat-option>
+                <mat-option value="asc">Croissant</mat-option>
+              </mat-select>
+              <mat-icon matSuffix>arrow_upward</mat-icon>
+            </mat-form-field>
+          </div>
+        </mat-card-content>
+
+        <!-- Actions des filtres -->
+        <mat-card-actions align="end">
+          <button 
+            mat-raised-button 
+            color="primary"
+            (click)="searchRattrapages()" 
+            [disabled]="isRattrapagesFiltering"
+          >
+            <mat-icon>search</mat-icon>
+            <span *ngIf="isRattrapagesFiltering">Recherche...</span>
+            <span *ngIf="!isRattrapagesFiltering">Rechercher</span>
+          </button>
+          
+          <button 
+            mat-button 
+            color="warn"
+            (click)="clearRattrapagesFilters()" 
+            [disabled]="isRattrapagesFiltering"
+          >
+            <mat-icon>clear</mat-icon>
+            Effacer les filtres
+          </button>
+        </mat-card-actions>
+      </mat-card>
+
+      <!-- Résumé des résultats -->
+      <div class="results-summary" *ngIf="!loading">
+        <div class="summary-info">
+          <span class="total-rattrapages">
+            {{ rattrapagesTotal }} rattrapage(s) au total
+          </span>
+          <span class="current-page-info">
+            | Page {{ rattrapagesCurrentPage }} sur {{ rattrapagesTotalPages }}
+          </span>
+          <span class="filtering-indicator" *ngIf="isRattrapagesFiltering">
+            | <span class="loading-text">Recherche en cours...</span>
+          </span>
+        </div>
+      </div>
+      
+      <!-- Indicateur de chargement pour les filtres -->
+      <div class="loading-indicator" *ngIf="isRattrapagesFiltering">
+        <div class="spinner"></div>
+        <span>Recherche en cours...</span>
+      </div>
+      
+      <div class="rattrapages-grid" *ngIf="rattrapages.length > 0 && !isRattrapagesFiltering">
+        <div class="rattrapage-header">
+          <div class="rattrapage-info">Nom</div>
+          <div class="rattrapage-info">Date</div>
+          <div class="rattrapage-info">Heure de début</div>
+          <div class="rattrapage-info">Heure de fin</div>
+          <div class="rattrapage-info">Durée</div>
+          <div class="rattrapage-info">Créé le</div>
+          <div class="rattrapage-info">Actions</div>
+        </div>
+        
+        <div 
+          *ngFor="let rattrapage of rattrapages"
+          class="rattrapage-row"
+        >
+          <div class="rattrapage-info">{{ rattrapage.name }}</div>
+          <div class="rattrapage-info">{{ rattrapage.date }}</div>
+          <div class="rattrapage-info">{{ rattrapage.start_hour }}</div>
+          <div class="rattrapage-info">{{ rattrapage.end_hour }}</div>
+          <div class="rattrapage-info">{{ rattrapage.duration }}</div>
+          <div class="rattrapage-info">{{ rattrapage.created_at | date:'dd/MM/yyyy à HH:mm' }}</div>
+          <div class="rattrapage-info">
+            <button 
+              type="button"
+              (click)="viewRattrapageStudents(rattrapage)"
+              class="btn btn-sm btn-outline"
+              title="Voir les étudiants affectés"
+            >
+              👥 Étudiants
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Pagination pour rattrapages -->
+      <div class="pagination-section" *ngIf="rattrapagesTotalPages > 1">
+        <div class="pagination-info">
+          <span>Page {{ rattrapagesCurrentPage }} sur {{ rattrapagesTotalPages }} ({{ rattrapagesTotal }} rattrapages)</span>
+        </div>
+        
+        <div class="pagination-controls">
+          <button 
+            type="button"
+            (click)="firstRattrapagesPage()"
+            class="btn btn-outline btn-sm"
+            [disabled]="!rattrapagesHasPrevPage || loading"
+            title="Première page"
+          >
+            ⏮
+          </button>
+          
+          <button 
+            type="button"
+            (click)="prevRattrapagesPage()"
+            class="btn btn-outline btn-sm"
+            [disabled]="!rattrapagesHasPrevPage || loading"
+            title="Page précédente"
+          >
+            ⏪
+          </button>
+          
+          <span class="page-numbers">
+            <button 
+              *ngFor="let page of getRattrapagesVisiblePages()"
+              type="button"
+              (click)="goToRattrapagesPage(page)"
+              class="btn btn-sm"
+              [class.btn-primary]="page === rattrapagesCurrentPage"
+              [class.btn-outline]="page !== rattrapagesCurrentPage"
+              [disabled]="loading"
+            >
+              {{ page }}
+            </button>
+          </span>
+          
+          <button 
+            type="button"
+            (click)="nextRattrapagesPage()"
+            class="btn btn-outline btn-sm"
+            [disabled]="!rattrapagesHasNextPage || loading"
+            title="Page suivante"
+          >
+            ⏩
+          </button>
+          
+          <button 
+            type="button"
+            (click)="lastRattrapagesPage()"
+            class="btn btn-outline btn-sm"
+            [disabled]="!rattrapagesHasNextPage || loading"
+            title="Dernière page"
+          >
+            ⏭
+          </button>
+        </div>
+      </div>
+      
+      <div class="no-rattrapages" *ngIf="rattrapages.length === 0 && !loading">
+        <p>Aucun rattrapage ne correspond aux critères de filtrage.</p>
+        <button 
+          type="button"
+          (click)="clearRattrapagesFilters()"
+          class="btn btn-secondary"
+        >
+          Effacer les filtres
+        </button>
+        <button 
+          type="button"
+          (click)="switchTab('affectation')"
+          class="btn btn-primary"
+        >
+          Créer un nouveau rattrapage
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Create Rattrapage Modal -->
+<div class="modal-overlay" *ngIf="showCreateModal" (click)="closeCreateModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Créer un Rattrapage</h2>
+      <button type="button" class="close-btn" (click)="closeCreateModal()">&times;</button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="selected-students-summary">
+        <h3>{{ selectedEtudiants.length }} étudiant(s) sélectionné(s)</h3>
+        <div class="students-preview">
+          <span *ngFor="let etudiant of selectedEtudiants.slice(0, 3)" class="student-tag">
+            {{ etudiant.first_name }} {{ etudiant.last_name }}
+          </span>
+          <span *ngIf="selectedEtudiants.length > 3" class="more-students">
+            +{{ selectedEtudiants.length - 3 }} autres
+          </span>
+        </div>
+      </div>
+      
+      <form [formGroup]="rattrapageForm" (ngSubmit)="createRattrapage()">
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label for="name">Nom du rattrapage *</label>
+            <input 
+              id="name"
+              type="text" 
+              formControlName="name"
+              placeholder="Ex: Rattrapage Mathématiques"
+              class="form-input"
+              [class.error]="rattrapageForm.get('name')?.invalid && rattrapageForm.get('name')?.touched"
+            >
+            <div class="error-message" *ngIf="rattrapageForm.get('name')?.invalid && rattrapageForm.get('name')?.touched">
+              Le nom est requis (minimum 3 caractères)
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="date">Date *</label>
+            <input 
+              id="date"
+              type="date" 
+              formControlName="date"
+              class="form-input"
+              [class.error]="rattrapageForm.get('date')?.invalid && rattrapageForm.get('date')?.touched"
+            >
+            <div class="error-message" *ngIf="rattrapageForm.get('date')?.invalid && rattrapageForm.get('date')?.touched">
+              La date est requise
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="start_hour">Heure de début *</label>
+            <input 
+              id="start_hour"
+              type="time" 
+              formControlName="start_hour"
+              class="form-input"
+              [class.error]="rattrapageForm.get('start_hour')?.invalid && rattrapageForm.get('start_hour')?.touched"
+            >
+            <div class="error-message" *ngIf="rattrapageForm.get('start_hour')?.invalid && rattrapageForm.get('start_hour')?.touched">
+              L'heure de début est requise
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="end_hour">Heure de fin *</label>
+            <input 
+              id="end_hour"
+              type="time" 
+              formControlName="end_hour"
+              class="form-input"
+              [class.error]="rattrapageForm.get('end_hour')?.invalid && rattrapageForm.get('end_hour')?.touched"
+            >
+            <div class="error-message" *ngIf="rattrapageForm.get('end_hour')?.invalid && rattrapageForm.get('end_hour')?.touched">
+              L'heure de fin est requise
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+    
+    <div class="modal-footer">
+      <button 
+        type="button" 
+        (click)="closeCreateModal()" 
+        class="btn btn-secondary"
+        [disabled]="loading"
+      >
+        Annuler
+      </button>
+      
+      <button 
+        type="button" 
+        (click)="createRattrapage()" 
+        class="btn btn-primary"
+        [disabled]="rattrapageForm.invalid || loading"
+      >
+        <span *ngIf="loading">Création...</span>
+        <span *ngIf="!loading">Créer le rattrapage</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+
