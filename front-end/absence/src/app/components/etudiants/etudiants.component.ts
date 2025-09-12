@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
@@ -76,8 +76,12 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
   error = '';
   success = '';
 
+  // Vue
+  viewMode: 'cards' | 'table' = 'cards';
+
   // Sélection
   selectedEtudiants: Etudiant[] = [];
+  selectedEtudiantIds: Set<number> = new Set(); // Garder trace des IDs sélectionnés
   selectAll = false;
 
 
@@ -104,7 +108,8 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
   constructor(
     private etudiantsService: EtudiantsService,
     private fb: FormBuilder,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {
     this.filtersForm = this.fb.group({
       promotion_id: [''],
@@ -120,6 +125,7 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
     this.loadEtudiants();
     this.setupFiltersListener();
     this.setupGlobalSearchListener();
+    this.loadViewMode();
   }
 
   ngOnDestroy(): void {
@@ -209,7 +215,7 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
           this.total = response.total || 0;
           this.lastPage = response.last_page || 1;
           this.loading = false;
-          this.resetSelection();
+          this.syncSelectionAfterLoad();
           
           // Mettre à jour le paginator seulement si nécessaire
           if (this.paginator) {
@@ -309,10 +315,13 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
    * Gérer la sélection
    */
   onSelectEtudiant(etudiant: Etudiant): void {
-    const index = this.selectedEtudiants.findIndex(e => e.id === etudiant.id);
-    if (index > -1) {
-      this.selectedEtudiants.splice(index, 1);
+    if (this.selectedEtudiantIds.has(etudiant.id)) {
+      // Désélectionner
+      this.selectedEtudiantIds.delete(etudiant.id);
+      this.selectedEtudiants = this.selectedEtudiants.filter(e => e.id !== etudiant.id);
     } else {
+      // Sélectionner
+      this.selectedEtudiantIds.add(etudiant.id);
       this.selectedEtudiants.push(etudiant);
     }
     this.updateSelectAllState();
@@ -322,18 +331,53 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
    * Sélectionner/désélectionner tous
    */
   onSelectAll(): void {
-    if (this.selectAll) {
-      this.selectedEtudiants = [...this.etudiants];
+    console.log('onSelectAll called, current selectAll state:', this.selectAll);
+    console.log('Current visible students:', this.etudiants.length);
+    console.log('Current selected IDs:', Array.from(this.selectedEtudiantIds));
+    
+    // Vérifier si tous les étudiants visibles sont déjà sélectionnés
+    const allVisibleSelected = this.etudiants.every(etudiant => this.selectedEtudiantIds.has(etudiant.id));
+    
+    if (allVisibleSelected) {
+      // Désélectionner tous les étudiants visibles
+      console.log('Désélectionner tous les étudiants visibles');
+      this.etudiants.forEach(etudiant => {
+        this.selectedEtudiantIds.delete(etudiant.id);
+      });
+      this.selectedEtudiants = this.selectedEtudiants.filter(e => 
+        !this.etudiants.some(visible => visible.id === e.id)
+      );
     } else {
-      this.selectedEtudiants = [];
+      // Sélectionner tous les étudiants visibles
+      console.log('Sélectionner tous les étudiants visibles');
+      this.etudiants.forEach(etudiant => {
+        if (!this.selectedEtudiantIds.has(etudiant.id)) {
+          this.selectedEtudiantIds.add(etudiant.id);
+          this.selectedEtudiants.push(etudiant);
+        }
+      });
     }
+    
+    console.log('After operation - selected IDs:', Array.from(this.selectedEtudiantIds));
+    this.updateSelectAllState();
+    this.cdr.detectChanges(); // Forcer la mise à jour de la vue
   }
 
   /**
    * Mettre à jour l'état de sélection globale
    */
   updateSelectAllState(): void {
-    this.selectAll = this.selectedEtudiants.length === this.etudiants.length && this.etudiants.length > 0;
+    // Vérifier si tous les étudiants visibles sont sélectionnés
+    const visibleSelectedCount = this.etudiants.filter(e => this.selectedEtudiantIds.has(e.id)).length;
+    const wasSelectAll = this.selectAll;
+    this.selectAll = visibleSelectedCount === this.etudiants.length && this.etudiants.length > 0;
+    
+    console.log('UpdateSelectAllState:', {
+      visibleStudents: this.etudiants.length,
+      visibleSelected: visibleSelectedCount,
+      selectAll: this.selectAll,
+      wasSelectAll: wasSelectAll
+    });
   }
 
   /**
@@ -341,7 +385,32 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
    */
   resetSelection(): void {
     this.selectedEtudiants = [];
+    this.selectedEtudiantIds.clear();
     this.selectAll = false;
+  }
+
+  /**
+   * Synchroniser la sélection après le chargement des données
+   */
+  private syncSelectionAfterLoad(): void {
+    console.log('syncSelectionAfterLoad - before cleanup:', {
+      selectedEtudiants: this.selectedEtudiants.length,
+      selectedIds: Array.from(this.selectedEtudiantIds),
+      visibleStudents: this.etudiants.length
+    });
+    
+    // Nettoyer les étudiants sélectionnés qui ne sont plus dans la liste actuelle
+    this.selectedEtudiants = this.selectedEtudiants.filter(etudiant => 
+      this.etudiants.some(current => current.id === etudiant.id)
+    );
+    
+    console.log('syncSelectionAfterLoad - after cleanup:', {
+      selectedEtudiants: this.selectedEtudiants.length,
+      selectedIds: Array.from(this.selectedEtudiantIds)
+    });
+    
+    // Mettre à jour l'état de sélection globale
+    this.updateSelectAllState();
   }
 
   /**
@@ -371,6 +440,13 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
   openEditModal(etudiant: Etudiant): void {
     this.selectedEtudiant = etudiant;
     this.showEditModal = true;
+  }
+
+  /**
+   * Naviguer vers la page d'édition d'étudiant
+   */
+  navigateToEditStudent(etudiant: Etudiant): void {
+    this.router.navigate(['/dashboard/edit-etudiant', etudiant.id]);
   }
 
   /**
@@ -439,8 +515,32 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.selectedEtudiants.length === 0) return;
 
     if (confirm(`Êtes-vous sûr de vouloir supprimer ${this.selectedEtudiants.length} étudiant(s) ?`)) {
-      // TODO: Implémenter la suppression multiple
-      this.resetSelection();
+      this.loading = true;
+      this.error = '';
+      this.success = '';
+
+      const ids = Array.from(this.selectedEtudiantIds);
+      
+      this.etudiantsService.deleteMultipleEtudiants(ids)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (response) => {
+            this.success = `${response.deleted_count} étudiant(s) supprimé(s) avec succès`;
+            this.resetSelection();
+            this.loadEtudiants(); // Recharger la liste
+            this.loading = false;
+            
+            // Afficher les erreurs s'il y en a
+            if (response.errors && response.errors.length > 0) {
+              console.warn('Erreurs lors de la suppression:', response.errors);
+            }
+          },
+          error: (err) => {
+            console.error('Erreur lors de la suppression multiple:', err);
+            this.error = 'Erreur lors de la suppression des étudiants';
+            this.loading = false;
+          }
+        });
     }
   }
 
@@ -573,14 +673,21 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
    * Vérifier si un étudiant est sélectionné
    */
   isSelected(etudiantId: number): boolean {
-    return this.selectedEtudiants.some(e => e.id === etudiantId);
+    return this.selectedEtudiantIds.has(etudiantId);
   }
 
   /**
    * Obtenir le nombre d'étudiants sélectionnés
    */
   getSelectedCount(): number {
-    return this.selectedEtudiants.length;
+    return this.selectedEtudiantIds.size;
+  }
+
+  /**
+   * Obtenir le nombre d'étudiants sélectionnés visibles sur la page actuelle
+   */
+  getVisibleSelectedCount(): number {
+    return this.etudiants.filter(e => this.selectedEtudiantIds.has(e.id)).length;
   }
 
   /**
@@ -605,6 +712,7 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
     if (studentToView) {
       this.selectedEtudiant = studentToView;
       this.showDetailsModal = true;
+      console.log('Affichage des détails pour:', studentToView);
     }
   }
 
@@ -794,6 +902,31 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
       top: 0,
       behavior: 'smooth'
     });
+  }
+
+  /**
+   * Basculer entre vue cartes et tableau
+   */
+  toggleViewMode(): void {
+    this.viewMode = this.viewMode === 'cards' ? 'table' : 'cards';
+    this.saveViewMode();
+  }
+
+  /**
+   * Sauvegarder le mode de vue dans le localStorage
+   */
+  saveViewMode(): void {
+    localStorage.setItem('etudiants-view-mode', this.viewMode);
+  }
+
+  /**
+   * Charger le mode de vue depuis le localStorage
+   */
+  private loadViewMode(): void {
+    const savedMode = localStorage.getItem('etudiants-view-mode');
+    if (savedMode === 'cards' || savedMode === 'table') {
+      this.viewMode = savedMode;
+    }
   }
 }
 

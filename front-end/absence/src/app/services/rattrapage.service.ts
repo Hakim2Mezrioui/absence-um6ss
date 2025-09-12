@@ -24,9 +24,11 @@ export interface Etudiant {
 export interface Rattrapage {
   id?: number;
   name: string;
+  pointage_start_hour: string;
   start_hour: string;
   end_hour: string;
   date: string;
+  tolerance?: number;
   created_at?: string;
   updated_at?: string;
 }
@@ -129,6 +131,7 @@ export class RattrapageService {
       if (filters.date) params.date = filters.date;
       if (filters.date_from) params.date_from = filters.date_from;
       if (filters.date_to) params.date_to = filters.date_to;
+      if (filters.pointage_start_hour) params.pointage_start_hour = filters.pointage_start_hour;
       if (filters.start_hour) params.start_hour = filters.start_hour;
       if (filters.end_hour) params.end_hour = filters.end_hour;
       if (filters.sort_by) params.sort_by = filters.sort_by;

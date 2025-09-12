@@ -1,0 +1,328 @@
+<div class="min-h-screen bg-gray-50">
+  <!-- Header -->
+  <header class="bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 py-6">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <button 
+            (click)="goBack()"
+            class="p-2 hover:bg-white/20 rounded-lg transition-colors duration-200"
+            title="Retour aux rattrapages">
+            <span class="material-icons">arrow_back</span>
+          </button>
+          
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+              <span class="material-icons text-2xl">assignment</span>
+            </div>
+            <div>
+              <h1 class="text-2xl font-bold">Suivi d'Attendance</h1>
+              <p class="text-purple-100" *ngIf="rattrapage">
+                {{ rattrapage.name }} - {{ rattrapage.date }}
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="flex items-center gap-4" *ngIf="rattrapage">
+          <!-- Export Buttons -->
+          <div class="flex gap-2 mr-4">
+            <button 
+              (click)="exportAttendanceCSV()"
+              [disabled]="isExporting || students.length === 0"
+              class="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center gap-2"
+            >
+              <span *ngIf="isExporting && exportFormat === 'csv'" class="material-icons animate-spin text-sm">refresh</span>
+              <span *ngIf="!isExporting || exportFormat !== 'csv'" class="material-icons text-sm">download</span>
+              <span *ngIf="!isExporting || exportFormat !== 'csv'" class="text-sm">CSV</span>
+              <span *ngIf="isExporting && exportFormat === 'csv'" class="text-sm">Export...</span>
+            </button>
+            <button 
+              (click)="exportAttendanceExcel()"
+              [disabled]="isExporting || students.length === 0"
+              class="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center gap-2"
+            >
+              <span *ngIf="isExporting && exportFormat === 'excel'" class="material-icons animate-spin text-sm">refresh</span>
+              <span *ngIf="!isExporting || exportFormat !== 'excel'" class="material-icons text-sm">table_chart</span>
+              <span *ngIf="!isExporting || exportFormat !== 'excel'" class="text-sm">Excel</span>
+              <span *ngIf="isExporting && exportFormat === 'excel'" class="text-sm">Export...</span>
+            </button>
+          </div>
+          
+          <div class="w-px h-8 bg-white/30"></div>
+          
+          <div class="text-center">
+            <div class="text-lg font-bold">{{ rattrapage.pointage_start_hour }}</div>
+            <div class="text-sm text-purple-200">Pointage</div>
+          </div>
+          <div class="w-px h-8 bg-white/30"></div>
+          <div class="text-center">
+            <div class="text-lg font-bold">{{ rattrapage.start_hour }}</div>
+            <div class="text-sm text-purple-200">Début</div>
+          </div>
+          <div class="w-px h-8 bg-white/30"></div>
+          <div class="text-center">
+            <div class="text-lg font-bold">{{ rattrapage.end_hour }}</div>
+            <div class="text-sm text-purple-200">Fin</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Loading State -->
+  <div class="flex justify-center items-center min-h-96" *ngIf="loading">
+    <div class="text-center text-gray-600">
+      <span class="material-icons animate-spin text-6xl mb-4 block">refresh</span>
+      <p class="text-lg">Chargement des données d'attendance...</p>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div class="max-w-7xl mx-auto px-4 py-8" *ngIf="error && !loading">
+    <div class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+      <span class="material-icons text-red-500 text-6xl mb-4 block">error</span>
+      <h3 class="text-lg font-semibold text-red-800 mb-2">Erreur</h3>
+      <p class="text-red-600 mb-4">{{ error }}</p>
+      <button 
+        (click)="loadRattrapageAttendance()"
+        class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg transition-colors duration-200">
+        Réessayer
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="max-w-7xl mx-auto px-4 py-8" *ngIf="!loading && !error">
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+          <span class="material-icons text-blue-600 text-2xl">people</span>
+        </div>
+        <div class="text-2xl font-bold text-gray-800">{{ totalStudents }}</div>
+        <div class="text-sm text-gray-600">Total</div>
+      </div>
+      
+      <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+          <span class="material-icons text-green-600 text-2xl">check_circle</span>
+        </div>
+        <div class="text-2xl font-bold text-green-600">{{ presents }}</div>
+        <div class="text-sm text-gray-600">Présents</div>
+      </div>
+      
+      <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+        <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+          <span class="material-icons text-red-600 text-2xl">cancel</span>
+        </div>
+        <div class="text-2xl font-bold text-red-600">{{ absents }}</div>
+        <div class="text-sm text-gray-600">Absents</div>
+      </div>
+      
+      <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+        <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+          <span class="material-icons text-yellow-600 text-2xl">schedule</span>
+        </div>
+        <div class="text-2xl font-bold text-yellow-600">{{ lates }}</div>
+        <div class="text-sm text-gray-600">En retard</div>
+      </div>
+      
+    </div>
+
+    <!-- Filters and Search -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+      <div class="flex flex-col lg:flex-row gap-4 items-end">
+        <div class="flex-1">
+          <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+            <span class="material-icons text-blue-600">search</span>
+            Rechercher un étudiant
+          </label>
+          <input 
+            type="text" 
+            [(ngModel)]="searchTerm"
+            (input)="onSearchChange()"
+            placeholder="Nom, prénom ou matricule..."
+            class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+        </div>
+        
+        <div class="flex-1">
+          <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+            <span class="material-icons text-purple-600">filter_list</span>
+            Filtrer par statut
+          </label>
+          <select 
+            [(ngModel)]="statusFilter"
+            (change)="onStatusFilterChange()"
+            class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+            <option value="">Tous les statuts</option>
+            <option value="present">Présent</option>
+            <option value="absent">Absent</option>
+            <option value="late">En retard</option>
+          </select>
+        </div>
+        
+        <div class="flex gap-3">
+          <button 
+            (click)="toggleAlphabeticalGrouping()"
+            [class]="showAlphabeticalGrouping ? 'bg-purple-500 text-white' : 'bg-gray-500 text-white'"
+            class="px-4 py-3 rounded-lg transition-colors duration-200 flex items-center gap-2">
+            <span class="material-icons text-sm">sort_by_alpha</span>
+            {{ showAlphabeticalGrouping ? 'Désactiver' : 'Activer' }} le regroupement
+          </button>
+          
+          <button 
+            (click)="clearFilters()"
+            class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-3 rounded-lg transition-colors duration-200 flex items-center gap-2">
+            <span class="material-icons text-sm">clear</span>
+            Effacer
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Students List -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-3">
+          <span class="material-icons text-purple-600">people</span>
+          Liste des Étudiants
+          <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-semibold">
+            {{ filteredStudents.length }}
+          </span>
+        </h2>
+      </div>
+      
+      <!-- Alphabetical Grouping View -->
+      <div *ngIf="showAlphabeticalGrouping && alphabetGroups.length > 0" class="p-6">
+        <div *ngFor="let letter of alphabetGroups" class="mb-8">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+              <span class="text-purple-600 font-bold">{{ letter }}</span>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800">
+              {{ letter }} ({{ groupedStudents[letter].length }} étudiant(s))
+            </h3>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div 
+              *ngFor="let student of groupedStudents[letter]"
+              class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200">
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                    <span class="material-icons text-purple-600 text-sm">person</span>
+                  </div>
+                  <div>
+                    <div class="font-semibold text-gray-900">{{ student.first_name }} {{ student.last_name }}</div>
+                    <div class="text-sm text-gray-500">{{ student.matricule }}</div>
+                  </div>
+                </div>
+                <span 
+                  [class]="getStatusClass(student.status)"
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium">
+                  <span class="material-icons text-xs mr-1">{{ getStatusIcon(student.status) }}</span>
+                  {{ getStatusText(student.status) }}
+                </span>
+              </div>
+              
+              <div class="text-sm text-gray-600 mb-3">
+                <div>{{ student.promotion.name }} - {{ student.option.name }}</div>
+                <div>{{ student.group.title }}</div>
+              </div>
+              
+              <!-- Heure de pointage -->
+              <div class="border-t border-gray-200 pt-3">
+                <div *ngIf="student.punch_time" class="flex items-center gap-2 text-sm">
+                  <span class="material-icons text-green-600 text-sm">schedule</span>
+                  <div>
+                    <div class="font-medium text-gray-900">{{ formatPunchTime(student.punch_time.time) }}</div>
+                    <div class="text-xs text-gray-500" *ngIf="student.punch_time.device">
+                      {{ student.punch_time.device }}
+                    </div>
+                  </div>
+                </div>
+                <div *ngIf="!student.punch_time" class="flex items-center gap-2 text-sm text-gray-400">
+                  <span class="material-icons text-sm">cancel</span>
+                  <span>Non pointé</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Table View -->
+      <div *ngIf="!showAlphabeticalGrouping" class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Étudiant</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Promotion</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Groupe</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Heure de pointage</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr 
+              *ngFor="let student of filteredStudents"
+              class="hover:bg-gray-50 transition-colors duration-200">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mr-4">
+                    <span class="material-icons text-purple-600 text-sm">person</span>
+                  </div>
+                  <div>
+                    <div class="text-sm font-medium text-gray-900">{{ student.first_name }} {{ student.last_name }}</div>
+                    <div class="text-sm text-gray-500">{{ student.matricule }}</div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ student.promotion.name }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ student.group.title }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span 
+                  [class]="getStatusClass(student.status)"
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium">
+                  <span class="material-icons text-xs mr-1">{{ getStatusIcon(student.status) }}</span>
+                  {{ getStatusText(student.status) }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <div *ngIf="student.punch_time" class="flex items-center gap-2">
+                  <span class="material-icons text-green-600 text-sm">schedule</span>
+                  <div>
+                    <div class="font-medium text-gray-900">{{ formatPunchTime(student.punch_time.time) }}</div>
+                    <div class="text-xs text-gray-500" *ngIf="student.punch_time.device">
+                      {{ student.punch_time.device }}
+                    </div>
+                  </div>
+                </div>
+                <div *ngIf="!student.punch_time" class="flex items-center gap-2 text-gray-400">
+                  <span class="material-icons text-sm">cancel</span>
+                  <span class="text-sm">Non pointé</span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- No Results -->
+      <div class="flex justify-center items-center py-12" *ngIf="filteredStudents.length === 0">
+        <div class="text-center">
+          <span class="material-icons text-gray-400 text-6xl mb-4 block">people_outline</span>
+          <h3 class="text-lg font-semibold text-gray-800 mb-2">Aucun étudiant trouvé</h3>
+          <p class="text-gray-600">Aucun étudiant ne correspond aux critères de filtrage.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

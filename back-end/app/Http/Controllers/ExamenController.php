@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Examen;
 use DateTime;
+use DateTimeZone;
 use Illuminate\Support\Facades\Log;
 
 class ExamenController extends Controller
@@ -43,6 +44,11 @@ class ExamenController extends Controller
                         ->offset(($currentPage - 1) * $size)
                         ->limit($size)
                         ->get();
+
+        // Calculer le statut temporel pour chaque examen
+        $examens->each(function ($examen) {
+            $examen->statut_temporel = $this->calculateStatutTemporel($examen);
+        });
 
         return response()->json([
             "data" => $examens,
@@ -119,6 +125,9 @@ class ExamenController extends Controller
             return response()->json(["message" => "Examen not found", "status" => 404], 404);
         }
 
+        // Calculer le statut temporel
+        $examen->statut_temporel = $this->calculateStatutTemporel($examen);
+
         return response()->json(["examen" => $examen, "status" => 200], 200);
     }
 
@@ -127,8 +136,10 @@ class ExamenController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'date' => 'required|date',
+            'heure_debut_poigntage' => 'required',
             'heure_debut' => 'required',
             'heure_fin' => 'required',
+            'tolerance' => 'nullable|integer|min:0|max:60',
             'option_id' => 'nullable|exists:options,id',
             'salle_id' => 'required|exists:salles,id',
             'promotion_id' => 'required|exists:promotions,id',
@@ -143,8 +154,10 @@ class ExamenController extends Controller
         $examen = Examen::create([
             'title' => $request->title,
             'date' => $request->date,
+            'heure_debut_poigntage' => $request->heure_debut_poigntage,
             'heure_debut' => $request->heure_debut,
             'heure_fin' => $request->heure_fin,
+            'tolerance' => $request->tolerance ?? 15,
             'option_id' => $request->option_id,
             'salle_id' => $request->salle_id,
             'promotion_id' => $request->promotion_id,
@@ -166,6 +179,7 @@ class ExamenController extends Controller
             'date' => 'required|date',
             'heure_debut' => 'required',
             'heure_fin' => 'required',
+            'tolerance' => 'nullable|integer|min:0|max:60',
             'option_id' => 'nullable|exists:options,id',
             'salle_id' => 'required|exists:salles,id',
             'promotion_id' => 'required|exists:promotions,id',
@@ -182,7 +196,7 @@ class ExamenController extends Controller
         }
 
         // Update the Examen with the new data
-        $examen->update($request->only(['title', 'date', 'heure_debut', 'heure_fin', 'option_id', 'salle_id', 'promotion_id', 'type_examen_id', 'etablissement_id', 'group_id', 'ville_id']));
+        $examen->update($request->only(['title', 'date', 'heure_debut', 'heure_fin', 'tolerance', 'option_id', 'salle_id', 'promotion_id', 'type_examen_id', 'etablissement_id', 'group_id', 'ville_id']));
 
         // Return the updated Examen as a JSON response
         return response()->json($examen, 200);
@@ -230,6 +244,7 @@ class ExamenController extends Controller
 
             // Vérifier les en-têtes requis
             $requiredHeaders = ['title', 'date', 'heure_debut', 'heure_fin', 'salle_id', 'promotion_id', 'type_examen_id', 'etablissement_id', 'group_id', 'ville_id'];
+            $optionalHeaders = ['tolerance', 'option_id'];
             $missingHeaders = array_diff($requiredHeaders, $header);
             
             if (!empty($missingHeaders)) {
@@ -429,6 +444,7 @@ class ExamenController extends Controller
             'date' => $date,
             'heure_debut' => $heureDebut,
             'heure_fin' => $heureFin,
+            'tolerance' => !empty($data['tolerance']) ? (int)$data['tolerance'] : 15,
             'option_id' => !empty($data['option_id']) ? $data['option_id'] : null,
             'salle_id' => $data['salle_id'],
             'promotion_id' => $data['promotion_id'],
@@ -501,5 +517,53 @@ class ExamenController extends Controller
                 }
             }
         }
+    }
+
+    /**
+     * Calculer le statut temporel d'un examen
+     */
+    private function calculateStatutTemporel($examen)
+    {
+        $timezone = new DateTimeZone('Africa/Casablanca'); // Définir le fuseau horaire marocain
+        $now = new DateTime('now', $timezone); // Utiliser l'heure actuelle dans le fuseau horaire marocain
+        $examenDate = new DateTime($examen->date, $timezone); // Utiliser la date de l'examen dans le fuseau horaire marocain
+        
+        // Comparer seulement les dates (sans l'heure)
+        $nowDate = $now->format('Y-m-d');
+        $examenDateOnly = $examenDate->format('Y-m-d');
+        
+        // Si la date de l'examen est dans le passé
+        if ($examenDateOnly < $nowDate) {
+            return 'passé';
+        }
+        
+        // Si c'est aujourd'hui, vérifier les heures
+        if ($examenDateOnly === $nowDate) {
+            // Créer les dates complètes avec l'heure en utilisant seulement la date
+            $dateOnly = $examenDate->format('Y-m-d');
+            $heureDebut = new DateTime($dateOnly . ' ' . $examen->heure_debut, $timezone);
+            $heureFin = new DateTime($dateOnly . ' ' . $examen->heure_fin, $timezone);
+            
+            // Comparer les heures avec les secondes pour une précision exacte
+            $nowTime = $now->format('H:i:s');
+            $heureDebutTime = $heureDebut->format('H:i:s');
+            $heureFinTime = $heureFin->format('H:i:s');
+            
+            // Si l'heure actuelle est avant le début
+            if ($nowTime < $heureDebutTime) {
+                return 'futur';
+            }
+            
+            // Si l'heure actuelle est incluse entre le début et la fin (inclus)
+            if ($nowTime >= $heureDebutTime && $nowTime < $heureFinTime) {
+                return 'en_cours';
+            }
+            
+            // Si l'heure actuelle est après la fin
+            return 'passé';
+        }
+        
+        // Si la date est dans le futur
+        return 'futur';
     }
 }

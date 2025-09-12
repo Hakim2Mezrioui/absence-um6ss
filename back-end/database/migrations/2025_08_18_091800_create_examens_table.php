@@ -17,6 +17,7 @@ return new class extends Migration
             $table->date('date');
             $table->time('heure_debut');
             $table->time('heure_fin');
+            $table->time('heure_debut_poigntage');
             $table->foreignId('option_id')->nullable()->constrained('options')->onDelete('cascade');
             $table->foreignId('salle_id')->constrained('salles')->onDelete('cascade');
             $table->foreignId('promotion_id')->constrained('promotions')->onDelete('cascade');

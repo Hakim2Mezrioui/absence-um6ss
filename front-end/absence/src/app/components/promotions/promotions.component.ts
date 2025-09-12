@@ -68,6 +68,7 @@ export class PromotionsComponent implements OnInit, OnDestroy {
   currentPage = 1;
   pageSize = 10;
   totalPages = 0;
+  lastPage = 0;
 
   // Filtres et recherche
   searchValue = '';
@@ -170,6 +171,7 @@ export class PromotionsComponent implements OnInit, OnDestroy {
           this.promotions = response.promotions;
           this.totalPromotions = response.total;
           this.totalPages = response.totalPages;
+          this.lastPage = response.totalPages;
           this.loading = false;
         },
         error: (error) => {
@@ -228,9 +230,14 @@ export class PromotionsComponent implements OnInit, OnDestroy {
   /**
    * Changement de taille de page
    */
-  onPageSizeChange(): void {
-    this.currentPage = 1;
-    this.loadPromotions();
+  onPageSizeChange(event: Event): void {
+    const target = event.target as HTMLSelectElement;
+    const newSize = parseInt(target.value, 10);
+    if (this.pageSize !== newSize) {
+      this.pageSize = newSize;
+      this.currentPage = 1;
+      this.loadPromotions();
+    }
   }
 
   /**
@@ -245,9 +252,10 @@ export class PromotionsComponent implements OnInit, OnDestroy {
   /**
    * Définir la taille de page
    */
-  setPageSize(size: number): void {
-    if (this.pageSize !== size) {
-      this.pageSize = size;
+  setPageSize(size: number | string): void {
+    const newSize = typeof size === 'string' ? parseInt(size, 10) : size;
+    if (this.pageSize !== newSize) {
+      this.pageSize = newSize;
       this.currentPage = 1;
       this.loadPromotions();
     }

@@ -7,13 +7,22 @@
           <h1 class="text-3xl font-bold text-gray-900">Import des Examens</h1>
           <p class="mt-2 text-gray-600">Importez des examens depuis un fichier CSV ou Excel</p>
         </div>
-        <button 
-          (click)="resetForm()"
-          class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center gap-2"
-        >
-          <span class="material-icons">refresh</span>
-          Réinitialiser
-        </button>
+        <div class="flex gap-3">
+          <button 
+            (click)="downloadCSVTemplate()"
+            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center gap-2"
+          >
+            <span class="material-icons">download</span>
+            Télécharger le modèle CSV
+          </button>
+          <button 
+            (click)="resetForm()"
+            class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center gap-2"
+          >
+            <span class="material-icons">refresh</span>
+            Réinitialiser
+          </button>
+        </div>
       </div>
     </div>
 
@@ -128,12 +137,12 @@
           <label class="block text-sm font-medium text-gray-700 mb-2">Groupe *</label>
           <select
             formControlName="group_id"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
             [class.border-red-500]="isFieldInvalid('group_id')"
           >
             <option value="">Sélectionner un groupe</option>
             <option *ngFor="let group of groups" [value]="group.id">
-              {{ group.name }}
+              {{ group.title }}
             </option>
           </select>
           <p *ngIf="isFieldInvalid('group_id')" class="mt-1 text-sm text-red-600">
@@ -165,10 +174,28 @@
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
       <h2 class="text-lg font-semibold text-gray-900 mb-4">Sélection du fichier</h2>
       
-      <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+      <div 
+        class="border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200"
+        [class.border-gray-300]="!isDragOver"
+        [class.drag-over]="isDragOver"
+        (dragover)="onDragOver($event)"
+        (dragleave)="onDragLeave($event)"
+        (drop)="onDrop($event)"
+      >
         <div class="flex flex-col items-center">
-          <span class="material-icons text-4xl text-gray-400 mb-4">cloud_upload</span>
-          <p class="text-lg font-medium text-gray-900 mb-2">Sélectionnez un fichier</p>
+          <span 
+            class="material-icons text-4xl mb-4 transition-all duration-200"
+            [class.text-gray-400]="!isDragOver"
+            [class.drag-icon-animation]="isDragOver"
+          >
+            {{ isDragOver ? 'cloud_upload' : 'cloud_upload' }}
+          </span>
+          <p 
+            class="text-lg font-medium mb-2 transition-colors duration-200"
+            [class.text-gray-900]="!isDragOver"
+          >
+            {{ isDragOver ? 'Déposez votre fichier ici' : 'Sélectionnez un fichier' }}
+          </p>
           <p class="text-sm text-gray-500 mb-4">Formats supportés : CSV, Excel (.xlsx)</p>
           
           <input

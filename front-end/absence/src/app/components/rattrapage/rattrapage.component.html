@@ -1,713 +1,991 @@
-<div class="rattrapage-container">
-  <!-- Header -->
-  <div class="header">
-    <h1>Gestion des Rattrapages</h1>
-    <p class="subtitle">Organisez les rattrapages et gérez les affectations</p>
-  </div>
-
-  <!-- Tabs Navigation -->
-  <mat-tab-group [(selectedIndex)]="activeTabIndex" (selectedTabChange)="onTabChange($event)" *ngIf="!loading" class="tabs-container">
-    <mat-tab label="Affectation d'étudiants">
-      <ng-template matTabLabel>
-        <mat-icon>group</mat-icon>
-        Affectation d'étudiants
-      </ng-template>
-    </mat-tab>
+<div class="min-h-screen bg-gray-50">
+  <!-- Header Optimisé -->
+  <header class="relative bg-gradient-to-br from-purple-600 via-indigo-700 to-blue-800 text-white shadow-2xl overflow-hidden">
+    <!-- Background Pattern -->
+    <div class="absolute inset-0 bg-black/10">
+      <div class="absolute inset-0 bg-gradient-to-r from-purple-600/20 via-transparent to-blue-600/20"></div>
+      <div class="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-48 translate-x-48"></div>
+      <div class="absolute bottom-0 left-0 w-80 h-80 bg-white/5 rounded-full translate-y-40 -translate-x-40"></div>
+    </div>
     
-    <mat-tab label="Rattrapages existants">
-      <ng-template matTabLabel>
-        <mat-icon>assignment</mat-icon>
-        Rattrapages existants
-        <mat-chip *ngIf="rattrapages.length > 0" class="tab-badge">{{ rattrapages.length }}</mat-chip>
-      </ng-template>
-    </mat-tab>
-  </mat-tab-group>
+    <div class="relative max-w-7xl mx-auto px-4 py-8">
+      <div class="flex flex-col lg:flex-row justify-between items-center gap-8">
+        <!-- Titre Principal -->
+        <div class="text-center lg:text-left flex-1">
+          <div class="flex items-center justify-center lg:justify-start gap-4 mb-3">
+            <div class="relative">
+              <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg">
+                <span class="material-icons text-white text-3xl">assignment</span>
+              </div>
+              <div class="absolute -top-1 -right-1 w-6 h-6 bg-orange-400 rounded-full flex items-center justify-center">
+                <span class="material-icons text-white text-sm">schedule</span>
+              </div>
+            </div>
+            <div>
+              <h1 class="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-white to-purple-100 bg-clip-text text-transparent">
+                Gestion des Rattrapages
+              </h1>
+              <div class="flex items-center gap-2 mt-2">
+                <div class="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
+                <p class="text-lg text-purple-100 font-medium">Système de planification intelligent</p>
+              </div>
+            </div>
+          </div>
+          <p class="text-xl text-purple-100/90 max-w-2xl leading-relaxed">
+            Organisez efficacement les rattrapages, gérez les affectations d'étudiants et planifiez les sessions de récupération
+          </p>
+        </div>
 
-  <!-- Loading Spinner -->
-  <div *ngIf="loading" class="loading-spinner">
-    <div class="spinner"></div>
-    <span>Chargement...</span>
-  </div>
+        <!-- Actions Principales -->
+        <div class="flex flex-col sm:flex-row items-center gap-4">
+          <!-- Statistiques Rapides -->
+          <div class="hidden lg:flex items-center gap-6 mr-6">
+            <div class="text-center">
+              <div class="text-2xl font-bold text-white">{{ rattrapagesTotal }}</div>
+              <div class="text-sm text-purple-200">Rattrapages</div>
+            </div>
+            <div class="w-px h-12 bg-white/30"></div>
+            <div class="text-center">
+              <div class="text-2xl font-bold text-white">{{ selectedEtudiants.length }}</div>
+              <div class="text-sm text-purple-200">Sélectionnés</div>
+            </div>
+          </div>
 
-  <!-- Tab Content: Affectation -->
-  <div class="tab-content" *ngIf="activeTab === 'affectation' && !loading">
-    <!-- Filters Section -->
-    <div class="filters-section">
-      <h2>Filtres de sélection</h2>
-    
-    <div class="filters-grid">
-      <!-- Search -->
-      <div class="filter-group">
-        <label for="search">Recherche</label>
-        <div class="search-input-container">
-          <input 
-            id="search"
-            #searchInput
-            type="text" 
-            [(ngModel)]="searchTerm" 
-            (input)="onSearchChange(searchInput.value)"
-            placeholder="Nom, prénom ou matricule..."
-            class="filter-input"
-            [class.searching]="isSearching"
-          >
-          <div class="search-spinner" *ngIf="isSearching">
-            <div class="mini-spinner"></div>
+          <!-- Boutons d'Action -->
+          <div class="flex flex-col sm:flex-row gap-3">
+            <button class="group relative bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 text-white px-6 py-3 rounded-xl transition-all duration-300 flex items-center gap-3 disabled:opacity-50 hover:scale-105 hover:shadow-lg"
+                    (click)="openCreateModal()"
+                    [disabled]="selectedEtudiants.length === 0">
+              <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                <span class="material-icons text-sm">add</span>
+              </div>
+              <span class="font-semibold">Nouveau Rattrapage</span>
+            </button>
+            
+            <button class="group relative bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 text-white px-6 py-3 rounded-xl transition-all duration-300 flex items-center gap-3 disabled:opacity-50 hover:scale-105 hover:shadow-lg"
+                    (click)="switchTab('rattrapages')"
+                    [disabled]="loading">
+              <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                <span class="material-icons text-sm">list</span>
+              </div>
+              <span class="font-semibold">Voir la Liste</span>
+            </button>
           </div>
         </div>
       </div>
 
-      <!-- Promotion -->
-      <div class="filter-group">
-        <label for="promotion">Promotion</label>
-        <select 
-          id="promotion"
-          [(ngModel)]="selectedPromotion" 
-          (change)="onFilterChange()"
-          class="filter-select"
-        >
-          <option [value]="null">Toutes les promotions</option>
-          <option *ngFor="let promotion of promotions" [value]="promotion.id">
-            {{ promotion.name }}
-          </option>
-        </select>
-      </div>
-
-      <!-- Etablissement -->
-      <div class="filter-group">
-        <label for="etablissement">Établissement</label>
-        <select 
-          id="etablissement"
-          [(ngModel)]="selectedEtablissement" 
-          (change)="onFilterChange()"
-          class="filter-select"
-        >
-          <option [value]="null">Tous les établissements</option>
-          <option *ngFor="let etablissement of etablissements" [value]="etablissement.id">
-            {{ etablissement.name }}
-          </option>
-        </select>
-      </div>
-
-      <!-- Option -->
-      <div class="filter-group">
-        <label for="option">Option</label>
-        <select 
-          id="option"
-          [(ngModel)]="selectedOption" 
-          (change)="onFilterChange()"
-          class="filter-select"
-        >
-          <option [value]="null">Toutes les options</option>
-          <option *ngFor="let option of options" [value]="option.id">
-            {{ option.name }}
-          </option>
-        </select>
-      </div>
-
-      <!-- Group -->
-      <div class="filter-group">
-        <label for="group">Groupe</label>
-        <select 
-          id="group"
-          [(ngModel)]="selectedGroup" 
-          (change)="onFilterChange()"
-          class="filter-select"
-        >
-          <option [value]="null">Tous les groupes</option>
-          <option *ngFor="let group of groups" [value]="group.id">
-            {{ group.title }}
-          </option>
-        </select>
-      </div>
-
-      <!-- Ville -->
-      <div class="filter-group">
-        <label for="ville">Ville</label>
-        <select 
-          id="ville"
-          [(ngModel)]="selectedVille" 
-          (change)="onFilterChange()"
-          class="filter-select"
-        >
-          <option [value]="null">Toutes les villes</option>
-          <option *ngFor="let ville of villes" [value]="ville.id">
-            {{ ville.name }}
-          </option>
-        </select>
-      </div>
-    </div>
-
-    <!-- Filter Actions -->
-    <div class="filter-actions">
-      <button 
-        type="button" 
-        (click)="clearFilters()" 
-        class="btn btn-secondary"
-      >
-        Effacer les filtres
-      </button>
-    </div>
-  </div>
-
-      <!-- Selection Summary -->
-    <div class="selection-summary" *ngIf="!loading">
-      <div class="summary-info">
-        <span class="total-students">
-          {{ totalStudents }} étudiant(s) au total
-        </span>
-        <span class="current-page-info">
-          | Page {{ currentPage }} sur {{ totalPages }}
-        </span>
-        <span class="selected-students" *ngIf="selectedEtudiantIds.size > 0">
-          | {{ selectedEtudiantIds.size }} sélectionné(s) au total
-        </span>
-      </div>
-    
-    <div class="selection-actions">
-      <button 
-        type="button"
-        (click)="toggleAllEtudiants(true)"
-        class="btn btn-outline"
-        [disabled]="etudiants.length === 0"
-      >
-        Tout sélectionner
-      </button>
-      
-      <button 
-        type="button"
-        (click)="toggleAllEtudiants(false)"
-        class="btn btn-outline"
-        [disabled]="selectedEtudiantIds.size === 0"
-      >
-        Tout désélectionner
-      </button>
-      
-      <button 
-        type="button"
-        (click)="clearAllSelections()"
-        class="btn btn-outline btn-warning"
-        [disabled]="selectedEtudiantIds.size === 0"
-        title="Effacer toutes les sélections"
-      >
-        Effacer sélections ({{ selectedEtudiantIds.size }})
-      </button>
-      
-      <button 
-        type="button"
-        (click)="openCreateModal()"
-        class="btn btn-primary"
-        [disabled]="selectedEtudiantIds.size === 0"
-      >
-        Créer un rattrapage ({{ selectedEtudiantIds.size }})
-      </button>
-    </div>
-  </div>
-
-  <!-- Students List -->
-  <div class="students-section" *ngIf="!loading">
-    <h2>Liste des Étudiants</h2>
-    
-    <div class="students-grid" *ngIf="etudiants.length > 0">
-      <div class="student-header">
-        <div class="checkbox-column">
-          <input 
-            type="checkbox"
-            #selectAllCheckbox
-            [checked]="allFilteredSelected"
-            [indeterminate]="someFilteredSelected"
-            (change)="toggleAllEtudiants(selectAllCheckbox.checked)"
-          >
+      <!-- Barre de Progression (si chargement) -->
+      <div class="mt-6" *ngIf="loading">
+        <div class="w-full bg-white/20 rounded-full h-2 overflow-hidden">
+          <div class="h-full bg-gradient-to-r from-purple-400 to-blue-400 rounded-full animate-pulse"></div>
         </div>
-        <div class="student-info">Matricule</div>
-        <div class="student-info">Nom complet</div>
-        <div class="student-info">Promotion</div>
-        <div class="student-info">Option</div>
-        <div class="student-info">Groupe</div>
-      </div>
-      
-      <div 
-        *ngFor="let etudiant of etudiants"
-        class="student-row"
-        [class.selected]="etudiant.selected"
-        (click)="toggleEtudiantSelection(etudiant)"
-      >
-        <div class="checkbox-column">
-          <input 
-            type="checkbox"
-            [checked]="etudiant.selected"
-            (click)="$event.stopPropagation()"
-            (change)="toggleEtudiantSelection(etudiant)"
-          >
-        </div>
-        <div class="student-info">{{ etudiant.matricule }}</div>
-        <div class="student-info">{{ etudiant.first_name }} {{ etudiant.last_name }}</div>
-        <div class="student-info">{{ etudiant.promotion?.name || 'N/A' }}</div>
-        <div class="student-info">{{ etudiant.option?.name || 'N/A' }}</div>
-        <div class="student-info">{{ etudiant.group?.title || 'N/A' }}</div>
+        <p class="text-center text-purple-200 mt-2 text-sm">Chargement en cours...</p>
       </div>
     </div>
-    
-    <!-- Pagination -->
-    <div class="pagination-section" *ngIf="totalPages > 1">
-      <div class="pagination-info">
-        <span>Page {{ currentPage }} sur {{ totalPages }} ({{ totalStudents }} étudiants)</span>
-      </div>
-      
-      <div class="pagination-controls">
+  </header>
+
+  <!-- Navigation Tabs -->
+  <div class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4">
+      <nav class="flex space-x-8">
         <button 
-          type="button"
-          (click)="firstPage()"
-          class="btn btn-outline btn-sm"
-          [disabled]="!hasPrevPage || loading"
-          title="Première page"
-        >
-          ⏮
+          (click)="switchTab('affectation')"
+          [class]="activeTab === 'affectation' ? 'border-purple-500 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+          class="py-4 px-1 border-b-2 text-sm font-medium transition-colors duration-200 flex items-center gap-2">
+          <span class="material-icons text-lg">group</span>
+          Affectation d'étudiants
         </button>
-        
         <button 
-          type="button"
-          (click)="prevPage()"
-          class="btn btn-outline btn-sm"
-          [disabled]="!hasPrevPage || loading"
-          title="Page précédente"
-        >
-          ⏪
+          (click)="switchTab('rattrapages')"
+          [class]="activeTab === 'rattrapages' ? 'border-purple-500 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+          class="py-4 px-1 border-b-2 text-sm font-medium transition-colors duration-200 flex items-center gap-2">
+          <span class="material-icons text-lg">assignment</span>
+          Rattrapages existants
+          <span *ngIf="rattrapages.length > 0" class="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-semibold">
+            {{ rattrapages.length }}
+          </span>
         </button>
-        
-        <span class="page-numbers">
-          <button 
-            *ngFor="let page of getVisiblePages()"
-            type="button"
-            (click)="goToPage(page)"
-            class="btn btn-sm"
-            [class.btn-primary]="page === currentPage"
-            [class.btn-outline]="page !== currentPage"
-            [disabled]="loading"
-          >
-            {{ page }}
-          </button>
-        </span>
-        
-        <button 
-          type="button"
-          (click)="nextPage()"
-          class="btn btn-outline btn-sm"
-          [disabled]="!hasNextPage || loading"
-          title="Page suivante"
-        >
-          ⏩
-        </button>
-        
-        <button 
-          type="button"
-          (click)="lastPage()"
-          class="btn btn-outline btn-sm"
-          [disabled]="!hasNextPage || loading"
-          title="Dernière page"
-        >
-          ⏭
-        </button>
-      </div>
-    </div>
-    
-    <div class="no-students" *ngIf="etudiants.length === 0 && !loading">
-      <p>Aucun étudiant ne correspond aux critères de filtrage.</p>
-    </div>
+      </nav>
     </div>
   </div>
 
-  <!-- Tab Content: Rattrapages -->
-  <div class="tab-content" *ngIf="activeTab === 'rattrapages' && !loading">
-    <div class="rattrapages-list-section">
-      <h2>Rattrapages existants</h2>
-      
+  <!-- Loading State -->
+  <div class="flex justify-center items-center min-h-96" *ngIf="loading">
+    <div class="text-center text-gray-600">
+      <span class="material-icons animate-spin text-6xl mb-4 block">refresh</span>
+      <p class="text-lg">Chargement des données...</p>
+    </div>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div class="max-w-7xl mx-auto px-4 py-8" *ngIf="!loading">
+    <!-- Tab Content: Affectation -->
+    <div *ngIf="activeTab === 'affectation'">
+      <!-- Filtres -->
+      <div class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm mb-8">
+        <div class="max-w-7xl mx-auto px-4 py-4">
+          <div class="flex flex-col lg:flex-row gap-4 lg:gap-6 items-end">
+            <div class="flex-1">
+              <label for="search" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                <span class="material-icons text-blue-600 text-lg">search</span>
+                Recherche
+              </label>
+              <div class="relative">
+                <input type="text" 
+                       id="search"
+                       #searchInput
+                       [(ngModel)]="searchTerm" 
+                       (input)="onSearchChange(searchInput.value)"
+                       placeholder="Nom, prénom ou matricule..."
+                       class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 pr-10"
+                       [class.searching]="isSearching">
+                <div class="absolute right-3 top-1/2 transform -translate-y-1/2" *ngIf="isSearching">
+                  <div class="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex-1">
+              <label for="promotion" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                <span class="material-icons text-green-600 text-lg">school</span>
+                Promotion
+              </label>
+              <select id="promotion"
+                      [(ngModel)]="selectedPromotion" 
+                      (change)="onFilterChange()"
+                      class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+                <option [value]="null">Toutes les promotions</option>
+                <option *ngFor="let promotion of promotions" [value]="promotion.id">{{ promotion.name }}</option>
+              </select>
+            </div>
+
+            <div class="flex-1">
+              <label for="etablissement" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                <span class="material-icons text-yellow-600 text-lg">business</span>
+                Établissement
+              </label>
+              <select id="etablissement"
+                      [(ngModel)]="selectedEtablissement" 
+                      (change)="onFilterChange()"
+                      class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+                <option [value]="null">Tous les établissements</option>
+                <option *ngFor="let etablissement of etablissements" [value]="etablissement.id">{{ etablissement.name }}</option>
+              </select>
+            </div>
+
+            <div class="flex-1">
+              <label for="option" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                <span class="material-icons text-purple-600 text-lg">category</span>
+                Option
+              </label>
+              <select id="option"
+                      [(ngModel)]="selectedOption" 
+                      (change)="onFilterChange()"
+                      class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+                <option [value]="null">Toutes les options</option>
+                <option *ngFor="let option of options" [value]="option.id">{{ option.name }}</option>
+              </select>
+            </div>
+
+            <div class="flex-1">
+              <label for="group" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                <span class="material-icons text-cyan-600 text-lg">groups</span>
+                Groupe
+              </label>
+              <select id="group"
+                      [(ngModel)]="selectedGroup" 
+                      (change)="onFilterChange()"
+                      class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+                <option [value]="null">Tous les groupes</option>
+                <option *ngFor="let group of groups" [value]="group.id">{{ group.title }}</option>
+              </select>
+            </div>
+
+            <div class="flex-1">
+              <label for="ville" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                <span class="material-icons text-red-600 text-lg">location_on</span>
+                Ville
+              </label>
+              <select id="ville"
+                      [(ngModel)]="selectedVille" 
+                      (change)="onFilterChange()"
+                      class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+                <option [value]="null">Toutes les villes</option>
+                <option *ngFor="let ville of villes" [value]="ville.id">{{ ville.name }}</option>
+              </select>
+            </div>
+
+            <button class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-all duration-300 flex items-center gap-2"
+                    (click)="clearFilters()">
+              <span class="material-icons">restart_alt</span>
+              Réinitialiser
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistiques et Actions -->
+      <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+          <!-- Statistiques -->
+          <div class="flex flex-wrap items-center gap-6">
+            <div class="text-center">
+              <div class="text-2xl font-bold text-gray-800">{{ totalStudents }}</div>
+              <div class="text-sm text-gray-600">Étudiants au total</div>
+            </div>
+            <div class="w-px h-12 bg-gray-300"></div>
+            <div class="text-center">
+              <div class="text-2xl font-bold text-gray-800">{{ currentPage }}</div>
+              <div class="text-sm text-gray-600">Page {{ currentPage }}/{{ totalPages }}</div>
+            </div>
+            <div class="w-px h-12 bg-gray-300" *ngIf="selectedEtudiantIds.size > 0"></div>
+            <div class="text-center" *ngIf="selectedEtudiantIds.size > 0">
+              <div class="text-2xl font-bold text-purple-600">{{ selectedEtudiantIds.size }}</div>
+              <div class="text-sm text-gray-600">Sélectionnés</div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex flex-wrap gap-3">
+            <button 
+              type="button"
+              (click)="toggleAllEtudiants(true)"
+              class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 disabled:opacity-50"
+              [disabled]="etudiants.length === 0">
+              <span class="material-icons text-sm">select_all</span>
+              Tout sélectionner
+            </button>
+            
+            <button 
+              type="button"
+              (click)="toggleAllEtudiants(false)"
+              class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 disabled:opacity-50"
+              [disabled]="selectedEtudiantIds.size === 0">
+              <span class="material-icons text-sm">deselect</span>
+              Tout désélectionner
+            </button>
+            
+            <button 
+              type="button"
+              (click)="clearAllSelections()"
+              class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 disabled:opacity-50"
+              [disabled]="selectedEtudiantIds.size === 0"
+              title="Effacer toutes les sélections">
+              <span class="material-icons text-sm">clear</span>
+              Effacer ({{ selectedEtudiantIds.size }})
+            </button>
+            
+            <button 
+              type="button"
+              (click)="openCreateModal()"
+              class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 disabled:opacity-50 hover:scale-105"
+              [disabled]="selectedEtudiantIds.size === 0">
+              <span class="material-icons text-sm">add</span>
+              Créer rattrapage ({{ selectedEtudiantIds.size }})
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Liste des Étudiants -->
+      <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-3">
+            <span class="material-icons text-purple-600">people</span>
+            Liste des Étudiants
+          </h2>
+        </div>
+        
+        <div *ngIf="etudiants.length > 0" class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left">
+                  <input 
+                    type="checkbox"
+                    #selectAllCheckbox
+                    [checked]="allFilteredSelected"
+                    [indeterminate]="someFilteredSelected"
+                    (change)="toggleAllEtudiants(selectAllCheckbox.checked)"
+                    class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500">
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Matricule</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom complet</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Promotion</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Option</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Groupe</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr 
+                *ngFor="let etudiant of etudiants; trackBy: trackByEtudiantId"
+                class="hover:bg-gray-50 cursor-pointer transition-colors duration-200"
+                [class.bg-purple-50]="etudiant.selected"
+                (click)="toggleEtudiantSelection(etudiant)">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <input 
+                    type="checkbox"
+                    [checked]="etudiant.selected"
+                    (click)="$event.stopPropagation()"
+                    (change)="toggleEtudiantSelection(etudiant)"
+                    class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500">
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  {{ etudiant.matricule }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-3">
+                      <span class="material-icons text-purple-600 text-sm">person</span>
+                    </div>
+                    <div>
+                      <div class="text-sm font-medium text-gray-900">{{ etudiant.first_name }} {{ etudiant.last_name }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    {{ etudiant.promotion?.name || 'N/A' }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    {{ etudiant.option?.name || 'N/A' }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                    {{ etudiant.group?.title || 'N/A' }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- Pagination -->
+        <div class="px-6 py-4 border-t border-gray-200" *ngIf="totalPages > 1">
+          <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="text-sm text-gray-700">
+              Page {{ currentPage }} sur {{ totalPages }} ({{ totalStudents }} étudiants)
+            </div>
+            
+            <div class="flex items-center gap-2">
+              <button 
+                type="button"
+                (click)="firstPage()"
+                class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                [disabled]="!hasPrevPage || loading"
+                title="Première page">
+                <span class="material-icons text-sm">first_page</span>
+              </button>
+              
+              <button 
+                type="button"
+                (click)="prevPage()"
+                class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                [disabled]="!hasPrevPage || loading"
+                title="Page précédente">
+                <span class="material-icons text-sm">chevron_left</span>
+              </button>
+              
+              <div class="flex items-center gap-1">
+                <button 
+                  *ngFor="let page of getVisiblePages()"
+                  type="button"
+                  (click)="goToPage(page)"
+                  class="px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200"
+                  [class]="page === currentPage ? 'bg-purple-600 text-white' : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'"
+                  [disabled]="loading">
+                  {{ page }}
+                </button>
+              </div>
+              
+              <button 
+                type="button"
+                (click)="nextPage()"
+                class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                [disabled]="!hasNextPage || loading"
+                title="Page suivante">
+                <span class="material-icons text-sm">chevron_right</span>
+              </button>
+              
+              <button 
+                type="button"
+                (click)="lastPage()"
+                class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                [disabled]="!hasNextPage || loading"
+                title="Dernière page">
+                <span class="material-icons text-sm">last_page</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Message aucun résultat -->
+        <div class="flex justify-center items-center py-12" *ngIf="etudiants.length === 0">
+          <div class="text-center">
+            <span class="material-icons text-gray-400 text-6xl mb-4 block">people_outline</span>
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">Aucun étudiant trouvé</h3>
+            <p class="text-gray-600">Aucun étudiant ne correspond aux critères de filtrage.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <!-- Tab Content: Rattrapages -->
+    <div *ngIf="activeTab === 'rattrapages'">
       <!-- Filtres pour rattrapages -->
-      <mat-card class="filters-section">
-        <mat-card-header>
-          <mat-card-title>
-            <mat-icon>filter_list</mat-icon>
-            Filtres de recherche
-          </mat-card-title>
-        </mat-card-header>
-        
-        <mat-card-content>
-          <!-- Aide pour les filtres de date -->
-          <mat-card class="filter-help">
-            <mat-card-content>
-              <p><mat-icon>info</mat-icon> <strong>Aide :</strong> Utilisez soit la <strong>date exacte</strong> soit la <strong>plage de dates</strong> (date de début + date de fin), mais pas les deux en même temps.</p>
-            </mat-card-content>
-          </mat-card>
-          
-          <div class="filters-grid">
-            <!-- Recherche -->
-            <mat-form-field appearance="outline" class="filter-field">
-              <mat-label>Recherche</mat-label>
-              <input 
-                matInput
-                type="text" 
-                [(ngModel)]="rattrapagesSearchTerm" 
-                (keyup.enter)="searchRattrapages()"
-                placeholder="Nom du rattrapage..."
-              >
-              <mat-icon matSuffix>search</mat-icon>
-            </mat-form-field>
-
-            <!-- Date exacte -->
-            <mat-form-field appearance="outline" class="filter-field">
-              <mat-label>Date exacte</mat-label>
-              <input 
-                matInput
-                [matDatepicker]="datePicker"
-                [(ngModel)]="rattrapagesDate" 
-                (dateChange)="onDateExactChange()"
-                placeholder="Sélectionner une date"
-              >
-              <mat-datepicker-toggle matSuffix [for]="datePicker"></mat-datepicker-toggle>
-              <mat-datepicker #datePicker></mat-datepicker>
-            </mat-form-field>
-
-            <!-- Plage de dates -->
-            <mat-form-field appearance="outline" class="filter-field">
-              <mat-label>Date de début</mat-label>
-              <input 
-                matInput
-                [matDatepicker]="dateFromPicker"
-                [(ngModel)]="rattrapagesDateFrom" 
-                (dateChange)="onDateRangeChange()"
-                placeholder="Date de début"
-              >
-              <mat-datepicker-toggle matSuffix [for]="dateFromPicker"></mat-datepicker-toggle>
-              <mat-datepicker #dateFromPicker></mat-datepicker>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="filter-field">
-              <mat-label>Date de fin</mat-label>
-              <input 
-                matInput
-                [matDatepicker]="dateToPicker"
-                [(ngModel)]="rattrapagesDateTo" 
-                (dateChange)="onDateRangeChange()"
-                placeholder="Date de fin"
-              >
-              <mat-datepicker-toggle matSuffix [for]="dateToPicker"></mat-datepicker-toggle>
-              <mat-datepicker #dateToPicker></mat-datepicker>
-            </mat-form-field>
-
-            <!-- Heure de début -->
-            <mat-form-field appearance="outline" class="filter-field">
-              <mat-label>Heure de début</mat-label>
-              <input 
-                matInput
-                type="time" 
-                [(ngModel)]="rattrapagesStartHour" 
-                placeholder="HH:MM"
-              >
-              <mat-icon matSuffix>schedule</mat-icon>
-            </mat-form-field>
-
-            <!-- Heure de fin -->
-            <mat-form-field appearance="outline" class="filter-field">
-              <mat-label>Heure de fin</mat-label>
-              <input 
-                matInput
-                type="time" 
-                [(ngModel)]="rattrapagesEndHour" 
-                placeholder="HH:MM"
-              >
-              <mat-icon matSuffix>schedule</mat-icon>
-            </mat-form-field>
-
-            <!-- Tri -->
-            <mat-form-field appearance="outline" class="filter-field">
-              <mat-label>Trier par</mat-label>
-              <mat-select [(ngModel)]="rattrapagesSortBy">
-                <mat-option value="date">Date</mat-option>
-                <mat-option value="name">Nom</mat-option>
-                <mat-option value="start_hour">Heure de début</mat-option>
-                <mat-option value="end_hour">Heure de fin</mat-option>
-                <mat-option value="created_at">Date de création</mat-option>
-              </mat-select>
-              <mat-icon matSuffix>sort</mat-icon>
-            </mat-form-field>
-
-            <!-- Direction du tri -->
-            <mat-form-field appearance="outline" class="filter-field">
-              <mat-label>Direction</mat-label>
-              <mat-select [(ngModel)]="rattrapagesSortDirection">
-                <mat-option value="desc">Décroissant</mat-option>
-                <mat-option value="asc">Croissant</mat-option>
-              </mat-select>
-              <mat-icon matSuffix>arrow_upward</mat-icon>
-            </mat-form-field>
+      <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
+            <span class="material-icons text-white text-lg">filter_list</span>
           </div>
-        </mat-card-content>
+          <div>
+            <h2 class="text-xl font-semibold text-gray-800">Filtres de recherche</h2>
+            <p class="text-sm text-gray-600">Affinez votre recherche de rattrapages</p>
+          </div>
+        </div>
+
+        <!-- Aide pour les filtres -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <div class="flex items-start gap-3">
+            <span class="material-icons text-blue-600 text-lg">info</span>
+            <div>
+              <p class="text-sm text-blue-800">
+                <strong>Astuce :</strong> Utilisez soit la <strong>date exacte</strong> soit la <strong>plage de dates</strong> (date de début + date de fin), mais pas les deux en même temps.
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
+          <!-- Recherche -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <span class="material-icons text-blue-600 text-lg">search</span>
+              Recherche
+            </label>
+            <input type="text" 
+                   [(ngModel)]="rattrapagesSearchTerm" 
+                   (keyup.enter)="searchRattrapages()"
+                   placeholder="Rechercher un rattrapage..."
+                   class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+          </div>
+
+          <!-- Date exacte -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <span class="material-icons text-green-600 text-lg">event</span>
+              Date exacte
+            </label>
+            <input type="date" 
+                   [(ngModel)]="rattrapagesDate" 
+                   (change)="onDateExactChange()"
+                   class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+          </div>
+
+          <!-- Date de début -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <span class="material-icons text-yellow-600 text-lg">event_available</span>
+              Date de début
+            </label>
+            <input type="date" 
+                   [(ngModel)]="rattrapagesDateFrom" 
+                   (change)="onDateRangeChange()"
+                   placeholder="Date de début"
+                   class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+          </div>
+
+          <!-- Date de fin -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <span class="material-icons text-red-600 text-lg">event_busy</span>
+              Date de fin
+            </label>
+            <input type="date" 
+                   [(ngModel)]="rattrapagesDateTo" 
+                   (change)="onDateRangeChange()"
+                   placeholder="Date de fin"
+                   class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+          </div>
+
+          <!-- Heure de pointage -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <span class="material-icons text-orange-600 text-lg">schedule</span>
+              Heure de pointage
+            </label>
+            <input type="time" 
+                   [(ngModel)]="rattrapagesPointageStartHour" 
+                   placeholder="Heure de pointage"
+                   class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+          </div>
+
+          <!-- Heure de début -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <span class="material-icons text-purple-600 text-lg">schedule</span>
+              Heure de début
+            </label>
+            <input type="time" 
+                   [(ngModel)]="rattrapagesStartHour" 
+                   placeholder="Heure de début"
+                   class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+          </div>
+
+          <!-- Heure de fin -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <span class="material-icons text-cyan-600 text-lg">schedule</span>
+              Heure de fin
+            </label>
+            <input type="time" 
+                   [(ngModel)]="rattrapagesEndHour" 
+                   placeholder="Heure de fin"
+                   class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+          </div>
+
+          <!-- Tri -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <span class="material-icons text-orange-600 text-lg">sort</span>
+              Trier par
+            </label>
+            <select [(ngModel)]="rattrapagesSortBy" 
+                    class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+              <option value="date">Date</option>
+              <option value="name">Nom</option>
+              <option value="pointage_start_hour">Heure de pointage</option>
+              <option value="start_hour">Heure de début</option>
+              <option value="end_hour">Heure de fin</option>
+              <option value="created_at">Date de création</option>
+            </select>
+          </div>
+
+          <!-- Direction du tri -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <span class="material-icons text-indigo-600 text-lg">arrow_upward</span>
+              Direction
+            </label>
+            <select [(ngModel)]="rattrapagesSortDirection" 
+                    class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+              <option value="desc">Décroissant</option>
+              <option value="asc">Croissant</option>
+            </select>
+          </div>
+        </div>
 
         <!-- Actions des filtres -->
-        <mat-card-actions align="end">
+        <div class="flex justify-end gap-3">
           <button 
-            mat-raised-button 
-            color="primary"
+            type="button"
+            (click)="clearRattrapagesFilters()" 
+            class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 disabled:opacity-50"
+            [disabled]="isRattrapagesFiltering">
+            <span class="material-icons text-sm">clear</span>
+            Effacer les filtres
+          </button>
+          
+          <button 
+            type="button"
             (click)="searchRattrapages()" 
-            [disabled]="isRattrapagesFiltering"
-          >
-            <mat-icon>search</mat-icon>
+            class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 disabled:opacity-50"
+            [disabled]="isRattrapagesFiltering">
+            <span class="material-icons text-sm" [class.animate-spin]="isRattrapagesFiltering">search</span>
             <span *ngIf="isRattrapagesFiltering">Recherche...</span>
             <span *ngIf="!isRattrapagesFiltering">Rechercher</span>
           </button>
-          
-          <button 
-            mat-button 
-            color="warn"
-            (click)="clearRattrapagesFilters()" 
-            [disabled]="isRattrapagesFiltering"
-          >
-            <mat-icon>clear</mat-icon>
-            Effacer les filtres
-          </button>
-        </mat-card-actions>
-      </mat-card>
+        </div>
+      </div>
 
       <!-- Résumé des résultats -->
-      <div class="results-summary" *ngIf="!loading">
-        <div class="summary-info">
-          <span class="total-rattrapages">
-            {{ rattrapagesTotal }} rattrapage(s) au total
-          </span>
-          <span class="current-page-info">
-            | Page {{ rattrapagesCurrentPage }} sur {{ rattrapagesTotalPages }}
-          </span>
-          <span class="filtering-indicator" *ngIf="isRattrapagesFiltering">
-            | <span class="loading-text">Recherche en cours...</span>
-          </span>
+      <div class="bg-white rounded-xl shadow-lg p-6 mb-8" *ngIf="!loading">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div class="flex flex-wrap items-center gap-6">
+            <div class="text-center">
+              <div class="text-2xl font-bold text-gray-800">{{ rattrapagesTotal }}</div>
+              <div class="text-sm text-gray-600">Rattrapages au total</div>
+            </div>
+            <div class="w-px h-12 bg-gray-300"></div>
+            <div class="text-center">
+              <div class="text-2xl font-bold text-gray-800">{{ rattrapagesCurrentPage }}</div>
+              <div class="text-sm text-gray-600">Page {{ rattrapagesCurrentPage }}/{{ rattrapagesTotalPages }}</div>
+            </div>
+            <div class="w-px h-12 bg-gray-300" *ngIf="isRattrapagesFiltering"></div>
+            <div class="text-center" *ngIf="isRattrapagesFiltering">
+              <div class="text-2xl font-bold text-purple-600 animate-pulse">...</div>
+              <div class="text-sm text-gray-600">Recherche en cours</div>
+            </div>
+          </div>
         </div>
       </div>
       
       <!-- Indicateur de chargement pour les filtres -->
-      <div class="loading-indicator" *ngIf="isRattrapagesFiltering">
-        <div class="spinner"></div>
-        <span>Recherche en cours...</span>
+      <div class="flex justify-center items-center py-12" *ngIf="isRattrapagesFiltering">
+        <div class="text-center">
+          <span class="material-icons animate-spin text-6xl mb-4 block text-purple-600">refresh</span>
+          <p class="text-lg text-gray-600">Recherche en cours...</p>
+        </div>
       </div>
       
-      <div class="rattrapages-grid" *ngIf="rattrapages.length > 0 && !isRattrapagesFiltering">
-        <div class="rattrapage-header">
-          <div class="rattrapage-info">Nom</div>
-          <div class="rattrapage-info">Date</div>
-          <div class="rattrapage-info">Heure de début</div>
-          <div class="rattrapage-info">Heure de fin</div>
-          <div class="rattrapage-info">Durée</div>
-          <div class="rattrapage-info">Créé le</div>
-          <div class="rattrapage-info">Actions</div>
+      <!-- Liste des rattrapages -->
+      <div class="bg-white rounded-xl shadow-lg overflow-hidden" *ngIf="rattrapages.length > 0 && !isRattrapagesFiltering">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-3">
+            <span class="material-icons text-purple-600">assignment</span>
+            Rattrapages existants
+          </h2>
         </div>
         
-        <div 
-          *ngFor="let rattrapage of rattrapages"
-          class="rattrapage-row"
-        >
-          <div class="rattrapage-info">{{ rattrapage.name }}</div>
-          <div class="rattrapage-info">{{ rattrapage.date }}</div>
-          <div class="rattrapage-info">{{ rattrapage.start_hour }}</div>
-          <div class="rattrapage-info">{{ rattrapage.end_hour }}</div>
-          <div class="rattrapage-info">{{ rattrapage.duration }}</div>
-          <div class="rattrapage-info">{{ rattrapage.created_at | date:'dd/MM/yyyy à HH:mm' }}</div>
-          <div class="rattrapage-info">
-            <button 
-              type="button"
-              (click)="viewRattrapageStudents(rattrapage)"
-              class="btn btn-sm btn-outline"
-              title="Voir les étudiants affectés"
-            >
-              👥 Étudiants
-            </button>
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pointage</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Début</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fin</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durée</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Créé le</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr 
+                *ngFor="let rattrapage of rattrapages; trackBy: trackByRattrapageId"
+                class="hover:bg-gray-50 transition-colors duration-200">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-3">
+                      <span class="material-icons text-purple-600 text-sm">assignment</span>
+                    </div>
+                    <div>
+                      <div class="text-sm font-medium text-gray-900">{{ rattrapage.name }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    {{ rattrapage.date }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                    {{ rattrapage.pointage_start_hour }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    {{ rattrapage.start_hour }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                    {{ rattrapage.end_hour }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                    {{ rattrapage.duration }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {{ rattrapage.created_at | date:'dd/MM/yyyy à HH:mm' }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <div class="flex gap-2">
+                    <button 
+                      type="button"
+                      (click)="viewRattrapageStudents(rattrapage)"
+                      class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg transition-all duration-300 flex items-center gap-2"
+                      title="Voir les étudiants affectés">
+                      <span class="material-icons text-sm">people</span>
+                      Étudiants
+                    </button>
+                    
+                    <button 
+                      type="button"
+                      (click)="viewRattrapageAttendance(rattrapage)"
+                      class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-all duration-300 flex items-center gap-2"
+                      title="Suivre l'attendance">
+                      <span class="material-icons text-sm">assignment_turned_in</span>
+                      Attendance
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- Pagination pour rattrapages -->
+        <div class="px-6 py-4 border-t border-gray-200" *ngIf="rattrapagesTotalPages > 1">
+          <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="text-sm text-gray-700">
+              Page {{ rattrapagesCurrentPage }} sur {{ rattrapagesTotalPages }} ({{ rattrapagesTotal }} rattrapages)
+            </div>
+            
+            <div class="flex items-center gap-2">
+              <button 
+                type="button"
+                (click)="firstRattrapagesPage()"
+                class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                [disabled]="!rattrapagesHasPrevPage || loading"
+                title="Première page">
+                <span class="material-icons text-sm">first_page</span>
+              </button>
+              
+              <button 
+                type="button"
+                (click)="prevRattrapagesPage()"
+                class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                [disabled]="!rattrapagesHasPrevPage || loading"
+                title="Page précédente">
+                <span class="material-icons text-sm">chevron_left</span>
+              </button>
+              
+              <div class="flex items-center gap-1">
+                <button 
+                  *ngFor="let page of getRattrapagesVisiblePages()"
+                  type="button"
+                  (click)="goToRattrapagesPage(page)"
+                  class="px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200"
+                  [class]="page === rattrapagesCurrentPage ? 'bg-purple-600 text-white' : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'"
+                  [disabled]="loading">
+                  {{ page }}
+                </button>
+              </div>
+              
+              <button 
+                type="button"
+                (click)="nextRattrapagesPage()"
+                class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                [disabled]="!rattrapagesHasNextPage || loading"
+                title="Page suivante">
+                <span class="material-icons text-sm">chevron_right</span>
+              </button>
+              
+              <button 
+                type="button"
+                (click)="lastRattrapagesPage()"
+                class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                [disabled]="!rattrapagesHasNextPage || loading"
+                title="Dernière page">
+                <span class="material-icons text-sm">last_page</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Message aucun résultat -->
+        <div class="flex justify-center items-center py-12" *ngIf="rattrapages.length === 0">
+          <div class="text-center">
+            <span class="material-icons text-gray-400 text-6xl mb-4 block">assignment_turned_in</span>
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">Aucun rattrapage trouvé</h3>
+            <p class="text-gray-600 mb-6">Aucun rattrapage ne correspond aux critères de filtrage.</p>
+            <div class="flex flex-col sm:flex-row gap-3 justify-center">
+              <button 
+                type="button"
+                (click)="clearRattrapagesFilters()"
+                class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition-all duration-300 flex items-center gap-2">
+                <span class="material-icons text-sm">clear</span>
+                Effacer les filtres
+              </button>
+              <button 
+                type="button"
+                (click)="switchTab('affectation')"
+                class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg transition-all duration-300 flex items-center gap-2">
+                <span class="material-icons text-sm">add</span>
+                Créer un nouveau rattrapage
+              </button>
+            </div>
           </div>
         </div>
       </div>
-      
-      <!-- Pagination pour rattrapages -->
-      <div class="pagination-section" *ngIf="rattrapagesTotalPages > 1">
-        <div class="pagination-info">
-          <span>Page {{ rattrapagesCurrentPage }} sur {{ rattrapagesTotalPages }} ({{ rattrapagesTotal }} rattrapages)</span>
-        </div>
-        
-        <div class="pagination-controls">
-          <button 
-            type="button"
-            (click)="firstRattrapagesPage()"
-            class="btn btn-outline btn-sm"
-            [disabled]="!rattrapagesHasPrevPage || loading"
-            title="Première page"
-          >
-            ⏮
-          </button>
-          
-          <button 
-            type="button"
-            (click)="prevRattrapagesPage()"
-            class="btn btn-outline btn-sm"
-            [disabled]="!rattrapagesHasPrevPage || loading"
-            title="Page précédente"
-          >
-            ⏪
-          </button>
-          
-          <span class="page-numbers">
-            <button 
-              *ngFor="let page of getRattrapagesVisiblePages()"
-              type="button"
-              (click)="goToRattrapagesPage(page)"
-              class="btn btn-sm"
-              [class.btn-primary]="page === rattrapagesCurrentPage"
-              [class.btn-outline]="page !== rattrapagesCurrentPage"
-              [disabled]="loading"
-            >
-              {{ page }}
-            </button>
-          </span>
-          
-          <button 
-            type="button"
-            (click)="nextRattrapagesPage()"
-            class="btn btn-outline btn-sm"
-            [disabled]="!rattrapagesHasNextPage || loading"
-            title="Page suivante"
-          >
-            ⏩
-          </button>
-          
-          <button 
-            type="button"
-            (click)="lastRattrapagesPage()"
-            class="btn btn-outline btn-sm"
-            [disabled]="!rattrapagesHasNextPage || loading"
-            title="Dernière page"
-          >
-            ⏭
-          </button>
-        </div>
-      </div>
-      
-      <div class="no-rattrapages" *ngIf="rattrapages.length === 0 && !loading">
-        <p>Aucun rattrapage ne correspond aux critères de filtrage.</p>
-        <button 
-          type="button"
-          (click)="clearRattrapagesFilters()"
-          class="btn btn-secondary"
-        >
-          Effacer les filtres
-        </button>
-        <button 
-          type="button"
-          (click)="switchTab('affectation')"
-          class="btn btn-primary"
-        >
-          Créer un nouveau rattrapage
-        </button>
-      </div>
     </div>
   </div>
-</div>
 
 <!-- Create Rattrapage Modal -->
-<div class="modal-overlay" *ngIf="showCreateModal" (click)="closeCreateModal()">
-  <div class="modal-content" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h2>Créer un Rattrapage</h2>
-      <button type="button" class="close-btn" (click)="closeCreateModal()">&times;</button>
+<div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" *ngIf="showCreateModal" (click)="closeCreateModal()">
+  <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-t-2xl">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+            <span class="material-icons text-white text-lg">add</span>
+          </div>
+          <div>
+            <h2 class="text-xl font-semibold">Créer un Rattrapage</h2>
+            <p class="text-purple-100 text-sm">Planifiez une nouvelle session de rattrapage</p>
+          </div>
+        </div>
+        <button type="button" 
+                (click)="closeCreateModal()" 
+                class="w-8 h-8 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-center transition-colors duration-200">
+          <span class="material-icons text-white text-sm">close</span>
+        </button>
+      </div>
     </div>
     
-    <div class="modal-body">
-      <div class="selected-students-summary">
-        <h3>{{ selectedEtudiants.length }} étudiant(s) sélectionné(s)</h3>
-        <div class="students-preview">
-          <span *ngFor="let etudiant of selectedEtudiants.slice(0, 3)" class="student-tag">
+    <!-- Body -->
+    <div class="p-6">
+      <!-- Résumé des étudiants sélectionnés -->
+      <div class="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-6">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+            <span class="material-icons text-purple-600 text-sm">people</span>
+          </div>
+          <h3 class="text-lg font-semibold text-purple-800">{{ selectedEtudiants.length }} étudiant(s) sélectionné(s)</h3>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <span *ngFor="let etudiant of selectedEtudiants.slice(0, 5)" 
+                class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
             {{ etudiant.first_name }} {{ etudiant.last_name }}
           </span>
-          <span *ngIf="selectedEtudiants.length > 3" class="more-students">
-            +{{ selectedEtudiants.length - 3 }} autres
+          <span *ngIf="selectedEtudiants.length > 5" 
+                class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-200 text-purple-800">
+            +{{ selectedEtudiants.length - 5 }} autres
           </span>
         </div>
       </div>
       
+      <!-- Formulaire -->
       <form [formGroup]="rattrapageForm" (ngSubmit)="createRattrapage()">
-        <div class="form-grid">
-          <div class="form-group full-width">
-            <label for="name">Nom du rattrapage *</label>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="md:col-span-2">
+            <label for="name" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <span class="material-icons text-purple-600 text-lg">title</span>
+              Nom du rattrapage *
+            </label>
             <input 
               id="name"
               type="text" 
               formControlName="name"
               placeholder="Ex: Rattrapage Mathématiques"
-              class="form-input"
-              [class.error]="rattrapageForm.get('name')?.invalid && rattrapageForm.get('name')?.touched"
-            >
-            <div class="error-message" *ngIf="rattrapageForm.get('name')?.invalid && rattrapageForm.get('name')?.touched">
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-200"
+              [class.border-red-500]="rattrapageForm.get('name')?.invalid && rattrapageForm.get('name')?.touched">
+            <div class="text-red-500 text-sm mt-1" *ngIf="rattrapageForm.get('name')?.invalid && rattrapageForm.get('name')?.touched">
               Le nom est requis (minimum 3 caractères)
             </div>
           </div>
           
-          <div class="form-group">
-            <label for="date">Date *</label>
+          <div>
+            <label for="date" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <span class="material-icons text-green-600 text-lg">event</span>
+              Date *
+            </label>
             <input 
               id="date"
               type="date" 
               formControlName="date"
-              class="form-input"
-              [class.error]="rattrapageForm.get('date')?.invalid && rattrapageForm.get('date')?.touched"
-            >
-            <div class="error-message" *ngIf="rattrapageForm.get('date')?.invalid && rattrapageForm.get('date')?.touched">
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-200"
+              [class.border-red-500]="rattrapageForm.get('date')?.invalid && rattrapageForm.get('date')?.touched">
+            <div class="text-red-500 text-sm mt-1" *ngIf="rattrapageForm.get('date')?.invalid && rattrapageForm.get('date')?.touched">
               La date est requise
             </div>
           </div>
           
-          <div class="form-group">
-            <label for="start_hour">Heure de début *</label>
+          <div>
+            <label for="pointage_start_hour" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <span class="material-icons text-orange-600 text-lg">schedule</span>
+              Heure de pointage *
+            </label>
+            <input 
+              id="pointage_start_hour"
+              type="time" 
+              formControlName="pointage_start_hour"
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-200"
+              [class.border-red-500]="rattrapageForm.get('pointage_start_hour')?.invalid && rattrapageForm.get('pointage_start_hour')?.touched">
+            <div class="text-red-500 text-sm mt-1" *ngIf="rattrapageForm.get('pointage_start_hour')?.invalid && rattrapageForm.get('pointage_start_hour')?.touched">
+              L'heure de pointage est requise
+            </div>
+          </div>
+          
+          <div>
+            <label for="start_hour" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <span class="material-icons text-blue-600 text-lg">schedule</span>
+              Heure de début *
+            </label>
             <input 
               id="start_hour"
               type="time" 
               formControlName="start_hour"
-              class="form-input"
-              [class.error]="rattrapageForm.get('start_hour')?.invalid && rattrapageForm.get('start_hour')?.touched"
-            >
-            <div class="error-message" *ngIf="rattrapageForm.get('start_hour')?.invalid && rattrapageForm.get('start_hour')?.touched">
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-200"
+              [class.border-red-500]="rattrapageForm.get('start_hour')?.invalid && rattrapageForm.get('start_hour')?.touched">
+            <div class="text-red-500 text-sm mt-1" *ngIf="rattrapageForm.get('start_hour')?.invalid && rattrapageForm.get('start_hour')?.touched">
               L'heure de début est requise
             </div>
           </div>
           
-          <div class="form-group">
-            <label for="end_hour">Heure de fin *</label>
+          <div>
+            <label for="end_hour" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <span class="material-icons text-red-600 text-lg">schedule</span>
+              Heure de fin *
+            </label>
             <input 
               id="end_hour"
               type="time" 
               formControlName="end_hour"
-              class="form-input"
-              [class.error]="rattrapageForm.get('end_hour')?.invalid && rattrapageForm.get('end_hour')?.touched"
-            >
-            <div class="error-message" *ngIf="rattrapageForm.get('end_hour')?.invalid && rattrapageForm.get('end_hour')?.touched">
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-200"
+              [class.border-red-500]="rattrapageForm.get('end_hour')?.invalid && rattrapageForm.get('end_hour')?.touched">
+            <div class="text-red-500 text-sm mt-1" *ngIf="rattrapageForm.get('end_hour')?.invalid && rattrapageForm.get('end_hour')?.touched">
               L'heure de fin est requise
+            </div>
+          </div>
+
+          <div>
+            <label for="tolerance" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <span class="material-icons text-yellow-600 text-lg">timer</span>
+              Tolérance (minutes) *
+            </label>
+            <input 
+              id="tolerance"
+              type="number"
+              min="0"
+              max="60"
+              formControlName="tolerance"
+              placeholder="0 - 60"
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-200"
+              [class.border-red-500]="rattrapageForm.get('tolerance')?.invalid && rattrapageForm.get('tolerance')?.touched">
+            <div class="text-gray-500 text-xs mt-1">
+              Minutes ajoutées après l'heure de début pour considérer un retard.
+            </div>
+            <div class="text-red-500 text-sm mt-1" *ngIf="rattrapageForm.get('tolerance')?.invalid && rattrapageForm.get('tolerance')?.touched">
+              La tolérance doit être comprise entre 0 et 60 minutes
             </div>
           </div>
         </div>
       </form>
     </div>
     
-    <div class="modal-footer">
-      <button 
-        type="button" 
-        (click)="closeCreateModal()" 
-        class="btn btn-secondary"
-        [disabled]="loading"
-      >
-        Annuler
-      </button>
-      
-      <button 
-        type="button" 
-        (click)="createRattrapage()" 
-        class="btn btn-primary"
-        [disabled]="rattrapageForm.invalid || loading"
-      >
-        <span *ngIf="loading">Création...</span>
-        <span *ngIf="!loading">Créer le rattrapage</span>
-      </button>
+    <!-- Footer -->
+    <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
+      <div class="flex justify-end gap-3">
+        <button 
+          type="button" 
+          (click)="closeCreateModal()" 
+          class="px-6 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-300 flex items-center gap-2 disabled:opacity-50"
+          [disabled]="loading">
+          <span class="material-icons text-sm">close</span>
+          Annuler
+        </button>
+        
+        <button 
+          type="button" 
+          (click)="createRattrapage()" 
+          class="px-6 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-all duration-300 flex items-center gap-2 disabled:opacity-50 hover:scale-105"
+          [disabled]="rattrapageForm.invalid || loading">
+          <span class="material-icons text-sm" [class.animate-spin]="loading">add</span>
+          <span *ngIf="loading">Création...</span>
+          <span *ngIf="!loading">Créer le rattrapage</span>
+        </button>
+      </div>
     </div>
   </div>
 </div>

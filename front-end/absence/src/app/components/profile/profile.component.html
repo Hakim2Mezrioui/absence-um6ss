@@ -1,0 +1,358 @@
+<!-- Loading State -->
+<div *ngIf="isLoading" class="profile-loading">
+  <div class="loading-spinner">
+    <span class="material-icons">refresh</span>
+  </div>
+  <p>Chargement du profil...</p>
+</div>
+
+<!-- Profile Content -->
+<div *ngIf="!isLoading && userProfile" class="profile-container">
+  
+  <!-- Profile Header -->
+  <div class="profile-header">
+    <div class="profile-header__background">
+      <div class="profile-header__overlay"></div>
+    </div>
+    
+    <div class="profile-header__content">
+      <!-- Avatar Section -->
+      <div class="profile-avatar">
+        <div class="profile-avatar__container">
+          <div class="profile-avatar__image" 
+               [style.background-image]="userProfile.avatar ? 'url(' + userProfile.avatar + ')' : null">
+            <span *ngIf="!userProfile.avatar" class="material-icons">account_circle</span>
+          </div>
+          <div class="profile-avatar__status" [ngClass]="getStatusClass()"></div>
+        </div>
+        
+        <!-- Avatar Upload (only in edit mode) -->
+        <div *ngIf="isEditing && editMode === 'basic'" class="profile-avatar__upload">
+          <input type="file" 
+                 id="avatar-upload" 
+                 accept="image/*" 
+                 (change)="onFileSelected($event)"
+                 class="profile-avatar__input">
+          <label for="avatar-upload" class="profile-avatar__button">
+            <span class="material-icons">camera_alt</span>
+            <span>Changer la photo</span>
+          </label>
+          <button *ngIf="selectedFile" 
+                  (click)="uploadAvatar()" 
+                  class="profile-avatar__save">
+            <span class="material-icons">check</span>
+          </button>
+        </div>
+      </div>
+      
+      <!-- User Info -->
+      <div class="profile-info">
+        <h1 class="profile-name">{{ getFullName() }}</h1>
+        <p class="profile-role">{{ getRoleName() }}</p>
+        <div class="profile-status">
+          <span class="status-indicator" [ngClass]="getStatusClass()"></span>
+          <span class="status-text">{{ getStatusText() }}</span>
+        </div>
+        <div class="profile-meta">
+          <span class="profile-meta__item">
+            <span class="material-icons">email</span>
+            {{ userProfile.email }}
+          </span>
+          <span class="profile-meta__item">
+            <span class="material-icons">business</span>
+            {{ getEtablissementName() }}
+          </span>
+        </div>
+      </div>
+      
+      <!-- Action Buttons -->
+      <div class="profile-actions">
+        <button *ngIf="!isEditing" 
+                (click)="startEdit('basic')" 
+                class="profile-action profile-action--primary">
+          <span class="material-icons">edit</span>
+          <span>Modifier le profil</span>
+        </button>
+        <button *ngIf="isEditing" 
+                (click)="saveProfile()" 
+                class="profile-action profile-action--success">
+          <span class="material-icons">save</span>
+          <span>Enregistrer</span>
+        </button>
+        <button *ngIf="isEditing" 
+                (click)="cancelEdit()" 
+                class="profile-action profile-action--secondary">
+          <span class="material-icons">close</span>
+          <span>Annuler</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Content -->
+  <div class="profile-content">
+    
+    <!-- Navigation Tabs -->
+    <div class="profile-tabs">
+      <button class="profile-tab" 
+              [class.profile-tab--active]="!isEditing || editMode === 'basic'"
+              (click)="startEdit('basic')">
+        <span class="material-icons">person</span>
+        <span>Informations personnelles</span>
+      </button>
+      <button class="profile-tab" 
+              [class.profile-tab--active]="editMode === 'preferences'"
+              (click)="startEdit('preferences')">
+        <span class="material-icons">settings</span>
+        <span>Préférences</span>
+      </button>
+      <button class="profile-tab" 
+              [class.profile-tab--active]="editMode === 'password'"
+              (click)="startEdit('password')">
+        <span class="material-icons">lock</span>
+        <span>Mot de passe</span>
+      </button>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="profile-tab-content">
+      
+      <!-- Basic Information Tab -->
+      <div *ngIf="!isEditing || editMode === 'basic'" class="profile-section">
+        <div class="profile-section__header">
+          <h2 class="profile-section__title">
+            <span class="material-icons">person</span>
+            Informations personnelles
+          </h2>
+        </div>
+        
+        <div class="profile-section__content">
+          <div class="profile-grid">
+            <div class="profile-field">
+              <label class="profile-field__label">Prénom</label>
+              <div class="profile-field__value">
+                <span *ngIf="!isEditing">{{ userProfile.first_name }}</span>
+                <input *ngIf="isEditing" 
+                       type="text" 
+                       [(ngModel)]="editForm.first_name"
+                       class="profile-field__input">
+              </div>
+            </div>
+            
+            <div class="profile-field">
+              <label class="profile-field__label">Nom</label>
+              <div class="profile-field__value">
+                <span *ngIf="!isEditing">{{ userProfile.last_name }}</span>
+                <input *ngIf="isEditing" 
+                       type="text" 
+                       [(ngModel)]="editForm.last_name"
+                       class="profile-field__input">
+              </div>
+            </div>
+            
+            <div class="profile-field">
+              <label class="profile-field__label">Email</label>
+              <div class="profile-field__value">
+                <span *ngIf="!isEditing">{{ userProfile.email }}</span>
+                <input *ngIf="isEditing" 
+                       type="email" 
+                       [(ngModel)]="editForm.email"
+                       class="profile-field__input">
+              </div>
+            </div>
+            
+            <div class="profile-field">
+              <label class="profile-field__label">Rôle</label>
+              <div class="profile-field__value">
+                <span class="profile-role-badge">{{ getRoleName() }}</span>
+              </div>
+            </div>
+            
+            <div class="profile-field">
+              <label class="profile-field__label">Établissement</label>
+              <div class="profile-field__value">
+                <span *ngIf="!isEditing">{{ getEtablissementName() }}</span>
+                <input *ngIf="isEditing" 
+                       type="text" 
+                       [(ngModel)]="editForm.department"
+                       class="profile-field__input"
+                       disabled>
+              </div>
+            </div>
+            
+            <div class="profile-field">
+              <label class="profile-field__label">Poste</label>
+              <div class="profile-field__value">
+                <span *ngIf="!isEditing">{{ getPostName() }}</span>
+                <input *ngIf="isEditing" 
+                       type="text" 
+                       [(ngModel)]="editForm.position"
+                       class="profile-field__input"
+                       disabled>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- Preferences Tab -->
+      <div *ngIf="editMode === 'preferences'" class="profile-section">
+        <div class="profile-section__header">
+          <h2 class="profile-section__title">
+            <span class="material-icons">settings</span>
+            Préférences
+          </h2>
+        </div>
+        
+        <div class="profile-section__content">
+          <div class="profile-grid">
+            <div class="profile-field">
+              <label class="profile-field__label">Langue</label>
+              <div class="profile-field__value">
+                <span *ngIf="!isEditing">{{ userProfile.preferences?.language || 'Français' }}</span>
+                <select *ngIf="isEditing" 
+                        [(ngModel)]="editForm.preferences.language"
+                        class="profile-field__select">
+                  <option value="fr">Français</option>
+                  <option value="en">English</option>
+                  <option value="ar">العربية</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="profile-field">
+              <label class="profile-field__label">Thème</label>
+              <div class="profile-field__value">
+                <span *ngIf="!isEditing">{{ userProfile.preferences?.theme === 'dark' ? 'Sombre' : 'Clair' }}</span>
+                <select *ngIf="isEditing" 
+                        [(ngModel)]="editForm.preferences.theme"
+                        class="profile-field__select">
+                  <option value="light">Clair</option>
+                  <option value="dark">Sombre</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="profile-field">
+              <label class="profile-field__label">Notifications</label>
+              <div class="profile-field__value">
+                <span *ngIf="!isEditing">{{ userProfile.preferences?.notifications ? 'Activées' : 'Désactivées' }}</span>
+                <div *ngIf="isEditing" class="profile-field__checkbox">
+                  <input type="checkbox" 
+                         [(ngModel)]="editForm.preferences.notifications"
+                         id="notifications">
+                  <label for="notifications">Recevoir les notifications</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Password Tab -->
+      <div *ngIf="editMode === 'password'" class="profile-section">
+        <div class="profile-section__header">
+          <h2 class="profile-section__title">
+            <span class="material-icons">lock</span>
+            Changer le mot de passe
+          </h2>
+        </div>
+        
+        <div class="profile-section__content">
+          <div class="profile-grid">
+            <div class="profile-field">
+              <label class="profile-field__label">Mot de passe actuel</label>
+              <div class="profile-field__value">
+                <input type="password" 
+                       [(ngModel)]="passwordForm.current_password"
+                       class="profile-field__input"
+                       placeholder="Entrez votre mot de passe actuel">
+              </div>
+            </div>
+            
+            <div class="profile-field">
+              <label class="profile-field__label">Nouveau mot de passe</label>
+              <div class="profile-field__value">
+                <input type="password" 
+                       [(ngModel)]="passwordForm.new_password"
+                       class="profile-field__input"
+                       placeholder="Entrez votre nouveau mot de passe">
+              </div>
+            </div>
+            
+            <div class="profile-field">
+              <label class="profile-field__label">Confirmer le mot de passe</label>
+              <div class="profile-field__value">
+                <input type="password" 
+                       [(ngModel)]="passwordForm.confirm_password"
+                       class="profile-field__input"
+                       placeholder="Confirmez votre nouveau mot de passe">
+              </div>
+            </div>
+          </div>
+          
+          <div class="profile-section__actions">
+            <button (click)="changePassword()" 
+                    class="profile-action profile-action--success">
+              <span class="material-icons">lock</span>
+              <span>Changer le mot de passe</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Stats -->
+  <div class="profile-stats">
+    <div class="profile-stat">
+      <div class="profile-stat__icon">
+        <span class="material-icons">calendar_today</span>
+      </div>
+      <div class="profile-stat__content">
+        <h3>Membre depuis</h3>
+        <p>{{ formatDate(userProfile.created_at) }}</p>
+      </div>
+    </div>
+    
+    <div class="profile-stat">
+      <div class="profile-stat__icon">
+        <span class="material-icons">update</span>
+      </div>
+      <div class="profile-stat__content">
+        <h3>Dernière mise à jour</h3>
+        <p>{{ formatDate(userProfile.updated_at) }}</p>
+      </div>
+    </div>
+    
+    <div *ngIf="userProfile.last_login" class="profile-stat">
+      <div class="profile-stat__icon">
+        <span class="material-icons">login</span>
+      </div>
+      <div class="profile-stat__content">
+        <h3>Dernière connexion</h3>
+        <p>{{ formatDateTime(userProfile.last_login) }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Error State -->
+<div *ngIf="!isLoading && !userProfile" class="profile-error">
+  <div class="profile-error__icon">
+    <span class="material-icons">person_off</span>
+  </div>
+  <h2>Utilisateur non authentifié</h2>
+  <p>Vous devez être connecté pour accéder à votre profil.</p>
+  <div class="profile-error__actions">
+    <button (click)="loadUserProfile()" class="profile-action profile-action--primary">
+      <span class="material-icons">refresh</span>
+      <span>Réessayer</span>
+    </button>
+    <a href="/login" class="profile-action profile-action--secondary">
+      <span class="material-icons">login</span>
+      <span>Se connecter</span>
+    </a>
+  </div>
+</div>

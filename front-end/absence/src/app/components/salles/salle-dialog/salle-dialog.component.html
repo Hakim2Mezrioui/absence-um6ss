@@ -14,10 +14,9 @@
       
       <!-- Nom de la salle -->
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Nom de la salle</mat-label>
         <input matInput 
                formControlName="name" 
-               placeholder="Ex: Amphithéâtre A1">
+               placeholder="Nom de la salle">
         <mat-icon matSuffix>meeting_room</mat-icon>
         <mat-error *ngIf="nameControl?.hasError('required')">
           Le nom est obligatoire
@@ -29,8 +28,7 @@
 
       <!-- Établissement -->
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Établissement</mat-label>
-        <mat-select formControlName="etablissement_id">
+        <mat-select formControlName="etablissement_id" placeholder="Établissement">
           <mat-option value="">Sélectionner un établissement</mat-option>
           <mat-option *ngFor="let etablissement of data.etablissements" [value]="etablissement.id">
             {{ etablissement.name }}
@@ -45,10 +43,9 @@
       <!-- Bâtiment et Étage -->
       <div class="form-row">
         <mat-form-field appearance="outline">
-          <mat-label>Bâtiment</mat-label>
           <input matInput 
                  formControlName="batiment" 
-                 placeholder="Ex: Bâtiment A">
+                 placeholder="Bâtiment">
           <mat-icon matSuffix>apartment</mat-icon>
           <mat-error *ngIf="batimentControl?.hasError('required')">
             Le bâtiment est obligatoire
@@ -59,12 +56,11 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Étage</mat-label>
           <input matInput 
                  type="number" 
                  formControlName="etage"
                  min="0"
-                 placeholder="0">
+                 placeholder="Étage">
           <mat-icon matSuffix>stairs</mat-icon>
           <mat-error *ngIf="etageControl?.hasError('required')">
             L'étage est obligatoire
@@ -77,12 +73,11 @@
 
       <!-- Capacité (optionnel) -->
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Capacité (optionnel)</mat-label>
         <input matInput 
                type="number" 
                formControlName="capacite"
                min="1"
-               placeholder="Ex: 50">
+               placeholder="Capacité (optionnel)">
         <mat-icon matSuffix>people</mat-icon>
         <mat-hint>Nombre de places assises</mat-hint>
         <mat-error *ngIf="capaciteControl?.hasError('min')">
@@ -92,11 +87,10 @@
 
       <!-- Description (optionnel) -->
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Description (optionnel)</mat-label>
         <textarea matInput 
                   formControlName="description"
                   rows="3"
-                  placeholder="Ex: Salle équipée d'un projecteur et d'un tableau interactif">
+                  placeholder="Description (optionnel)">
         </textarea>
         <mat-icon matSuffix>description</mat-icon>
         <mat-hint>Équipements, remarques particulières...</mat-hint>

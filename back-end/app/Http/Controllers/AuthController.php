@@ -77,7 +77,13 @@ class AuthController extends Controller
     }
 
     public function logout(Request $request) {
-        $request->user()->tokens()->delete();
+        $user = $request->user();
+        
+        if (!$user) {
+            return response()->json(["message" => "User not authenticated"], 401);
+        }
+        
+        $user->tokens()->delete();
         return response()->json(["message" => "The user is logged out"], 200);
     }
 
@@ -158,6 +164,103 @@ class AuthController extends Controller
                 "error" => $e->getMessage()
             ], 404);
         }
+    }
+
+    public function profile(Request $request) {
+        // Avec Sanctum, l'utilisateur est automatiquement disponible via $request->user()
+        $user = $request->user();
+        
+        // Debug: Log des informations
+        \Log::info('Profile request debug', [
+            'user_from_request' => $user,
+            'user_id' => $user ? $user->id : null,
+            'user_email' => $user ? $user->email : null,
+            'token_abilities' => $user ? $user->currentAccessToken()?->abilities : null,
+            'headers' => $request->headers->all(),
+            'cookies' => $request->cookies->all()
+        ]);
+        
+        if (!$user) {
+            return response()->json([
+                "status" => "error",
+                "message" => "Utilisateur non authentifié",
+                "user" => null,
+                "debug" => [
+                    "has_token" => $request->bearerToken() ? true : false,
+                    "cookies_count" => count($request->cookies->all()),
+                    "auth_header" => $request->header('Authorization')
+                ]
+            ], 401);
+        }
+        
+        // Charger les relations nécessaires
+        $user->load(['role', 'post', 'etablissement']);
+        
+        return response()->json([
+            "status" => "success",
+            "user" => $user,
+            "debug" => [
+                "user_id" => $user->id,
+                "has_token" => $request->bearerToken() ? true : false,
+                "cookies_count" => count($request->cookies->all())
+            ]
+        ], 200);
+    }
+
+    public function changePassword(Request $request) {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json([
+                "status" => "error",
+                "message" => "Utilisateur non authentifié",
+                "user" => null
+            ], 401);
+        }
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json([
+                "status" => "error",
+                "message" => "Mot de passe actuel incorrect",
+                "user" => null
+            ], 401);
+        }
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+        return response()->json(["message" => "Mot de passe modifié avec succès"], 200);
+    }
+
+    public function uploadAvatar(Request $request) {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json([
+                "status" => "error",
+                "message" => "Utilisateur non authentifié",
+                "user" => null
+            ], 401);
+        }
+
+        $request->validate([
+            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
+        ]);
+
+        if ($request->hasFile('avatar')) {
+            $file = $request->file('avatar');
+            $filename = time() . '_' . $user->id . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('avatars', $filename, 'public');
+            
+            $user->avatar = '/storage/' . $path;
+            $user->save();
+
+            return response()->json([
+                "status" => "success",
+                "message" => "Avatar uploadé avec succès",
+                "avatar_url" => $user->avatar
+            ], 200);
+        }
+
+        return response()->json([
+            "status" => "error",
+            "message" => "Aucun fichier uploadé"
+        ], 400);
     }
 
     public function destroy(Request $request, $id) {

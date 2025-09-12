@@ -29,6 +29,7 @@ export class ImportExamensComponent implements OnInit, OnDestroy {
   // Fichier sélectionné
   selectedFile: File | null = null;
   filePreview: FilePreviewItem[] = [];
+  isDragOver = false;
   
   // Options de formulaire
   etablissements: any[] = [];
@@ -126,6 +127,52 @@ export class ImportExamensComponent implements OnInit, OnDestroy {
     }
   }
 
+  // Gérer le drag over
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = true;
+  }
+
+  // Gérer le drag leave
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = false;
+  }
+
+  // Gérer le drop
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = false;
+
+    const files = event.dataTransfer?.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      if (this.isValidFileType(file)) {
+        this.selectedFile = file;
+        this.previewFile(file);
+        this.error = ''; // Clear any previous errors
+      } else {
+        this.error = 'Format de fichier non supporté. Utilisez CSV ou Excel (.xlsx)';
+        this.selectedFile = null;
+      }
+    }
+  }
+
+  // Vérifier si le type de fichier est valide
+  private isValidFileType(file: File): boolean {
+    const validTypes = [
+      'text/csv',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ];
+    const validExtensions = ['.csv', '.xlsx'];
+    
+    return validTypes.includes(file.type) || 
+           validExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+  }
+
   // Prévisualiser le fichier
   previewFile(file: File): void {
     if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
@@ -215,6 +262,7 @@ export class ImportExamensComponent implements OnInit, OnDestroy {
           date: this.formatDate(item.row['date']),
           heure_debut: this.formatTime(item.row['heure_debut'] || item.row['heure'] || ''),
           heure_fin: this.formatTime(item.row['heure_fin'] || item.row['heure_fin'] || ''),
+          heure_debut_poigntage: this.formatTime(item.row['heure_debut_poigntage'] || item.row['heure_debut_pointage'] || ''),
           type_examen_id: formData.type_examen_id,
           etablissement_id: formData.etablissement_id,
           promotion_id: formData.promotion_id,
@@ -367,6 +415,7 @@ export class ImportExamensComponent implements OnInit, OnDestroy {
     this.importResults = { total: 0, success: 0, errors: 0, details: [] };
     this.error = '';
     this.success = '';
+    this.isDragOver = false;
   }
 
   // Marquer tous les champs comme touchés
@@ -398,5 +447,39 @@ export class ImportExamensComponent implements OnInit, OnDestroy {
   getHeaders(): string[] {
     if (this.filePreview.length === 0) return [];
     return Object.keys(this.filePreview[0].row);
+  }
+
+  // Télécharger le modèle CSV
+  downloadCSVTemplate(): void {
+    const csvContent = this.generateCSVTemplate();
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', 'modele_examens.csv');
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  }
+
+  // Générer le contenu du modèle CSV
+  private generateCSVTemplate(): string {
+    const headers = ['title', 'date', 'heure_debut', 'heure_fin', 'heure_debut_poigntage'];
+    const sampleData = [
+      ['Examen de Mathématiques', '2025-01-15', '09:00', '11:00', '08:45'],
+      ['Examen de Physique', '2025-01-16', '14:00', '16:00', '13:45'],
+      ['Examen de Chimie', '2025-01-17', '10:00', '12:00', '09:45']
+    ];
+
+    let csvContent = headers.join(',') + '\n';
+    sampleData.forEach(row => {
+      csvContent += row.join(',') + '\n';
+    });
+
+    return csvContent;
   }
 }

@@ -99,6 +99,8 @@ class ExamenSeeder extends Seeder
                     'date' => $currentDate->toDateString(),
                     'heure_debut' => '08:00:00',
                     'heure_fin' => '10:00:00',
+                    'heure_debut_poigntage' => '07:30:00',
+                    'tolerance' => rand(10, 30), // Tolérance aléatoire entre 10 et 30 minutes
                     'option_id' => $options[array_rand($options)],
                     'salle_id' => $salles[array_rand($salles)],
                     'promotion_id' => $promotions[array_rand($promotions)],
@@ -116,6 +118,8 @@ class ExamenSeeder extends Seeder
                     'date' => $currentDate->toDateString(),
                     'heure_debut' => '14:00:00',
                     'heure_fin' => '16:00:00',
+                    'heure_debut_poigntage' => '13:30:00',
+                    'tolerance' => rand(10, 30), // Tolérance aléatoire entre 10 et 30 minutes
                     'option_id' => $options[array_rand($options)],
                     'salle_id' => $salles[array_rand($salles)],
                     'promotion_id' => $promotions[array_rand($promotions)],

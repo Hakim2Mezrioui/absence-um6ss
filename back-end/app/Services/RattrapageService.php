@@ -109,6 +109,11 @@ class RattrapageService extends BaseService
             $query->whereDate('date', '<=', $filters['date_to']);
         }
 
+        // Filtre par heure de pointage
+        if (!empty($filters['pointage_start_hour'])) {
+            $query->whereTime('pointage_start_hour', '>=', $filters['pointage_start_hour']);
+        }
+
         // Filtre par heure de début
         if (!empty($filters['start_hour'])) {
             $query->whereTime('start_hour', '>=', $filters['start_hour']);
@@ -124,7 +129,7 @@ class RattrapageService extends BaseService
         $sortDirection = $filters['sort_direction'] ?? 'desc';
         
         // Validation des colonnes de tri
-        $allowedSortColumns = ['date', 'name', 'start_hour', 'end_hour', 'created_at'];
+        $allowedSortColumns = ['date', 'name', 'pointage_start_hour', 'start_hour', 'end_hour', 'created_at'];
         if (!in_array($sortBy, $allowedSortColumns)) {
             $sortBy = 'date';
         }
@@ -135,7 +140,7 @@ class RattrapageService extends BaseService
         }
 
         // Tri spécial pour les colonnes de type time
-        if ($sortBy === 'start_hour' || $sortBy === 'end_hour') {
+        if ($sortBy === 'pointage_start_hour' || $sortBy === 'start_hour' || $sortBy === 'end_hour') {
             $query->orderByRaw("TIME($sortBy) $sortDirection");
         } else {
             $query->orderBy($sortBy, $sortDirection);
@@ -209,7 +214,7 @@ class RattrapageService extends BaseService
             }, $header);
 
             // Vérifier les en-têtes requis
-            $requiredHeaders = ['name', 'date', 'start_hour', 'end_hour'];
+            $requiredHeaders = ['name', 'date', 'pointage_start_hour', 'start_hour', 'end_hour'];
             $missingHeaders = array_diff($requiredHeaders, $header);
             
             if (!empty($missingHeaders)) {
@@ -311,6 +316,10 @@ class RattrapageService extends BaseService
             throw new \Exception('La date est requise');
         }
 
+        if (empty($data['pointage_start_hour'])) {
+            throw new \Exception('L\'heure de pointage est requise');
+        }
+
         if (empty($data['start_hour'])) {
             throw new \Exception('L\'heure de début est requise');
         }
@@ -330,6 +339,11 @@ class RattrapageService extends BaseService
         }
 
         // Validation et transformation des heures
+        $pointageStartHour = \DateTime::createFromFormat('H:i', $data['pointage_start_hour']);
+        if (!$pointageStartHour) {
+            throw new \Exception('Format d\'heure de pointage invalide. Utilisez HH:MM');
+        }
+
         $startHour = \DateTime::createFromFormat('H:i', $data['start_hour']);
         if (!$startHour) {
             throw new \Exception('Format d\'heure de début invalide. Utilisez HH:MM');
@@ -358,6 +372,7 @@ class RattrapageService extends BaseService
         return [
             'name' => trim($data['name']),
             'date' => $date->format('Y-m-d'),
+            'pointage_start_hour' => $pointageStartHour->format('H:i:s'),
             'start_hour' => $startHour->format('H:i:s'),
             'end_hour' => $endHour->format('H:i:s')
         ];

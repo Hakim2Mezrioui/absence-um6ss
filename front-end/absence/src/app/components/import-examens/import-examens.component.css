@@ -16,11 +16,54 @@
 /* Styles pour la zone de dépôt de fichier */
 .border-dashed {
   border-style: dashed;
+  transition: all 0.2s ease-in-out;
 }
 
 .border-dashed:hover {
   border-color: #3b82f6;
   background-color: #f8fafc;
+}
+
+/* Styles pour le drag and drop */
+.drag-over {
+  border-color: #3b82f6 !important;
+  background-color: #eff6ff !important;
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.drag-over .material-icons {
+  color: #3b82f6 !important;
+  transform: scale(1.1);
+}
+
+.drag-over p {
+  color: #1e40af !important;
+}
+
+/* Animation pour l'icône lors du drag */
+.drag-icon-animation {
+  animation: bounce 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes bounce {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-4px);
+  }
+}
+
+/* Styles pour les états de validation de fichier */
+.file-valid {
+  border-color: #10b981;
+  background-color: #f0fdf4;
+}
+
+.file-invalid {
+  border-color: #ef4444;
+  background-color: #fef2f2;
 }
 
 /* Styles pour les tableaux */

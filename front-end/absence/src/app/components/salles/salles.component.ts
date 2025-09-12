@@ -354,6 +354,14 @@ export class SallesComponent implements OnInit {
   }
 
   /**
+   * Obtenir le nom de l'établissement par son ID
+   */
+  getEtablissementName(etablissementId: string): string {
+    const etablissement = this.etablissements.find(e => e.id.toString() === etablissementId);
+    return etablissement ? etablissement.name : 'Établissement inconnu';
+  }
+
+  /**
    * Afficher un message
    */
   private showSnackBar(message: string, type: 'success' | 'error'): void {

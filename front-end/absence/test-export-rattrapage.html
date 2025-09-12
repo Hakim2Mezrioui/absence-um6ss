@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Export Rattrapage</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+        .button {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+        .button.success {
+            background: #28a745;
+        }
+        .button.warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .code {
+            background: #f1f1f1;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 Test d'Export Rattrapage</h1>
+            <p>Vérification des fonctionnalités d'exportation CSV et Excel</p>
+        </div>
+
+        <div class="test-section">
+            <h3>✅ Fonctionnalités implémentées</h3>
+            <ul>
+                <li><strong>Export CSV :</strong> Génération de fichier CSV avec données d'attendance</li>
+                <li><strong>Export Excel :</strong> Génération de fichier Excel multi-feuilles</li>
+                <li><strong>Interface utilisateur :</strong> Boutons d'export dans le header</li>
+                <li><strong>Gestion d'état :</strong> Indicateurs de chargement et désactivation des boutons</li>
+                <li><strong>Notifications :</strong> Messages de succès et d'erreur</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h3>🔧 Configuration requise</h3>
+            <div class="code">
+                <strong>Frontend :</strong><br>
+                - Angular 15+<br>
+                - Bibliothèque XLSX installée<br>
+                - Composant rattrapage-attendance mis à jour<br><br>
+                
+                <strong>Backend :</strong><br>
+                - Endpoint /api/rattrapages/{id}/attendance fonctionnel<br>
+                - Données d'attendance disponibles
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>📋 Structure des fichiers exportés</h3>
+            <div class="code">
+                <strong>CSV :</strong><br>
+                - Informations du rattrapage<br>
+                - Statistiques (total, présents, absents, retards, excusés)<br>
+                - Liste des étudiants avec statuts d'attendance<br><br>
+                
+                <strong>Excel :</strong><br>
+                - Feuille 1: Informations du rattrapage<br>
+                - Feuille 2: Liste des étudiants<br>
+                - Feuille 3: Statistiques détaillées
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🚀 Comment tester</h3>
+            <ol>
+                <li>Accéder à un rattrapage existant via l'interface</li>
+                <li>Cliquer sur "Voir l'attendance" pour le rattrapage</li>
+                <li>Vérifier que les boutons CSV et Excel sont visibles dans le header</li>
+                <li>Cliquer sur "CSV" pour tester l'export CSV</li>
+                <li>Cliquer sur "Excel" pour tester l'export Excel</li>
+                <li>Vérifier que les fichiers se téléchargent correctement</li>
+            </ol>
+        </div>
+
+        <div class="test-section">
+            <h3>🐛 Dépannage</h3>
+            <div class="status error">
+                <strong>Problème :</strong> Boutons d'export non visibles<br>
+                <strong>Solution :</strong> Vérifier que le composant rattrapage-attendance est bien utilisé (pas attendance-rattrapage)
+            </div>
+            <div class="status error">
+                <strong>Problème :</strong> Erreur lors de l'export<br>
+                <strong>Solution :</strong> Vérifier que la bibliothèque XLSX est installée : <code>npm install xlsx</code>
+            </div>
+            <div class="status error">
+                <strong>Problème :</strong> Fichier vide<br>
+                <strong>Solution :</strong> Vérifier qu'il y a des étudiants assignés au rattrapage
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>📁 Fichiers modifiés</h3>
+            <div class="code">
+                front-end/absence/src/app/components/rattrapage-attendance/<br>
+                ├── rattrapage-attendance.component.ts (méthodes d'export ajoutées)<br>
+                └── rattrapage-attendance.component.html (boutons d'export ajoutés)<br><br>
+                
+                back-end/app/Http/Controllers/RattrapageController.php (méthodes d'export backend)<br>
+                back-end/routes/api.php (routes d'export ajoutées)
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>✨ Fonctionnalités avancées</h3>
+            <ul>
+                <li><strong>Formatage intelligent :</strong> Dates et heures formatées en français</li>
+                <li><strong>Noms de fichiers descriptifs :</strong> rattrapage_attendance_2024-01-15_08-30.csv</li>
+                <li><strong>Gestion des erreurs :</strong> Messages d'erreur explicites</li>
+                <li><strong>Indicateurs visuels :</strong> Boutons désactivés pendant l'export</li>
+                <li><strong>Statistiques complètes :</strong> Pourcentages et totaux</li>
+            </ul>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <button class="button success" onclick="window.open('/dashboard/rattrapages', '_blank')">
+                🚀 Tester l'interface
+            </button>
+        </div>
+    </div>
+
+    <script>
+        console.log('🧪 Test d\'export rattrapage - Page de test chargée');
+        console.log('✅ Fonctionnalités d\'exportation implémentées :');
+        console.log('   - Export CSV côté frontend');
+        console.log('   - Export Excel côté frontend');
+        console.log('   - Interface utilisateur mise à jour');
+        console.log('   - Gestion d\'état et notifications');
+    </script>
+</body>
+</html>

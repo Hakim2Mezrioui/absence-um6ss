@@ -103,7 +103,6 @@ export class AbsencesComponent implements OnInit, OnDestroy {
   }
   
   ngOnInit(): void {
-    console.log('📋 Composant Absences initialisé');
     this.setupSearchSubscription();
     this.testApiConnection();
     this.loadAbsences();
@@ -152,15 +151,13 @@ export class AbsencesComponent implements OnInit, OnDestroy {
    * Tester la connexion à l'API
    */
   testApiConnection(): void {
-    console.log('🔗 Test de connexion à l\'API des absences...');
     this.absenceService.testConnection()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          console.log('✅ Connexion réussie à l\'API:', response);
+          // Connexion réussie
         },
         error: (error) => {
-          console.error('❌ Erreur de connexion à l\'API:', error);
           this.error = 'Impossible de se connecter au serveur. Vérifiez que le backend Laravel est démarré.';
         }
       });
@@ -189,34 +186,16 @@ export class AbsencesComponent implements OnInit, OnDestroy {
       }
     });
     
-    console.log('📊 Chargement des absences avec filtres:', filters);
-    
     this.absenceService.getAbsences(filters)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          console.log('✅ Absences chargées:', response);
-          console.log('📊 Première absence pour debug:', response.absences[0]);
-          
-          // Debug pour vérifier les données étudiants
-          response.absences.forEach((absence, index) => {
-            if (index < 3) { // Afficher les 3 premières pour debug
-              console.log(`👤 Étudiant ${index + 1}:`, {
-                etudiant_id: absence.etudiant_id,
-                etudiant_data: absence.etudiant,
-                matricule: absence.etudiant?.matricule,
-                nom: absence.etudiant?.first_name + ' ' + absence.etudiant?.last_name
-              });
-            }
-          });
-          
           this.absences = response.absences;
           this.totalItems = response.total;
           this.totalPages = response.totalPages;
           this.loading = false;
         },
         error: (error) => {
-          console.error('❌ Erreur lors du chargement des absences:', error);
           this.error = `Erreur lors du chargement: ${error.message || 'Erreur inconnue'}`;
           this.loading = false;
         }
@@ -382,8 +361,6 @@ export class AbsencesComponent implements OnInit, OnDestroy {
    * Confirmer la suppression d'une absence avec Angular Material Dialog
    */
   confirmDelete(absence: Absence): void {
-    console.log('🗑️ Confirmation de suppression pour:', absence);
-    
     const dialogData: ConfirmDeleteData = {
       title: '🗑️ Supprimer l\'absence',
       message: this.buildDeleteMessage(absence),
@@ -401,8 +378,6 @@ export class AbsencesComponent implements OnInit, OnDestroy {
     dialogRef.afterClosed().subscribe(result => {
       if (result === true) {
         this.deleteAbsence(absence.id);
-      } else {
-        console.log('🚫 Suppression annulée');
       }
     });
   }
@@ -438,13 +413,10 @@ export class AbsencesComponent implements OnInit, OnDestroy {
   private deleteAbsence(absenceId: number): void {
     this.loading = true;
     
-    console.log(`🗑️ Suppression de l'absence ID: ${absenceId}`);
-    
     this.absenceService.deleteAbsence(absenceId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          console.log('✅ Absence supprimée avec succès:', response);
           this.loading = false;
           
           // Recharger la liste des absences
@@ -454,7 +426,6 @@ export class AbsencesComponent implements OnInit, OnDestroy {
           this.showSuccessMessage(response.message || 'Absence supprimée avec succès');
         },
         error: (error) => {
-          console.error('❌ Erreur lors de la suppression:', error);
           this.loading = false;
           
           // Afficher un message d'erreur
@@ -470,27 +441,16 @@ export class AbsencesComponent implements OnInit, OnDestroy {
    * Afficher un message de succès
    */
   private showSuccessMessage(message: string): void {
-    // Pour l'instant, utilisons console.log
     // TODO: Implémenter avec MatSnackBar si nécessaire
-    console.log('✅ Succès:', message);
   }
 
   /**
    * Afficher un message d'erreur
    */
   private showErrorMessage(message: string): void {
-    // Pour l'instant, utilisons console.error
-    // TODO: Implémenter avec MatSnackBar si nécessaire
-    console.error('❌ Erreur:', message);
     this.error = message;
   }
 
-  /**
-   * Obtenir l'heure actuelle formatée
-   */
-  getCurrentTime(): string {
-    return new Date().toLocaleTimeString();
-  }
 
   /**
    * Gestion du focus sur le champ de recherche

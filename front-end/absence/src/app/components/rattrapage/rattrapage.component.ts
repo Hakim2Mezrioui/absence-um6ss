@@ -141,6 +141,7 @@ export class RattrapageComponent implements OnInit, OnDestroy {
   rattrapagesDate: string = '';
   rattrapagesDateFrom: string = '';
   rattrapagesDateTo: string = '';
+  rattrapagesPointageStartHour: string = '';
   rattrapagesStartHour: string = '';
   rattrapagesEndHour: string = '';
   rattrapagesSortBy: string = 'date';
@@ -175,9 +176,11 @@ export class RattrapageComponent implements OnInit, OnDestroy {
   constructor() {
     this.rattrapageForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(3)]],
+      pointage_start_hour: ['', [Validators.required, Validators.pattern(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/)]],
       start_hour: ['', [Validators.required, Validators.pattern(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/)]],
       end_hour: ['', [Validators.required, Validators.pattern(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/)]],
-      date: ['', [Validators.required]]
+      date: ['', [Validators.required]],
+      tolerance: [5, [Validators.required, Validators.min(0), Validators.max(60)]]
     });
   }
   
@@ -419,9 +422,15 @@ export class RattrapageComponent implements OnInit, OnDestroy {
     }
     
     // Validate hours
+    const pointageStartHour = this.rattrapageForm.value.pointage_start_hour;
     const startHour = this.rattrapageForm.value.start_hour;
     const endHour = this.rattrapageForm.value.end_hour;
     const date = this.rattrapageForm.value.date;
+    
+    if (pointageStartHour >= startHour) {
+      alert('L\'heure de pointage doit être antérieure à l\'heure de début');
+      return;
+    }
     
     if (startHour >= endHour) {
       alert('L\'heure de fin doit être supérieure à l\'heure de début');
@@ -496,6 +505,12 @@ export class RattrapageComponent implements OnInit, OnDestroy {
   viewRattrapageStudents(rattrapage: RattrapageWithDuration) {
     if (rattrapage.id) {
       this.router.navigate(['/dashboard/rattrapages', rattrapage.id, 'students']);
+    }
+  }
+
+  viewRattrapageAttendance(rattrapage: RattrapageWithDuration) {
+    if (rattrapage.id) {
+      this.router.navigate(['/dashboard/rattrapages', rattrapage.id, 'attendance']);
     }
   }
 
@@ -665,15 +680,22 @@ export class RattrapageComponent implements OnInit, OnDestroy {
     }
     
     if (this.rattrapagesDate) {
-      filters.date = this.rattrapagesDate;
+      filters.date = this.formatDateForAPI(this.rattrapagesDate);
+      console.log('🔍 Date exacte:', this.rattrapagesDate, '→', filters.date);
     }
     
     if (this.rattrapagesDateFrom) {
-      filters.date_from = this.rattrapagesDateFrom;
+      filters.date_from = this.formatDateForAPI(this.rattrapagesDateFrom);
+      console.log('🔍 Date de début:', this.rattrapagesDateFrom, '→', filters.date_from);
     }
     
     if (this.rattrapagesDateTo) {
-      filters.date_to = this.rattrapagesDateTo;
+      filters.date_to = this.formatDateForAPI(this.rattrapagesDateTo);
+      console.log('🔍 Date de fin:', this.rattrapagesDateTo, '→', filters.date_to);
+    }
+    
+    if (this.rattrapagesPointageStartHour) {
+      filters.pointage_start_hour = this.rattrapagesPointageStartHour;
     }
     
     if (this.rattrapagesStartHour) {
@@ -688,6 +710,7 @@ export class RattrapageComponent implements OnInit, OnDestroy {
     filters.sort_by = this.rattrapagesSortBy || 'date';
     filters.sort_direction = this.rattrapagesSortDirection || 'desc';
     
+    console.log('🔍 Filtres finaux:', filters);
     return filters;
   }
   
@@ -811,6 +834,7 @@ export class RattrapageComponent implements OnInit, OnDestroy {
     this.rattrapagesDate = '';
     this.rattrapagesDateFrom = '';
     this.rattrapagesDateTo = '';
+    this.rattrapagesPointageStartHour = '';
     this.rattrapagesStartHour = '';
     this.rattrapagesEndHour = '';
     this.rattrapagesSortBy = 'date';
@@ -831,6 +855,34 @@ export class RattrapageComponent implements OnInit, OnDestroy {
       return `${hours}h${minutes > 0 ? ` ${minutes}min` : ''}`;
     }
     return `${minutes}min`;
+  }
+
+  /**
+   * Formate une date pour l'API (format Y-m-d)
+   */
+  private formatDateForAPI(date: any): string {
+    if (!date) return '';
+    
+    // Si c'est déjà une string au format Y-m-d, la retourner
+    if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return date;
+    }
+    
+    // Si c'est un objet Date ou une string de date, la convertir
+    const dateObj = new Date(date);
+    
+    // Vérifier que la date est valide
+    if (isNaN(dateObj.getTime())) {
+      console.warn('Date invalide:', date);
+      return '';
+    }
+    
+    // Formater en Y-m-d
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}`;
   }
 
   // TrackBy functions pour optimiser les performances

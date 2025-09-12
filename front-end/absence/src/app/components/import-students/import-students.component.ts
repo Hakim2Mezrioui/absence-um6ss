@@ -195,19 +195,11 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
    * Télécharger le modèle CSV
    */
   downloadTemplate(): void {
-    let csvContent = '';
-    
-    if (this.importOptions.useDefaultValues) {
-      // Modèle simplifié sans les IDs (ils seront pris des valeurs par défaut)
-      csvContent = 'matricule,first_name,last_name,email\n' +
-                   'ETU2024001,Jean,Dupont,jean.dupont@email.com\n' +
-                   'ETU2024002,Marie,Martin,marie.martin@email.com';
-    } else {
-      // Modèle complet avec tous les IDs
-      csvContent = 'matricule,first_name,last_name,email,promotion_id,etablissement_id,ville_id,group_id,option_id\n' +
-                   'ETU2024001,Jean,Dupont,jean.dupont@email.com,1,1,1,1,1\n' +
-                   'ETU2024002,Marie,Martin,marie.martin@email.com,1,1,1,1,1';
-    }
+    // Modèle unique avec les colonnes de base
+    const csvContent = 'id,matricule,first_name,last_name,email,password\n' +
+                       '1,ETU2024001,Jean,Dupont,jean.dupont@email.com,password123\n' +
+                       '2,ETU2024002,Marie,Martin,marie.martin@email.com,password123\n' +
+                       '3,ETU2024003,Pierre,Durand,pierre.durand@email.com,password123';
     
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');

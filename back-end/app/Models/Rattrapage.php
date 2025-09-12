@@ -10,15 +10,19 @@ class Rattrapage extends Model
 {
     protected $fillable = [
         'name',
+        'pointage_start_hour',
         'start_hour',
         'end_hour',
-        'date'
+        'date',
+        'tolerance'
     ];
 
     protected $casts = [
+        'pointage_start_hour' => 'datetime:H:i',
         'start_hour' => 'datetime:H:i',
         'end_hour' => 'datetime:H:i',
-        'date' => 'date'
+        'date' => 'date',
+        'tolerance' => 'integer'
     ];
 
     /**
@@ -27,6 +31,17 @@ class Rattrapage extends Model
     public function listStudents(): HasMany
     {
         return $this->hasMany(ListStudent::class);
+    }
+
+    /**
+     * Accesseur pour formater l'heure de pointage
+     */
+    protected function pointageStartHour(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => $value ? \Carbon\Carbon::parse($value)->format('H:i') : null,
+            set: fn ($value) => $value ? \Carbon\Carbon::parse($value)->format('H:i:s') : null
+        );
     }
 
     /**

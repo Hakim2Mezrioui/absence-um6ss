@@ -133,8 +133,9 @@ export class ExamensComponent implements OnInit, OnDestroy {
         id: 1,
         title: 'Examen de Test - Mathématiques',
         date: '2024-01-15',
-        heure_debut: '09:00',
-        heure_fin: '11:00',
+        heure_debut: '09:00:00',
+        heure_fin: '11:00:00',
+        heure_debut_poigntage: '08:30:00',
         salle_id: 1,
         promotion_id: 1,
         type_examen_id: 1,
@@ -144,7 +145,14 @@ export class ExamensComponent implements OnInit, OnDestroy {
         annee_universitaire: '2023-2024',
         statut_temporel: 'futur',
         created_at: '2024-01-01',
-        updated_at: '2024-01-01'
+        updated_at: '2024-01-01',
+        etablissement: { id: 1, name: 'Université Test' },
+        promotion: { id: 1, name: 'L1' },
+        type_examen: { id: 1, name: 'Contrôle' },
+        salle: { id: 1, name: 'Salle A1' },
+        option: { id: 1, name: 'Informatique' },
+        group: { id: 1, name: 'Groupe 1' },
+        ville: { id: 1, name: 'Rabat' }
       }
     ];
     this.total = 1;
@@ -199,6 +207,13 @@ export class ExamensComponent implements OnInit, OnDestroy {
         next: (response: ExamenResponse) => {
           console.log('✅ Données reçues de l\'API:', response);
           this.examens = response.data;
+          
+          // S'assurer que le statut temporel est calculé pour chaque examen
+          this.examens.forEach(examen => {
+            if (!examen.statut_temporel) {
+              examen.statut_temporel = this.calculateStatutTemporel(examen);
+            }
+          });
           this.currentPage = response.current_page;
           this.lastPage = response.last_page;
           this.perPage = response.per_page;
@@ -259,7 +274,34 @@ export class ExamensComponent implements OnInit, OnDestroy {
   }
 
   formatTime(timeString: string): string {
-    return timeString.substring(0, 5);
+    if (!timeString) return '';
+    
+    // Si c'est déjà au format HH:MM:SS, prendre les 5 premiers caractères
+    if (timeString.includes(':') && timeString.length >= 5) {
+      return timeString.substring(0, 5);
+    }
+    
+    // Si c'est un datetime complet, extraire seulement l'heure
+    if (timeString.includes('T')) {
+      const timePart = timeString.split('T')[1];
+      return timePart ? timePart.substring(0, 5) : '';
+    }
+    
+    // Si c'est une date complète, essayer de la parser
+    try {
+      const date = new Date(timeString);
+      if (!isNaN(date.getTime())) {
+        return date.toLocaleTimeString('fr-FR', { 
+          hour: '2-digit', 
+          minute: '2-digit',
+          hour12: false 
+        });
+      }
+    } catch (e) {
+      console.warn('Erreur lors du formatage de l\'heure:', timeString);
+    }
+    
+    return timeString;
   }
 
   // Méthode pour accéder à Math.min dans le template
@@ -269,18 +311,71 @@ export class ExamensComponent implements OnInit, OnDestroy {
 
   // Méthode pour calculer la durée de l'examen
   calculateDuration(heureDebut: string, heureFin: string): string {
-    const debut = new Date(`2000-01-01T${heureDebut}`);
-    const fin = new Date(`2000-01-01T${heureFin}`);
-    const diffMs = fin.getTime() - debut.getTime();
-    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    if (!heureDebut || !heureFin) return '';
     
-    if (diffMinutes < 60) {
-      return `${diffMinutes} min`;
-    } else {
-      const heures = Math.floor(diffMinutes / 60);
-      const minutes = diffMinutes % 60;
-      return minutes > 0 ? `${heures}h ${minutes}min` : `${heures}h`;
+    try {
+      // Normaliser les formats d'heure
+      const debutTime = this.normalizeTime(heureDebut);
+      const finTime = this.normalizeTime(heureFin);
+      
+      if (!debutTime || !finTime) return '';
+      
+      const debut = new Date(`2000-01-01T${debutTime}`);
+      const fin = new Date(`2000-01-01T${finTime}`);
+      
+      if (isNaN(debut.getTime()) || isNaN(fin.getTime())) return '';
+      
+      const diffMs = fin.getTime() - debut.getTime();
+      const diffMinutes = Math.floor(diffMs / (1000 * 60));
+      
+      if (diffMinutes < 0) return '';
+      
+      if (diffMinutes < 60) {
+        return `${diffMinutes} min`;
+      } else {
+        const heures = Math.floor(diffMinutes / 60);
+        const minutes = diffMinutes % 60;
+        return minutes > 0 ? `${heures}h ${minutes}min` : `${heures}h`;
+      }
+    } catch (e) {
+      console.warn('Erreur lors du calcul de la durée:', e);
+      return '';
     }
+  }
+  
+  // Méthode pour normaliser le format d'heure
+  private normalizeTime(timeString: string): string {
+    if (!timeString) return '';
+    
+    // Si c'est déjà au format HH:MM:SS, le retourner tel quel
+    if (/^\d{2}:\d{2}:\d{2}$/.test(timeString)) {
+      return timeString;
+    }
+    
+    // Si c'est au format HH:MM, ajouter les secondes
+    if (/^\d{2}:\d{2}$/.test(timeString)) {
+      return timeString + ':00';
+    }
+    
+    // Si c'est un datetime complet, extraire l'heure
+    if (timeString.includes('T')) {
+      const timePart = timeString.split('T')[1];
+      if (timePart) {
+        return timePart.substring(0, 8); // HH:MM:SS
+      }
+    }
+    
+    // Si c'est une date complète, essayer de la parser
+    try {
+      const date = new Date(timeString);
+      if (!isNaN(date.getTime())) {
+        return date.toTimeString().substring(0, 8); // HH:MM:SS
+      }
+    } catch (e) {
+      // Ignorer l'erreur
+    }
+    
+    return '';
   }
 
   loadFilterOptions(): void {
@@ -318,5 +413,44 @@ export class ExamensComponent implements OnInit, OnDestroy {
           this.typesExamen = [];
         }
       });
+  }
+
+  // Calculer le statut temporel d'un examen (fallback côté frontend)
+  private calculateStatutTemporel(examen: Examen): 'passé' | 'en_cours' | 'futur' {
+    const now = new Date();
+    const examenDate = new Date(examen.date);
+    
+    // Comparer seulement les dates (sans l'heure)
+    const nowDate = now.toISOString().split('T')[0]; // YYYY-MM-DD
+    const examenDateOnly = examenDate.toISOString().split('T')[0]; // YYYY-MM-DD
+    
+    // Si la date de l'examen est dans le passé
+    if (examenDateOnly < nowDate) {
+      return 'passé';
+    }
+    
+    // Si c'est aujourd'hui, vérifier les heures
+    if (examenDateOnly === nowDate) {
+      // S'assurer que nous utilisons seulement la partie date
+      const dateOnly = examenDate.toISOString().split('T')[0];
+      const heureDebut = new Date(dateOnly + 'T' + examen.heure_debut);
+      const heureFin = new Date(dateOnly + 'T' + examen.heure_fin);
+      
+      // Si l'heure actuelle est avant le début
+      if (now < heureDebut) {
+        return 'futur';
+      }
+      
+      // Si l'heure actuelle est incluse entre le début et la fin (inclus)
+      if (now >= heureDebut && now < heureFin) {
+        return 'en_cours';
+      }
+      
+      // Si l'heure actuelle est après la fin
+      return 'passé';
+    }
+    
+    // Si la date est dans le futur
+    return 'futur';
   }
 }

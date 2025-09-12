@@ -25,7 +25,10 @@ export class AddExamenComponent implements OnInit, OnDestroy {
   promotions: any[] = [];
   salles: any[] = [];
   options: any[] = [];
+  groups: any[] = [];
+  villes: any[] = [];
   typesExamen: TypeExamen[] = [];
+  anneesUniversitaires: string[] = [];
   
   private destroy$ = new Subject<void>();
 
@@ -39,18 +42,23 @@ export class AddExamenComponent implements OnInit, OnDestroy {
     this.examenForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(3)]],
       date: ['', Validators.required],
+      heure_debut_poigntage: [''],
       heure_debut: ['', Validators.required],
       heure_fin: ['', Validators.required],
+      tolerance: [15, [Validators.min(0), Validators.max(60)]],
       type_examen_id: ['', Validators.required],
       etablissement_id: ['', Validators.required],
       promotion_id: ['', Validators.required],
       option_id: [''],
       salle_id: ['', Validators.required],
+      group_id: ['', Validators.required],
+      ville_id: ['', Validators.required],
       annee_universitaire: ['', Validators.required]
     });
   }
 
   ngOnInit(): void {
+    this.generateAnneesUniversitaires();
     this.loadFilterOptions();
     this.loadTypesExamen();
   }
@@ -58,6 +66,23 @@ export class AddExamenComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  generateAnneesUniversitaires(): void {
+    const currentYear = new Date().getFullYear();
+    this.anneesUniversitaires = [];
+    
+    // Générer 5 années avant et 5 années après l'année actuelle
+    for (let i = -5; i <= 5; i++) {
+      const year = currentYear + i;
+      this.anneesUniversitaires.push(`${year}-${year + 1}`);
+    }
+    
+    // Définir l'année actuelle comme valeur par défaut
+    const currentAcademicYear = `${currentYear}-${currentYear + 1}`;
+    this.examenForm.patchValue({
+      annee_universitaire: currentAcademicYear
+    });
   }
 
   loadFilterOptions(): void {
@@ -69,6 +94,8 @@ export class AddExamenComponent implements OnInit, OnDestroy {
           this.promotions = response.promotions || [];
           this.salles = response.salles || [];
           this.options = response.options || [];
+          this.groups = response.groups || [];
+          this.villes = response.villes || [];
         },
         error: (err) => {
           console.error('Error loading filter options:', err);
@@ -145,6 +172,12 @@ export class AddExamenComponent implements OnInit, OnDestroy {
       }
       if (control.errors['minlength']) {
         return `Minimum ${control.errors['minlength'].requiredLength} caractères`;
+      }
+      if (control.errors['min']) {
+        return `La valeur doit être supérieure ou égale à ${control.errors['min'].min}`;
+      }
+      if (control.errors['max']) {
+        return `La valeur doit être inférieure ou égale à ${control.errors['max'].max}`;
       }
     }
     return '';

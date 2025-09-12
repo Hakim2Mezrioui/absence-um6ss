@@ -1,287 +1,350 @@
-<div class="salles-container">
-  <!-- Header -->
-  <div class="header-section">
-    <div class="title-section">
-      <h1>
-        <mat-icon>meeting_room</mat-icon>
-        Gestion des Salles
-      </h1>
-      <p>Gérez les salles de vos établissements</p>
+<div class="min-h-screen bg-gray-50">
+  <!-- Header Optimisé -->
+  <header class="relative bg-gradient-to-br from-blue-600 via-indigo-700 to-purple-800 text-white shadow-2xl overflow-hidden">
+    <!-- Background Pattern -->
+    <div class="absolute inset-0 bg-black/10">
+      <div class="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-transparent to-purple-600/20"></div>
+      <div class="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-48 translate-x-48"></div>
+      <div class="absolute bottom-0 left-0 w-80 h-80 bg-white/5 rounded-full translate-y-40 -translate-x-40"></div>
     </div>
-
-    <div class="actions-section">
-      <button mat-raised-button color="primary" (click)="openAddDialog()" [disabled]="loading">
-        <mat-icon>add</mat-icon>
-        Ajouter une salle
-      </button>
-      <button mat-stroked-button (click)="loadSalles()" [disabled]="loading">
-        <mat-icon>refresh</mat-icon>
-        Actualiser
-      </button>
-    </div>
-  </div>
-
-  <!-- Statistiques -->
-  <div class="stats-cards" *ngIf="!loading">
-    <div class="stat-card">
-      <mat-icon>meeting_room</mat-icon>
-      <div class="stat-content">
-        <span class="stat-number">{{ totalSalles }}</span>
-        <span class="stat-label">Salles</span>
-      </div>
-    </div>
-    <div class="stat-card">
-      <mat-icon>business</mat-icon>
-      <div class="stat-content">
-        <span class="stat-number">{{ uniqueEtablissements }}</span>
-        <span class="stat-label">Établissements</span>
-      </div>
-    </div>
-    <div class="stat-card">
-      <mat-icon>apartment</mat-icon>
-      <div class="stat-content">
-        <span class="stat-number">{{ uniqueBatiments }}</span>
-        <span class="stat-label">Bâtiments</span>
-      </div>
-    </div>
-    <div class="stat-card">
-      <mat-icon>stairs</mat-icon>
-      <div class="stat-content">
-        <span class="stat-number">{{ uniqueEtages }}</span>
-        <span class="stat-label">Étages</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Interface de Filtrage Ultra-Moderne -->
-  <div class="filters-section">
-    <div class="filters-container">
-      
-      <!-- Section de Recherche Premium -->
-      <div class="search-section">
-        <div class="search-header">
-          <div class="search-icon-wrapper">
-            <mat-icon class="search-main-icon">search</mat-icon>
+    
+    <div class="relative max-w-7xl mx-auto px-4 py-8">
+      <div class="flex flex-col lg:flex-row justify-between items-center gap-8">
+        <!-- Titre Principal -->
+        <div class="text-center lg:text-left flex-1">
+          <div class="flex items-center justify-center lg:justify-start gap-4 mb-3">
+            <div class="relative">
+              <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg">
+                <span class="material-icons text-white text-3xl">meeting_room</span>
+              </div>
+              <div class="absolute -top-1 -right-1 w-6 h-6 bg-green-400 rounded-full flex items-center justify-center">
+                <span class="material-icons text-white text-sm">check</span>
+              </div>
+            </div>
+            <div>
+              <h1 class="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
+                Gestion des Salles
+              </h1>
+              <div class="flex items-center gap-2 mt-2">
+                <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                <p class="text-lg text-blue-100 font-medium">Système de gestion intelligent</p>
+              </div>
+            </div>
           </div>
-          <div class="search-title">
-            <h2>Recherche Intelligente</h2>
-            <p>Trouvez instantanément la salle parfaite</p>
+          <p class="text-xl text-blue-100/90 max-w-2xl leading-relaxed">
+            Gérez efficacement vos salles, planifiez les réservations et optimisez l'utilisation de vos espaces
+          </p>
+        </div>
+
+        <!-- Actions Principales -->
+        <div class="flex flex-col sm:flex-row items-center gap-4">
+          <!-- Statistiques Rapides -->
+          <div class="hidden lg:flex items-center gap-6 mr-6">
+            <div class="text-center">
+              <div class="text-2xl font-bold text-white">{{ totalSalles }}</div>
+              <div class="text-sm text-blue-200">Salles</div>
+            </div>
+            <div class="w-px h-12 bg-white/30"></div>
+            <div class="text-center">
+              <div class="text-2xl font-bold text-white">{{ uniqueEtablissements }}</div>
+              <div class="text-sm text-blue-200">Établissements</div>
+            </div>
+          </div>
+
+          <!-- Boutons d'Action -->
+          <div class="flex flex-col sm:flex-row gap-3">
+            <button class="group relative bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 text-white px-6 py-3 rounded-xl transition-all duration-300 flex items-center gap-3 disabled:opacity-50 hover:scale-105 hover:shadow-lg"
+                    (click)="openAddDialog()"
+                    [disabled]="loading">
+              <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                <span class="material-icons text-sm">add</span>
+              </div>
+              <span class="font-semibold">Nouvelle Salle</span>
+            </button>
+            
+            <button class="group relative bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 text-white px-6 py-3 rounded-xl transition-all duration-300 flex items-center gap-3 disabled:opacity-50 hover:scale-105 hover:shadow-lg"
+                    (click)="loadSalles()"
+                    [disabled]="loading">
+              <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                <span class="material-icons text-sm" [class.animate-spin]="loading">refresh</span>
+              </div>
+              <span class="font-semibold">Actualiser</span>
+            </button>
           </div>
         </div>
-        
-        <div class="search-input-container">
-          <mat-form-field appearance="outline" class="premium-search-field">
-            <mat-label>Rechercher une salle</mat-label>
-            <input matInput 
-                   [(ngModel)]="searchTerm" 
-                   (input)="onSearchChange()"
-                   placeholder="Nom, bâtiment, description..."
-                   [disabled]="loading"
-                   class="search-input">
-            <mat-icon matSuffix class="search-suffix-icon">search</mat-icon>
-          </mat-form-field>
-          
-          <button mat-mini-fab 
-                  color="accent"
-                  (click)="clearSearch()" 
-                  [disabled]="!searchTerm || loading"
-                  matTooltip="Effacer la recherche"
-                  class="clear-search-btn">
-            <mat-icon>clear</mat-icon>
-          </button>
+      </div>
+
+      <!-- Barre de Progression (si chargement) -->
+      <div class="mt-6" *ngIf="loading">
+        <div class="w-full bg-white/20 rounded-full h-2 overflow-hidden">
+          <div class="h-full bg-gradient-to-r from-blue-400 to-purple-400 rounded-full animate-pulse"></div>
         </div>
-        
-        <!-- Indicateur de résultats -->
-        <div class="search-results-indicator" *ngIf="searchTerm">
-          <mat-icon>info</mat-icon>
+        <p class="text-center text-blue-200 mt-2 text-sm">Chargement en cours...</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Statistiques générales -->
+  <section class="mb-12" *ngIf="!loading">
+    <div class="max-w-7xl mx-auto px-4 py-8">
+      <h2 class="text-2xl font-bold text-gray-800 mb-6 pb-2 border-b-2 border-blue-600 inline-block flex items-center gap-3">
+        <span class="material-icons text-blue-600 text-3xl">insights</span>
+        Vue d'ensemble
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500 hover:shadow-xl transition-all duration-300 group">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <span class="material-icons text-white text-2xl">meeting_room</span>
+            </div>
+            <div>
+              <h3 class="text-2xl font-bold text-gray-800">{{ totalSalles }}</h3>
+              <p class="text-gray-600 text-sm uppercase tracking-wide">Salles</p>
+            </div>
+          </div>
+          <div class="mt-4 pt-4 border-t border-gray-100">
+            <div class="flex items-center gap-2 text-blue-600 text-sm">
+              <span class="material-icons text-sm">trending_up</span>
+              <span>Total général</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500 hover:shadow-xl transition-all duration-300 group">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <span class="material-icons text-white text-2xl">business</span>
+            </div>
+            <div>
+              <h3 class="text-2xl font-bold text-gray-800">{{ uniqueEtablissements }}</h3>
+              <p class="text-gray-600 text-sm uppercase tracking-wide">Établissements</p>
+            </div>
+          </div>
+          <div class="mt-4 pt-4 border-t border-gray-100">
+            <div class="flex items-center gap-2 text-green-600 text-sm">
+              <span class="material-icons text-sm">location_on</span>
+              <span>Répartis géographiquement</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-yellow-500 hover:shadow-xl transition-all duration-300 group">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <span class="material-icons text-white text-2xl">apartment</span>
+            </div>
+            <div>
+              <h3 class="text-2xl font-bold text-gray-800">{{ uniqueBatiments }}</h3>
+              <p class="text-gray-600 text-sm uppercase tracking-wide">Bâtiments</p>
+            </div>
+          </div>
+          <div class="mt-4 pt-4 border-t border-gray-100">
+            <div class="flex items-center gap-2 text-yellow-600 text-sm">
+              <span class="material-icons text-sm">layers</span>
+              <span>Organisés par niveau</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-cyan-500 hover:shadow-xl transition-all duration-300 group">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <span class="material-icons text-white text-2xl">stairs</span>
+            </div>
+            <div>
+              <h3 class="text-2xl font-bold text-gray-800">{{ uniqueEtages }}</h3>
+              <p class="text-gray-600 text-sm uppercase tracking-wide">Étages</p>
+            </div>
+          </div>
+          <div class="mt-4 pt-4 border-t border-gray-100">
+            <div class="flex items-center gap-2 text-cyan-600 text-sm">
+              <span class="material-icons text-sm">schedule</span>
+              <span>Niveaux disponibles</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Filtres -->
+  <div class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 py-4">
+      <div class="flex flex-col lg:flex-row gap-4 lg:gap-6 items-end">
+        <div class="flex-1">
+          <label for="search-filter" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+            <span class="material-icons text-blue-600 text-lg">search</span>
+            Recherche
+          </label>
+          <input type="text" 
+                 id="search-filter"
+                 [(ngModel)]="searchTerm" 
+                 (input)="onSearchChange()"
+                 placeholder="Rechercher une salle..."
+                 [disabled]="loading"
+                 class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+        </div>
+
+        <div class="flex-1">
+          <label for="etablissement-filter" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+            <span class="material-icons text-green-600 text-lg">business</span>
+            Établissement
+          </label>
+          <select id="etablissement-filter"
+                  [(ngModel)]="selectedEtablissement"
+                  (change)="onFilterChange()"
+                  class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+            <option value="">Tous les établissements</option>
+            <option *ngFor="let etablissement of etablissements" [value]="etablissement.id">{{ etablissement.name }}</option>
+          </select>
+        </div>
+
+        <div class="flex-1">
+          <label for="batiment-filter" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+            <span class="material-icons text-yellow-600 text-lg">apartment</span>
+            Bâtiment
+          </label>
+          <select id="batiment-filter"
+                  [(ngModel)]="selectedBatiment"
+                  (change)="onFilterChange()"
+                  class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+            <option value="">Tous les bâtiments</option>
+            <option *ngFor="let batiment of uniqueBatimentsList" [value]="batiment">{{ batiment }}</option>
+          </select>
+        </div>
+
+        <div class="flex-1">
+          <label for="etage-filter" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+            <span class="material-icons text-purple-600 text-lg">stairs</span>
+            Étage
+          </label>
+          <select id="etage-filter"
+                  [(ngModel)]="selectedEtage"
+                  (change)="onFilterChange()"
+                  class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+            <option value="">Tous les étages</option>
+            <option *ngFor="let etage of uniqueEtagesList" [value]="etage">Étage {{ etage }}</option>
+          </select>
+        </div>
+
+        <button class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-all duration-300 flex items-center gap-2"
+                (click)="clearFilters()"
+                [disabled]="!hasActiveFilters() || loading">
+          <span class="material-icons">restart_alt</span>
+          Réinitialiser
+        </button>
+      </div>
+
+      <!-- Indicateur de filtres actifs -->
+      <div class="mt-4" *ngIf="hasActiveFilters()">
+        <div class="flex items-center gap-3 text-sm text-gray-600">
+          <span class="material-icons text-blue-600">filter_list</span>
+          <span class="font-medium">Filtres actifs :</span>
+          <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold"
+                *ngIf="searchTerm">Recherche: "{{ searchTerm }}"</span>
+          <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold"
+                *ngIf="selectedEtablissement">{{ getEtablissementName(selectedEtablissement) }}</span>
+          <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold"
+                *ngIf="selectedBatiment">{{ selectedBatiment }}</span>
+          <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold"
+                *ngIf="selectedEtage">Étage {{ selectedEtage }}</span>
+        </div>
+      </div>
+
+      <!-- Indicateur de résultats -->
+      <div class="mt-4" *ngIf="searchTerm">
+        <div class="flex items-center gap-2 text-sm text-gray-600">
+          <span class="material-icons text-green-600">info</span>
           <span>{{ filteredSalles.length }} résultat(s) trouvé(s)</span>
         </div>
       </div>
+    </div>
+  </div>
 
-      <!-- Filtres Avancés -->
-      <div class="advanced-filters">
-        <div class="filters-header">
-          <div class="filters-icon-wrapper">
-            <mat-icon class="filters-main-icon">tune</mat-icon>
-          </div>
-          <div class="filters-title">
-            <h3>Filtres Avancés</h3>
-            <p>Affinez votre recherche</p>
-          </div>
-          
-          <!-- Badge de filtres actifs -->
-          <div class="active-filters-badge" *ngIf="hasActiveFilters()">
-            <mat-icon>filter_alt</mat-icon>
-            <span>{{ getActiveFiltersCount() }}</span>
-          </div>
-        </div>
+  <!-- Loading State -->
+  <div class="flex justify-center items-center min-h-96" *ngIf="loading">
+    <div class="text-center text-gray-600">
+      <span class="material-icons animate-spin text-6xl mb-4 block">refresh</span>
+      <p class="text-lg">Chargement des salles...</p>
+    </div>
+  </div>
 
-        <div class="filters-grid">
-          <!-- Filtre Établissement -->
-          <div class="filter-item">
-            <mat-form-field appearance="outline" class="premium-filter-field">
-              <mat-label>
-                <mat-icon class="field-icon">business</mat-icon>
-                Établissement
-              </mat-label>
-              <mat-select [(ngModel)]="selectedEtablissement" (selectionChange)="onFilterChange()">
-                <mat-option value="" class="all-option">
-                  <mat-icon>select_all</mat-icon>
-                  Tous les établissements
-                </mat-option>
-                <mat-option *ngFor="let etablissement of etablissements" [value]="etablissement.id">
-                  <mat-icon>business</mat-icon>
-                  {{ etablissement.name }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
+  <!-- Error State -->
+  <div class="flex justify-center items-center min-h-96" *ngIf="error && !loading">
+    <div class="text-center bg-red-50 border border-red-200 rounded-xl p-8 max-w-md">
+      <span class="material-icons text-red-500 text-6xl mb-4 block">error</span>
+      <p class="text-red-700 mb-4">{{ error }}</p>
+      <button class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg transition-all duration-300"
+              (click)="loadSalles()">Réessayer</button>
+    </div>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div class="max-w-7xl mx-auto px-4 py-8" *ngIf="!loading && !error">
+    <!-- Liste des salles -->
+    <div *ngIf="filteredSalles.length > 0">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div *ngFor="let salle of filteredSalles; trackBy: trackBySalle" 
+             class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500 hover:shadow-xl transition-all duration-300 group">
+          <div class="flex items-center gap-4 mb-4">
+            <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <span class="material-icons text-white text-2xl">meeting_room</span>
+            </div>
+            <div class="flex-1">
+              <h3 class="text-lg font-bold text-gray-800">{{ salle.name }}</h3>
+              <p class="text-sm text-gray-600">{{ salle.etablissement?.name || 'Établissement non défini' }}</p>
+            </div>
           </div>
 
-          <!-- Filtre Bâtiment -->
-          <div class="filter-item">
-            <mat-form-field appearance="outline" class="premium-filter-field">
-              <mat-label>
-                <mat-icon class="field-icon">apartment</mat-icon>
-                Bâtiment
-              </mat-label>
-              <mat-select [(ngModel)]="selectedBatiment" (selectionChange)="onFilterChange()">
-                <mat-option value="" class="all-option">
-                  <mat-icon>select_all</mat-icon>
-                  Tous les bâtiments
-                </mat-option>
-                <mat-option *ngFor="let batiment of uniqueBatimentsList" [value]="batiment">
-                  <mat-icon>apartment</mat-icon>
-                  {{ batiment }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
+          <div class="space-y-3">
+            <div class="flex items-center gap-3 text-sm text-gray-600">
+              <span class="material-icons text-blue-600 text-lg">apartment</span>
+              <span class="font-medium">Bâtiment: {{ salle.batiment }}</span>
+            </div>
+            <div class="flex items-center gap-3 text-sm text-gray-600">
+              <span class="material-icons text-purple-600 text-lg">stairs</span>
+              <span class="font-medium">Étage: {{ salle.etage }}</span>
+            </div>
+            <div class="flex items-center gap-3 text-sm text-gray-600" *ngIf="salle.capacite">
+              <span class="material-icons text-yellow-600 text-lg">people</span>
+              <span class="font-medium">Capacité: {{ salle.capacite }} places</span>
+            </div>
+            <div class="flex items-center gap-3 text-sm text-gray-600" *ngIf="salle.description">
+              <span class="material-icons text-gray-600 text-lg">description</span>
+              <span class="font-medium">{{ salle.description }}</span>
+            </div>
           </div>
 
-          <!-- Filtre Étage -->
-          <div class="filter-item">
-            <mat-form-field appearance="outline" class="premium-filter-field">
-              <mat-label>
-                <mat-icon class="field-icon">stairs</mat-icon>
-                Étage
-              </mat-label>
-              <mat-select [(ngModel)]="selectedEtage" (selectionChange)="onFilterChange()">
-                <mat-option value="" class="all-option">
-                  <mat-icon>select_all</mat-icon>
-                  Tous les étages
-                </mat-option>
-                <mat-option *ngFor="let etage of uniqueEtagesList" [value]="etage">
-                  <mat-icon>stairs</mat-icon>
-                  Étage {{ etage }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
-          </div>
-
-          <!-- Actions des filtres -->
-          <div class="filter-actions">
-            <button mat-raised-button 
-                    color="warn"
-                    (click)="clearFilters()" 
-                    [disabled]="!hasActiveFilters() || loading"
-                    class="clear-filters-btn">
-              <mat-icon>filter_list_off</mat-icon>
-              Réinitialiser
+          <div class="flex justify-end gap-2 mt-6 pt-4 border-t border-gray-100">
+            <button class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg transition-all duration-300 flex items-center gap-2"
+                    (click)="editSalle(salle)"
+                    title="Modifier">
+              <span class="material-icons text-sm">edit</span>
+            </button>
+            <button class="bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg transition-all duration-300 flex items-center gap-2"
+                    (click)="deleteSalle(salle)"
+                    title="Supprimer">
+              <span class="material-icons text-sm">delete</span>
             </button>
           </div>
         </div>
       </div>
-
-
-
-    </div>
-  </div>
-
-  <!-- Indicateur de chargement -->
-  <div class="loading-section" *ngIf="loading">
-    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-    <p>Chargement des salles...</p>
-  </div>
-
-  <!-- Message d'erreur -->
-  <div class="error-section" *ngIf="error && !loading">
-    <mat-card class="error-card">
-      <mat-card-content>
-        <div class="error-content">
-          <mat-icon>error</mat-icon>
-          <div>
-            <h3>Erreur de chargement</h3>
-            <p>{{ error }}</p>
-          </div>
-          <button mat-raised-button color="primary" (click)="loadSalles()">
-            Réessayer
-          </button>
-        </div>
-      </mat-card-content>
-    </mat-card>
-  </div>
-
-  <!-- Liste des salles -->
-  <div class="salles-grid" *ngIf="!loading && !error">
-    <div class="salles-list" *ngIf="filteredSalles.length > 0">
-      <mat-card *ngFor="let salle of filteredSalles; trackBy: trackBySalle" class="salle-card">
-        <mat-card-header>
-          <div mat-card-avatar class="salle-avatar">
-            <mat-icon>meeting_room</mat-icon>
-          </div>
-          <mat-card-title>{{ salle.name }}</mat-card-title>
-          <mat-card-subtitle>
-            {{ salle.etablissement?.name || 'Établissement non défini' }}
-          </mat-card-subtitle>
-        </mat-card-header>
-
-        <mat-card-content>
-          <div class="salle-details">
-            <div class="detail-item">
-              <mat-icon>apartment</mat-icon>
-              <span>Bâtiment: {{ salle.batiment }}</span>
-            </div>
-            <div class="detail-item">
-              <mat-icon>stairs</mat-icon>
-              <span>Étage: {{ salle.etage }}</span>
-            </div>
-            <div class="detail-item" *ngIf="salle.capacite">
-              <mat-icon>people</mat-icon>
-              <span>Capacité: {{ salle.capacite }} places</span>
-            </div>
-            <div class="detail-item" *ngIf="salle.description">
-              <mat-icon>description</mat-icon>
-              <span>{{ salle.description }}</span>
-            </div>
-          </div>
-        </mat-card-content>
-
-        <mat-card-actions align="end">
-          <button mat-icon-button (click)="editSalle(salle)" matTooltip="Modifier">
-            <mat-icon>edit</mat-icon>
-          </button>
-          <button mat-icon-button color="warn" (click)="deleteSalle(salle)" matTooltip="Supprimer">
-            <mat-icon>delete</mat-icon>
-          </button>
-        </mat-card-actions>
-      </mat-card>
     </div>
 
     <!-- Message aucun résultat -->
-    <div class="no-results" *ngIf="filteredSalles.length === 0 && !loading">
-      <mat-card class="no-results-card">
-        <mat-card-content>
-          <div class="no-results-content">
-            <mat-icon>search_off</mat-icon>
-            <h3>Aucune salle trouvée</h3>
-            <p *ngIf="hasActiveFilters()">Essayez de modifier vos critères de recherche</p>
-            <p *ngIf="!hasActiveFilters()">Aucune salle n'est encore enregistrée</p>
-            <button mat-raised-button color="primary" (click)="openAddDialog()" *ngIf="!hasActiveFilters()">
-              <mat-icon>add</mat-icon>
-              Ajouter la première salle
-            </button>
-          </div>
-        </mat-card-content>
-      </mat-card>
+    <div class="flex justify-center items-center min-h-96" *ngIf="filteredSalles.length === 0">
+      <div class="text-center bg-white border border-gray-200 rounded-xl p-8 max-w-md">
+        <span class="material-icons text-gray-400 text-6xl mb-4 block">search_off</span>
+        <h3 class="text-xl font-semibold text-gray-800 mb-2">Aucune salle trouvée</h3>
+        <p class="text-gray-600 mb-6" *ngIf="hasActiveFilters()">Essayez de modifier vos critères de recherche</p>
+        <p class="text-gray-600 mb-6" *ngIf="!hasActiveFilters()">Aucune salle n'est encore enregistrée</p>
+        <button class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 mx-auto"
+                (click)="openAddDialog()" 
+                *ngIf="!hasActiveFilters()">
+          <span class="material-icons">add</span>
+          Ajouter la première salle
+        </button>
+      </div>
     </div>
   </div>
 </div>

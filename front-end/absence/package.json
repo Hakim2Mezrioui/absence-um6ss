@@ -12,12 +12,12 @@
   "private": true,
   "dependencies": {
     "@angular/animations": "^20.2.2",
-    "@angular/cdk": "^19.2.19",
+    "@angular/cdk": "^20.2.2",
     "@angular/common": "^20.2.4",
     "@angular/compiler": "^20.2.4",
     "@angular/core": "^20.2.4",
     "@angular/forms": "^20.2.4",
-    "@angular/material": "^19.2.19",
+    "@angular/material": "^20.2.2",
     "@angular/platform-browser": "^20.2.4",
     "@angular/platform-browser-dynamic": "^20.2.4",
     "@angular/platform-server": "^20.2.4",
@@ -28,6 +28,7 @@
     "ngx-cookie-service": "^20.1.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
+    "xlsx": "^0.18.5",
     "zone.js": "~0.15.0"
   },
   "devDependencies": {

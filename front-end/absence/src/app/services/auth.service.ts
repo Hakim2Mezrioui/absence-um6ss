@@ -1,8 +1,10 @@
 import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, BehaviorSubject, tap } from 'rxjs';
+import { Observable, BehaviorSubject, tap, catchError } from 'rxjs';
+import { of } from 'rxjs';
 import { CookieService } from './cookie.service';
 import { isPlatformBrowser } from '@angular/common';
+import { StartupService } from './startup.service';
 
 // Interfaces pour les types de données
 export interface LoginRequest {
@@ -49,7 +51,8 @@ export class AuthService {
 
   constructor(
     private http: HttpClient,
-    private cookieService: CookieService
+    private cookieService: CookieService,
+    private startupService: StartupService
   ) {
     // Vérifier l'état d'authentification seulement dans le navigateur
     if (isPlatformBrowser(this.platformId)) {
@@ -82,6 +85,13 @@ export class AuthService {
             // Store user data
             this.cookieService.setUserData(JSON.stringify(response.user));
 
+            // Store user role and token
+            if (this.isBrowser()) {
+              const roleName = this.getRoleNameById(response.user.role_id);
+              localStorage.setItem('token', response.authorisation.token);
+              this.startupService.setRole(roleName);
+            }
+
             this.currentUserSubject.next(response.user);
             this.isAuthenticatedSubject.next(true);
           }
@@ -89,10 +99,53 @@ export class AuthService {
       );
   }
 
-  logout(): void {
-    this.cookieService.clearAuthCookies();
-    this.currentUserSubject.next(null);
-    this.isAuthenticatedSubject.next(false);
+  logout(): Observable<any> {
+    const token = this.getToken();
+    
+    if (token) {
+      const headers = new HttpHeaders({
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      });
+
+      return this.http.post(`${this.API_URL}/logout`, {}, { headers }).pipe(
+        tap(() => {
+          // Nettoyer les données locales après déconnexion réussie
+          this.cookieService.clearAuthCookies();
+          if (this.isBrowser()) {
+            localStorage.removeItem('token');
+            this.startupService.setRole('user');
+          }
+          this.currentUserSubject.next(null);
+          this.isAuthenticatedSubject.next(false);
+        }),
+        catchError(error => {
+          console.error('Erreur lors de la déconnexion:', error);
+          // Nettoyer les données locales même en cas d'erreur
+          this.cookieService.clearAuthCookies();
+          if (this.isBrowser()) {
+            localStorage.removeItem('userRole');
+            localStorage.removeItem('token');
+            this.startupService.setRole('user');
+          }
+          this.currentUserSubject.next(null);
+          this.isAuthenticatedSubject.next(false);
+          return of(null);
+        })
+      );
+    } else {
+      // Pas de token, nettoyer localement
+      this.cookieService.clearAuthCookies();
+      if (this.isBrowser()) {
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('token');
+        this.startupService.setRole('user');
+      }
+      this.currentUserSubject.next(null);
+      this.isAuthenticatedSubject.next(false);
+      return of(null);
+    }
   }
 
   private checkAuthStatus(): void {
@@ -103,6 +156,11 @@ export class AuthService {
       if (userData) {
         try {
           const user = JSON.parse(userData);
+          
+          // Restaurer le rôle
+          const roleName = this.getRoleNameById(user.role_id);
+          this.startupService.setRole(roleName);
+          
           this.currentUserSubject.next(user);
           this.isAuthenticatedSubject.next(true);
         } catch (error) {
@@ -154,6 +212,18 @@ export class AuthService {
   getUserEtablissementId(): number {
     const user = this.getCurrentUser();
     return user ? user.etablissement_id : 0;
+  }
+
+  private getRoleNameById(roleId: number): string {
+    // Mapping des IDs de rôles vers les noms de rôles
+    const roleMapping: { [key: number]: string } = {
+      1: 'super-admin',
+      2: 'admin', 
+      3: 'scolarite',
+      4: 'user'
+    };
+    
+    return roleMapping[roleId] || 'user';
   }
 
   refreshToken(): Observable<any> {

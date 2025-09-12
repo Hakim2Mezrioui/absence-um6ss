@@ -8,6 +8,8 @@ export interface Examen {
   date: string;
   heure_debut: string;
   heure_fin: string;
+  heure_debut_poigntage?: string;
+  tolerance?: number;
   option_id?: number;
   salle_id: number;
   promotion_id: number;

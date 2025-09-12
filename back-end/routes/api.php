@@ -20,6 +20,7 @@ use App\Http\Controllers\AbsenceController;
 use App\Http\Controllers\TypeExamenController;
 use App\Http\Controllers\ListStudentController;
 use App\Http\Controllers\StatisticController;
+use App\Http\Controllers\AbsenceAutoController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -28,7 +29,7 @@ Route::get('/user', function (Request $request) {
 // Authentification (publiques)
 Route::post("register", [AuthController::class, "register"]);     // POST /api/register
 Route::post("login", [AuthController::class, "login"]);           // POST /api/login
-Route::post("logout", [AuthController::class, "logout"]);         // POST /api/logout
+Route::post("logout", [AuthController::class, "logout"])->middleware('auth:sanctum');         // POST /api/logout
 
 // Utilisateurs (avec middleware auth)
 Route::get("user", [AuthController::class, "user"]);              // GET /api/user
@@ -37,6 +38,8 @@ Route::get("users", [AuthController::class, "users"]);            // GET /api/us
 Route::delete("users/{id}", [AuthController::class, "destroy"]);  // POST /api/destroy/{id}
 Route::get("users/{id}", [AuthController::class, "show"]); // Nouvelle route
 Route::put("users/{id}", [AuthController::class, "update"]); // Nouvelle route
+Route::post("profile/change-password", [AuthController::class, "changePassword"])->middleware('auth:sanctum'); // Nouvelle route
+Route::get("profile", [AuthController::class, "profile"])->middleware('auth:sanctum'); // Nouvelle route
 
 Route::middleware('auth:sanctum')->group(function () {
 // Routes spéciales pour les étudiants (AVANT les ressources)
@@ -61,6 +64,8 @@ Route::get('/export-etudiants', [EtudiantController::class, 'exportEtudiants']);
 Route::get('/test-export-etudiants', [EtudiantController::class, 'testExportEtudiants']);
 // Route d'export avec streaming (méthode alternative)
 Route::get('/export-etudiants-stream', [EtudiantController::class, 'exportEtudiantsStream']);
+// Suppression multiple des étudiants
+Route::delete('/etudiants/delete-multiple', [EtudiantController::class, 'deleteMultiple']);
 Route::apiResource('etudiants', EtudiantController::class);
 
 // Group routes - API Resource (remplace les 6 routes individuelles)
@@ -161,6 +166,13 @@ Route::get('absences/cours/{coursId}', [AbsenceController::class, 'getByCours'])
 Route::get('absences/examen/{examenId}', [AbsenceController::class, 'getByExamen']);
 Route::put('absences/{id}/justifier', [AbsenceController::class, 'justifier']);
 Route::get('absences/statistics', [AbsenceController::class, 'getStatistics']);
+
+// Routes pour la création automatique des absences
+Route::post('absences/auto/create-for-examen', [AbsenceAutoController::class, 'createAbsencesForExamen']);
+Route::post('absences/auto/create-for-date', [AbsenceAutoController::class, 'createAbsencesForDate']);
+Route::post('absences/auto/create-from-attendance', [AbsenceAutoController::class, 'createAbsencesFromAttendance']);
+Route::get('absences/auto/statistics', [AbsenceAutoController::class, 'getAbsenceStatistics']);
+
 Route::apiResource('absences', AbsenceController::class);
 
 // Rattrapage routes - Routes spécifiques AVANT la ressource
@@ -177,6 +189,10 @@ Route::get('rattrapages/statistics', [RattrapageController::class, 'getStatistic
 Route::get('rattrapages/time-conflicts', [RattrapageController::class, 'getWithTimeConflicts']);
 Route::post('rattrapages/check-conflicts', [RattrapageController::class, 'checkTimeConflicts']);
 Route::post('rattrapages/import', [RattrapageController::class, 'importRattrapages']);
+Route::get('rattrapages/{id}/attendance', [RattrapageController::class, 'getAttendance']);
+Route::put('rattrapages/{id}/attendance/{studentId}', [RattrapageController::class, 'updateStudentAttendance']);
+Route::get('rattrapages/{id}/export/csv', [RattrapageController::class, 'exportAttendanceCSV']);
+Route::get('rattrapages/{id}/export/excel', [RattrapageController::class, 'exportAttendanceExcel']);
 Route::apiResource('rattrapages', RattrapageController::class);
 
 // TypeExamen routes - Routes spécifiques AVANT la ressource

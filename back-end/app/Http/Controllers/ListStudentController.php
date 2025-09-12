@@ -223,7 +223,7 @@ class ListStudentController extends Controller
                     ] : null,
                     'group' => $listStudent->etudiant->group ? [
                         'id' => $listStudent->etudiant->group->id,
-                        'name' => $listStudent->etudiant->group->name,
+                        'name' => $listStudent->etudiant->group->title,
                     ] : null,
                     'option' => $listStudent->etudiant->option ? [
                         'id' => $listStudent->etudiant->option->id,

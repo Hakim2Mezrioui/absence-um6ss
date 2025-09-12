@@ -10,13 +10,39 @@ class Examen extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title', 'date', 'heure_debut', 'heure_fin', 'annee_universitaire', 'option_id', 'salle_id', 'promotion_id', 'type_examen_id', 'etablissement_id', 'group_id', 'ville_id'];
+    protected $fillable = ['title', 'date', 'heure_debut', 'heure_fin', 'heure_debut_poigntage', 'annee_universitaire', 'tolerance', 'option_id', 'salle_id', 'promotion_id', 'type_examen_id', 'etablissement_id', 'group_id', 'ville_id'];
 
     protected $casts = [
         'date' => 'date',
         'heure_debut' => 'datetime',
         'heure_fin' => 'datetime',
+        'heure_debut_poigntage' => 'datetime',
     ];
+
+    // Accessors pour formater les heures
+    public function getHeureDebutAttribute($value)
+    {
+        if ($value) {
+            return \Carbon\Carbon::parse($value)->format('H:i:s');
+        }
+        return $value;
+    }
+
+    public function getHeureFinAttribute($value)
+    {
+        if ($value) {
+            return \Carbon\Carbon::parse($value)->format('H:i:s');
+        }
+        return $value;
+    }
+
+    public function getHeureDebutPoigntageAttribute($value)
+    {
+        if ($value) {
+            return \Carbon\Carbon::parse($value)->format('H:i:s');
+        }
+        return $value;
+    }
 
     // Relations
     public function etablissement()
@@ -106,5 +132,36 @@ class Examen extends Model
         } else {
             return 'futur';
         }
+    }
+
+    /**
+     * Retourne l'heure limite avec la tolérance (heure de début + tolérance)
+     */
+    public function getHeureLimiteAvecTolerance(): Carbon
+    {
+        $heureDebut = Carbon::parse($this->date . ' ' . $this->heure_debut);
+        return $heureDebut->addMinutes($this->tolerance ?? 15);
+    }
+
+    /**
+     * Vérifie si un étudiant est en retard (arrivé après l'heure limite avec tolérance)
+     */
+    public function isRetard(Carbon $heureArrivee): bool
+    {
+        $heureLimite = $this->getHeureLimiteAvecTolerance();
+        return $heureArrivee->isAfter($heureLimite);
+    }
+
+    /**
+     * Retourne le nombre de minutes de retard d'un étudiant
+     */
+    public function getMinutesRetard(Carbon $heureArrivee): int
+    {
+        if (!$this->isRetard($heureArrivee)) {
+            return 0;
+        }
+        
+        $heureLimite = $this->getHeureLimiteAvecTolerance();
+        return $heureArrivee->diffInMinutes($heureLimite);
     }
 }

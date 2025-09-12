@@ -18,6 +18,7 @@ return new class extends Migration
 		Schema::create('rattrapages', function (Blueprint $table) {
 			$table->id();
 			$table->string('name');
+			$table->time('pointage_start_hour');
 			$table->time('start_hour');
 			$table->time('end_hour');
 			$table->date('date');

@@ -42,23 +42,23 @@ class EtudiantController extends Controller
             });
         }
         
-        if ($request->has('promotion_id') && !empty($request->get('promotion_id'))) {
+        if ($request->has('promotion_id') && !empty($request->get('promotion_id')) && $request->get('promotion_id') != 'null') {
             $query->where('promotion_id', $request->get('promotion_id'));
         }
         
-        if ($request->has('group_id') && !empty($request->get('group_id'))) {
+        if ($request->has('group_id') && !empty($request->get('group_id')) && $request->get('group_id') != 'null') {
             $query->where('group_id', $request->get('group_id'));
         }
         
-        if ($request->has('ville_id') && !empty($request->get('ville_id'))) {
+        if ($request->has('ville_id') && !empty($request->get('ville_id')) && $request->get('ville_id') != 'null') {
             $query->where('ville_id', $request->get('ville_id'));
         }
         
-        if ($request->has('etablissement_id') && !empty($request->get('etablissement_id'))) {
+        if ($request->has('etablissement_id') && !empty($request->get('etablissement_id')) && $request->get('etablissement_id') != 'null') {
             $query->where('etablissement_id', $request->get('etablissement_id'));
         }
         
-        if ($request->has('option_id') && !empty($request->get('option_id'))) {
+        if ($request->has('option_id') && !empty($request->get('option_id')) && $request->get('option_id') != 'null') {
             $query->where('option_id', $request->get('option_id'));
         }
         
@@ -87,6 +87,16 @@ class EtudiantController extends Controller
         $heure1 = $request->input('hour1', '08:00'); // Default start time if not provided
         $heure2 = $request->input('hour2', '10:00'); // Default end time if not provided
         
+        // Récupérer l'heure de début de pointage et la salle depuis l'examen correspondant
+        $examen = \App\Models\Examen::with('salle')
+            ->where('date', $date)
+            ->where('heure_debut', $heure1)
+            ->where('heure_fin', $heure2)
+            ->first();
+        
+        $heureDebutPointage = $examen ? $examen->heure_debut_poigntage : null;
+        $salle = $examen && $examen->salle ? $examen->salle->name : null;
+        
         // Format date and time for SQL Server compatibility
         $formattedDate = date('Y-m-d', strtotime($date));
         $formattedTime1 = date('H:i:s', strtotime($heure1));
@@ -110,10 +120,15 @@ class EtudiantController extends Controller
             $pdo = new PDO($dsn, $username, $password);
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
+            // Déterminer l'heure de référence pour la comparaison
+            $heureReference = $heureDebutPointage ? $heureDebutPointage : $heure1;
+            $formattedTimeRef = date('H:i:s', strtotime($heureReference));
+            
             // Execute the query using PDO with proper date formatting
+            // Utiliser l'heure de référence pour la comparaison
             $sql = "SELECT * FROM punchlog WHERE CAST(bsevtdt AS date) = CAST(:date AS date) AND CAST(bsevtdt AS time) BETWEEN CAST(:heure1 AS time) AND CAST(:heure2 AS time) AND devnm NOT LIKE 'TOUR%' AND devnm NOT LIKE 'ACCES HCK%'";
             $stmt = $pdo->prepare($sql);
-            $stmt->execute(['date' => $formattedDate, 'heure1' => $formattedTime1, 'heure2' => $formattedTime2]);
+            $stmt->execute(['date' => $formattedDate, 'heure1' => $formattedTimeRef, 'heure2' => $formattedTime2]);
 
             // Fetch the results
             $biostarResults = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -152,8 +167,11 @@ class EtudiantController extends Controller
                 return response()->json([
                     "message" => "Aucun étudiant trouvé avec les critères spécifiés",
                     "date" => $date,
+                    "heure_debut_poigntage" => $heureDebutPointage,
                     "heure_debut" => $heure1,
                     "heure_fin" => $heure2,
+                    "tolerance" => $examen ? $examen->tolerance : 15,
+                    "salle" => $salle,
                     "filtres_appliques" => [
                         'promotion_id' => $promotion_id,
                         'etablissement_id' => $etablissement_id,
@@ -177,8 +195,19 @@ class EtudiantController extends Controller
             // ici biostarResults ca marche bien
 
             // Prepare the final response with attendance status
-            $studentsWithAttendance = $localStudents->map(function ($student) use ($presentStudentMatricules, $biostarResults) {
-                $isPresent = in_array($student->matricule, $presentStudentMatricules);
+            $studentsWithAttendance = $localStudents->map(function ($student) use ($presentStudentMatricules, $biostarResults, $heureDebutPointage, $heure1) {
+                $punchTime = $this->getPunchTime($student->matricule, $biostarResults);
+                $isPresent = false;
+                
+                if ($punchTime) {
+                    // Convertir l'heure de pointage en format comparable
+                    $punchTimeFormatted = date('H:i:s', strtotime($punchTime['time']));
+                    
+                    // L'étudiant est présent s'il a pointé avant l'heure de début de l'examen
+                    // (peu importe l'heure de début de pointage, l'important est d'arriver avant le début de l'examen)
+                    $heureDebutExamen = date('H:i:s', strtotime($heure1));
+                    $isPresent = $punchTimeFormatted < $heureDebutExamen;
+                }
                 
                 return [
                     'id' => $student->id,
@@ -193,7 +222,7 @@ class EtudiantController extends Controller
                     'group' => $student->group,
                     'option' => $student->option,
                     'status' => $isPresent ? 'présent' : 'absent',
-                    'punch_time' => $isPresent ? $this->getPunchTime($student->matricule, $biostarResults) : null,
+                    'punch_time' => $punchTime,
                 ];
             });
 
@@ -203,8 +232,19 @@ class EtudiantController extends Controller
             return response()->json([
                 "message" => "Liste des étudiants avec statut de présence",
                 "date" => $date,
+                "heure_debut_poigntage" => $heureDebutPointage,
                 "heure_debut" => $heure1,
                 "heure_fin" => $heure2,
+                "tolerance" => $examen ? $examen->tolerance : 15,
+                "salle" => $salle,
+                "examen_id" => $examen ? $examen->id : null,
+                "logique_presence" => [
+                    "heure_debut_examen" => $heure1,
+                    "heure_debut_pointage" => $heureDebutPointage,
+                    "tolerance" => $examen ? $examen->tolerance : 15,
+                    "critere" => "Étudiant présent s'il pointe avant l'heure de début de l'examen + tolérance",
+                    "description" => "L'heure de début de pointage indique quand commencer le pointage, mais la présence est déterminée par rapport à l'heure de début de l'examen plus la tolérance"
+                ],
                 "total_etudiants" => $studentsWithAttendance->count(),
                 "presents" => $studentsWithAttendance->where('status', 'présent')->count(),
                 "absents" => $studentsWithAttendance->count() - $studentsWithAttendance->where('status', 'présent')->count(),
@@ -1252,5 +1292,71 @@ class EtudiantController extends Controller
             'Pragma' => 'no-cache',
             'Expires' => '0'
         ]);
+    }
+
+    /**
+     * Supprimer plusieurs étudiants
+     */
+    public function deleteMultiple(Request $request)
+    {
+        try {
+            // Validation des données
+            $request->validate([
+                'ids' => 'required|array|min:1',
+                'ids.*' => 'required|integer|exists:etudiants,id'
+            ]);
+
+            $ids = $request->input('ids');
+            $deletedCount = 0;
+            $errors = [];
+
+            // Supprimer chaque étudiant
+            foreach ($ids as $id) {
+                try {
+                    $etudiant = Etudiant::find($id);
+                    
+                    if ($etudiant) {
+                        // Supprimer la photo si elle existe
+                        if ($etudiant->photo) {
+                            $photoPath = public_path($etudiant->photo);
+                            if (file_exists($photoPath)) {
+                                unlink($photoPath);
+                            }
+                        }
+                        
+                        // Supprimer l'étudiant
+                        $etudiant->delete();
+                        $deletedCount++;
+                    } else {
+                        $errors[] = "Étudiant avec l'ID {$id} non trouvé";
+                    }
+                } catch (\Exception $e) {
+                    $errors[] = "Erreur lors de la suppression de l'étudiant ID {$id}: " . $e->getMessage();
+                }
+            }
+
+            // Préparer la réponse
+            $response = [
+                'message' => "Suppression terminée",
+                'deleted_count' => $deletedCount,
+                'total_requested' => count($ids),
+                'status' => 200
+            ];
+
+            // Ajouter les erreurs s'il y en a
+            if (!empty($errors)) {
+                $response['errors'] = $errors;
+                $response['message'] = "Suppression partiellement terminée avec des erreurs";
+            }
+
+            return response()->json($response, 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erreur lors de la suppression multiple',
+                'error' => $e->getMessage(),
+                'status' => 500
+            ], 500);
+        }
     }
 }

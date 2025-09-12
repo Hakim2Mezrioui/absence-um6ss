@@ -130,8 +130,8 @@ export class EtudiantsService {
   /**
    * Récupérer un étudiant par ID
    */
-  getEtudiant(id: number): Observable<{ etudiant: Etudiant; status: number }> {
-    return this.http.get<{ etudiant: Etudiant; status: number }>(`${this.baseUrl}/etudiants/${id}`);
+  getEtudiant(id: number): Observable<Etudiant> {
+    return this.http.get<Etudiant>(`${this.baseUrl}/etudiants/${id}`);
   }
 
   /**
@@ -153,6 +153,15 @@ export class EtudiantsService {
    */
   deleteEtudiant(id: number): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.baseUrl}/etudiants/${id}`);
+  }
+
+  /**
+   * Supprimer plusieurs étudiants
+   */
+  deleteMultipleEtudiants(ids: number[]): Observable<{ message: string; deleted_count: number; total_requested: number; errors?: string[] }> {
+    return this.http.delete<{ message: string; deleted_count: number; total_requested: number; errors?: string[] }>(`${this.baseUrl}/etudiants/delete-multiple`, {
+      body: { ids }
+    });
   }
 
   /**

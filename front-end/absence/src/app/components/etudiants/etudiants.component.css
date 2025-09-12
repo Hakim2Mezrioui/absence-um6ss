@@ -842,3 +842,375 @@
 .animate-bounce {
   animation: bounce 1s infinite;
 }
+
+/* Styles pour la modal de détails d'étudiant */
+.student-detail-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: modalFadeIn 0.3s ease-out;
+}
+
+.student-detail-backdrop {
+  position: absolute;
+  inset: 0;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: backdropFadeIn 0.3s ease-out;
+}
+
+.student-detail-card {
+  position: relative;
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+  max-width: 4rem;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  transform: scale(1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: cardSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.student-detail-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 32px 64px -12px rgba(0, 0, 0, 0.3);
+}
+
+.student-detail-header {
+  background: #f9fafb;
+  color: #1f2937;
+  padding: 1.5rem;
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.student-detail-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.student-detail-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 2rem;
+  height: 2rem;
+  background: #f3f4f6;
+  border: none;
+  border-radius: 50%;
+  color: #6b7280;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.student-detail-close:hover {
+  background: #e5e7eb;
+  color: #374151;
+  transform: scale(1.1);
+}
+
+.student-detail-content {
+  padding: 1.5rem;
+  max-height: calc(90vh - 200px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+.student-detail-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.student-detail-content::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.student-detail-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.student-detail-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.student-detail-section {
+  margin-bottom: 1.5rem;
+}
+
+.student-detail-section:last-child {
+  margin-bottom: 0;
+}
+
+.student-detail-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 1rem;
+}
+
+.student-detail-info-grid {
+  background: #f8fafc;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.student-detail-info-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.student-detail-info-item:last-child {
+  border-bottom: none;
+}
+
+.student-detail-info-icon {
+  color: #6b7280;
+  font-size: 1.25rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.student-detail-info-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+  min-width: 120px;
+}
+
+.student-detail-info-value {
+  font-weight: 500;
+  color: #1f2937;
+  flex: 1;
+}
+
+.student-detail-actions {
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.student-detail-id {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.student-detail-action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.student-detail-action-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.student-detail-action-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.student-detail-action-button.primary {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+.student-detail-action-button.primary:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+.student-detail-action-button.accent {
+  background: #8b5cf6;
+  color: white;
+  border-color: #8b5cf6;
+}
+
+.student-detail-action-button.accent:hover {
+  background: #7c3aed;
+  border-color: #7c3aed;
+}
+
+.student-detail-action-button.warn {
+  background: #ef4444;
+  color: white;
+  border-color: #ef4444;
+}
+
+.student-detail-action-button.warn:hover {
+  background: #dc2626;
+  border-color: #dc2626;
+}
+
+/* Animations pour la modal */
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes backdropFadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+}
+
+@keyframes cardSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Responsive pour la modal */
+@media (max-width: 768px) {
+  .student-detail-card {
+    max-width: 95vw;
+    margin: 0.5rem;
+  }
+  
+  .student-detail-content {
+    padding: 1rem;
+  }
+  
+  .student-detail-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .student-detail-action-buttons {
+    justify-content: center;
+  }
+  
+  .student-detail-action-button {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 640px) {
+  .student-detail-info-grid {
+    padding: 0.75rem;
+  }
+  
+  .student-detail-info-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  
+  .student-detail-info-label {
+    min-width: auto;
+    font-size: 0.75rem;
+  }
+  
+  .student-detail-info-value {
+    font-size: 0.875rem;
+  }
+}
+
+/* Effet de focus pour l'accessibilité */
+.student-detail-close:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.student-detail-action-button:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Animation de sortie */
+.student-detail-modal.closing .student-detail-backdrop {
+  animation: backdropFadeOut 0.2s ease-in;
+}
+
+.student-detail-modal.closing .student-detail-card {
+  animation: cardSlideOut 0.3s ease-in;
+}
+
+@keyframes backdropFadeOut {
+  from {
+    opacity: 1;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+  to {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+  }
+}
+
+@keyframes cardSlideOut {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+}

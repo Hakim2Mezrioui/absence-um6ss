@@ -159,10 +159,11 @@
             <span class="status-badge inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ml-2 flex-shrink-0" 
                   [ngClass]="{
                     'bg-red-100 text-red-800': examen.statut_temporel === 'passé',
-                    'bg-yellow-100 text-yellow-800': examen.statut_temporel === 'en_cours',
-                    'bg-green-100 text-green-800': examen.statut_temporel === 'futur'
+                    'bg-green-100 text-green-800': examen.statut_temporel === 'en_cours',
+                    'bg-yellow-100 text-yellow-800': examen.statut_temporel === 'futur',
+                    'bg-gray-100 text-gray-800': !examen.statut_temporel
                   }">
-              {{ examen.statut_temporel }}
+              {{ examen.statut_temporel || 'Non défini' }}
             </span>
           </div>
           
@@ -182,10 +183,30 @@
               </svg>
             </div>
             <div>
-              <div class="text-sm font-medium text-gray-900">{{ formatDate(examen.date) }}</div>
               <div class="text-sm text-gray-600">
-                {{ formatTime(examen.heure_debut) }} - {{ formatTime(examen.heure_fin) }}
-                <span class="text-xs text-gray-500 ml-2">({{ calculateDuration(examen.heure_debut, examen.heure_fin) }})</span>
+                <div class="space-y-3">
+                  <!-- Examen -->
+                  <div class="border-l-4 border-blue-500 pl-3">
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center space-x-2">
+                        <span class="font-semibold text-gray-800">Examen:</span>
+                        <span class="text-purple-600 font-medium bg-purple-50 px-2 py-1 rounded">{{ formatDate(examen.date) }}</span>
+                        <span class="text-gray-600">{{ formatTime(examen.heure_debut) }} - {{ formatTime(examen.heure_fin) }}</span>
+                      </div>
+                      <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                        {{ calculateDuration(examen.heure_debut, examen.heure_fin) }}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <!-- Pointage -->
+                  <div *ngIf="examen.heure_debut_poigntage" class="border-l-4 border-orange-500 pl-3">
+                    <div class="flex items-center space-x-2">
+                      <span class="font-semibold text-gray-800">Pointage:</span>
+                      <span class="text-orange-600 font-medium">{{ formatTime(examen.heure_debut_poigntage) }}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

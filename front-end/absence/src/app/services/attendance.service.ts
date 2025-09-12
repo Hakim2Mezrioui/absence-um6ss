@@ -67,8 +67,12 @@ export interface StudentAttendance {
 export interface AttendanceResponse {
   message: string;
   date: string;
+  heure_debut_poigntage?: string;
   heure_debut: string;
   heure_fin: string;
+  tolerance?: number;
+  salle?: string;
+  examen_id?: number;
   total_etudiants: number;
   presents: number;
   absents: number;

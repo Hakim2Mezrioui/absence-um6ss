@@ -71,7 +71,7 @@ export interface ConfirmDeleteData {
   `,
   styles: [`
     .mat-mdc-dialog-container {
-      --mdc-dialog-container-color: white;
+      --mat-dialog-container-color: white;
     }
   `]
 })
