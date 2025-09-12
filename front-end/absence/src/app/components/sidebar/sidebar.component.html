@@ -1,76 +1,161 @@
-<div class="sidebar bg-white shadow-lg border-r border-gray-200 transition-all duration-300 ease-in-out"
-     [ngClass]="{'w-64': !isCollapsed, 'w-16': isCollapsed}">
+<div #sidebarRef 
+     class="sidebar ultra-professional-sidebar"
+     [ngClass]="{
+       'w-72': !isCollapsed, 
+       'w-16 collapsed': isCollapsed,
+       'mobile-open': !isCollapsed && isMobile
+     }"
+     [attr.aria-expanded]="!isCollapsed"
+     role="navigation"
+     aria-label="Navigation principale">
   
-  <!-- Logo et titre -->
-  <div class="flex items-center justify-between p-4 border-b border-gray-200">
-    <div class="flex items-center space-x-3" *ngIf="!isCollapsed">
-      <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center">
-        <span class="material-icons text-white text-lg">school</span>
+  <!-- Header corporate premium -->
+  <div class="sidebar-header">
+    <div class="header-content">
+      <!-- Logo et branding - caché en mode collapsed -->
+      <div class="brand-section" 
+           *ngIf="!isCollapsed">
+        <div class="logo-container">
+          <div class="logo-background">
+            <div class="logo-icon">
+              <span class="material-icons">school</span>
+            </div>
+            <div class="logo-glow"></div>
+          </div>
+        </div>
+        <div class="brand-text">
+          <h1 class="brand-title">UM6SS</h1>
+          <p class="brand-subtitle">Gestion Absences</p>
+        </div>
       </div>
-      <span class="text-lg font-bold text-gray-800">UM6SS</span>
-    </div>
-    
-    <!-- Bouton toggle -->
-    <button 
-      (click)="toggleSidebar()"
-      class="p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
-      [ngClass]="{'ml-auto': isCollapsed}">
-      <span class="material-icons text-gray-600" [ngClass]="{'rotate-180': isCollapsed}">
-        {{ isCollapsed ? 'menu' : 'menu_open' }}
-      </span>
-    </button>
-  </div>
-
-  <!-- Navigation -->
-  <nav class="p-4 space-y-2">
-    <ng-container *ngFor="let item of sidebarItems">
-      <!-- Élément de navigation -->
-             <button 
-         (click)="navigateTo(item.route)"
-         [ngClass]="{
-           'bg-blue-50 text-blue-700 border-r-2 border-blue-600': isActiveRoute(item.route),
-           'text-gray-700 hover:bg-gray-50 hover:text-gray-900': !isActiveRoute(item.route)
-         }"
-         class="w-full flex items-center space-x-3 px-3 py-3 rounded-lg transition-all duration-200 group cursor-pointer text-left"
-         [title]="isCollapsed ? item.label : ''">
-        
-        <!-- Icône -->
-        <div class="flex-shrink-0 w-6 h-6 flex items-center justify-center">
-          <span class="material-icons text-xl group-hover:scale-110 transition-transform duration-200">
-            {{ item.icon }}
+      
+      <!-- Toggle button premium - toujours visible -->
+      <button 
+        (click)="toggleSidebar()"
+        class="toggle-button"
+        [ngClass]="{'collapsed': isCollapsed}"
+        [attr.aria-label]="isCollapsed ? 'Ouvrir le menu' : 'Fermer le menu'"
+        [attr.aria-expanded]="!isCollapsed">
+        <div class="toggle-icon">
+          <span class="material-icons" [ngClass]="{'rotated': isCollapsed}">
+            {{ isCollapsed ? 'menu' : 'menu_open' }}
           </span>
         </div>
-        
-        <!-- Label et badge -->
-        <div class="flex-1 flex items-center justify-between" *ngIf="!isCollapsed">
-          <span class="font-medium">{{ item.label }}</span>
-          <span *ngIf="item.badge" 
-                class="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">
-            {{ item.badge }}
-          </span>
-                 </div>
-       </button>
-     </ng-container>
+      </button>
+    </div>
+  </div>
+
+  <!-- Navigation premium -->
+  <nav class="sidebar-nav" role="menubar">
+    <div class="nav-container">
+      <ng-container *ngFor="let item of sidebarItems; let i = index">
+        <!-- Élément de navigation premium -->
+        <div class="nav-item-wrapper" 
+             [style.animation-delay]="getAnimationDelay(i)">
+          <button 
+            (click)="navigateTo(item.route)"
+            (mouseenter)="onItemHover(item.route)"
+            (mouseleave)="onItemLeave()"
+            (touchstart)="onTouchStart($event)"
+            (touchend)="onTouchEnd($event)"
+            class="nav-item-premium"
+            [ngClass]="{
+              'active': isActiveRoute(item.route),
+              'hovered': hoveredItem === item.route,
+              'disabled': item.disabled
+            }"
+            [title]="getTooltipText(item)"
+            [attr.aria-label]="item.label"
+            [attr.aria-current]="isActiveRoute(item.route) ? 'page' : null"
+            [attr.data-route]="item.route"
+            role="menuitem"
+            [disabled]="item.disabled">
+            
+            <!-- Container principal -->
+            <div class="nav-item-content">
+              <!-- Icône avec effets premium -->
+              <div class="nav-icon-premium">
+                <div class="icon-background">
+                  <span class="material-icons">{{ item.icon }}</span>
+                </div>
+                <div class="icon-glow" 
+                     [ngClass]="{'active': isActiveRoute(item.route)}"></div>
+              </div>
+              
+              <!-- Contenu textuel -->
+              <div class="nav-text-content" *ngIf="!isCollapsed">
+                <span class="nav-label-premium">{{ item.label }}</span>
+                <span *ngIf="item.badge" 
+                      class="nav-badge-premium"
+                      [attr.aria-label]="'Badge: ' + item.badge">
+                  {{ item.badge }}
+                </span>
+              </div>
+            </div>
+            
+            <!-- Indicateur de sélection premium -->
+            <div class="nav-indicator-premium" 
+                 [ngClass]="{'active': isActiveRoute(item.route)}"></div>
+            
+            <!-- Effet de hover premium -->
+            <div class="nav-hover-effect"></div>
+          </button>
+        </div>
+      </ng-container>
+    </div>
   </nav>
 
-  <!-- Section utilisateur en bas -->
-  <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-gray-50">
-    <div class="flex items-center space-x-3" *ngIf="!isCollapsed">
-      <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center">
-        <span class="material-icons text-white text-sm">account_circle</span>
+  <!-- Footer utilisateur premium -->
+  <div class="sidebar-footer">
+    <div class="footer-content">
+      <!-- Profil utilisateur corporate -->
+      <div class="user-profile-section" 
+           [ngClass]="{'collapsed': isCollapsed}">
+        <div class="user-avatar-container">
+          <div class="user-avatar">
+            <div class="avatar-background">
+              <span class="material-icons">person</span>
+            </div>
+            <div class="avatar-status-indicator"></div>
+          </div>
+        </div>
+        <div class="user-info" *ngIf="!isCollapsed">
+          <p class="user-name">Administrateur</p>
+          <p class="user-role">Admin System</p>
+        </div>
       </div>
-      <div class="flex-1 min-w-0">
-        <p class="text-sm font-medium text-gray-900 truncate">Administrateur</p>
-        <p class="text-xs text-gray-500 truncate">admin&#64;um6ss.ma</p>
+      
+      <!-- Actions utilisateur premium -->
+      <div class="user-actions" *ngIf="!isCollapsed">
+        <button class="action-button settings-btn" title="Paramètres">
+          <div class="button-background">
+            <span class="material-icons">settings</span>
+          </div>
+        </button>
+        <button class="action-button logout-btn" title="Déconnexion">
+          <div class="button-background">
+            <span class="material-icons">logout</span>
+          </div>
+        </button>
+      </div>
+      
+      <!-- Menu compact pour mode collapsed -->
+      <div class="compact-menu" *ngIf="isCollapsed">
+        <button class="compact-menu-button" title="Menu utilisateur">
+          <div class="menu-dots">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </button>
       </div>
     </div>
-    
-    <!-- Bouton déconnexion -->
-    <button 
-      class="w-full mt-3 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
-      *ngIf="!isCollapsed">
-      <span class="material-icons text-sm mr-2">logout</span>
-      Déconnexion
-    </button>
   </div>
+</div>
+
+<!-- Overlay pour mobile -->
+<div *ngIf="isMobile && !isCollapsed" 
+     class="sidebar-overlay"
+     (click)="toggleSidebar()"
+     [attr.aria-hidden]="true">
 </div>
