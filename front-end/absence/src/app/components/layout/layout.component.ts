@@ -12,6 +12,16 @@ import { SidebarComponent } from '../sidebar/sidebar.component';
 })
 export class LayoutComponent {
   isSidebarCollapsed = false;
+  isMobile = false;
+
+  constructor() {
+    this.checkMobile();
+    window.addEventListener('resize', () => this.checkMobile());
+  }
+
+  checkMobile(): void {
+    this.isMobile = window.innerWidth < 1024; // Utilise le breakpoint lg de Tailwind
+  }
 
   toggleSidebar(): void {
     this.isSidebarCollapsed = !this.isSidebarCollapsed;

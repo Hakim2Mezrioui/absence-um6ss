@@ -44,7 +44,7 @@ export class SidebarComponent implements OnInit {
   }
 
   private checkMobile(): void {
-    this.isMobile = window.innerWidth <= 768;
+    this.isMobile = window.innerWidth < 1024; // Utilise le breakpoint lg de Tailwind
   }
 
   private initializeRouteTracking(): void {

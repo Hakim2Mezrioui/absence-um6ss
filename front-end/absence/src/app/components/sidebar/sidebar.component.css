@@ -1,37 +1,79 @@
-/* ===== SIDEBAR PROFESSIONNEL COHÉRENT ===== */
-.ultra-professional-sidebar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100vh;
-  z-index: 50;
-  overflow-y: auto;
-  overflow-x: hidden;
-  background: #ffffff;
-  border-right: 1px solid #e5e7eb;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+/* ===== ANIMATIONS PERSONNALISÉES TAILWIND ===== */
+@keyframes slide-in-from-left {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
-/* ===== SCROLLBAR PERSONNALISÉE ===== */
-.sidebar::-webkit-scrollbar {
+.animate-slide-in-from-left {
+  animation: slide-in-from-left 0.6s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out;
+}
+
+/* ===== SCROLLBAR PERSONNALISÉE POUR THÈME NOIR ===== */
+.overflow-y-auto::-webkit-scrollbar {
   width: 6px;
 }
 
-.sidebar::-webkit-scrollbar-track {
+.overflow-y-auto::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.sidebar::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #cbd5e1 0%, #94a3b8 100%);
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #4b5563 0%, #374151 100%);
   border-radius: 3px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.sidebar::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #94a3b8 0%, #64748b 100%);
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #6b7280 0%, #4b5563 100%);
 }
+
+/* ===== EFFETS DE LUMIÈRE POUR THÈME NOIR ===== */
+.bg-gray-900 {
+  background: linear-gradient(180deg, #111827 0%, #1f2937 100%);
+}
+
+.bg-gray-800 {
+  background: linear-gradient(180deg, #1f2937 0%, #374151 100%);
+}
+
+/* ===== ANIMATIONS POUR THÈME NOIR ===== */
+@keyframes glow-dark {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+  }
+}
+
+.bg-blue-400:hover {
+  animation: glow-dark 2s ease-in-out infinite;
+}
+
+
+/* ===== STYLES RÉSIDUELS POUR COMPATIBILITÉ ===== */
+/* Les styles principaux sont maintenant gérés par Tailwind CSS */
 
 /* ===== HEADER PROFESSIONNEL ===== */
 .sidebar-header {
@@ -1295,10 +1337,23 @@
   animation: gradientShift 8s ease infinite;
 }
 
-/* ===== RESPONSIVE ULTRA PROFESSIONNEL ===== */
-@media (max-width: 1024px) {
+/* ===== RESPONSIVE DESIGN SIDEBAR CORRIGÉ ===== */
+
+/* Large screens - Desktop */
+@media (min-width: 1025px) {
   .ultra-professional-sidebar {
-    width: 280px !important;
+    width: 288px; /* w-72 */
+  }
+  
+  .ultra-professional-sidebar.collapsed {
+    width: 64px; /* w-16 */
+  }
+}
+
+/* Medium screens - Tablet */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .ultra-professional-sidebar {
+    width: 64px !important; /* Toujours collapsed sur tablet */
   }
   
   .ultra-professional-sidebar.collapsed {
@@ -1306,31 +1361,43 @@
   }
   
   .header-content {
-    padding: 16px 20px;
+    padding: 16px 12px;
   }
   
   .nav-container {
-    padding: 20px 16px;
+    padding: 20px 8px;
   }
   
   .footer-content {
-    padding: 16px 20px;
+    padding: 16px 12px;
   }
 }
 
+/* Small screens - Mobile */
 @media (max-width: 768px) {
   .ultra-professional-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
     transform: translateX(-100%);
     width: 320px !important;
+    z-index: 50;
     box-shadow: 
       0 0 0 100vw rgba(0, 0, 0, 0.5),
       0 0 0 1px rgba(255, 255, 255, 0.05),
       0 4px 6px -1px rgba(0, 0, 0, 0.1),
       0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   .ultra-professional-sidebar.mobile-open {
     transform: translateX(0);
+  }
+  
+  .ultra-professional-sidebar.collapsed {
+    transform: translateX(-100%);
+    width: 64px !important;
   }
   
   .nav-item-premium {
@@ -1346,13 +1413,6 @@
   .icon-background {
     border-radius: 12px;
   }
-}
-
-@media (max-width: 640px) {
-  .ultra-professional-sidebar {
-    width: 100vw !important;
-    max-width: 360px;
-  }
   
   .header-content {
     padding: 20px 24px;
@@ -1364,6 +1424,26 @@
   
   .footer-content {
     padding: 20px 24px;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+  .ultra-professional-sidebar {
+    width: 100vw !important;
+    max-width: 360px;
+  }
+  
+  .header-content {
+    padding: 16px 20px;
+  }
+  
+  .nav-container {
+    padding: 20px 16px;
+  }
+  
+  .footer-content {
+    padding: 16px 20px;
   }
 }
 

@@ -1,56 +1,74 @@
 <div #sidebarRef 
-     class="sidebar ultra-professional-sidebar"
+     class="fixed top-0 left-0 h-screen z-50 overflow-y-auto overflow-x-hidden bg-gray-900 border-r border-gray-700 shadow-2xl transition-all duration-300 ease-in-out"
      [ngClass]="{
-       'w-72': !isCollapsed, 
-       'w-16 collapsed': isCollapsed,
-       'mobile-open': !isCollapsed && isMobile
+       'w-72': !isCollapsed && !isMobile, 
+       'w-16': isCollapsed && !isMobile,
+       'w-80 -translate-x-full': isMobile && isCollapsed,
+       'w-80 translate-x-0': isMobile && !isCollapsed,
+       'lg:w-72': !isCollapsed && !isMobile,
+       'lg:w-16': isCollapsed && !isMobile,
+       'md:w-16': !isMobile
      }"
      [attr.aria-expanded]="!isCollapsed"
      role="navigation"
      aria-label="Navigation principale">
   
   <!-- Header corporate premium -->
-  <div class="sidebar-header">
-    <div class="header-content">
+  <div class="sticky top-0 z-10 bg-gray-800 border-b border-gray-700 min-h-16 flex items-center">
+    <div class="flex items-center justify-between px-5 py-4 w-full min-h-16"
+         [ngClass]="{
+           'px-3 justify-center': isCollapsed && !isMobile,
+           'px-6': !isCollapsed || isMobile
+         }">
       <!-- Logo et branding - caché en mode collapsed -->
-      <div class="brand-section" 
-           *ngIf="!isCollapsed">
-        <div class="logo-container">
-          <div class="logo-background">
-            <div class="logo-icon">
-              <span class="material-icons">school</span>
-            </div>
-            <div class="logo-glow"></div>
+      <div class="flex items-center gap-4 transition-all duration-400 ease-in-out"
+           *ngIf="!isCollapsed || isMobile"
+           [ngClass]="{
+             'gap-0 justify-center': isCollapsed && !isMobile
+           }">
+        <div class="relative flex items-center justify-center">
+          <div class="relative w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-500 rounded-lg flex items-center justify-center shadow-lg transition-all duration-200 ease hover:-translate-y-0.5 hover:shadow-xl">
+            <span class="material-icons text-white text-xl">school</span>
           </div>
         </div>
-        <div class="brand-text">
-          <h1 class="brand-title">UM6SS</h1>
-          <p class="brand-subtitle">Gestion Absences</p>
+        <div class="flex flex-col gap-0.5" *ngIf="!isCollapsed || isMobile">
+          <h1 class="text-base font-semibold text-white leading-tight m-0">UM6SS</h1>
+          <p class="text-xs font-medium text-gray-300 leading-tight m-0">Gestion Absences</p>
         </div>
       </div>
       
       <!-- Toggle button premium - toujours visible -->
       <button 
         (click)="toggleSidebar()"
-        class="toggle-button"
-        [ngClass]="{'collapsed': isCollapsed}"
+        class="relative w-9 h-9 border-none bg-gray-700 rounded-lg cursor-pointer transition-all duration-200 ease border border-gray-600 shadow-lg flex items-center justify-center hover:bg-gray-600 hover:border-gray-500 hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0 active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-800"
+        [ngClass]="{
+          'mx-auto w-11 h-11 bg-gray-700 border-gray-600 shadow-xl': isCollapsed && !isMobile,
+          'w-9 h-9': !isCollapsed || isMobile
+        }"
         [attr.aria-label]="isCollapsed ? 'Ouvrir le menu' : 'Fermer le menu'"
         [attr.aria-expanded]="!isCollapsed">
-        <div class="toggle-icon">
-          <span class="material-icons" [ngClass]="{'rotated': isCollapsed}">
-            {{ isCollapsed ? 'menu' : 'menu_open' }}
-          </span>
-        </div>
+        <span class="material-icons text-gray-300 text-lg font-medium transition-all duration-200 ease"
+              [ngClass]="{
+                'rotate-180': isCollapsed,
+                'text-gray-300 font-semibold text-xl': isCollapsed && !isMobile,
+                'hover:text-white font-semibold': true
+              }">
+          {{ isCollapsed ? 'menu' : 'menu_open' }}
+        </span>
       </button>
     </div>
   </div>
 
   <!-- Navigation premium -->
-  <nav class="sidebar-nav" role="menubar">
-    <div class="nav-container">
+  <nav class="flex-1 p-0 m-0 pb-24" role="menubar">
+    <div class="px-5 py-6 flex flex-col gap-2"
+         [ngClass]="{
+           'px-3 gap-3': isCollapsed && !isMobile,
+           'px-6': !isCollapsed || isMobile
+         }">
       <ng-container *ngFor="let item of sidebarItems; let i = index">
         <!-- Élément de navigation premium -->
-        <div class="nav-item-wrapper" 
+        <div class="relative animate-slide-in-from-left"
              [style.animation-delay]="getAnimationDelay(i)">
           <button 
             (click)="navigateTo(item.route)"
@@ -58,11 +76,13 @@
             (mouseleave)="onItemLeave()"
             (touchstart)="onTouchStart($event)"
             (touchend)="onTouchEnd($event)"
-            class="nav-item-premium"
+            class="relative w-full h-11 border-none bg-transparent rounded-lg cursor-pointer transition-all duration-200 ease flex items-center justify-center px-3 py-0 my-0.5 hover:bg-gray-800 hover:translate-x-0.5 focus:bg-gray-700 focus:border focus:border-blue-400 focus:translate-x-0.5 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
             [ngClass]="{
-              'active': isActiveRoute(item.route),
-              'hovered': hoveredItem === item.route,
-              'disabled': item.disabled
+              'bg-gray-800 border border-gray-600 translate-x-0.5': isActiveRoute(item.route),
+              'hover:bg-gray-800': hoveredItem === item.route,
+              'opacity-40 cursor-not-allowed pointer-events-none': item.disabled,
+              'justify-center px-2': isCollapsed && !isMobile,
+              'justify-start px-3': !isCollapsed || isMobile
             }"
             [title]="getTooltipText(item)"
             [attr.aria-label]="item.label"
@@ -72,21 +92,46 @@
             [disabled]="item.disabled">
             
             <!-- Container principal -->
-            <div class="nav-item-content">
+            <div class="flex items-center gap-3 w-full relative z-10"
+                 [ngClass]="{
+                   'justify-center gap-0': isCollapsed && !isMobile,
+                   'justify-start gap-3': !isCollapsed || isMobile
+                 }">
               <!-- Icône avec effets premium -->
-              <div class="nav-icon-premium">
-                <div class="icon-background">
-                  <span class="material-icons">{{ item.icon }}</span>
+              <div class="relative flex items-center justify-center w-7 h-7 flex-shrink-0"
+                   [ngClass]="{
+                     'w-10 h-10 mx-auto': isCollapsed && !isMobile,
+                     'w-7 h-7': !isCollapsed || isMobile
+                   }">
+                <div class="relative w-full h-full bg-gray-700 rounded-md flex items-center justify-center transition-all duration-200 ease border border-gray-600"
+                     [ngClass]="{
+                       'hover:bg-gray-600 hover:border-gray-500': true,
+                       'focus:bg-gray-600 focus:border-blue-400': true,
+                       'bg-gray-600 border-gray-500': isActiveRoute(item.route),
+                       'w-10 h-10 rounded-xl': isCollapsed && !isMobile,
+                       'w-7 h-7 rounded-md': !isCollapsed || isMobile
+                     }">
+                  <span class="material-icons text-gray-300 text-lg transition-all duration-200 ease"
+                        [ngClass]="{
+                          'hover:text-white': true,
+                          'text-white': isActiveRoute(item.route),
+                          'text-xl': isCollapsed && !isMobile,
+                          'text-lg': !isCollapsed || isMobile
+                        }">{{ item.icon }}</span>
                 </div>
-                <div class="icon-glow" 
-                     [ngClass]="{'active': isActiveRoute(item.route)}"></div>
               </div>
               
               <!-- Contenu textuel -->
-              <div class="nav-text-content" *ngIf="!isCollapsed">
-                <span class="nav-label-premium">{{ item.label }}</span>
+              <div class="flex items-center justify-between flex-1 min-w-0" 
+                   *ngIf="!isCollapsed || isMobile">
+                <span class="text-sm font-medium text-gray-300 leading-snug transition-all duration-200 ease"
+                      [ngClass]="{
+                        'hover:text-white hover:font-semibold': true,
+                        'text-white font-bold': isActiveRoute(item.route),
+                        'text-gray-300 font-medium': !isActiveRoute(item.route)
+                      }">{{ item.label }}</span>
                 <span *ngIf="item.badge" 
-                      class="nav-badge-premium"
+                      class="inline-flex items-center px-2.5 py-1 text-xs font-semibold bg-red-50 text-red-600 rounded-full border border-red-200 shadow-sm animate-pulse relative overflow-hidden"
                       [attr.aria-label]="'Badge: ' + item.badge">
                   {{ item.badge }}
                 </span>
@@ -94,11 +139,10 @@
             </div>
             
             <!-- Indicateur de sélection premium -->
-            <div class="nav-indicator-premium" 
-                 [ngClass]="{'active': isActiveRoute(item.route)}"></div>
-            
-            <!-- Effet de hover premium -->
-            <div class="nav-hover-effect"></div>
+            <div class="absolute left-0 top-1/2 transform -translate-y-1/2 w-0.5 h-5 bg-blue-400 rounded-r-sm opacity-0 transition-all duration-200 ease"
+                 [ngClass]="{
+                   'opacity-100': isActiveRoute(item.route)
+                 }"></div>
           </button>
         </div>
       </ng-container>
@@ -106,46 +150,50 @@
   </nav>
 
   <!-- Footer utilisateur premium -->
-  <div class="sidebar-footer">
-    <div class="footer-content">
+  <div class="absolute bottom-0 left-0 right-0 z-10 bg-gray-800 border-t border-gray-700 shadow-2xl">
+    <div class="px-5 py-4 flex items-center justify-between"
+         [ngClass]="{
+           'px-3 justify-center': isCollapsed && !isMobile,
+           'px-6': !isCollapsed || isMobile
+         }">
       <!-- Profil utilisateur corporate -->
-      <div class="user-profile-section" 
-           [ngClass]="{'collapsed': isCollapsed}">
-        <div class="user-avatar-container">
-          <div class="user-avatar">
-            <div class="avatar-background">
-              <span class="material-icons">person</span>
-            </div>
-            <div class="avatar-status-indicator"></div>
+      <div class="flex items-center gap-3 transition-all duration-400 ease-in-out"
+           [ngClass]="{
+             'gap-0 justify-center': isCollapsed && !isMobile
+           }">
+        <div class="relative flex items-center justify-center">
+          <div class="relative w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-500 rounded-lg flex items-center justify-center shadow-lg transition-all duration-200 ease hover:-translate-y-0.5 hover:shadow-xl">
+            <span class="material-icons text-white text-lg">person</span>
           </div>
+          <div class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 border-2 border-gray-800 rounded-full shadow-sm"></div>
         </div>
-        <div class="user-info" *ngIf="!isCollapsed">
-          <p class="user-name">Administrateur</p>
-          <p class="user-role">Admin System</p>
+        <div class="flex flex-col gap-0.5 min-w-0" *ngIf="!isCollapsed || isMobile">
+          <p class="text-sm font-semibold text-white leading-tight m-0 whitespace-nowrap overflow-hidden text-ellipsis">Administrateur</p>
+          <p class="text-xs font-medium text-gray-300 leading-tight m-0 whitespace-nowrap overflow-hidden text-ellipsis">Admin System</p>
         </div>
       </div>
       
       <!-- Actions utilisateur premium -->
-      <div class="user-actions" *ngIf="!isCollapsed">
-        <button class="action-button settings-btn" title="Paramètres">
-          <div class="button-background">
-            <span class="material-icons">settings</span>
+      <div class="flex items-center gap-1.5" *ngIf="!isCollapsed || isMobile">
+        <button class="relative w-8 h-8 border-none bg-transparent rounded-md cursor-pointer transition-all duration-200 ease flex items-center justify-center hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-800" title="Paramètres">
+          <div class="relative w-full h-full bg-gray-700 rounded-md flex items-center justify-center transition-all duration-200 ease border border-gray-600 hover:bg-blue-600 hover:border-blue-400 focus:bg-blue-600 focus:border-blue-400">
+            <span class="material-icons text-gray-300 text-base transition-all duration-200 ease hover:text-white">settings</span>
           </div>
         </button>
-        <button class="action-button logout-btn" title="Déconnexion">
-          <div class="button-background">
-            <span class="material-icons">logout</span>
+        <button class="relative w-8 h-8 border-none bg-transparent rounded-md cursor-pointer transition-all duration-200 ease flex items-center justify-center hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 focus:ring-offset-gray-800" title="Déconnexion">
+          <div class="relative w-full h-full bg-gray-700 rounded-md flex items-center justify-center transition-all duration-200 ease border border-gray-600 hover:bg-red-600 hover:border-red-400 focus:bg-red-600 focus:border-red-400">
+            <span class="material-icons text-gray-300 text-base transition-all duration-200 ease hover:text-white">logout</span>
           </div>
         </button>
       </div>
       
       <!-- Menu compact pour mode collapsed -->
-      <div class="compact-menu" *ngIf="isCollapsed">
-        <button class="compact-menu-button" title="Menu utilisateur">
-          <div class="menu-dots">
-            <span></span>
-            <span></span>
-            <span></span>
+      <div class="flex items-center justify-center" *ngIf="isCollapsed && !isMobile">
+        <button class="relative w-9 h-9 border-none bg-gradient-to-br from-gray-700 to-gray-600 rounded-lg cursor-pointer transition-all duration-300 ease flex items-center justify-center border border-gray-600 hover:scale-105 hover:from-gray-600 hover:to-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-800" title="Menu utilisateur">
+          <div class="flex flex-col gap-0.5">
+            <span class="w-1 h-1 bg-gray-300 rounded-full transition-all duration-300 ease hover:bg-white hover:scale-125"></span>
+            <span class="w-1 h-1 bg-gray-300 rounded-full transition-all duration-300 ease hover:bg-white hover:scale-125"></span>
+            <span class="w-1 h-1 bg-gray-300 rounded-full transition-all duration-300 ease hover:bg-white hover:scale-125"></span>
           </div>
         </button>
       </div>
@@ -155,7 +203,7 @@
 
 <!-- Overlay pour mobile -->
 <div *ngIf="isMobile && !isCollapsed" 
-     class="sidebar-overlay"
+     class="fixed top-0 left-0 right-0 bottom-0 bg-black bg-opacity-60 z-40 backdrop-blur-sm"
      (click)="toggleSidebar()"
      [attr.aria-hidden]="true">
 </div>
