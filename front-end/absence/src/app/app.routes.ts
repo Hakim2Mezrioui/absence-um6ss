@@ -17,6 +17,7 @@ import { EtablissementsComponent } from './components/etablissements/etablisseme
 import { SallesComponent } from './components/salles/salles.component';
 import { RattrapageComponent } from './components/rattrapage/rattrapage.component';
 import { RattrapageStudentsComponent } from './components/rattrapage-students/rattrapage-students.component';
+import { ProfileComponent } from './components/profile/profile.component';
 
 export const routes: Routes = [
     {path: "", redirectTo: "login", pathMatch: "full"},
@@ -42,7 +43,8 @@ export const routes: Routes = [
                    { path: "rattrapages", component: RattrapageComponent },
                    { path: "rattrapages/:id/students", component: RattrapageStudentsComponent },
                    { path: "statistiques", component: DashboardComponent }, // Placeholder
-                   { path: "parametres", component: DashboardComponent } // Placeholder
+                   { path: "parametres", component: DashboardComponent }, // Placeholder
+                   { path: "profile", component: ProfileComponent },
                ]
     },
 ];

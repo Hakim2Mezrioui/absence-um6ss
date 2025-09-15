@@ -61,7 +61,7 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
   loadingMessage = '';
   uploadProgress = 0;
   showConfiguration = true;
-  configurationValid = false;
+  configurationValid = true;
 
   // Fichier
   selectedFile: File | null = null;
@@ -112,7 +112,7 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     console.log('🚀 ImportStudentsComponent initialisé');
     this.loadFilterOptions();
-    this.setupFormValidation();
+    this.setupAutoConfiguration();
   }
 
   ngOnDestroy(): void {
@@ -145,43 +145,40 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Configurer la validation du formulaire
+   * Configurer la configuration automatique
    */
-  setupFormValidation(): void {
+  setupAutoConfiguration(): void {
+    // Mise à jour automatique de la configuration quand les valeurs changent
     this.configForm.valueChanges
       .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        this.configurationValid = this.configForm.valid;
+      .subscribe((formValue) => {
+        this.importOptions.useDefaultValues = formValue.useAsDefault;
+        this.importOptions.defaultValues = {
+          promotion_id: formValue.promotion_id,
+          etablissement_id: formValue.etablissement_id,
+          ville_id: formValue.ville_id,
+          group_id: formValue.group_id,
+          option_id: formValue.option_id
+        };
       });
   }
 
   /**
-   * Valider la configuration
+   * Valider la configuration (supprimé - configuration automatique)
    */
   validateConfiguration(): void {
-    if (this.configForm.valid) {
-      const formValue = this.configForm.value;
-      this.importOptions.useDefaultValues = formValue.useAsDefault;
-      this.importOptions.defaultValues = {
-        promotion_id: formValue.promotion_id,
-        etablissement_id: formValue.etablissement_id,
-        ville_id: formValue.ville_id,
-        group_id: formValue.group_id,
-        option_id: formValue.option_id
-      };
-      
-      this.showConfiguration = false;
-      this.success = 'Configuration validée avec succès!';
-      
-      setTimeout(() => {
-        this.success = '';
-      }, 3000);
-    } else {
-      this.error = 'Veuillez remplir tous les champs obligatoires';
-      setTimeout(() => {
-        this.error = '';
-      }, 3000);
-    }
+    // Configuration automatique - pas de validation nécessaire
+    const formValue = this.configForm.value;
+    this.importOptions.useDefaultValues = formValue.useAsDefault;
+    this.importOptions.defaultValues = {
+      promotion_id: formValue.promotion_id,
+      etablissement_id: formValue.etablissement_id,
+      ville_id: formValue.ville_id,
+      group_id: formValue.group_id,
+      option_id: formValue.option_id
+    };
+    
+    this.showConfiguration = false;
   }
 
   /**
@@ -381,10 +378,7 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (!this.configurationValid && this.showConfiguration) {
-      this.error = 'Veuillez d\'abord valider la configuration.';
-      return;
-    }
+    // Configuration automatique - pas de validation nécessaire
 
     this.loading = true;
     this.loadingMessage = 'Préparation de l\'import...';

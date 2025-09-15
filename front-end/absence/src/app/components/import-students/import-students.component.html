@@ -49,20 +49,23 @@
             <div class="flex items-start gap-3">
               <mat-icon class="text-blue-600 text-lg">info</mat-icon>
               <div>
-                <h4 class="font-semibold text-blue-900 mb-2">Configuration intelligente</h4>
+                <h4 class="font-semibold text-blue-900 mb-2">Sélection des informations liées</h4>
                 <p class="text-blue-800 text-sm">
-                  Configurez les valeurs par défaut qui seront automatiquement appliquées à tous les étudiants importés.
-                  Les relations (promotion, établissement, ville, groupe, option) sont gérées par cette configuration.
+                  Sélectionnez les informations qui seront automatiquement appliquées à tous les étudiants importés.
+                  Ces valeurs seront utilisées pour créer les relations (promotion, établissement, ville, groupe, option).
                 </p>
               </div>
             </div>
           </div>
 
           <!-- Grille de configuration -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <!-- Promotion -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Promotion *</label>
+            <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <mat-icon class="text-blue-600 text-sm">school</mat-icon>
+                Promotion *
+              </label>
               <select 
                 formControlName="promotion_id" 
                 class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -72,11 +75,15 @@
                   {{ promotion.name }}
                 </option>
               </select>
+              <p class="text-xs text-gray-500 mt-1">Année d'étude des étudiants</p>
             </div>
 
             <!-- Établissement -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Établissement *</label>
+            <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <mat-icon class="text-green-600 text-sm">business</mat-icon>
+                Établissement *
+              </label>
               <select 
                 formControlName="etablissement_id" 
                 class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -86,11 +93,15 @@
                   {{ etablissement.name }}
                 </option>
               </select>
+              <p class="text-xs text-gray-500 mt-1">Institution d'enseignement</p>
             </div>
 
             <!-- Ville -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Ville *</label>
+            <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <mat-icon class="text-purple-600 text-sm">location_city</mat-icon>
+                Ville *
+              </label>
               <select 
                 formControlName="ville_id" 
                 class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -100,11 +111,15 @@
                   {{ ville.name }}
                 </option>
               </select>
+              <p class="text-xs text-gray-500 mt-1">Localisation géographique</p>
             </div>
 
             <!-- Groupe -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Groupe *</label>
+            <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <mat-icon class="text-orange-600 text-sm">group</mat-icon>
+                Groupe *
+              </label>
               <select 
                 formControlName="group_id" 
                 class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -114,11 +129,15 @@
                   {{ group.title }}
                 </option>
               </select>
+              <p class="text-xs text-gray-500 mt-1">Groupe de classe des étudiants</p>
             </div>
 
             <!-- Option -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Option *</label>
+            <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <mat-icon class="text-red-600 text-sm">category</mat-icon>
+                Option *
+              </label>
               <select 
                 formControlName="option_id" 
                 class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -128,11 +147,15 @@
                   {{ option.name }}
                 </option>
               </select>
+              <p class="text-xs text-gray-500 mt-1">Spécialisation ou filière</p>
             </div>
 
             <!-- Mode de traitement des doublons -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Gestion des doublons</label>
+            <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <mat-icon class="text-indigo-600 text-sm">settings</mat-icon>
+                Gestion des doublons
+              </label>
               <select 
                 [(ngModel)]="importOptions.duplicateMode"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -141,77 +164,24 @@
                 <option value="skip">Ignorer</option>
                 <option value="error">Erreur</option>
               </select>
+              <p class="text-xs text-gray-500 mt-1">Action en cas d'étudiant existant</p>
             </div>
           </div>
 
           <!-- Actions de configuration -->
-          <div class="flex justify-between items-center pt-4 border-t border-gray-200">
-            <div class="text-sm text-gray-600">
-              Configuration requise pour l'importation
+          <div class="flex justify-center items-center pt-6 border-t border-gray-200 bg-gray-50 rounded-lg p-4 -mx-6 -mb-6">
+            <div class="text-sm text-gray-600 flex items-center gap-2">
+              <mat-icon class="text-blue-600 text-sm">info</mat-icon>
+              <span>Configuration automatique - Sélectionnez vos préférences ci-dessus</span>
             </div>
-            <button 
-              type="button"
-              mat-raised-button
-              color="primary"
-              (click)="validateConfiguration()"
-              [disabled]="!configForm.valid"
-              class="flex items-center gap-2 px-4 py-2 rounded-lg"
-            >
-              <mat-icon>check_circle</mat-icon>
-              <span>Valider la Configuration</span>
-            </button>
           </div>
         </form>
       </div>
     </div>
 
-    <!-- Résumé de configuration (si validée) -->
-    <div *ngIf="!showConfiguration && configurationValid" class="mb-8">
-      <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-        <div class="flex items-start justify-between">
-          <div class="flex items-center gap-3">
-            <mat-icon class="text-green-600 text-lg">check_circle</mat-icon>
-            <div>
-              <h3 class="font-semibold text-green-900 mb-2">Configuration validée</h3>
-              <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 text-sm">
-                <div class="bg-white rounded px-3 py-2 border border-green-200">
-                  <div class="text-gray-600">Promotion</div>
-                  <div class="font-medium text-green-800">{{ getOptionName('promotion', importOptions.defaultValues?.promotion_id!) }}</div>
-                </div>
-                <div class="bg-white rounded px-3 py-2 border border-green-200">
-                  <div class="text-gray-600">Établissement</div>
-                  <div class="font-medium text-green-800">{{ getOptionName('etablissement', importOptions.defaultValues?.etablissement_id!) }}</div>
-                </div>
-                <div class="bg-white rounded px-3 py-2 border border-green-200">
-                  <div class="text-gray-600">Ville</div>
-                  <div class="font-medium text-green-800">{{ getOptionName('ville', importOptions.defaultValues?.ville_id!) }}</div>
-                </div>
-                <div class="bg-white rounded px-3 py-2 border border-green-200">
-                  <div class="text-gray-600">Groupe</div>
-                  <div class="font-medium text-green-800">{{ getOptionName('group', importOptions.defaultValues?.group_id!) }}</div>
-                </div>
-                <div class="bg-white rounded px-3 py-2 border border-green-200">
-                  <div class="text-gray-600">Option</div>
-                  <div class="font-medium text-green-800">{{ getOptionName('option', importOptions.defaultValues?.option_id!) }}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <button 
-            mat-icon-button
-            (click)="editConfiguration()"
-            class="text-green-600 hover:bg-green-100 rounded-full"
-            matTooltip="Modifier la configuration"
-          >
-            <mat-icon>edit</mat-icon>
-          </button>
-        </div>
-      </div>
-    </div>
 
     <!-- Zone d'upload principal -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden" [class.opacity-50]="showConfiguration"
-         [class.pointer-events-none]="showConfiguration">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
       <!-- En-tête -->
       <div class="bg-gray-50 border-b border-gray-200 p-6">
         <div class="flex items-center justify-between">
@@ -308,7 +278,7 @@
         <!-- Fichier sélectionné -->
         <div *ngIf="selectedFile" class="mb-8">
           <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between mb-4">
               <div class="flex items-center gap-3">
                 <mat-icon class="text-gray-600">description</mat-icon>
                 <div>
@@ -324,6 +294,95 @@
               >
                 <mat-icon>close</mat-icon>
               </button>
+            </div>
+            
+            <!-- Aperçu du contenu du fichier -->
+            <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-lg">
+              <!-- En-tête de l'aperçu -->
+              <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-200 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <mat-icon class="text-blue-600 text-lg">table_view</mat-icon>
+                    </div>
+                    <div>
+                      <h5 class="font-semibold text-blue-900 text-lg">Aperçu du contenu du fichier</h5>
+                      <p class="text-blue-700 text-sm">Vérifiez les données avant l'importation</p>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2 text-blue-600">
+                    <mat-icon class="text-sm">info</mat-icon>
+                    <span class="text-sm font-medium">{{ previewData.length }} lignes</span>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Contenu de l'aperçu -->
+              <div class="p-0">
+                <div *ngIf="previewData.length > 0" class="overflow-x-auto">
+                  <div class="min-w-full">
+                    <!-- Tableau élégant -->
+                    <table class="w-full">
+                      <thead>
+                        <tr class="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
+                          <th *ngFor="let header of previewHeaders; let i = index" 
+                              class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200 last:border-r-0"
+                              [class.bg-blue-50]="i % 2 === 0"
+                              [class.bg-indigo-50]="i % 2 === 1">
+                            <div class="flex items-center gap-2">
+                              <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+                              <span>{{ header }}</span>
+                            </div>
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody class="bg-white divide-y divide-gray-200">
+                        <tr *ngFor="let row of previewData; let i = index" 
+                            class="hover:bg-blue-50 transition-colors duration-150"
+                            [class.bg-gray-50]="i % 2 === 0">
+                          <td *ngFor="let cell of row; let j = index" 
+                              class="px-6 py-4 text-sm text-gray-800 border-r border-gray-100 last:border-r-0"
+                              [class.font-medium]="j === 0">
+                            <div class="flex items-center gap-2">
+                              <div class="w-1 h-1 bg-gray-400 rounded-full opacity-50"></div>
+                              <span class="truncate max-w-xs" [title]="cell">{{ cell || '-' }}</span>
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    
+                    <!-- Informations supplémentaires -->
+                    <div class="bg-gradient-to-r from-gray-50 to-blue-50 border-t border-gray-200 px-6 py-3">
+                      <div class="flex items-center justify-between text-sm">
+                        <div class="flex items-center gap-4 text-gray-600">
+                          <div class="flex items-center gap-1">
+                            <mat-icon class="text-gray-400 text-sm">table_rows</mat-icon>
+                            <span>{{ previewData.length }} lignes affichées</span>
+                          </div>
+                          <div class="flex items-center gap-1">
+                            <mat-icon class="text-gray-400 text-sm">view_column</mat-icon>
+                            <span>{{ previewHeaders.length }} colonnes</span>
+                          </div>
+                        </div>
+                        <div class="text-blue-600 font-medium">
+                          <mat-icon class="text-sm mr-1">check_circle</mat-icon>
+                          Prêt pour l'importation
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- État vide -->
+                <div *ngIf="previewData.length === 0" class="text-center py-12">
+                  <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <mat-icon class="text-gray-400 text-3xl">description</mat-icon>
+                  </div>
+                  <h6 class="text-gray-500 font-medium mb-2">Aucun contenu à afficher</h6>
+                  <p class="text-gray-400 text-sm">Sélectionnez un fichier CSV pour voir l'aperçu</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
