@@ -3,11 +3,21 @@
     
     <!-- Header Professionnel -->
     <div class="mb-8">
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="bg-gradient-to-r from-white to-blue-50/30 rounded-xl shadow-lg border border-blue-100 p-6 transform hover:shadow-xl transition-all duration-300">
         <div class="flex items-center justify-between">
-          <div>
-            <h1 class="text-3xl font-bold text-gray-900">Importation d'Étudiants</h1>
-            <p class="mt-2 text-gray-600">Importez massivement des étudiants via un fichier CSV</p>
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-500 rounded-xl flex items-center justify-center shadow-lg">
+              <mat-icon class="text-white text-2xl">school</mat-icon>
+            </div>
+            <div>
+              <h1 class="text-3xl font-bold bg-gradient-to-r from-gray-900 to-blue-700 bg-clip-text text-transparent">
+                Importation d'Étudiants
+              </h1>
+              <p class="mt-2 text-gray-600 flex items-center gap-2">
+                <mat-icon class="text-blue-400 text-sm">trending_up</mat-icon>
+                Importez massivement des étudiants via un fichier CSV
+              </p>
+            </div>
           </div>
           
           <!-- Actions principales -->
@@ -17,10 +27,10 @@
               color="primary"
               (click)="downloadTemplate()"
               [disabled]="loading"
-              class="flex items-center gap-2 px-4 py-2 rounded-lg"
+              class="flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-blue-200 hover:border-blue-300 hover:bg-blue-50/50 transition-all duration-300 transform hover:scale-105"
             >
-              <mat-icon>download</mat-icon>
-              <span>Modèle CSV</span>
+              <mat-icon class="text-blue-500">download</mat-icon>
+              <span class="font-medium">Modèle CSV</span>
             </button>
             
             <button 
@@ -28,10 +38,10 @@
               color="primary"
               (click)="goBack()"
               [disabled]="loading"
-              class="flex items-center gap-2 px-4 py-2 rounded-lg"
+              class="flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50/50 transition-all duration-300 transform hover:scale-105"
             >
-              <mat-icon>arrow_back</mat-icon>
-              <span>Retour</span>
+              <mat-icon class="text-gray-500">arrow_back</mat-icon>
+              <span class="font-medium">Retour</span>
             </button>
           </div>
         </div>
@@ -40,17 +50,24 @@
 
     <!-- Configuration -->
     <div *ngIf="showConfiguration" class="mb-8">
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">Configuration d'Importation</h2>
+      <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-8 transform hover:shadow-xl transition-all duration-300">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 bg-gradient-to-br from-emerald-400 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg">
+            <mat-icon class="text-white text-xl">settings</mat-icon>
+          </div>
+          <h2 class="text-2xl font-bold text-gray-900">Configuration d'Importation</h2>
+        </div>
         
-        <form [formGroup]="configForm" class="space-y-6">
+        <form [formGroup]="configForm" class="space-y-8">
           <!-- Instructions -->
-          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div class="flex items-start gap-3">
-              <mat-icon class="text-blue-600 text-lg">info</mat-icon>
+          <div class="bg-gradient-to-r from-blue-50/50 to-indigo-50/50 border border-blue-100 rounded-xl p-6 shadow-sm">
+            <div class="flex items-start gap-4">
+              <div class="w-8 h-8 bg-blue-100/70 rounded-lg flex items-center justify-center flex-shrink-0">
+                <mat-icon class="text-blue-500 text-lg">info</mat-icon>
+              </div>
               <div>
-                <h4 class="font-semibold text-blue-900 mb-2">Sélection des informations liées</h4>
-                <p class="text-blue-800 text-sm">
+                <h4 class="font-semibold text-blue-800 mb-3 text-lg">Sélection des informations liées</h4>
+                <p class="text-blue-700 text-sm leading-relaxed">
                   Sélectionnez les informations qui seront automatiquement appliquées à tous les étudiants importés.
                   Ces valeurs seront utilisées pour créer les relations (promotion, établissement, ville, groupe, option).
                 </p>
@@ -61,118 +78,150 @@
           <!-- Grille de configuration -->
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <!-- Promotion -->
-            <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-              <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                <mat-icon class="text-blue-600 text-sm">school</mat-icon>
+            <div class="bg-gradient-to-br from-blue-50/70 to-blue-100/70 rounded-xl p-6 border border-blue-100 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+              <label class="block text-sm font-semibold text-blue-800 mb-3 flex items-center gap-3">
+                <div class="w-8 h-8 bg-blue-400 rounded-lg flex items-center justify-center">
+                  <mat-icon class="text-white text-sm">school</mat-icon>
+                </div>
                 Promotion *
               </label>
               <select 
                 formControlName="promotion_id" 
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                class="w-full px-4 py-3 border-2 border-blue-100 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all duration-300 bg-white"
               >
                 <option value="">Sélectionnez une promotion</option>
                 <option *ngFor="let promotion of filterOptions.promotions" [value]="promotion.id">
                   {{ promotion.name }}
                 </option>
               </select>
-              <p class="text-xs text-gray-500 mt-1">Année d'étude des étudiants</p>
+              <p class="text-xs text-blue-600 mt-2 flex items-center gap-1">
+                <mat-icon class="text-xs">info</mat-icon>
+                Année d'étude des étudiants
+              </p>
             </div>
 
             <!-- Établissement -->
-            <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-              <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                <mat-icon class="text-green-600 text-sm">business</mat-icon>
+            <div class="bg-gradient-to-br from-emerald-50/70 to-emerald-100/70 rounded-xl p-6 border border-emerald-100 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+              <label class="block text-sm font-semibold text-emerald-800 mb-3 flex items-center gap-3">
+                <div class="w-8 h-8 bg-emerald-400 rounded-lg flex items-center justify-center">
+                  <mat-icon class="text-white text-sm">business</mat-icon>
+                </div>
                 Établissement *
               </label>
               <select 
                 formControlName="etablissement_id" 
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                class="w-full px-4 py-3 border-2 border-emerald-100 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition-all duration-300 bg-white"
               >
                 <option value="">Sélectionnez un établissement</option>
                 <option *ngFor="let etablissement of filterOptions.etablissements" [value]="etablissement.id">
                   {{ etablissement.name }}
                 </option>
               </select>
-              <p class="text-xs text-gray-500 mt-1">Institution d'enseignement</p>
+              <p class="text-xs text-emerald-600 mt-2 flex items-center gap-1">
+                <mat-icon class="text-xs">info</mat-icon>
+                Institution d'enseignement
+              </p>
             </div>
 
             <!-- Ville -->
-            <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-              <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                <mat-icon class="text-purple-600 text-sm">location_city</mat-icon>
+            <div class="bg-gradient-to-br from-purple-50/70 to-purple-100/70 rounded-xl p-6 border border-purple-100 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+              <label class="block text-sm font-semibold text-purple-800 mb-3 flex items-center gap-3">
+                <div class="w-8 h-8 bg-purple-400 rounded-lg flex items-center justify-center">
+                  <mat-icon class="text-white text-sm">location_city</mat-icon>
+                </div>
                 Ville *
               </label>
               <select 
                 formControlName="ville_id" 
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                class="w-full px-4 py-3 border-2 border-purple-100 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all duration-300 bg-white"
               >
                 <option value="">Sélectionnez une ville</option>
                 <option *ngFor="let ville of filterOptions.villes" [value]="ville.id">
                   {{ ville.name }}
                 </option>
               </select>
-              <p class="text-xs text-gray-500 mt-1">Localisation géographique</p>
+              <p class="text-xs text-purple-600 mt-2 flex items-center gap-1">
+                <mat-icon class="text-xs">info</mat-icon>
+                Localisation géographique
+              </p>
             </div>
 
             <!-- Groupe -->
-            <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-              <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                <mat-icon class="text-orange-600 text-sm">group</mat-icon>
+            <div class="bg-gradient-to-br from-orange-50/70 to-orange-100/70 rounded-xl p-6 border border-orange-100 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+              <label class="block text-sm font-semibold text-orange-800 mb-3 flex items-center gap-3">
+                <div class="w-8 h-8 bg-orange-400 rounded-lg flex items-center justify-center">
+                  <mat-icon class="text-white text-sm">group</mat-icon>
+                </div>
                 Groupe *
               </label>
               <select 
                 formControlName="group_id" 
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                class="w-full px-4 py-3 border-2 border-orange-100 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all duration-300 bg-white"
               >
                 <option value="">Sélectionnez un groupe</option>
                 <option *ngFor="let group of filterOptions.groups" [value]="group.id">
                   {{ group.title }}
                 </option>
               </select>
-              <p class="text-xs text-gray-500 mt-1">Groupe de classe des étudiants</p>
+              <p class="text-xs text-orange-600 mt-2 flex items-center gap-1">
+                <mat-icon class="text-xs">info</mat-icon>
+                Groupe de classe des étudiants
+              </p>
             </div>
 
             <!-- Option -->
-            <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-              <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                <mat-icon class="text-red-600 text-sm">category</mat-icon>
+            <div class="bg-gradient-to-br from-red-50/70 to-red-100/70 rounded-xl p-6 border border-red-100 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+              <label class="block text-sm font-semibold text-red-800 mb-3 flex items-center gap-3">
+                <div class="w-8 h-8 bg-red-400 rounded-lg flex items-center justify-center">
+                  <mat-icon class="text-white text-sm">category</mat-icon>
+                </div>
                 Option *
               </label>
               <select 
                 formControlName="option_id" 
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                class="w-full px-4 py-3 border-2 border-red-100 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-red-400 transition-all duration-300 bg-white"
               >
                 <option value="">Sélectionnez une option</option>
                 <option *ngFor="let option of filterOptions.options" [value]="option.id">
                   {{ option.name }}
                 </option>
               </select>
-              <p class="text-xs text-gray-500 mt-1">Spécialisation ou filière</p>
+              <p class="text-xs text-red-600 mt-2 flex items-center gap-1">
+                <mat-icon class="text-xs">info</mat-icon>
+                Spécialisation ou filière
+              </p>
             </div>
 
             <!-- Mode de traitement des doublons -->
-            <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-              <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                <mat-icon class="text-indigo-600 text-sm">settings</mat-icon>
+            <div class="bg-gradient-to-br from-indigo-50/70 to-indigo-100/70 rounded-xl p-6 border border-indigo-100 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+              <label class="block text-sm font-semibold text-indigo-800 mb-3 flex items-center gap-3">
+                <div class="w-8 h-8 bg-indigo-400 rounded-lg flex items-center justify-center">
+                  <mat-icon class="text-white text-sm">settings</mat-icon>
+                </div>
                 Gestion des doublons
               </label>
               <select 
                 [(ngModel)]="importOptions.duplicateMode"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                class="w-full px-4 py-3 border-2 border-indigo-100 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition-all duration-300 bg-white"
               >
                 <option value="update">Mettre à jour</option>
                 <option value="skip">Ignorer</option>
                 <option value="error">Erreur</option>
               </select>
-              <p class="text-xs text-gray-500 mt-1">Action en cas d'étudiant existant</p>
+              <p class="text-xs text-indigo-600 mt-2 flex items-center gap-1">
+                <mat-icon class="text-xs">info</mat-icon>
+                Action en cas d'étudiant existant
+              </p>
             </div>
           </div>
 
           <!-- Actions de configuration -->
-          <div class="flex justify-center items-center pt-6 border-t border-gray-200 bg-gray-50 rounded-lg p-4 -mx-6 -mb-6">
-            <div class="text-sm text-gray-600 flex items-center gap-2">
-              <mat-icon class="text-blue-600 text-sm">info</mat-icon>
-              <span>Configuration automatique - Sélectionnez vos préférences ci-dessus</span>
+          <div class="flex justify-center items-center pt-8 border-t border-gray-200 bg-gradient-to-r from-gray-50/50 to-blue-50/50 rounded-xl p-6 -mx-8 -mb-8">
+            <div class="text-sm text-gray-700 flex items-center gap-3 bg-white px-6 py-4 rounded-xl shadow-sm border border-blue-100">
+              <div class="w-8 h-8 bg-blue-100/70 rounded-lg flex items-center justify-center">
+                <mat-icon class="text-blue-500 text-sm">auto_awesome</mat-icon>
+              </div>
+              <span class="font-medium">Configuration automatique - Sélectionnez vos préférences ci-dessus</span>
             </div>
           </div>
         </form>
@@ -181,22 +230,29 @@
 
 
     <!-- Zone d'upload principal -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden transform hover:shadow-xl transition-all duration-300">
       <!-- En-tête -->
-      <div class="bg-gray-50 border-b border-gray-200 p-6">
+      <div class="bg-gradient-to-r from-slate-50/70 to-blue-50/70 border-b border-slate-200 p-8">
         <div class="flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <mat-icon class="text-gray-600 text-2xl">cloud_upload</mat-icon>
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-500 rounded-xl flex items-center justify-center shadow-lg">
+              <mat-icon class="text-white text-2xl">cloud_upload</mat-icon>
+            </div>
             <div>
-              <h2 class="text-xl font-semibold text-gray-900">Importation de Fichier</h2>
-              <p class="text-gray-600">Format supporté : CSV</p>
+              <h2 class="text-2xl font-bold text-gray-900">Importation de Fichier</h2>
+              <p class="text-gray-600 flex items-center gap-2">
+                <mat-icon class="text-blue-400 text-sm">description</mat-icon>
+                Format supporté : CSV
+              </p>
             </div>
           </div>
           
           <!-- Indicateur de progression -->
           <div class="text-center" *ngIf="uploadProgress > 0">
-            <div class="text-lg font-semibold text-gray-700">{{ uploadProgress }}%</div>
-            <div class="text-sm text-gray-500">En cours...</div>
+            <div class="w-16 h-16 bg-gradient-to-br from-emerald-400 to-emerald-500 rounded-full flex items-center justify-center shadow-lg">
+              <div class="text-lg font-bold text-white">{{ uploadProgress }}%</div>
+            </div>
+            <div class="text-sm text-emerald-500 font-medium mt-2">En cours...</div>
           </div>
         </div>
       </div>
@@ -222,27 +278,29 @@
         <!-- Zone de dépôt de fichier -->
         <div class="mb-8">
           <div 
-            class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 hover:bg-blue-50 transition-all duration-300"
-            [class.border-blue-500]="isDragOver"
-            [class.bg-blue-50]="isDragOver"
+            class="border-2 border-dashed border-gray-300 rounded-xl p-12 text-center hover:border-blue-300 hover:bg-gradient-to-br hover:from-blue-50/50 hover:to-indigo-50/50 transition-all duration-500 transform hover:scale-[1.02]"
+            [class.border-blue-400]="isDragOver"
+            [class.bg-gradient-to-br]="isDragOver"
+            [class.from-blue-50/50]="isDragOver"
+            [class.to-indigo-50/50]="isDragOver"
             (dragover)="onDragOver($event)"
             (dragleave)="onDragLeave($event)"
             (drop)="onFileDropped($event)"
           >
-            <div class="space-y-4">
+            <div class="space-y-6">
               <!-- Icône centrale -->
               <div class="flex justify-center">
-                <div class="w-16 h-16 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <mat-icon class="text-white text-2xl">cloud_upload</mat-icon>
+                <div class="w-20 h-20 bg-gradient-to-br from-blue-400 to-blue-500 rounded-2xl flex items-center justify-center shadow-xl transform hover:scale-110 transition-all duration-300">
+                  <mat-icon class="text-white text-3xl">cloud_upload</mat-icon>
                 </div>
               </div>
               
               <!-- Texte principal -->
               <div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-2">
+                <h3 class="text-2xl font-bold text-gray-800 mb-3">
                   Glissez-déposez votre fichier CSV ici
                 </h3>
-                <p class="text-gray-500">ou cliquez pour sélectionner un fichier</p>
+                <p class="text-gray-500 text-lg">ou cliquez pour sélectionner un fichier</p>
               </div>
               
               <!-- Bouton de sélection -->
@@ -259,17 +317,25 @@
                   color="primary"
                   (click)="fileInput.click()"
                   [disabled]="loading"
-                  class="px-6 py-2 rounded-lg"
+                  class="px-8 py-4 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
                 >
-                  <mat-icon class="mr-2">folder_open</mat-icon>
+                  <mat-icon class="mr-3 text-xl">folder_open</mat-icon>
                   Sélectionner un fichier CSV
                 </button>
               </div>
               
               <!-- Info format -->
-              <div class="text-sm text-gray-500">
-                <p><strong>Format accepté :</strong> CSV uniquement</p>
-                <p><strong>Taille max :</strong> 10 MB</p>
+              <div class="text-sm text-gray-500 bg-white rounded-lg p-4 shadow-sm border border-gray-200 max-w-md mx-auto">
+                <div class="flex items-center justify-center gap-4">
+                  <div class="flex items-center gap-2">
+                    <mat-icon class="text-blue-400 text-sm">description</mat-icon>
+                    <span><strong>Format :</strong> CSV uniquement</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <mat-icon class="text-emerald-400 text-sm">storage</mat-icon>
+                    <span><strong>Taille max :</strong> 10 MB</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -277,40 +343,45 @@
 
         <!-- Fichier sélectionné -->
         <div *ngIf="selectedFile" class="mb-8">
-          <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-            <div class="flex items-center justify-between mb-4">
-              <div class="flex items-center gap-3">
-                <mat-icon class="text-gray-600">description</mat-icon>
+          <div class="bg-gradient-to-r from-emerald-50/70 to-blue-50/70 rounded-xl p-6 border border-emerald-100 shadow-lg">
+            <div class="flex items-center justify-between mb-6">
+              <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-gradient-to-br from-emerald-400 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg">
+                  <mat-icon class="text-white text-xl">description</mat-icon>
+                </div>
                 <div>
-                  <h4 class="font-semibold text-gray-800">{{ selectedFile.name }}</h4>
-                  <p class="text-sm text-gray-500">{{ formatFileSize(selectedFile.size) }}</p>
+                  <h4 class="font-bold text-gray-800 text-lg">{{ selectedFile.name }}</h4>
+                  <p class="text-sm text-emerald-500 flex items-center gap-2">
+                    <mat-icon class="text-sm">storage</mat-icon>
+                    {{ formatFileSize(selectedFile.size) }}
+                  </p>
                 </div>
               </div>
               <button 
                 mat-icon-button
                 (click)="removeSelectedFile()"
                 [disabled]="loading"
-                class="text-red-500 hover:bg-red-50 rounded-full"
+                class="text-red-400 hover:bg-red-50 rounded-xl w-10 h-10 transition-all duration-300 transform hover:scale-110"
               >
                 <mat-icon>close</mat-icon>
               </button>
             </div>
             
             <!-- Aperçu du contenu du fichier -->
-            <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-lg">
+            <div class="bg-white rounded-lg border border-blue-100 overflow-hidden">
               <!-- En-tête de l'aperçu -->
-              <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-200 px-6 py-4">
+              <div class="bg-slate-50/70 border-b border-slate-200 px-6 py-4">
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <mat-icon class="text-blue-600 text-lg">table_view</mat-icon>
+                    <div class="w-8 h-8 bg-blue-100/70 rounded-lg flex items-center justify-center">
+                      <mat-icon class="text-blue-500 text-lg">table_view</mat-icon>
                     </div>
                     <div>
-                      <h5 class="font-semibold text-blue-900 text-lg">Aperçu du contenu du fichier</h5>
-                      <p class="text-blue-700 text-sm">Vérifiez les données avant l'importation</p>
+                      <h5 class="font-semibold text-gray-900 text-lg">Aperçu du contenu du fichier</h5>
+                      <p class="text-gray-600 text-sm">Vérifiez les données avant l'importation</p>
                     </div>
                   </div>
-                  <div class="flex items-center gap-2 text-blue-600">
+                  <div class="flex items-center gap-2 text-blue-500">
                     <mat-icon class="text-sm">info</mat-icon>
                     <span class="text-sm font-medium">{{ previewData.length }} lignes</span>
                   </div>
@@ -321,51 +392,42 @@
               <div class="p-0">
                 <div *ngIf="previewData.length > 0" class="overflow-x-auto">
                   <div class="min-w-full">
-                    <!-- Tableau élégant -->
+                    <!-- Tableau simple -->
                     <table class="w-full">
                       <thead>
-                        <tr class="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
-                          <th *ngFor="let header of previewHeaders; let i = index" 
-                              class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200 last:border-r-0"
-                              [class.bg-blue-50]="i % 2 === 0"
-                              [class.bg-indigo-50]="i % 2 === 1">
-                            <div class="flex items-center gap-2">
-                              <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
-                              <span>{{ header }}</span>
-                            </div>
+                        <tr class="bg-slate-100 border-b border-slate-200">
+                          <th *ngFor="let header of previewHeaders" 
+                              class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider border-r border-slate-200 last:border-r-0">
+                            {{ header }}
                           </th>
                         </tr>
                       </thead>
-                      <tbody class="bg-white divide-y divide-gray-200">
+                      <tbody class="bg-white divide-y divide-slate-200">
                         <tr *ngFor="let row of previewData; let i = index" 
-                            class="hover:bg-blue-50 transition-colors duration-150"
-                            [class.bg-gray-50]="i % 2 === 0">
-                          <td *ngFor="let cell of row; let j = index" 
-                              class="px-6 py-4 text-sm text-gray-800 border-r border-gray-100 last:border-r-0"
-                              [class.font-medium]="j === 0">
-                            <div class="flex items-center gap-2">
-                              <div class="w-1 h-1 bg-gray-400 rounded-full opacity-50"></div>
-                              <span class="truncate max-w-xs" [title]="cell">{{ cell || '-' }}</span>
-                            </div>
+                            class="hover:bg-blue-50 transition-colors"
+                            [class.bg-slate-50]="i % 2 === 0">
+                          <td *ngFor="let cell of row" 
+                              class="px-6 py-4 text-sm text-gray-800 border-r border-slate-100 last:border-r-0">
+                            <span class="truncate max-w-xs block" [title]="cell">{{ cell || '-' }}</span>
                           </td>
                         </tr>
                       </tbody>
                     </table>
                     
                     <!-- Informations supplémentaires -->
-                    <div class="bg-gradient-to-r from-gray-50 to-blue-50 border-t border-gray-200 px-6 py-3">
+                    <div class="bg-emerald-50/70 border-t border-emerald-100 px-6 py-3">
                       <div class="flex items-center justify-between text-sm">
-                        <div class="flex items-center gap-4 text-gray-600">
+                        <div class="flex items-center gap-4 text-slate-600">
                           <div class="flex items-center gap-1">
-                            <mat-icon class="text-gray-400 text-sm">table_rows</mat-icon>
+                            <mat-icon class="text-slate-400 text-sm">table_rows</mat-icon>
                             <span>{{ previewData.length }} lignes affichées</span>
                           </div>
                           <div class="flex items-center gap-1">
-                            <mat-icon class="text-gray-400 text-sm">view_column</mat-icon>
+                            <mat-icon class="text-slate-400 text-sm">view_column</mat-icon>
                             <span>{{ previewHeaders.length }} colonnes</span>
                           </div>
                         </div>
-                        <div class="text-blue-600 font-medium">
+                        <div class="text-emerald-500 font-medium">
                           <mat-icon class="text-sm mr-1">check_circle</mat-icon>
                           Prêt pour l'importation
                         </div>
@@ -376,11 +438,11 @@
                 
                 <!-- État vide -->
                 <div *ngIf="previewData.length === 0" class="text-center py-12">
-                  <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <mat-icon class="text-gray-400 text-3xl">description</mat-icon>
+                  <div class="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <mat-icon class="text-slate-400 text-2xl">description</mat-icon>
                   </div>
-                  <h6 class="text-gray-500 font-medium mb-2">Aucun contenu à afficher</h6>
-                  <p class="text-gray-400 text-sm">Sélectionnez un fichier CSV pour voir l'aperçu</p>
+                  <h6 class="text-slate-500 font-medium mb-2">Aucun contenu à afficher</h6>
+                  <p class="text-slate-400 text-sm">Sélectionnez un fichier CSV pour voir l'aperçu</p>
                 </div>
               </div>
             </div>
@@ -436,29 +498,29 @@
         </div>
 
         <!-- Boutons d'action -->
-        <div class="flex justify-between items-center pt-4 border-t border-gray-200">
+        <div class="flex justify-between items-center pt-8 border-t border-gray-200">
           <button 
             type="button"
             mat-stroked-button
             color="primary"
             (click)="goBack()"
             [disabled]="loading"
-            class="flex items-center gap-2 px-4 py-2 rounded-lg"
+            class="flex items-center gap-3 px-6 py-3 rounded-xl border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50/50 transition-all duration-300 transform hover:scale-105"
           >
             <mat-icon>arrow_back</mat-icon>
-            <span>Retour à la liste</span>
+            <span class="font-medium">Retour à la liste</span>
           </button>
 
-          <div class="flex gap-3">
+          <div class="flex gap-4">
             <button 
               type="button"
               mat-stroked-button
               (click)="resetImport()"
               [disabled]="loading"
-              class="flex items-center gap-2 px-4 py-2 rounded-lg"
+              class="flex items-center gap-3 px-6 py-3 rounded-xl border-2 border-orange-200 hover:border-orange-300 hover:bg-orange-50/50 transition-all duration-300 transform hover:scale-105"
             >
-              <mat-icon>refresh</mat-icon>
-              <span>Recommencer</span>
+              <mat-icon class="text-orange-500">refresh</mat-icon>
+              <span class="font-medium text-orange-600">Recommencer</span>
             </button>
 
             <button 
@@ -467,10 +529,10 @@
               color="primary"
               (click)="startImport()"
               [disabled]="!selectedFile || loading"
-              class="flex items-center gap-2 px-6 py-2 rounded-lg"
+              class="flex items-center gap-3 px-8 py-4 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 bg-gradient-to-r from-blue-400 to-blue-500"
             >
-              <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
-              <mat-icon *ngIf="!loading">cloud_upload</mat-icon>
+              <mat-spinner *ngIf="loading" diameter="20" class="text-white"></mat-spinner>
+              <mat-icon *ngIf="!loading" class="text-xl">cloud_upload</mat-icon>
               <span>
                 {{ loading ? 'Importation...' : 'Lancer l\'Importation' }}
               </span>
@@ -481,36 +543,130 @@
     </div>
 
     <!-- Instructions -->
-    <div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-      <div class="flex items-start gap-3">
-        <mat-icon class="text-blue-600 text-lg">info</mat-icon>
-        <div>
-          <h4 class="font-semibold text-blue-900 mb-3">Format du fichier CSV</h4>
-          <div class="text-blue-800 space-y-3 text-sm">
+    <div class="mt-8 bg-white border border-blue-100 rounded-lg p-8">
+      <div class="flex items-start gap-4">
+        <div class="w-10 h-10 bg-blue-100/70 rounded-lg flex items-center justify-center">
+          <mat-icon class="text-blue-500 text-lg">description</mat-icon>
+        </div>
+        <div class="flex-1">
+          <h4 class="font-semibold text-gray-900 text-lg mb-2">Format du fichier CSV</h4>
+          <p class="text-gray-600 mb-6">Structure et colonnes requises pour l'importation des étudiants</p>
+          
+          <!-- Format du fichier CSV -->
+          <div class="bg-slate-50/70 rounded-lg p-6 border border-slate-200">
+            <div class="flex items-center gap-3 mb-6">
+              <div class="w-6 h-6 bg-emerald-100/70 rounded flex items-center justify-center">
+                <mat-icon class="text-emerald-500 text-sm">checklist</mat-icon>
+              </div>
+              <h5 class="font-semibold text-gray-900">Colonnes obligatoires</h5>
+            </div>
             
-            <!-- Format du fichier CSV -->
-            <div class="bg-white rounded-lg p-4 border border-blue-200">
-              <p class="font-semibold text-blue-800 mb-3">Colonnes obligatoires :</p>
-              <ul class="list-disc list-inside ml-4 space-y-1">
-                <li><code>id</code> - Identifiant unique de l'étudiant (optionnel, sera généré automatiquement si vide)</li>
-                <li><code>matricule</code> - Numéro matricule de l'étudiant (obligatoire)</li>
-                <li><code>first_name</code> - Prénom de l'étudiant (obligatoire)</li>
-                <li><code>last_name</code> - Nom de famille de l'étudiant (obligatoire)</li>
-                <li><code>email</code> - Adresse email de l'étudiant (obligatoire)</li>
-                <li><code>password</code> - Mot de passe de l'étudiant (obligatoire)</li>
-              </ul>
+            <!-- Grille des colonnes -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div class="bg-white rounded-lg p-4 border border-blue-100 hover:border-blue-200 transition-colors">
+                <div class="flex items-center gap-3 mb-2">
+                  <div class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                    <span class="text-white text-xs font-medium">1</span>
+                  </div>
+                  <code class="bg-blue-50/70 text-blue-700 px-2 py-1 rounded text-sm font-mono">matricule</code>
+                </div>
+                <p class="text-gray-600 text-sm">Numéro matricule de l'étudiant</p>
+                <span class="inline-block bg-emerald-100/70 text-emerald-700 text-xs px-2 py-1 rounded mt-1">Obligatoire</span>
+              </div>
               
-              <div class="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                <p class="text-green-800 font-semibold mb-2">Configuration automatique</p>
-                <p class="text-green-700 text-sm">
-                  Les entités liées (promotion, établissement, ville, groupe, option) seront automatiquement 
-                  appliquées depuis votre configuration d'importation. Vous n'avez pas besoin de les inclure dans le CSV.
+              <div class="bg-white rounded-lg p-4 border border-blue-100 hover:border-blue-200 transition-colors">
+                <div class="flex items-center gap-3 mb-2">
+                  <div class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                    <span class="text-white text-xs font-medium">2</span>
+                  </div>
+                  <code class="bg-blue-50/70 text-blue-700 px-2 py-1 rounded text-sm font-mono">first_name</code>
+                </div>
+                <p class="text-gray-600 text-sm">Prénom de l'étudiant</p>
+                <span class="inline-block bg-emerald-100/70 text-emerald-700 text-xs px-2 py-1 rounded mt-1">Obligatoire</span>
+              </div>
+              
+              <div class="bg-white rounded-lg p-4 border border-blue-100 hover:border-blue-200 transition-colors">
+                <div class="flex items-center gap-3 mb-2">
+                  <div class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                    <span class="text-white text-xs font-medium">3</span>
+                  </div>
+                  <code class="bg-blue-50/70 text-blue-700 px-2 py-1 rounded text-sm font-mono">last_name</code>
+                </div>
+                <p class="text-gray-600 text-sm">Nom de famille de l'étudiant</p>
+                <span class="inline-block bg-emerald-100/70 text-emerald-700 text-xs px-2 py-1 rounded mt-1">Obligatoire</span>
+              </div>
+              
+              <div class="bg-white rounded-lg p-4 border border-blue-100 hover:border-blue-200 transition-colors">
+                <div class="flex items-center gap-3 mb-2">
+                  <div class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                    <span class="text-white text-xs font-medium">4</span>
+                  </div>
+                  <code class="bg-blue-50/70 text-blue-700 px-2 py-1 rounded text-sm font-mono">email</code>
+                </div>
+                <p class="text-gray-600 text-sm">Adresse email de l'étudiant</p>
+                <span class="inline-block bg-emerald-100/70 text-emerald-700 text-xs px-2 py-1 rounded mt-1">Obligatoire</span>
+              </div>
+              
+              <div class="bg-white rounded-lg p-4 border border-blue-100 hover:border-blue-200 transition-colors">
+                <div class="flex items-center gap-3 mb-2">
+                  <div class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                    <span class="text-white text-xs font-medium">5</span>
+                  </div>
+                  <code class="bg-blue-50/70 text-blue-700 px-2 py-1 rounded text-sm font-mono">password</code>
+                </div>
+                <p class="text-gray-600 text-sm">Mot de passe de l'étudiant</p>
+                <span class="inline-block bg-emerald-100/70 text-emerald-700 text-xs px-2 py-1 rounded mt-1">Obligatoire</span>
+              </div>
+            </div>
+            
+            <!-- Exemple de fichier -->
+            <div class="bg-slate-900 rounded-lg p-4 overflow-x-auto">
+              <div class="flex items-center gap-2 mb-3">
+                <div class="w-2 h-2 bg-red-400 rounded-full"></div>
+                <div class="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                <div class="w-2 h-2 bg-emerald-400 rounded-full"></div>
+                <span class="text-slate-400 text-sm ml-2">Exemple de fichier CSV</span>
+              </div>
+              <pre class="text-slate-300 text-sm font-mono"><code>matricule,first_name,last_name,email,password
+ETU2024001,Jean,Dupont,jean.dupont@email.com,password123
+ETU2024002,Marie,Martin,marie.martin@email.com,password123
+ETU2024003,Pierre,Durand,pierre.durand@email.com,password123</code></pre>
+            </div>
+          </div>
+          
+          <!-- Configuration automatique -->
+          <div class="mt-6 bg-emerald-50/70 rounded-lg p-6 border border-emerald-100">
+            <div class="flex items-start gap-4">
+              <div class="w-8 h-8 bg-emerald-100/70 rounded-lg flex items-center justify-center flex-shrink-0">
+                <mat-icon class="text-emerald-500">auto_awesome</mat-icon>
+              </div>
+              <div>
+                <h6 class="font-semibold text-emerald-800 mb-2">Configuration automatique</h6>
+                <p class="text-emerald-700 text-sm leading-relaxed">
+                  Les entités liées (promotion, établissement, ville, groupe, option) sont automatiquement 
+                  appliquées depuis la base de données. Vous n'avez pas besoin de les inclure dans le CSV.
                 </p>
               </div>
             </div>
-
-            <p class="mt-3"><strong>Conseil :</strong> Configurez d'abord vos valeurs par défaut pour simplifier votre fichier CSV.</p>
-            <p><strong>Téléchargement :</strong> Le modèle CSV s'adapte automatiquement à votre configuration.</p>
+          </div>
+          
+          <!-- Conseils -->
+          <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-white rounded-lg p-4 border border-blue-100">
+              <div class="flex items-center gap-3 mb-2">
+                <mat-icon class="text-blue-500">lightbulb</mat-icon>
+                <span class="font-medium text-gray-900">Conseil</span>
+              </div>
+              <p class="text-gray-600 text-sm">La configuration est automatiquement chargée depuis la base de données.</p>
+            </div>
+            
+            <div class="bg-white rounded-lg p-4 border border-emerald-100">
+              <div class="flex items-center gap-3 mb-2">
+                <mat-icon class="text-emerald-500">download</mat-icon>
+                <span class="font-medium text-gray-900">Téléchargement</span>
+              </div>
+              <p class="text-gray-600 text-sm">Le modèle CSV utilise la configuration automatique.</p>
+            </div>
           </div>
         </div>
       </div>
