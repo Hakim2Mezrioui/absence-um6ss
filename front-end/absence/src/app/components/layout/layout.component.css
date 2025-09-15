@@ -1,7 +1,6 @@
-/* ===== LAYOUT PRINCIPAL AVEC TAILWIND ===== */
-/* Les styles principaux sont maintenant gérés par Tailwind CSS */
+/* ===== LAYOUT PRINCIPAL ULTRA ÉLÉGANT ===== */
 
-/* ===== ANIMATIONS PERSONNALISÉES ===== */
+/* ===== ANIMATIONS ULTRA SOPHISTIQUÉES ===== */
 @keyframes fade-in-up {
   from {
     opacity: 0;
@@ -13,30 +12,698 @@
   }
 }
 
+@keyframes slide-in-from-left {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.8);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.6), 0 0 30px rgba(59, 130, 246, 0.4);
+  }
+}
+
+@keyframes badge-bounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes rotate-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .animate-fade-in-up {
   animation: fade-in-up 0.5s ease-out;
 }
 
-/* ===== SCROLLBAR PERSONNALISÉE ===== */
+.animate-slide-in-from-left {
+  animation: slide-in-from-left 0.3s ease-out;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+.animate-badge-bounce {
+  animation: badge-bounce 0.6s ease-in-out;
+}
+
+.animate-rotate-slow {
+  animation: rotate-slow 20s linear infinite;
+}
+
+/* ===== HEADER ULTRA ÉLÉGANT ===== */
+.ultra-elegant-header {
+  position: relative;
+  background: linear-gradient(135deg, 
+    rgba(15, 23, 42, 0.95) 0%, 
+    rgba(30, 41, 59, 0.9) 25%, 
+    rgba(51, 65, 85, 0.85) 50%, 
+    rgba(30, 41, 59, 0.9) 75%, 
+    rgba(15, 23, 42, 0.95) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  z-index: 40;
+  overflow: hidden;
+}
+
+.glassmorphism-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, 
+    rgba(59, 130, 246, 0.1) 0%, 
+    rgba(147, 51, 234, 0.05) 50%, 
+    rgba(59, 130, 246, 0.1) 100%);
+  opacity: 0.6;
+  z-index: -1;
+}
+
+.header-content {
+  position: relative;
+  z-index: 2;
+}
+
+.shimmer-effect {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.1) 50%, 
+    transparent 100%);
+  animation: shimmer 4s ease-in-out infinite;
+  z-index: 1;
+}
+
+/* ===== BOUTONS ULTRA ÉLÉGANTS ===== */
+.ultra-elegant-btn {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border: none;
+  background: linear-gradient(135deg, 
+    rgba(30, 41, 59, 0.8) 0%, 
+    rgba(51, 65, 85, 0.6) 100%);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.ultra-elegant-btn:hover {
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 
+    0 12px 32px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(59, 130, 246, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.ultra-elegant-btn:active {
+  transform: translateY(-2px) scale(1.02);
+}
+
+.btn-glow-effect {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, 
+    rgba(59, 130, 246, 0.1) 0%, 
+    rgba(147, 51, 234, 0.05) 50%, 
+    rgba(59, 130, 246, 0.1) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: 16px;
+}
+
+.ultra-elegant-btn:hover .btn-glow-effect {
+  opacity: 1;
+}
+
+.btn-inner-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* ===== TITRE ULTRA ÉLÉGANT ===== */
+.ultra-elegant-title {
+  background: linear-gradient(135deg, 
+    #ffffff 0%, 
+    #e2e8f0 50%, 
+    #cbd5e1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.ultra-elegant-title::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, 
+    rgba(59, 130, 246, 0.8) 0%, 
+    rgba(147, 51, 234, 0.6) 50%, 
+    rgba(59, 130, 246, 0.8) 100%);
+  border-radius: 1px;
+  opacity: 0.6;
+}
+
+/* ===== BADGE PREMIUM ===== */
+.premium-badge {
+  position: relative;
+  background: linear-gradient(135deg, 
+    #fbbf24 0%, 
+    #f59e0b 50%, 
+    #d97706 100%);
+  border-radius: 12px;
+  padding: 4px 12px;
+  box-shadow: 
+    0 4px 12px rgba(251, 191, 36, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  animation: float 3s ease-in-out infinite;
+}
+
+.badge-text {
+  color: #1f2937;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* ===== BREADCRUMB ULTRA ÉLÉGANT ===== */
+.breadcrumb-ultra {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.breadcrumb-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(30, 41, 59, 0.3);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(59, 130, 246, 0.1);
+}
+
+.breadcrumb-item:hover {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.3);
+  transform: translateY(-1px);
+}
+
+.breadcrumb-item.active {
+  background: linear-gradient(135deg, 
+    rgba(59, 130, 246, 0.2) 0%, 
+    rgba(147, 51, 234, 0.1) 100%);
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.breadcrumb-text {
+  color: #cbd5e1;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.breadcrumb-separator-ultra {
+  color: #64748b;
+  display: flex;
+  align-items: center;
+}
+
+/* ===== RECHERCHE ULTRA ÉLÉGANTE ===== */
+.search-container-ultra {
+  position: relative;
+  width: 320px;
+}
+
+.search-input-ultra {
+  width: 100%;
+  height: 48px;
+  padding: 0 48px 0 48px;
+  background: linear-gradient(135deg, 
+    rgba(30, 41, 59, 0.8) 0%, 
+    rgba(51, 65, 85, 0.6) 100%);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 24px;
+  color: #ffffff;
+  font-size: 14px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.search-input-ultra::placeholder {
+  color: #94a3b8;
+}
+
+.search-input-ultra:focus {
+  outline: none;
+  border-color: rgba(59, 130, 246, 0.5);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 0 3px rgba(59, 130, 246, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.search-icon-container {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  transition: color 0.3s ease;
+}
+
+.search-input-ultra:focus + .search-icon-container {
+  color: #3b82f6;
+}
+
+.search-focus-ring {
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(135deg, 
+    rgba(59, 130, 246, 0.3) 0%, 
+    rgba(147, 51, 234, 0.2) 50%, 
+    rgba(59, 130, 246, 0.3) 100%);
+  border-radius: 26px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+}
+
+.search-input-ultra:focus ~ .search-focus-ring {
+  opacity: 1;
+}
+
+/* ===== BADGES DE NOTIFICATION ULTRA ÉLÉGANTS ===== */
+.notification-badge-ultra {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(135deg, 
+    #ef4444 0%, 
+    #dc2626 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 
+    0 4px 12px rgba(239, 68, 68, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(15, 23, 42, 0.8);
+  animation: badge-bounce 0.6s ease-in-out;
+}
+
+.badge-number {
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.badge-pulse {
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: rgba(239, 68, 68, 0.3);
+  border-radius: 14px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.message-badge-ultra {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 12px;
+  height: 12px;
+  background: linear-gradient(135deg, 
+    #3b82f6 0%, 
+    #2563eb 100%);
+  border-radius: 6px;
+  box-shadow: 
+    0 2px 8px rgba(59, 130, 246, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(15, 23, 42, 0.8);
+}
+
+.badge-dot {
+  width: 100%;
+  height: 100%;
+  background: #ffffff;
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* ===== PROFIL UTILISATEUR ULTRA ÉLÉGANT ===== */
+.user-profile-ultra {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, 
+    rgba(30, 41, 59, 0.4) 0%, 
+    rgba(51, 65, 85, 0.2) 100%);
+  border-radius: 20px;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.user-profile-ultra:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(59, 130, 246, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.profile-avatar-container {
+  position: relative;
+}
+
+.avatar-glow-ring {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  background: linear-gradient(135deg, 
+    rgba(59, 130, 246, 0.3) 0%, 
+    rgba(147, 51, 234, 0.2) 50%, 
+    rgba(59, 130, 246, 0.3) 100%);
+  border-radius: 20px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  animation: rotate-slow 20s linear infinite;
+}
+
+.user-profile-ultra:hover .avatar-glow-ring {
+  opacity: 1;
+}
+
+.user-avatar-ultra {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, 
+    #3b82f6 0%, 
+    #2563eb 50%, 
+    #1d4ed8 100%);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 
+    0 8px 24px rgba(59, 130, 246, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.user-avatar-ultra:hover {
+  transform: scale(1.05);
+  box-shadow: 
+    0 12px 32px rgba(59, 130, 246, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.user-status-ultra {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(135deg, 
+    #10b981 0%, 
+    #059669 100%);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 
+    0 2px 8px rgba(16, 185, 129, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(15, 23, 42, 0.8);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  background: #ffffff;
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.profile-name {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.profile-role {
+  color: #cbd5e1;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.profile-menu-btn {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: linear-gradient(135deg, 
+    rgba(30, 41, 59, 0.6) 0%, 
+    rgba(51, 65, 85, 0.4) 100%);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.profile-menu-btn:hover {
+  transform: translateY(-1px) scale(1.05);
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(59, 130, 246, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* ===== SCROLLBAR ULTRA ÉLÉGANTE ===== */
 main::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 main::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgba(30, 41, 59, 0.2);
+  border-radius: 4px;
 }
 
 main::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 3px;
+  background: linear-gradient(135deg, 
+    rgba(59, 130, 246, 0.6) 0%, 
+    rgba(147, 51, 234, 0.4) 100%);
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 main::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: linear-gradient(135deg, 
+    rgba(59, 130, 246, 0.8) 0%, 
+    rgba(147, 51, 234, 0.6) 100%);
 }
 
-/* ===== RESPONSIVE DESIGN GÉRÉ PAR TAILWIND ===== */
-/* Les breakpoints responsive sont maintenant gérés par les classes Tailwind CSS */
+/* ===== RESPONSIVE DESIGN ULTRA ===== */
+@media (max-width: 1024px) {
+  .search-container-ultra {
+    width: 280px;
+  }
+}
+
+@media (max-width: 768px) {
+  .search-container-ultra {
+    width: 240px;
+  }
+  
+  .header-mobile {
+    padding: 16px;
+  }
+  
+  .header-title {
+    font-size: 20px;
+  }
+  
+  .ultra-elegant-btn {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+@media (max-width: 640px) {
+  .search-container-ultra {
+    display: none;
+  }
+  
+  .header-mobile {
+    padding: 12px;
+  }
+  
+  .header-title {
+    font-size: 18px;
+  }
+  
+  .ultra-elegant-btn {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .user-profile-ultra {
+    padding: 6px 12px;
+  }
+}
+
+/* ===== TRANSITIONS ULTRA FLUIDES ===== */
+.header-transition {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===== EFFETS DE SURVOL ULTRA ===== */
+.hover-lift {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 
+    0 12px 32px rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgba(59, 130, 246, 0.3);
+}
+
+/* ===== FOCUS STATES ULTRA ===== */
+.focus-ring {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.focus-ring:focus {
+  outline: none;
+  box-shadow: 
+    0 0 0 3px rgba(59, 130, 246, 0.2),
+    0 8px 32px rgba(0, 0, 0, 0.2);
+}
 
 /* ===== STYLES RÉSIDUELS POUR COMPATIBILITÉ ===== */
 /* Les styles principaux sont maintenant gérés par Tailwind CSS */
