@@ -109,16 +109,25 @@
     </div>
   </div>
 
-  <!-- Loading State -->
-  <div class="flex justify-center items-center min-h-96" *ngIf="loading">
+  <!-- Loading State Initial -->
+  <div class="flex justify-center items-center min-h-96" *ngIf="initializing">
     <div class="text-center text-gray-600">
       <span class="material-icons animate-spin text-6xl mb-4 block">refresh</span>
       <p class="text-lg">Chargement des données...</p>
+      <p class="text-sm text-gray-500 mt-2">Récupération des étudiants et rattrapages en cours...</p>
+    </div>
+  </div>
+
+  <!-- Loading State Recherche -->
+  <div class="flex justify-center items-center min-h-96" *ngIf="loading && !initializing">
+    <div class="text-center text-gray-600">
+      <span class="material-icons animate-spin text-6xl mb-4 block">refresh</span>
+      <p class="text-lg">Recherche en cours...</p>
     </div>
   </div>
 
   <!-- Dashboard Content -->
-  <div class="max-w-7xl mx-auto px-4 py-8" *ngIf="!loading">
+  <div class="max-w-7xl mx-auto px-4 py-8" *ngIf="!initializing && !loading">
     <!-- Tab Content: Affectation -->
     <div *ngIf="activeTab === 'affectation'">
       <!-- Filtres -->
@@ -130,7 +139,7 @@
               <span class="material-icons text-blue-600 text-lg">info</span>
               <div>
                 <p class="text-sm text-blue-800">
-                  <strong>Astuce :</strong> Modifiez les filtres ci-dessous puis cliquez sur <strong>"Rechercher"</strong> pour appliquer les critères de recherche.
+                  <strong>Astuce :</strong> Modifiez les filtres ci-dessous puis cliquez sur <strong>"Rechercher"</strong> ou appuyez sur <strong>Entrée</strong> pour appliquer les critères de recherche.
                 </p>
               </div>
             </div>
@@ -148,6 +157,7 @@
                        #searchInput
                        [(ngModel)]="searchTerm" 
                        (input)="onSearchChange(searchInput.value)"
+                       (keyup.enter)="searchStudents()"
                        placeholder="Nom, prénom ou matricule..."
                        class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 pr-10"
                        [class.searching]="isSearching">
@@ -165,6 +175,7 @@
               <select id="promotion"
                       [(ngModel)]="selectedPromotion" 
                       (change)="onFilterChange()"
+                      (keyup.enter)="searchStudents()"
                       class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
                 <option [value]="null">Toutes les promotions</option>
                 <option *ngFor="let promotion of promotions" [value]="promotion.id">{{ promotion.name }}</option>
@@ -179,6 +190,7 @@
               <select id="etablissement"
                       [(ngModel)]="selectedEtablissement" 
                       (change)="onFilterChange()"
+                      (keyup.enter)="searchStudents()"
                       class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
                 <option [value]="null">Tous les établissements</option>
                 <option *ngFor="let etablissement of etablissements" [value]="etablissement.id">{{ etablissement.name }}</option>
@@ -193,6 +205,7 @@
               <select id="option"
                       [(ngModel)]="selectedOption" 
                       (change)="onFilterChange()"
+                      (keyup.enter)="searchStudents()"
                       class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
                 <option [value]="null">Toutes les options</option>
                 <option *ngFor="let option of options" [value]="option.id">{{ option.name }}</option>
@@ -207,6 +220,7 @@
               <select id="group"
                       [(ngModel)]="selectedGroup" 
                       (change)="onFilterChange()"
+                      (keyup.enter)="searchStudents()"
                       class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
                 <option [value]="null">Tous les groupes</option>
                 <option *ngFor="let group of groups" [value]="group.id">{{ group.title }}</option>
@@ -221,6 +235,7 @@
               <select id="ville"
                       [(ngModel)]="selectedVille" 
                       (change)="onFilterChange()"
+                      (keyup.enter)="searchStudents()"
                       class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
                 <option [value]="null">Toutes les villes</option>
                 <option *ngFor="let ville of villes" [value]="ville.id">{{ ville.name }}</option>

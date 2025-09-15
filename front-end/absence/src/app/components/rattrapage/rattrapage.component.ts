@@ -149,6 +149,7 @@ export class RattrapageComponent implements OnInit, OnDestroy {
   
   // UI state
   loading = false;
+  initializing = true; // État de chargement initial
   showCreateModal = false;
   showStudentsModal = false;
   activeTab = 'affectation'; // 'affectation' | 'rattrapages'
@@ -184,10 +185,37 @@ export class RattrapageComponent implements OnInit, OnDestroy {
     });
   }
   
-  ngOnInit() {
-    this.loadFilterData();
-    this.loadEtudiants();
+  async ngOnInit() {
+    console.log('🚀 Initialisation du composant Rattrapage');
+    this.initializing = true;
+    this.markForCheck();
     this.setupSearchDebounce();
+    
+    // Charger toutes les données en parallèle
+    console.log('📋 Chargement des données de filtrage...');
+    const filterDataPromise = this.loadFilterData();
+    
+    console.log('👥 Chargement des étudiants...');
+    const etudiantsPromise = this.loadEtudiants(1, false); // Pas d'état de chargement lors de l'init
+    
+    console.log('📚 Chargement des rattrapages...');
+    const rattrapagesPromise = this.loadRattrapages();
+    
+    // Attendre que toutes les données soient chargées
+    try {
+      await Promise.all([filterDataPromise, etudiantsPromise, rattrapagesPromise]);
+      console.log('✅ Toutes les données chargées avec succès');
+    } catch (error) {
+      console.error('❌ Erreur lors du chargement des données:', error);
+      this.notificationService.error(
+        'Erreur de chargement',
+        'Impossible de charger certaines données. Veuillez recharger la page.'
+      );
+    } finally {
+      this.initializing = false;
+      this.markForCheck();
+      console.log('✅ Initialisation terminée');
+    }
   }
   
   ngOnDestroy() {
@@ -213,7 +241,7 @@ export class RattrapageComponent implements OnInit, OnDestroy {
   
   async loadFilterData() {
     try {
-      this.loading = true;
+      console.log('📋 Chargement des données de filtrage...');
       
       const filterOptions = await this.rattrapageService.getFilterOptions().toPromise();
       
@@ -223,32 +251,49 @@ export class RattrapageComponent implements OnInit, OnDestroy {
         this.options = filterOptions.options || [];
         this.groups = filterOptions.groups || [];
         this.villes = filterOptions.villes || [];
+        
+        console.log('✅ Données de filtrage chargées:', {
+          promotions: this.promotions.length,
+          etablissements: this.etablissements.length,
+          options: this.options.length,
+          groups: this.groups.length,
+          villes: this.villes.length
+        });
       }
       
     } catch (error) {
-      console.error('Erreur lors du chargement des données de filtrage:', error);
+      console.error('❌ Erreur lors du chargement des données de filtrage:', error);
       this.notificationService.error(
         'Erreur de chargement',
         'Impossible de charger les données de filtrage.'
       );
     } finally {
-      this.loading = false;
+      this.markForCheck();
     }
   }
   
-  async loadEtudiants(page: number = 1) {
+  async loadEtudiants(page: number = 1, showLoading: boolean = true) {
     try {
-      this.loading = true;
-      this.markForCheck();
+      console.log('🔄 Chargement des étudiants - Page:', page);
+      
+      if (showLoading) {
+        this.loading = true;
+        this.markForCheck();
+      }
       
       const filters = this.getCurrentFilters();
+      console.log('🔍 Filtres appliqués:', filters);
       const response = await this.rattrapageService.getEtudiants(page, this.perPage, filters).toPromise();
+      
+      console.log('📊 Réponse API:', response);
       
       if (response) {
         this.etudiants = (response.data || []).map((etudiant: Etudiant) => ({
           ...etudiant,
           selected: this.selectedEtudiantIds.has(etudiant.id) // Restaurer l'état de sélection
         }));
+        
+        console.log('👥 Étudiants chargés:', this.etudiants.length);
         
         // Mettre à jour les informations de pagination
         this.currentPage = response.current_page;
@@ -259,16 +304,21 @@ export class RattrapageComponent implements OnInit, OnDestroy {
         
         // Mettre à jour la liste des étudiants sélectionnés
         this.updateSelectedEtudiants();
+        
+        console.log('✅ Données mises à jour - Étudiants:', this.etudiants.length, 'Total:', this.totalStudents);
       }
     } catch (error) {
-      console.error('Erreur lors du chargement des étudiants:', error);
+      console.error('❌ Erreur lors du chargement des étudiants:', error);
       this.notificationService.error(
         'Erreur de chargement',
         'Impossible de charger les étudiants.'
       );
     } finally {
-      this.loading = false;
+      if (showLoading) {
+        this.loading = false;
+      }
       this.markForCheck();
+      console.log('🏁 Chargement terminé - Loading:', this.loading);
     }
   }
   
@@ -655,32 +705,41 @@ export class RattrapageComponent implements OnInit, OnDestroy {
   }
   
   async loadRattrapages(page: number = 1) {
-    this.loading = true;
-    this.markForCheck();
-    
-    await this.loadDataWithOptimization(
-      async () => {
-        const filters = this.getRattrapagesFilters();
-        const response = await this.rattrapageService.getAllRattrapages(page, this.rattrapagesPerPage, filters).toPromise();
-        return response;
-      },
-      (response) => {
-        if (response?.success) {
-          this.rattrapages = (response.data || []).map(rattrapage => ({
-            ...rattrapage,
-            duration: this.calculateDuration(rattrapage.start_hour, rattrapage.end_hour)
-          }));
-          
-          // Mettre à jour les informations de pagination
-          this.rattrapagesCurrentPage = response.pagination.current_page;
-          this.rattrapagesTotalPages = response.pagination.last_page;
-          this.rattrapagesTotal = response.pagination.total;
-          this.rattrapagesHasNextPage = response.pagination.has_next_page;
-          this.rattrapagesHasPrevPage = response.pagination.has_prev_page;
-        }
-        this.loading = false;
+    try {
+      console.log('📚 Chargement des rattrapages - Page:', page);
+      
+      const filters = this.getRattrapagesFilters();
+      console.log('🔍 Filtres rattrapages:', filters);
+      const response = await this.rattrapageService.getAllRattrapages(page, this.rattrapagesPerPage, filters).toPromise();
+      
+      console.log('📊 Réponse API rattrapages:', response);
+      
+      if (response?.success) {
+        this.rattrapages = (response.data || []).map(rattrapage => ({
+          ...rattrapage,
+          duration: this.calculateDuration(rattrapage.start_hour, rattrapage.end_hour)
+        }));
+        
+        console.log('📚 Rattrapages chargés:', this.rattrapages.length);
+        
+        // Mettre à jour les informations de pagination
+        this.rattrapagesCurrentPage = response.pagination.current_page;
+        this.rattrapagesTotalPages = response.pagination.last_page;
+        this.rattrapagesTotal = response.pagination.total;
+        this.rattrapagesHasNextPage = response.pagination.has_next_page;
+        this.rattrapagesHasPrevPage = response.pagination.has_prev_page;
+        
+        console.log('✅ Rattrapages mis à jour - Total:', this.rattrapagesTotal);
       }
-    );
+    } catch (error) {
+      console.error('❌ Erreur lors du chargement des rattrapages:', error);
+      this.notificationService.error(
+        'Erreur de chargement',
+        'Impossible de charger les rattrapages.'
+      );
+    } finally {
+      this.markForCheck();
+    }
   }
   
   getRattrapagesFilters() {
