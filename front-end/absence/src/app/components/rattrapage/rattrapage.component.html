@@ -124,6 +124,18 @@
       <!-- Filtres -->
       <div class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm mb-8">
         <div class="max-w-7xl mx-auto px-4 py-4">
+          <!-- Aide pour les filtres -->
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div class="flex items-start gap-3">
+              <span class="material-icons text-blue-600 text-lg">info</span>
+              <div>
+                <p class="text-sm text-blue-800">
+                  <strong>Astuce :</strong> Modifiez les filtres ci-dessous puis cliquez sur <strong>"Rechercher"</strong> pour appliquer les critères de recherche.
+                </p>
+              </div>
+            </div>
+          </div>
+          
           <div class="flex flex-col lg:flex-row gap-4 lg:gap-6 items-end">
             <div class="flex-1">
               <label for="search" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
@@ -219,6 +231,14 @@
                     (click)="clearFilters()">
               <span class="material-icons">restart_alt</span>
               Réinitialiser
+            </button>
+            
+            <button class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 disabled:opacity-50"
+                    (click)="searchStudents()"
+                    [disabled]="loading">
+              <span class="material-icons text-sm" [class.animate-spin]="loading">search</span>
+              <span *ngIf="loading">Recherche...</span>
+              <span *ngIf="!loading">Rechercher</span>
             </button>
           </div>
         </div>

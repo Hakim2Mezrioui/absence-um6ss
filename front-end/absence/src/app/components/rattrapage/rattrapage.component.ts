@@ -237,35 +237,39 @@ export class RattrapageComponent implements OnInit, OnDestroy {
   }
   
   async loadEtudiants(page: number = 1) {
-    this.loading = true;
-    this.markForCheck();
-    
-    await this.loadDataWithOptimization(
-      async () => {
-        const filters = this.getCurrentFilters();
-        const response = await this.rattrapageService.getEtudiants(page, this.perPage, filters).toPromise();
-        return response;
-      },
-      (response) => {
-        if (response) {
-          this.etudiants = (response.data || []).map((etudiant: Etudiant) => ({
-            ...etudiant,
-            selected: this.selectedEtudiantIds.has(etudiant.id) // Restaurer l'état de sélection
-          }));
-          
-          // Mettre à jour les informations de pagination
-          this.currentPage = response.current_page;
-          this.totalPages = response.last_page;
-          this.totalStudents = response.total;
-          this.hasNextPage = response.has_next_page;
-          this.hasPrevPage = response.has_prev_page;
-          
-          // Mettre à jour la liste des étudiants sélectionnés
-          this.updateSelectedEtudiants();
-        }
-        this.loading = false;
+    try {
+      this.loading = true;
+      this.markForCheck();
+      
+      const filters = this.getCurrentFilters();
+      const response = await this.rattrapageService.getEtudiants(page, this.perPage, filters).toPromise();
+      
+      if (response) {
+        this.etudiants = (response.data || []).map((etudiant: Etudiant) => ({
+          ...etudiant,
+          selected: this.selectedEtudiantIds.has(etudiant.id) // Restaurer l'état de sélection
+        }));
+        
+        // Mettre à jour les informations de pagination
+        this.currentPage = response.current_page;
+        this.totalPages = response.last_page;
+        this.totalStudents = response.total;
+        this.hasNextPage = response.has_next_page;
+        this.hasPrevPage = response.has_prev_page;
+        
+        // Mettre à jour la liste des étudiants sélectionnés
+        this.updateSelectedEtudiants();
       }
-    );
+    } catch (error) {
+      console.error('Erreur lors du chargement des étudiants:', error);
+      this.notificationService.error(
+        'Erreur de chargement',
+        'Impossible de charger les étudiants.'
+      );
+    } finally {
+      this.loading = false;
+      this.markForCheck();
+    }
   }
   
   getCurrentFilters() {
@@ -304,12 +308,12 @@ export class RattrapageComponent implements OnInit, OnDestroy {
   }
   
   onFilterChange() {
-    this.applyFilters();
+    // Ne fait rien automatiquement, l'utilisateur doit cliquer sur "Rechercher"
   }
   
   onSearchChange(searchValue: string) {
-    // Émettre la valeur dans le Subject pour déclencher le debounce
-    this.searchSubject.next(searchValue);
+    // Ne fait rien automatiquement, l'utilisateur doit cliquer sur "Rechercher"
+    this.searchTerm = searchValue;
   }
   
   // Méthodes de pagination
@@ -617,6 +621,13 @@ export class RattrapageComponent implements OnInit, OnDestroy {
     this.selectedVille = null;
     this.searchTerm = '';
     this.applyFilters();
+  }
+  
+  // Méthode pour lancer la recherche manuellement
+  async searchStudents() {
+    console.log('🔍 Lancement de la recherche avec les filtres:', this.getCurrentFilters());
+    this.currentPage = 1; // Reset to first page when applying filters
+    await this.loadEtudiants(1);
   }
   
   get allCurrentPageSelected(): boolean {
