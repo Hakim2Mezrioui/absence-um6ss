@@ -19,8 +19,10 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->date('date');
+            $table->time('pointage_start_hour');
             $table->time('heure_debut');
             $table->time('heure_fin');
+            $table->time('tolerance');
             $table->foreignId('etablissement_id')->constrained('etablissements')->onDelete('cascade');
             $table->foreignId('promotion_id')->constrained('promotions')->onDelete('cascade');
             $table->foreignId('type_cours_id')->constrained('types_cours')->onDelete('cascade');

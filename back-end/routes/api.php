@@ -102,6 +102,14 @@ Route::get('etablissements/all', [EtablissementController::class, 'allEtablissem
 Route::apiResource('etablissements', EtablissementController::class);
 Route::apiResource('examens', ExamenController::class);
 
+// Routes pour les cours
+Route::get('/cours/filter-options', [CoursController::class, 'getFilterOptions']);
+Route::get('/cours', [CoursController::class, 'index']);
+Route::get('/cours/{id}', [CoursController::class, 'show']);
+Route::post('/cours', [CoursController::class, 'store']);
+Route::put('/cours/{id}', [CoursController::class, 'update']);
+Route::delete('/cours/{id}', [CoursController::class, 'destroy']);
+Route::post('/import-cours', [CoursController::class, 'ImportCourse']);
 
 });
 
@@ -113,12 +121,6 @@ Route::get("test-etudiants-count", [EtudiantController::class, "testStudentsCoun
 Route::get('/export-simple-public', [EtudiantController::class, 'exportSimple']);
 Route::get('/export-etudiants-public', [EtudiantController::class, 'exportEtudiantsStream']);
 
-Route::get('/cours', [CoursController::class, 'index']);
-Route::get('/cours/{id}', [CoursController::class, 'show']);
-Route::post('/cours', [CoursController::class, 'store']);
-Route::put('/cours/{id}', [CoursController::class, 'update']);
-Route::delete('/cours/{id}', [CoursController::class, 'destroy']);
-Route::post('/import-cours', [CoursController::class, 'ImportCourse']);
 
 // Salle routes - API Resource
 Route::apiResource('salles', SalleController::class);

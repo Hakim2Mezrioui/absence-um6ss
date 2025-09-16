@@ -1,0 +1,125 @@
+/* Styles spécifiques pour le composant cours */
+.cours-container {
+  min-height: 100vh;
+}
+
+/* Animations et styles pour les cartes de cours */
+.cours-grid {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.cours-card {
+  transition: all 0.3s ease;
+  animation: slideInUp 0.4s ease-out;
+}
+
+.cours-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.status-badge {
+  @apply inline-flex px-2 py-1 text-xs font-semibold rounded-full;
+  animation: pulse 2s infinite;
+}
+
+.status-passé {
+  @apply bg-gray-100 text-gray-800;
+}
+
+.status-en_cours {
+  @apply bg-green-100 text-green-800;
+}
+
+.status-futur {
+  @apply bg-blue-100 text-blue-800;
+}
+
+.action-button {
+  @apply p-1 rounded transition-colors;
+  transition: all 0.2s ease;
+}
+
+.action-button:hover {
+  @apply bg-gray-100;
+  transform: scale(1.1);
+}
+
+.action-button.edit:hover {
+  @apply text-blue-700;
+}
+
+.action-button.delete:hover {
+  @apply text-red-700;
+}
+
+/* Animation pour le chargement */
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+/* Line clamp pour les titres longs */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .cours-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .cours-card {
+    margin-bottom: 1rem;
+  }
+  
+  .table-responsive {
+    overflow-x: auto;
+  }
+  
+  .grid-responsive {
+    grid-template-columns: 1fr;
+  }
+}

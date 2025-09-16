@@ -11,20 +11,25 @@ class Cours extends Model
     protected $fillable = [
         'name',
         'date',
+        'pointage_start_hour',
         'heure_debut',
         'heure_fin',
+        'tolerance',
         'annee_universitaire',
         'etablissement_id',
         'promotion_id',
         'type_cours_id',
         'salle_id',
-        'option_id'
+        'option_id',
+        'statut_temporel'
     ];
 
     protected $casts = [
         'date' => 'date',
-        'heure_debut' => 'datetime',
-        'heure_fin' => 'datetime',
+        'pointage_start_hour' => 'datetime:H:i',
+        'heure_debut' => 'datetime:H:i',
+        'heure_fin' => 'datetime:H:i',
+        'tolerance' => 'datetime:H:i',
     ];
 
     /**
@@ -46,7 +51,7 @@ class Cours extends Model
     /**
      * Get the typeCours that owns the cours.
      */
-    public function typeCours(): BelongsTo
+    public function type_cours(): BelongsTo
     {
         return $this->belongsTo(TypeCours::class);
     }

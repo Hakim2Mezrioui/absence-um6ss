@@ -12,43 +12,55 @@ class CoursController extends Controller
 {
     public function index(Request $request)
     {
-        $size = $request->query('size', 6);
+        $size = $request->query('size', 10);
         $page = $request->query('page', 1);
-        $faculte = $request->query("faculte", "toutes");
-        $searchValue = $request->query("searchValue", "");
+        $etablissement_id = $request->query('etablissement_id');
+        $promotion_id = $request->query('promotion_id');
+        $salle_id = $request->query('salle_id');
+        $type_cours_id = $request->query('type_cours_id');
+        $searchValue = $request->query('searchValue', '');
+        $date = $request->query('date');
 
-        $skip = ($page - 1) * $size;
+        $query = Cours::with(['etablissement', 'promotion', 'type_cours', 'salle', 'option']);
 
-        $query = Cours::query();
-
-        // Appliquer le filtre sur le statut si nécessaire
-        if (!empty($statut) && $statut !== "tous") {
-            $query->where("statut", $statut);
+        // Appliquer les filtres
+        if (!empty($etablissement_id)) {
+            $query->where('etablissement_id', $etablissement_id);
         }
 
-        // Appliquer le filtre sur la faculté si nécessaire
-        if (!empty($faculte) && $faculte !== "toutes") {
-            $query->where("faculte", $faculte);
+        if (!empty($promotion_id)) {
+            $query->where('promotion_id', $promotion_id);
         }
-        if (!empty($searchValue) && $searchValue !== "") {
-            $query->where("title", "LIKE", "%{$searchValue}%");
+
+        if (!empty($salle_id)) {
+            $query->where('salle_id', $salle_id);
+        }
+
+        if (!empty($type_cours_id)) {
+            $query->where('type_cours_id', $type_cours_id);
+        }
+
+        if (!empty($searchValue)) {
+            $query->where('name', 'LIKE', "%{$searchValue}%");
+        }
+
+        if (!empty($date)) {
+            $query->whereDate('date', $date);
         }
 
         // Obtenir le total des résultats avant la pagination
         $total = $query->count();
 
         // Appliquer la pagination
-        $cours = $query->limit($size)->skip($skip)->orderByDesc("created_at")->get();
+        $cours = $query->orderByDesc('created_at')
+                      ->paginate($size, ['*'], 'page', $page);
 
-        // Calcul du nombre total de pages
-        $totalPages = ($size > 0) ? ceil($total / $size) : 1;
-
-        // Retourner la réponse JSON
         return response()->json([
-            "cours" => $cours,
-            "totalPages" => $totalPages,
-            "total" => $total, // Ajout pour debug si nécessaire
-            "status" => 200
+            'data' => $cours->items(),
+            'current_page' => $cours->currentPage(),
+            'last_page' => $cours->lastPage(),
+            'per_page' => $cours->perPage(),
+            'total' => $cours->total()
         ]);
     }
 
@@ -57,7 +69,7 @@ class CoursController extends Controller
      */
     public function show($id)
     {
-        $cours = Cours::find($id);
+        $cours = Cours::with(['etablissement', 'promotion', 'type_cours', 'salle', 'option'])->find($id);
         if (!$cours) {
             return response()->json(['message' => 'Cours non trouvé'], 404);
         }
@@ -70,29 +82,23 @@ class CoursController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'title' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
             'date' => 'required|date',
-            'hour_debut' => 'required',
-            'hour_fin' => 'required|after:hour_debut',
-            'faculte' => 'required|string|max:255',
-            'groupe' => 'required|integer',
-            'promotion' => ['required', Rule::in(['1ère annee', '2ème annee', '3ème annee', '4ème annee', '5ème annee', '6ème annee'])],
-            'option' => 'nullable|string',
-            'tolerance' => 'numeric',
+            'pointage_start_hour' => 'required|date_format:H:i',
+            'heure_debut' => 'required|date_format:H:i',
+            'heure_fin' => 'required|date_format:H:i|after:heure_debut',
+            'tolerance' => 'required|date_format:H:i',
+            'etablissement_id' => 'required|exists:etablissements,id',
+            'promotion_id' => 'required|exists:promotions,id',
+            'type_cours_id' => 'required|exists:types_cours,id',
+            'salle_id' => 'required|exists:salles,id',
+            'option_id' => 'nullable|exists:options,id',
+            'annee_universitaire' => 'required|string|max:9',
+            'statut_temporel' => 'nullable|in:passé,en_cours,futur'
         ]);
 
-        $cours = new Cours();
-        $cours->title = $validatedData['title'];
-        $cours->date = $validatedData['date'];
-        $cours->hour_debut = $validatedData['hour_debut'];
-        // $cours->hour_debut_pointage = Carbon::parse($validatedData['hour_debut'])->subMinutes(30);
-        $cours->hour_fin = $validatedData['hour_fin'];
-        $cours->faculte = $validatedData['faculte'];
-        $cours->groupe = $validatedData['groupe'];
-        $cours->promotion = $validatedData['promotion'];
-        $cours->tolerance = $validatedData['tolerance'];
-        $cours->option = $validatedData['option'] ?? '';
-        $cours->save();
+        $cours = Cours::create($validatedData);
+        $cours->load(['etablissement', 'promotion', 'type_cours', 'salle', 'option']);
 
         return response()->json(['message' => 'Cours ajouté avec succès', 'cours' => $cours], 201);
     }
@@ -106,34 +112,26 @@ class CoursController extends Controller
         if (!$cours) {
             return response()->json(['message' => 'Cours non trouvé'], 404);
         }
-        
-        if ($request->faculte == "fsts" && ($request->option == "" || empty($request->option))) {
-            return response()->json(['message' => 'selectionner l\'option'], 404);
-        }
 
         $validatedData = $request->validate([
-            'title' => 'sometimes|string|max:255',
+            'name' => 'sometimes|string|max:255',
             'date' => 'sometimes|date',
-            'hour_debut' => 'sometimes',
-            'hour_fin' => 'sometimes|after:hour_debut',
-            'faculte' => 'sometimes|string|max:255',
-            'groupe' => 'sometimes|integer',
-            'promotion' => ['sometimes', Rule::in(['1ère annee', '2ème annee', '3ème annee', '4ème annee', '5ème annee', '6ème annee'])],
-            'tolerance' => 'numeric',
+            'pointage_start_hour' => 'sometimes|date_format:H:i',
+            'heure_debut' => 'sometimes|date_format:H:i',
+            'heure_fin' => 'sometimes|date_format:H:i|after:heure_debut',
+            'tolerance' => 'sometimes|date_format:H:i',
+            'etablissement_id' => 'sometimes|exists:etablissements,id',
+            'promotion_id' => 'sometimes|exists:promotions,id',
+            'type_cours_id' => 'sometimes|exists:types_cours,id',
+            'salle_id' => 'sometimes|exists:salles,id',
+            'option_id' => 'nullable|exists:options,id',
+            'annee_universitaire' => 'sometimes|string|max:9',
+            'statut_temporel' => 'sometimes|in:passé,en_cours,futur'
         ]);
 
-        // $cours->update($validatedData);
-        $cours->update([
-            'title' => $request['title'],
-            'date' => $request['date'],
-            'hour_debut' => $request['hour_debut'],
-            'hour_fin' => $request['hour_fin'],
-            'faculte' => $request['faculte'],
-            'promotion' => $request['promotion'],
-            'groupe' => $request['groupe'],
-            'option' => $request['option'] ?? "",
-            'tolerance' => $request['tolerance'],
-        ]);
+        $cours->update($validatedData);
+        $cours->load(['etablissement', 'promotion', 'type_cours', 'salle', 'option']);
+
         return response()->json(['message' => 'Cours mis à jour avec succès', 'cours' => $cours]);
     }
 
@@ -280,5 +278,51 @@ class CoursController extends Controller
 
         $cours->delete();
         return response()->json(['message' => 'Cours supprimé avec succès']);
+    }
+
+    /**
+     * Récupérer les options de filtre pour les cours.
+     */
+    public function getFilterOptions()
+    {
+        try {
+            // Récupérer les établissements
+            $etablissements = \App\Models\Etablissement::select('id', 'name')
+                ->orderBy('name')
+                ->get();
+
+            // Récupérer les promotions
+            $promotions = \App\Models\Promotion::select('id', 'name')
+                ->orderBy('name')
+                ->get();
+
+            // Récupérer les salles
+            $salles = \App\Models\Salle::select('id', 'name')
+                ->orderBy('name')
+                ->get();
+
+            // Récupérer les types de cours
+            $typesCours = \App\Models\TypeCours::select('id', 'name')
+                ->orderBy('name')
+                ->get();
+
+            // Récupérer les options
+            $options = \App\Models\Option::select('id', 'name')
+                ->orderBy('name')
+                ->get();
+
+            return response()->json([
+                'etablissements' => $etablissements,
+                'promotions' => $promotions,
+                'salles' => $salles,
+                'types_cours' => $typesCours,
+                'options' => $options
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erreur lors de la récupération des options de filtre',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

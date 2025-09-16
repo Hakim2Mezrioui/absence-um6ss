@@ -97,6 +97,12 @@ export class SidebarComponent implements OnInit {
       tooltip: 'Gestion des examens'
     },
     {
+      label: 'Cours',
+      icon: 'class',
+      route: '/dashboard/cours',
+      tooltip: 'Gestion des cours'
+    },
+    {
       label: 'Étudiants',
       icon: 'people',
       route: '/dashboard/etudiants',

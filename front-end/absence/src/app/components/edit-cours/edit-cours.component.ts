@@ -1,16 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { CoursService, Cours } from '../../services/cours.service';
 
 @Component({
-  selector: 'app-add-cours',
+  selector: 'app-edit-cours',
   imports: [CommonModule, FormsModule],
-  templateUrl: './add-cours.component.html',
-  styleUrl: './add-cours.component.css'
+  templateUrl: './edit-cours.component.html',
+  styleUrl: './edit-cours.component.css'
 })
-export class AddCoursComponent implements OnInit {
+export class EditCoursComponent implements OnInit {
   cours: Partial<Cours> = {
     name: '',
     date: '',
@@ -28,8 +28,10 @@ export class AddCoursComponent implements OnInit {
   };
 
   loading = false;
+  loadingData = true;
   error = '';
   success = '';
+  coursId: number = 0;
 
   // Options pour les formulaires
   etablissements: any[] = [];
@@ -43,12 +45,34 @@ export class AddCoursComponent implements OnInit {
 
   constructor(
     private coursService: CoursService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit() {
+    this.coursId = Number(this.route.snapshot.paramMap.get('id'));
     this.loadFilterOptions();
     this.generateAnneesUniversitaires();
+    this.loadCours();
+  }
+
+  loadCours() {
+    this.loadingData = true;
+    this.coursService.getCoursById(this.coursId).subscribe({
+      next: (cours) => {
+        this.cours = {
+          ...cours,
+          date: cours.date ? cours.date.split('T')[0] : '', // Format pour input date
+          option_id: cours.option_id || undefined
+        };
+        this.loadingData = false;
+      },
+      error: (error) => {
+        this.error = 'Erreur lors du chargement du cours';
+        this.loadingData = false;
+        console.error('Erreur:', error);
+      }
+    });
   }
 
   loadFilterOptions() {
@@ -94,16 +118,16 @@ export class AddCoursComponent implements OnInit {
       option_id: this.cours.option_id ? Number(this.cours.option_id) : undefined
     };
 
-    this.coursService.createCours(coursData).subscribe({
+    this.coursService.updateCours(this.coursId, coursData).subscribe({
       next: (response) => {
-        this.success = 'Cours créé avec succès';
+        this.success = 'Cours modifié avec succès';
         this.loading = false;
         setTimeout(() => {
           this.router.navigate(['/dashboard/cours']);
         }, 1500);
       },
       error: (error) => {
-        this.error = 'Erreur lors de la création du cours';
+        this.error = 'Erreur lors de la modification du cours';
         this.loading = false;
         console.error('Erreur:', error);
       }
@@ -186,21 +210,8 @@ export class AddCoursComponent implements OnInit {
   }
 
   resetForm() {
-    this.cours = {
-      name: '',
-      date: '',
-      pointage_start_hour: '',
-      heure_debut: '',
-      heure_fin: '',
-      tolerance: '',
-      etablissement_id: 0,
-      promotion_id: 0,
-      type_cours_id: 0,
-      salle_id: 0,
-      option_id: undefined,
-      annee_universitaire: '',
-      statut_temporel: 'futur'
-    };
+    // Recharger les données du cours depuis le serveur
+    this.loadCours();
     this.error = '';
     this.success = '';
   }

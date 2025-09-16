@@ -1,0 +1,443 @@
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center">
+              <span class="material-icons text-white text-2xl">class</span>
+            </div>
+            <div>
+              <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                <span>Ajouter un Cours</span>
+                <span class="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">Nouveau</span>
+              </h1>
+              <p class="mt-2 text-gray-600 flex items-center gap-2">
+                <span class="material-icons text-blue-600 text-lg">info</span>
+                Créez un nouveau cours pour votre établissement
+              </p>
+            </div>
+          </div>
+          <button 
+            (click)="onCancel()"
+            class="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white px-6 py-3 rounded-xl transition-all duration-300 flex items-center gap-3 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+          >
+            <span class="material-icons">arrow_back</span>
+            <span class="font-medium">Retour aux cours</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Formulaire -->
+    <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+      <form (ngSubmit)="onSubmit()" class="space-y-0">
+        
+        <!-- Section Informations Générales -->
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200 p-6">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center">
+              <span class="material-icons text-white text-lg">info</span>
+            </div>
+            <div>
+              <h2 class="text-xl font-semibold text-gray-800">Informations Générales</h2>
+              <p class="text-sm text-gray-600">Détails de base du cours</p>
+            </div>
+          </div>
+          
+          <!-- Nom du cours -->
+          <div class="max-w-2xl">
+            <label for="name" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+              <span class="material-icons text-blue-600 text-lg">title</span>
+              Nom du cours <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+              <input
+                id="name"
+                type="text"
+                [(ngModel)]="cours.name"
+                name="name"
+                placeholder="Ex: Mathématiques - Analyse 1"
+                class="w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white hover:border-blue-400 transition-all duration-200"
+                required
+              >
+              <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">edit</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section Planning -->
+        <div class="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-gray-200 p-6">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-gradient-to-br from-green-600 to-emerald-700 rounded-lg flex items-center justify-center">
+              <span class="material-icons text-white text-lg">schedule</span>
+            </div>
+            <div>
+              <h2 class="text-xl font-semibold text-gray-800">Planning du Cours</h2>
+              <p class="text-sm text-gray-600">Date, heures et tolérance</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+            <div>
+              <label for="date" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <span class="material-icons text-green-600 text-lg">calendar_today</span>
+                Date <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                <input
+                  id="date"
+                  type="date"
+                  [(ngModel)]="cours.date"
+                  name="date"
+                  class="w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white hover:border-green-400 transition-all duration-200"
+                  required
+                >
+                <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">event</span>
+              </div>
+            </div>
+
+            <div>
+              <label for="pointage_start_hour" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <span class="material-icons text-green-600 text-lg">access_time</span>
+                Heure début pointage <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                <input
+                  id="pointage_start_hour"
+                  type="time"
+                  [(ngModel)]="cours.pointage_start_hour"
+                  name="pointage_start_hour"
+                  class="w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white hover:border-green-400 transition-all duration-200"
+                  required
+                >
+                <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">schedule</span>
+              </div>
+              <div class="mt-2 text-xs text-gray-500 flex items-center gap-1">
+                <span class="material-icons text-xs">info</span>
+                Heure de début du pointage
+              </div>
+            </div>
+
+            <div>
+              <label for="heure_debut" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <span class="material-icons text-green-600 text-lg">play_circle</span>
+                Heure de début <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                <input
+                  id="heure_debut"
+                  type="time"
+                  [(ngModel)]="cours.heure_debut"
+                  name="heure_debut"
+                  class="w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white hover:border-green-400 transition-all duration-200"
+                  required
+                >
+                <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">schedule</span>
+              </div>
+            </div>
+
+            <div>
+              <label for="heure_fin" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <span class="material-icons text-green-600 text-lg">stop_circle</span>
+                Heure de fin <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                <input
+                  id="heure_fin"
+                  type="time"
+                  [(ngModel)]="cours.heure_fin"
+                  name="heure_fin"
+                  class="w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white hover:border-green-400 transition-all duration-200"
+                  required
+                >
+                <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">schedule</span>
+              </div>
+            </div>
+
+            <div>
+              <label for="tolerance" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <span class="material-icons text-green-600 text-lg">timer</span>
+                Tolérance <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                <input
+                  id="tolerance"
+                  type="time"
+                  [(ngModel)]="cours.tolerance"
+                  name="tolerance"
+                  class="w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white hover:border-green-400 transition-all duration-200"
+                  required
+                >
+                <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">schedule</span>
+              </div>
+              <div class="mt-2 text-xs text-gray-500 flex items-center gap-1">
+                <span class="material-icons text-xs">info</span>
+                Durée de tolérance pour les retards
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section Classification -->
+        <div class="bg-gradient-to-r from-purple-50 to-violet-50 border-b border-gray-200 p-6">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-gradient-to-br from-purple-600 to-violet-700 rounded-lg flex items-center justify-center">
+              <span class="material-icons text-white text-lg">category</span>
+            </div>
+            <div>
+              <h2 class="text-xl font-semibold text-gray-800">Classification</h2>
+              <p class="text-sm text-gray-600">Type et année universitaire</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label for="type_cours_id" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <span class="material-icons text-purple-600 text-lg">class</span>
+                Type de cours <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                <select
+                  id="type_cours_id"
+                  [(ngModel)]="cours.type_cours_id"
+                  name="type_cours_id"
+                  class="w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white hover:border-purple-400 transition-all duration-200"
+                  required
+                >
+                  <option value="">Sélectionner un type</option>
+                  <option *ngFor="let type of typesCours" [value]="type.id">
+                    {{ type.name }}
+                  </option>
+                </select>
+                <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">arrow_drop_down</span>
+              </div>
+            </div>
+
+            <div>
+              <label for="annee_universitaire" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <span class="material-icons text-purple-600 text-lg">calendar_month</span>
+                Année universitaire <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                <select
+                  id="annee_universitaire"
+                  [(ngModel)]="cours.annee_universitaire"
+                  name="annee_universitaire"
+                  class="w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white hover:border-purple-400 transition-all duration-200"
+                  required
+                >
+                  <option value="">Sélectionner une année</option>
+                  <option *ngFor="let annee of anneesUniversitaires" [value]="annee">
+                    {{ annee }}
+                  </option>
+                </select>
+                <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">arrow_drop_down</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section Organisation -->
+        <div class="bg-gradient-to-r from-orange-50 to-amber-50 border-b border-gray-200 p-6">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-gradient-to-br from-orange-600 to-amber-700 rounded-lg flex items-center justify-center">
+              <span class="material-icons text-white text-lg">business</span>
+            </div>
+            <div>
+              <h2 class="text-xl font-semibold text-gray-800">Organisation</h2>
+              <p class="text-sm text-gray-600">Établissement, promotion et localisation</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label for="etablissement_id" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <span class="material-icons text-orange-600 text-lg">business</span>
+                Établissement <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                <select
+                  id="etablissement_id"
+                  [(ngModel)]="cours.etablissement_id"
+                  name="etablissement_id"
+                  class="w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-orange-400 transition-all duration-200"
+                  required
+                >
+                  <option value="">Sélectionner un établissement</option>
+                  <option *ngFor="let etablissement of etablissements" [value]="etablissement.id">
+                    {{ etablissement.name }}
+                  </option>
+                </select>
+                <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">arrow_drop_down</span>
+              </div>
+            </div>
+
+            <div>
+              <label for="promotion_id" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <span class="material-icons text-orange-600 text-lg">school</span>
+                Promotion <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                <select
+                  id="promotion_id"
+                  [(ngModel)]="cours.promotion_id"
+                  name="promotion_id"
+                  class="w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-orange-400 transition-all duration-200"
+                  required
+                >
+                  <option value="">Sélectionner une promotion</option>
+                  <option *ngFor="let promotion of promotions" [value]="promotion.id">
+                    {{ promotion.name }}
+                  </option>
+                </select>
+                <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">arrow_drop_down</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section Détails -->
+        <div class="bg-gradient-to-r from-cyan-50 to-teal-50 border-b border-gray-200 p-6">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-gradient-to-br from-cyan-600 to-teal-700 rounded-lg flex items-center justify-center">
+              <span class="material-icons text-white text-lg">room</span>
+            </div>
+            <div>
+              <h2 class="text-xl font-semibold text-gray-800">Détails du Cours</h2>
+              <p class="text-sm text-gray-600">Option, salle et statut</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label for="option_id" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <span class="material-icons text-cyan-600 text-lg">list</span>
+                Option
+              </label>
+              <div class="relative">
+                <select
+                  id="option_id"
+                  [(ngModel)]="cours.option_id"
+                  name="option_id"
+                  class="w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 bg-white hover:border-cyan-400 transition-all duration-200"
+                >
+                  <option value="">Sélectionner une option (optionnel)</option>
+                  <option *ngFor="let option of options" [value]="option.id">
+                    {{ option.name }}
+                  </option>
+                </select>
+                <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">arrow_drop_down</span>
+              </div>
+            </div>
+
+            <div>
+              <label for="salle_id" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <span class="material-icons text-cyan-600 text-lg">room</span>
+                Salle <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                <select
+                  id="salle_id"
+                  [(ngModel)]="cours.salle_id"
+                  name="salle_id"
+                  class="w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 bg-white hover:border-cyan-400 transition-all duration-200"
+                  required
+                >
+                  <option value="">Sélectionner une salle</option>
+                  <option *ngFor="let salle of salles" [value]="salle.id">
+                    {{ salle.name }}
+                  </option>
+                </select>
+                <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">arrow_drop_down</span>
+              </div>
+            </div>
+
+            <div>
+              <label for="statut_temporel" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <span class="material-icons text-cyan-600 text-lg">schedule</span>
+                Statut temporel
+              </label>
+              <div class="relative">
+                <select
+                  id="statut_temporel"
+                  [(ngModel)]="cours.statut_temporel"
+                  name="statut_temporel"
+                  class="w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 bg-white hover:border-cyan-400 transition-all duration-200"
+                >
+                  <option value="futur">Futur</option>
+                  <option value="en_cours">En cours</option>
+                  <option value="passé">Passé</option>
+                </select>
+                <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">arrow_drop_down</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Messages d'erreur -->
+        <div *ngIf="error" class="bg-gradient-to-r from-red-50 to-pink-50 border-l-4 border-red-500 p-6 mx-6 mb-6">
+          <div class="flex items-start gap-4">
+            <div class="flex-shrink-0">
+              <div class="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center">
+                <span class="material-icons text-white text-lg">error</span>
+              </div>
+            </div>
+            <div class="flex-1">
+              <h3 class="text-lg font-semibold text-red-800 mb-2">Erreur lors de la création</h3>
+              <p class="text-red-700">{{ error }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Messages de succès -->
+        <div *ngIf="success" class="bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-500 p-6 mx-6 mb-6">
+          <div class="flex items-start gap-4">
+            <div class="flex-shrink-0">
+              <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                <span class="material-icons text-white text-lg">check</span>
+              </div>
+            </div>
+            <div class="flex-1">
+              <h3 class="text-lg font-semibold text-green-800 mb-2">Cours créé avec succès</h3>
+              <p class="text-green-700">{{ success }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Boutons d'action -->
+        <div class="bg-gray-50 border-t border-gray-200 p-6">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3 text-sm text-gray-600">
+              <span class="material-icons text-lg">info</span>
+              <span>Tous les champs marqués d'un <span class="text-red-500 font-semibold">*</span> sont obligatoires</span>
+            </div>
+            <div class="flex items-center gap-4">
+              <button
+                type="button"
+                (click)="resetForm()"
+                class="px-6 py-3 border-2 border-gray-300 text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 rounded-xl transition-all duration-300 flex items-center gap-3 shadow-sm hover:shadow-md transform hover:-translate-y-0.5"
+              >
+                <span class="material-icons">refresh</span>
+                <span class="font-medium">Réinitialiser</span>
+              </button>
+              <button
+                type="submit"
+                [disabled]="loading"
+                class="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 disabled:from-gray-400 disabled:to-gray-500 text-white rounded-xl transition-all duration-300 flex items-center gap-3 shadow-lg hover:shadow-xl transform hover:-translate-y-1 disabled:transform-none disabled:shadow-sm"
+              >
+                <span *ngIf="loading" class="material-icons animate-spin">refresh</span>
+                <span *ngIf="!loading" class="material-icons">add</span>
+                <span class="font-medium">
+                  <span *ngIf="!loading">Créer le cours</span>
+                  <span *ngIf="loading">Création en cours...</span>
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
