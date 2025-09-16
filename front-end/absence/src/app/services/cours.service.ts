@@ -16,7 +16,7 @@ export interface Cours {
   salle_id: number;
   option_id?: number;
   annee_universitaire: string;
-  statut_temporel: 'passé' | 'en_cours' | 'futur';
+  statut_temporel?: 'passé' | 'en_cours' | 'futur'; // Optionnel car calculé automatiquement
   created_at: string;
   updated_at: string;
   etablissement?: {
@@ -120,5 +120,50 @@ export class CoursService {
   // Méthode unique pour récupérer toutes les options de filtre
   getFilterOptions(): Observable<any> {
     return this.http.get(`${this.apiUrl}/filter-options`);
+  }
+
+  /**
+   * Calcule le statut temporel d'un cours basé sur la date et l'heure actuelles
+   */
+  calculateStatutTemporel(cours: Cours): 'passé' | 'en_cours' | 'futur' {
+    const now = new Date();
+    const coursDate = new Date(cours.date);
+    const heureDebut = new Date(`${cours.date}T${cours.heure_debut}`);
+    const heureFin = new Date(`${cours.date}T${cours.heure_fin}`);
+
+    // Vérifier si c'est le même jour
+    const isSameDay = now.toDateString() === coursDate.toDateString();
+
+    if (isSameDay) {
+      // Même jour : vérifier si on est entre l'heure de début et de fin
+      if (now >= heureDebut && now <= heureFin) {
+        return 'en_cours';
+      } else if (now < heureDebut) {
+        return 'futur';
+      } else {
+        return 'passé';
+      }
+    } else if (now < coursDate) {
+      return 'futur';
+    } else {
+      return 'passé';
+    }
+  }
+
+  /**
+   * Applique le statut temporel calculé à un cours
+   */
+  applyCalculatedStatutTemporel(cours: Cours): Cours {
+    return {
+      ...cours,
+      statut_temporel: this.calculateStatutTemporel(cours)
+    };
+  }
+
+  /**
+   * Applique le statut temporel calculé à une liste de cours
+   */
+  applyCalculatedStatutTemporelToList(coursList: Cours[]): Cours[] {
+    return coursList.map(cours => this.applyCalculatedStatutTemporel(cours));
   }
 }

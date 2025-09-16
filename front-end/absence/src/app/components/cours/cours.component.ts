@@ -48,7 +48,8 @@ export class CoursComponent implements OnInit {
 
     this.coursService.getCours(this.filters).subscribe({
       next: (response: CoursResponse) => {
-        this.cours = response.data;
+        // Appliquer le calcul automatique du statut temporel
+        this.cours = this.coursService.applyCalculatedStatutTemporelToList(response.data);
         this.currentPage = response.current_page;
         this.totalPages = response.last_page;
         this.totalItems = response.total;
@@ -112,6 +113,10 @@ export class CoursComponent implements OnInit {
 
   editCours(cours: Cours) {
     this.router.navigate(['/dashboard/edit-cours', cours.id]);
+  }
+
+  viewCoursAttendance(cours: Cours) {
+    this.router.navigate(['/dashboard/cours', cours.id, 'attendance']);
   }
 
   deleteCours(cours: Cours) {

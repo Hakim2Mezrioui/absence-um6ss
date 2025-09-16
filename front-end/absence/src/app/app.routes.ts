@@ -21,6 +21,7 @@ import { ProfileComponent } from './components/profile/profile.component';
 import { CoursComponent } from './components/cours/cours.component';
 import { AddCoursComponent } from './components/add-cours/add-cours.component';
 import { EditCoursComponent } from './components/edit-cours/edit-cours.component';
+import { AttendanceCoursComponent } from './components/attendance-cours/attendance-cours.component';
 
 export const routes: Routes = [
     {path: "", redirectTo: "login", pathMatch: "full"},
@@ -48,6 +49,7 @@ export const routes: Routes = [
                    { path: "cours", component: CoursComponent },
                    { path: "add-cours", component: AddCoursComponent },
                    { path: "edit-cours/:id", component: EditCoursComponent },
+                   { path: "cours/:id/attendance", component: AttendanceCoursComponent },
                    { path: "statistiques", component: DashboardComponent }, // Placeholder
                    { path: "parametres", component: DashboardComponent }, // Placeholder
                    { path: "profile", component: ProfileComponent },

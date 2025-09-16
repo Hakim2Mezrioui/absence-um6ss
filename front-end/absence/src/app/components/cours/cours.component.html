@@ -303,6 +303,15 @@
             </div>
             <div class="flex space-x-2">
               <button 
+                class="action-button text-green-600 hover:text-green-900 p-2 rounded-md hover:bg-green-50 transition-colors"
+                (click)="viewCoursAttendance(coursItem)"
+                title="Vérifier les absences"
+              >
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </button>
+              <button 
                 class="action-button text-blue-600 hover:text-blue-900 p-2 rounded-md hover:bg-blue-50 transition-colors"
                 (click)="editCours(coursItem)"
                 title="Modifier"

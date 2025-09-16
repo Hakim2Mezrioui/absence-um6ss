@@ -17,15 +17,17 @@ export class AddCoursComponent implements OnInit {
     pointage_start_hour: '',
     heure_debut: '',
     heure_fin: '',
-    tolerance: '',
+    tolerance: '00:15', // Valeur par défaut en format time
     etablissement_id: 0,
     promotion_id: 0,
     type_cours_id: 0,
     salle_id: 0,
     option_id: undefined,
-    annee_universitaire: '',
-    statut_temporel: 'futur'
+    annee_universitaire: '' // Sera défini dans generateAnneesUniversitaires()
   };
+
+  // Propriété pour gérer la tolérance en minutes dans le formulaire
+  toleranceMinutes: number = 15;
 
   loading = false;
   error = '';
@@ -69,10 +71,22 @@ export class AddCoursComponent implements OnInit {
 
   generateAnneesUniversitaires() {
     const currentYear = new Date().getFullYear();
-    for (let i = 0; i < 5; i++) {
-      const year = currentYear - 2 + i;
+    
+    // Générer 5 années avant et 5 années après l'année actuelle
+    for (let i = -5; i <= 5; i++) {
+      const year = currentYear + i;
       this.anneesUniversitaires.push(`${year}-${year + 1}`);
     }
+    
+    // Trier les années par ordre décroissant (plus récentes en premier)
+    this.anneesUniversitaires.sort((a, b) => {
+      const yearA = parseInt(a.split('-')[0]);
+      const yearB = parseInt(b.split('-')[0]);
+      return yearB - yearA;
+    });
+    
+    // Sélectionner l'année actuelle par défaut
+    this.cours.annee_universitaire = `${currentYear}-${currentYear + 1}`;
   }
 
   onSubmit() {
@@ -84,14 +98,15 @@ export class AddCoursComponent implements OnInit {
     this.error = '';
     this.success = '';
 
-    // Conversion des IDs en nombres
+    // Conversion des IDs en nombres et de la tolérance en format time
     const coursData = {
       ...this.cours,
       etablissement_id: Number(this.cours.etablissement_id),
       promotion_id: Number(this.cours.promotion_id),
       type_cours_id: Number(this.cours.type_cours_id),
       salle_id: Number(this.cours.salle_id),
-      option_id: this.cours.option_id ? Number(this.cours.option_id) : undefined
+      option_id: this.cours.option_id ? Number(this.cours.option_id) : undefined,
+      tolerance: this.formatToleranceToTime(this.toleranceMinutes)
     };
 
     this.coursService.createCours(coursData).subscribe({
@@ -136,8 +151,8 @@ export class AddCoursComponent implements OnInit {
       return false;
     }
 
-    if (!this.cours.tolerance) {
-      this.error = 'La tolérance est requise';
+    if (!this.toleranceMinutes || this.toleranceMinutes <= 0) {
+      this.error = 'La tolérance en minutes est requise (minimum 1 minute)';
       return false;
     }
 
@@ -186,22 +201,74 @@ export class AddCoursComponent implements OnInit {
   }
 
   resetForm() {
+    const currentYear = new Date().getFullYear();
+    
     this.cours = {
       name: '',
       date: '',
       pointage_start_hour: '',
       heure_debut: '',
       heure_fin: '',
-      tolerance: '',
+      tolerance: '00:15',
       etablissement_id: 0,
       promotion_id: 0,
       type_cours_id: 0,
       salle_id: 0,
       option_id: undefined,
-      annee_universitaire: '',
-      statut_temporel: 'futur'
+      annee_universitaire: `${currentYear}-${currentYear + 1}`
     };
+    this.toleranceMinutes = 15;
     this.error = '';
     this.success = '';
+  }
+
+  /**
+   * Calculer l'heure limite de pointage (heure de début + tolérance)
+   */
+  calculatePointageEndTime(): string {
+    if (!this.cours.heure_debut || !this.toleranceMinutes) {
+      return '';
+    }
+
+    try {
+      const [hours, minutes] = this.cours.heure_debut.split(':').map(Number);
+      
+      // Ajouter la tolérance en minutes
+      const totalMinutes = hours * 60 + minutes + this.toleranceMinutes;
+      
+      // Calculer les nouvelles heures et minutes
+      const newHours = Math.floor(totalMinutes / 60);
+      const newMinutes = totalMinutes % 60;
+      
+      // Formater l'heure
+      return `${newHours.toString().padStart(2, '0')}:${newMinutes.toString().padStart(2, '0')}`;
+    } catch (error) {
+      return '';
+    }
+  }
+
+  /**
+   * Mettre à jour l'heure de pointage automatiquement
+   */
+  onHeureDebutChange() {
+    // L'heure de pointage reste indépendante de l'heure de début
+    // L'utilisateur peut la définir manuellement
+  }
+
+  /**
+   * Mettre à jour l'heure de pointage quand la tolérance change
+   */
+  onToleranceChange() {
+    // L'heure de pointage reste indépendante de la tolérance
+    // L'utilisateur peut la définir manuellement
+  }
+
+  /**
+   * Convertir la tolérance en minutes vers le format time (HH:MM)
+   */
+  formatToleranceToTime(minutes: number): string {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
   }
 }

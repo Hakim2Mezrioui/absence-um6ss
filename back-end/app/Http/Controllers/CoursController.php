@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use DateTime;   
 use Carbon\Carbon;
+use PDO;
+use PDOException;
 
 class CoursController extends Controller
 {
@@ -55,8 +57,14 @@ class CoursController extends Controller
         $cours = $query->orderByDesc('created_at')
                       ->paginate($size, ['*'], 'page', $page);
 
+        // Calculer automatiquement le statut temporel pour chaque cours
+        $coursItems = $cours->items();
+        foreach ($coursItems as $coursItem) {
+            $coursItem->statut_temporel = $coursItem->getStatutTemporel();
+        }
+
         return response()->json([
-            'data' => $cours->items(),
+            'data' => $coursItems,
             'current_page' => $cours->currentPage(),
             'last_page' => $cours->lastPage(),
             'per_page' => $cours->perPage(),
@@ -73,6 +81,10 @@ class CoursController extends Controller
         if (!$cours) {
             return response()->json(['message' => 'Cours non trouvé'], 404);
         }
+        
+        // Calculer automatiquement le statut temporel
+        $cours->statut_temporel = $cours->getStatutTemporel();
+        
         return response()->json($cours);
     }
 
@@ -93,9 +105,12 @@ class CoursController extends Controller
             'type_cours_id' => 'required|exists:types_cours,id',
             'salle_id' => 'required|exists:salles,id',
             'option_id' => 'nullable|exists:options,id',
-            'annee_universitaire' => 'required|string|max:9',
-            'statut_temporel' => 'nullable|in:passé,en_cours,futur'
+            'annee_universitaire' => 'required|string|max:9'
         ]);
+
+        // Calculer automatiquement le statut temporel
+        $cours = new Cours($validatedData);
+        $validatedData['statut_temporel'] = $cours->getStatutTemporel();
 
         $cours = Cours::create($validatedData);
         $cours->load(['etablissement', 'promotion', 'type_cours', 'salle', 'option']);
@@ -125,9 +140,12 @@ class CoursController extends Controller
             'type_cours_id' => 'sometimes|exists:types_cours,id',
             'salle_id' => 'sometimes|exists:salles,id',
             'option_id' => 'nullable|exists:options,id',
-            'annee_universitaire' => 'sometimes|string|max:9',
-            'statut_temporel' => 'sometimes|in:passé,en_cours,futur'
+            'annee_universitaire' => 'sometimes|string|max:9'
         ]);
+
+        // Calculer automatiquement le statut temporel
+        $cours->fill($validatedData);
+        $validatedData['statut_temporel'] = $cours->getStatutTemporel();
 
         $cours->update($validatedData);
         $cours->load(['etablissement', 'promotion', 'type_cours', 'salle', 'option']);
@@ -324,5 +342,234 @@ class CoursController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Récupérer l'attendance des étudiants pour un cours spécifique
+     */
+    public function fetchCoursAttendance(Request $request, $coursId)
+    {
+        try {
+            // Récupérer le cours avec ses relations
+            $cours = Cours::with(['etablissement', 'promotion', 'type_cours', 'salle', 'option'])
+                ->find($coursId);
+
+            if (!$cours) {
+                return response()->json([
+                    'message' => 'Cours non trouvé',
+                    'status' => 404
+                ], 404);
+            }
+
+            $date = $cours->date;
+            $heureDebut = $cours->heure_debut;
+            $heureFin = $cours->heure_fin;
+            $heureDebutPointage = $cours->pointage_start_hour;
+            $tolerance = $cours->tolerance;
+
+            // Récupérer les paramètres de filtre
+            $promotion_id = $request->input("promotion_id", $cours->promotion_id);
+            $etablissement_id = $request->input("etablissement_id", $cours->etablissement_id);
+            $ville_id = $request->input("ville_id", null);
+            $group_id = $request->query("group_id", null);
+            $option_id = $request->query("option_id", $cours->option_id);
+
+            // Initialize variables
+            $biostarResults = [];
+            $localStudents = collect();
+
+            // Create a PDO connection to the SQL Server database
+            $dsn = 'sqlsrv:Server=10.0.2.148;Database=BIOSTAR_TA;TrustServerCertificate=true';
+            $username = 'dbuser';
+            $password = 'Driss@2024';
+
+            try {
+                $pdo = new PDO($dsn, $username, $password);
+                $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+                // Format date and time for SQL Server compatibility
+                $formattedDate = date('Y-m-d', strtotime($date));
+                $formattedTime1 = date('H:i:s', strtotime($heureDebut));
+                $formattedTime2 = date('H:i:s', strtotime($heureFin));
+                $formattedTimeRef = date('H:i:s', strtotime($heureDebutPointage));
+
+                // Execute the query using PDO with proper date formatting
+                $sql = "SELECT * FROM punchlog WHERE CAST(bsevtdt AS date) = CAST(:date AS date) AND CAST(bsevtdt AS time) BETWEEN CAST(:heure1 AS time) AND CAST(:heure2 AS time) AND devnm NOT LIKE 'TOUR%' AND devnm NOT LIKE 'ACCES HCK%'";
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute(['date' => $formattedDate, 'heure1' => $formattedTimeRef, 'heure2' => $formattedTime2]);
+
+                // Fetch the results
+                $biostarResults = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            } catch (PDOException $e) {
+                // If Biostar connection fails, continue with empty results
+                $biostarResults = [];
+            }
+
+            // Fetch students from the local database with relations
+            $query = \App\Models\Etudiant::with(['ville', 'group', 'option', 'etablissement', 'promotion']);
+
+            if (!empty($group_id) && $group_id != 'null') {
+                $query->where('group_id', $group_id);
+            }
+
+            if (!empty($option_id) && $option_id != 'null') {
+                $query->where('option_id', $option_id);
+            }
+
+            if (!empty($etablissement_id) && $etablissement_id != 'null') {
+                $query->where('etablissement_id', $etablissement_id);
+            }
+
+            if (!empty($ville_id) && $ville_id != 'null') {
+                $query->where('ville_id', $ville_id);
+            }
+
+            if (!empty($promotion_id) && $promotion_id != 'null') {
+                $query->where('promotion_id', $promotion_id);
+            }
+
+            $localStudents = $query->get();
+
+            // Check if any students were found
+            if ($localStudents->isEmpty()) {
+                return response()->json([
+                    "message" => "Aucun étudiant trouvé avec les critères spécifiés",
+                    "cours" => [
+                        'id' => $cours->id,
+                        'name' => $cours->name,
+                        'date' => $cours->date,
+                        'pointage_start_hour' => $cours->pointage_start_hour,
+                        'heure_debut' => $cours->heure_debut,
+                        'heure_fin' => $cours->heure_fin,
+                        'tolerance' => $cours->tolerance,
+                        'etablissement' => $cours->etablissement,
+                        'promotion' => $cours->promotion,
+                        'type_cours' => $cours->type_cours,
+                        'salle' => $cours->salle,
+                        'option' => $cours->option
+                    ],
+                    "filtres_appliques" => [
+                        'promotion_id' => $promotion_id,
+                        'etablissement_id' => $etablissement_id,
+                        'ville_id' => $ville_id,
+                        'group_id' => $group_id,
+                        'option_id' => $option_id
+                    ],
+                    "statistics" => [
+                        "total_students" => 0,
+                        "presents" => 0,
+                        "absents" => 0,
+                        "lates" => 0,
+                        "excused" => 0
+                    ],
+                    "students" => [],
+                    "status" => 404
+                ], 404);
+            }
+
+            // Get present students (those who have punched in Biostar)
+            $presentStudentMatricules = collect($biostarResults)->pluck('user_id')->toArray();
+
+            // Prepare the final response with attendance status
+            $studentsWithAttendance = $localStudents->map(function ($student) use ($presentStudentMatricules, $biostarResults, $heureDebutPointage, $heureDebut, $tolerance) {
+                $punchTime = $this->getPunchTime($student->matricule, $biostarResults);
+                $isPresent = false;
+                $isLate = false;
+                $status = 'absent';
+
+                if ($punchTime) {
+                    // Convertir l'heure de pointage en format comparable
+                    $punchTimeFormatted = date('H:i:s', strtotime($punchTime['time']));
+                    $heureDebutCours = date('H:i:s', strtotime($heureDebut));
+                    
+                    // Calculer l'heure limite (début + tolérance)
+                    $heureLimite = date('H:i:s', strtotime($heureDebut . ' + ' . $tolerance . ' minutes'));
+                    
+                    if ($punchTimeFormatted <= $heureLimite) {
+                        $isPresent = true;
+                        $status = $punchTimeFormatted <= $heureDebutCours ? 'present' : 'late';
+                    }
+                }
+
+                return [
+                    'id' => $student->id,
+                    'matricule' => $student->matricule,
+                    'first_name' => $student->first_name,
+                    'last_name' => $student->last_name,
+                    'email' => $student->email,
+                    'photo' => $student->photo,
+                    'promotion' => $student->promotion,
+                    'etablissement' => $student->etablissement,
+                    'ville' => $student->ville,
+                    'group' => $student->group,
+                    'option' => $student->option,
+                    'status' => $status,
+                    'punch_time' => $punchTime,
+                ];
+            });
+
+            // Calculer les statistiques
+            $totalStudents = $studentsWithAttendance->count();
+            $presents = $studentsWithAttendance->where('status', 'present')->count();
+            $lates = $studentsWithAttendance->where('status', 'late')->count();
+            $absents = $studentsWithAttendance->where('status', 'absent')->count();
+            $excused = 0; // Pour l'instant, pas de gestion des excuses
+
+            return response()->json([
+                "message" => "Liste des étudiants avec statut de présence pour le cours",
+                "cours" => [
+                    'id' => $cours->id,
+                    'name' => $cours->name,
+                    'date' => $cours->date,
+                    'pointage_start_hour' => $cours->pointage_start_hour,
+                    'heure_debut' => $cours->heure_debut,
+                    'heure_fin' => $cours->heure_fin,
+                    'tolerance' => $cours->tolerance,
+                    'etablissement' => $cours->etablissement,
+                    'promotion' => $cours->promotion,
+                    'type_cours' => $cours->type_cours,
+                    'salle' => $cours->salle,
+                    'option' => $cours->option
+                ],
+                "statistics" => [
+                    "total_students" => $totalStudents,
+                    "presents" => $presents,
+                    "absents" => $absents,
+                    "lates" => $lates,
+                    "excused" => $excused
+                ],
+                "students" => $studentsWithAttendance,
+                "logique_presence" => [
+                    "heure_debut_cours" => $heureDebut,
+                    "heure_debut_pointage" => $heureDebutPointage,
+                    "tolerance" => $tolerance,
+                    "critere" => "Étudiant présent s'il pointe avant l'heure de début du cours + tolérance",
+                    "description" => "L'heure de début de pointage indique quand commencer le pointage, mais la présence est déterminée par rapport à l'heure de début du cours plus la tolérance"
+                ],
+                "status" => 200
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erreur lors de la récupération de l\'attendance du cours',
+                'error' => $e->getMessage(),
+                'status' => 500
+            ], 500);
+        }
+    }
+
+    /**
+     * Get punch time for a specific student
+     */
+    private function getPunchTime($matricule, $biostarResults)
+    {
+        $studentPunch = collect($biostarResults)->firstWhere('user_id', $matricule);
+        if ($studentPunch) {
+            return [
+                'time' => $studentPunch['bsevtdt'],
+                'device' => $studentPunch['devnm']
+            ];
+        }
+        return null;
     }
 }
