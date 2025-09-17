@@ -29,7 +29,6 @@ return new class extends Migration
             $table->foreignId('salle_id')->constrained('salles')->onDelete('cascade');
             $table->foreignId('option_id')->nullable()->constrained('options')->onDelete('cascade');
             $table->string('annee_universitaire')->comment('Format: YYYY-YYYY (ex: 2024-2025)');
-            $table->enum('statut_temporel', ['passé', 'en_cours', 'futur'])->default('futur');
             $table->timestamps();
         });
     }

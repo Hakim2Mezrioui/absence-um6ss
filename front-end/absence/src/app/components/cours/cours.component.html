@@ -166,7 +166,7 @@
         <div class="p-6 border-b border-gray-100">
           <div class="flex items-start justify-between mb-3">
             <h3 class="text-lg font-semibold text-gray-900 line-clamp-2">{{ coursItem.name }}</h3>
-            <span class="status-badge inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ml-2 flex-shrink-0" 
+            <span class="status-badge inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ml-2 flex-shrink-0" 
                   [ngClass]="{
                     'bg-red-100 text-red-800': coursItem.statut_temporel === 'passé',
                     'bg-green-100 text-green-800': coursItem.statut_temporel === 'en_cours',
@@ -200,10 +200,10 @@
                     <div class="flex items-center justify-between">
                       <div class="flex items-center space-x-2">
                         <span class="font-semibold text-gray-800">Cours:</span>
-                        <span class="text-purple-600 font-medium bg-purple-50 px-2 py-1 rounded">{{ coursItem.date | date:'dd/MM/yyyy' }}</span>
+                        <span class="text-purple-600 font-medium bg-purple-50 px-3 py-1 rounded">{{ coursItem.date | date:'dd/MM/yyyy' }}</span>
                         <span class="text-gray-600">{{ coursItem.heure_debut }} - {{ coursItem.heure_fin }}</span>
                       </div>
-                      <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                      <span class="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded">
                         {{ calculateDuration(coursItem.heure_debut, coursItem.heure_fin) }}
                       </span>
                     </div>
@@ -388,7 +388,7 @@
             <button
               (click)="onPageChange(currentPage - 1)"
               [disabled]="currentPage === 1"
-              class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="relative inline-flex items-center px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span class="sr-only">Précédent</span>
               <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -409,7 +409,7 @@
             <button
               (click)="onPageChange(currentPage + 1)"
               [disabled]="currentPage === totalPages"
-              class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="relative inline-flex items-center px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span class="sr-only">Suivant</span>
               <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">

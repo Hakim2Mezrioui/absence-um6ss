@@ -16,7 +16,7 @@ export interface Cours {
   salle_id: number;
   option_id?: number;
   annee_universitaire: string;
-  statut_temporel?: 'passé' | 'en_cours' | 'futur'; // Optionnel car calculé automatiquement
+  statut_temporel?: 'passé' | 'en_cours' | 'futur'; // Calculé côté frontend
   created_at: string;
   updated_at: string;
   etablissement?: {
@@ -166,4 +166,5 @@ export class CoursService {
   applyCalculatedStatutTemporelToList(coursList: Cours[]): Cours[] {
     return coursList.map(cours => this.applyCalculatedStatutTemporel(cours));
   }
+
 }

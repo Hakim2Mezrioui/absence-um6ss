@@ -23,8 +23,7 @@ export class EditCoursComponent implements OnInit {
     type_cours_id: 0,
     salle_id: 0,
     option_id: undefined,
-    annee_universitaire: '',
-    statut_temporel: 'futur'
+    annee_universitaire: ''
   };
 
   loading = false;

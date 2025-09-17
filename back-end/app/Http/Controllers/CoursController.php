@@ -108,10 +108,6 @@ class CoursController extends Controller
             'annee_universitaire' => 'required|string|max:9'
         ]);
 
-        // Calculer automatiquement le statut temporel
-        $cours = new Cours($validatedData);
-        $validatedData['statut_temporel'] = $cours->getStatutTemporel();
-
         $cours = Cours::create($validatedData);
         $cours->load(['etablissement', 'promotion', 'type_cours', 'salle', 'option']);
 
@@ -142,10 +138,6 @@ class CoursController extends Controller
             'option_id' => 'nullable|exists:options,id',
             'annee_universitaire' => 'sometimes|string|max:9'
         ]);
-
-        // Calculer automatiquement le statut temporel
-        $cours->fill($validatedData);
-        $validatedData['statut_temporel'] = $cours->getStatutTemporel();
 
         $cours->update($validatedData);
         $cours->load(['etablissement', 'promotion', 'type_cours', 'salle', 'option']);
