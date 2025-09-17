@@ -84,6 +84,8 @@ export class CoursService {
       }
     });
 
+    console.log('Requête API cours:', this.apiUrl, 'avec params:', params.toString());
+    
     return this.http.get<CoursResponse>(this.apiUrl, { params });
   }
 
@@ -127,24 +129,38 @@ export class CoursService {
    */
   calculateStatutTemporel(cours: Cours): 'passé' | 'en_cours' | 'futur' {
     const now = new Date();
-    const coursDate = new Date(cours.date);
-    const heureDebut = new Date(`${cours.date}T${cours.heure_debut}`);
-    const heureFin = new Date(`${cours.date}T${cours.heure_fin}`);
-
-    // Vérifier si c'est le même jour
-    const isSameDay = now.toDateString() === coursDate.toDateString();
-
-    if (isSameDay) {
-      // Même jour : vérifier si on est entre l'heure de début et de fin
-      if (now >= heureDebut && now <= heureFin) {
-        return 'en_cours';
-      } else if (now < heureDebut) {
-        return 'futur';
-      } else {
-        return 'passé';
-      }
-    } else if (now < coursDate) {
+    
+    // Vérifier que les données nécessaires sont présentes
+    if (!cours.date || !cours.heure_debut || !cours.heure_fin) {
       return 'futur';
+    }
+    
+    // Extraire la date sans l'heure (format YYYY-MM-DD)
+    const coursDate = cours.date.split('T')[0];
+    
+    // Vérifier que la date extraite est valide
+    if (!coursDate || coursDate.length !== 10) {
+      return 'futur';
+    }
+    
+    // Créer la date du cours avec l'heure de début
+    // Les heures peuvent être au format HH:MM ou HH:MM:SS
+    const heureDebut = cours.heure_debut.includes(':') ? cours.heure_debut : `${cours.heure_debut}:00`;
+    const heureFin = cours.heure_fin.includes(':') ? cours.heure_fin : `${cours.heure_fin}:00`;
+    
+    const coursDateTimeDebut = new Date(`${coursDate}T${heureDebut}`);
+    const coursDateTimeFin = new Date(`${coursDate}T${heureFin}`);
+    
+    // Vérifier si les dates sont valides AVANT d'essayer de les utiliser
+    if (isNaN(coursDateTimeDebut.getTime()) || isNaN(coursDateTimeFin.getTime())) {
+      return 'futur';
+    }
+    
+    // Comparer les dates et heures complètes
+    if (now < coursDateTimeDebut) {
+      return 'futur';
+    } else if (now >= coursDateTimeDebut && now <= coursDateTimeFin) {
+      return 'en_cours';
     } else {
       return 'passé';
     }

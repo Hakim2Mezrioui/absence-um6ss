@@ -155,6 +155,14 @@
         </div>
         <div class="ml-3">
           <p class="text-sm text-red-800">{{ error }}</p>
+          <div *ngIf="error.includes('Session expirée') || error.includes('Accès refusé')" class="mt-2">
+            <button 
+              (click)="router.navigate(['/login'])"
+              class="text-sm bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded transition-colors"
+            >
+              Se reconnecter
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -166,15 +174,20 @@
         <div class="p-6 border-b border-gray-100">
           <div class="flex items-start justify-between mb-3">
             <h3 class="text-lg font-semibold text-gray-900 line-clamp-2">{{ coursItem.name }}</h3>
-            <span class="status-badge inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ml-2 flex-shrink-0" 
-                  [ngClass]="{
-                    'bg-red-100 text-red-800': coursItem.statut_temporel === 'passé',
-                    'bg-green-100 text-green-800': coursItem.statut_temporel === 'en_cours',
-                    'bg-yellow-100 text-yellow-800': coursItem.statut_temporel === 'futur',
-                    'bg-gray-100 text-gray-800': !coursItem.statut_temporel
-                  }">
-              {{ getStatusText(coursItem.statut_temporel || '') }}
-            </span>
+            <div class="flex flex-col items-end gap-1">
+              <span class="status-badge inline-flex items-center px-3 py-1 rounded-full text-xs font-medium flex-shrink-0" 
+                    [ngClass]="{
+                      'bg-red-100 text-red-800': coursItem.statut_temporel === 'passé',
+                      'bg-green-100 text-green-800': coursItem.statut_temporel === 'en_cours',
+                      'bg-yellow-100 text-yellow-800': coursItem.statut_temporel === 'futur',
+                      'bg-gray-100 text-gray-800': !coursItem.statut_temporel
+                    }">
+                {{ getStatusText(coursItem.statut_temporel || '') }}
+              </span>
+              <div class="text-xs text-gray-500 text-right">
+                {{ getStatusDetails(coursItem) }}
+              </div>
+            </div>
           </div>
           
           <!-- Année universitaire -->

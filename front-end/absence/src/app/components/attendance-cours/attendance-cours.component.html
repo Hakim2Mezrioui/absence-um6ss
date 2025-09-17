@@ -73,37 +73,119 @@
       </div>
 
       <!-- Section horaires -->
-      <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-          <span class="material-icons text-blue-600">schedule</span>
+      <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6">
+        <h3 class="text-xl font-semibold text-gray-800 mb-6 flex items-center gap-3">
+          <span class="material-icons text-blue-600 text-2xl">schedule</span>
           Horaires du Cours
         </h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div class="bg-white p-4 rounded-lg border border-blue-200">
-            <h4 class="text-sm font-medium text-blue-600 mb-2">Début pointage</h4>
-            <p class="text-lg font-bold text-gray-900">{{ coursData.cours.pointage_start_hour }}</p>
-            <p class="text-xs text-gray-500">Heure d'ouverture</p>
+        
+        <!-- Timeline des horaires -->
+        <div class="relative">
+          <!-- Ligne de temps -->
+          <div class="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-400 via-green-400 to-red-400"></div>
+          
+          <!-- Pointage -->
+          <div class="relative flex items-center mb-6">
+            <div class="flex-shrink-0 w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center border-4 border-blue-300">
+              <span class="material-icons text-blue-600 text-xl">access_time</span>
+            </div>
+            <div class="ml-6 flex-1">
+              <div class="bg-white p-4 rounded-lg border border-blue-200 shadow-sm">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h4 class="text-lg font-semibold text-blue-800">Période de Pointage</h4>
+                    <p class="text-sm text-blue-600">Les étudiants peuvent pointer leur présence</p>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-2xl font-bold text-gray-900">{{ formatTime(coursData.cours.pointage_start_hour) }}</p>
+                    <p class="text-sm text-gray-500">Début</p>
+                  </div>
+                </div>
+                <div class="mt-2 flex items-center justify-between">
+                  <div class="text-sm text-gray-600">
+                    <span class="font-medium">Fin:</span> {{ formatTime(calculatePointageEndTime()) }}
+                  </div>
+                  <div class="text-sm text-gray-600">
+                    <span class="font-medium">Durée:</span> {{ calculatePointageDuration() }}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="bg-white p-4 rounded-lg border border-orange-200">
-            <h4 class="text-sm font-medium text-orange-600 mb-2">Fin pointage</h4>
-            <p class="text-lg font-bold text-gray-900">{{ calculatePointageEndTime() }}</p>
-            <p class="text-xs text-gray-500">Début + tolérance</p>
+
+          <!-- Cours -->
+          <div class="relative flex items-center mb-6">
+            <div class="flex-shrink-0 w-16 h-16 bg-green-100 rounded-full flex items-center justify-center border-4 border-green-300">
+              <span class="material-icons text-green-600 text-xl">school</span>
+            </div>
+            <div class="ml-6 flex-1">
+              <div class="bg-white p-4 rounded-lg border border-green-200 shadow-sm">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h4 class="text-lg font-semibold text-green-800">Période du Cours</h4>
+                    <p class="text-sm text-green-600">Déroulement effectif du cours</p>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-2xl font-bold text-gray-900">{{ formatTime(coursData.cours.heure_debut) }}</p>
+                    <p class="text-sm text-gray-500">Début</p>
+                  </div>
+                </div>
+                <div class="mt-2 flex items-center justify-between">
+                  <div class="text-sm text-gray-600">
+                    <span class="font-medium">Fin:</span> {{ formatTime(coursData.cours.heure_fin) }}
+                  </div>
+                  <div class="text-sm text-gray-600">
+                    <span class="font-medium">Durée:</span> {{ calculateCoursDuration() }}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="bg-white p-4 rounded-lg border border-green-200">
-            <h4 class="text-sm font-medium text-green-600 mb-2">Début cours</h4>
-            <p class="text-lg font-bold text-gray-900">{{ coursData.cours.heure_debut }}</p>
-            <p class="text-xs text-gray-500">Heure de début</p>
-          </div>
-          <div class="bg-white p-4 rounded-lg border border-red-200">
-            <h4 class="text-sm font-medium text-red-600 mb-2">Fin cours</h4>
-            <p class="text-lg font-bold text-gray-900">{{ coursData.cours.heure_fin }}</p>
-            <p class="text-xs text-gray-500">Heure de fin</p>
+
+          <!-- Tolérance -->
+          <div class="relative flex items-center">
+            <div class="flex-shrink-0 w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center border-4 border-orange-300">
+              <span class="material-icons text-orange-600 text-xl">timer</span>
+            </div>
+            <div class="ml-6 flex-1">
+              <div class="bg-white p-4 rounded-lg border border-orange-200 shadow-sm">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h4 class="text-lg font-semibold text-orange-800">Tolérance</h4>
+                    <p class="text-sm text-orange-600">Délai accepté pour les retards</p>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-2xl font-bold text-gray-900">{{ formatTolerance() }}</p>
+                    <p class="text-sm text-gray-500">Minutes</p>
+                  </div>
+                </div>
+                <div class="mt-2 text-sm text-gray-600">
+                  <span class="font-medium">Note:</span> Les étudiants peuvent encore pointer jusqu'à {{ formatTime(calculatePointageEndTime()) }}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="mt-4 flex items-center justify-center">
-          <div class="bg-white px-4 py-2 rounded-lg border border-gray-200">
-            <span class="text-sm font-medium text-gray-600">Tolérance: </span>
-            <span class="text-sm font-bold text-gray-900">{{ coursData.cours.tolerance || '00:15' }}</span>
+
+        <!-- Résumé des horaires -->
+        <div class="mt-6 bg-white rounded-lg p-4 border border-gray-200">
+          <h4 class="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+            <span class="material-icons text-gray-600">info</span>
+            Résumé des Horaires
+          </h4>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div class="text-center p-3 bg-blue-50 rounded-lg">
+              <div class="font-semibold text-blue-800">Pointage</div>
+              <div class="text-blue-600">{{ formatTime(coursData.cours.pointage_start_hour) }} - {{ formatTime(calculatePointageEndTime()) }}</div>
+            </div>
+            <div class="text-center p-3 bg-green-50 rounded-lg">
+              <div class="font-semibold text-green-800">Cours</div>
+              <div class="text-green-600">{{ formatTime(coursData.cours.heure_debut) }} - {{ formatTime(coursData.cours.heure_fin) }}</div>
+            </div>
+            <div class="text-center p-3 bg-orange-50 rounded-lg">
+              <div class="font-semibold text-orange-800">Tolérance</div>
+              <div class="text-orange-600">{{ formatToleranceWithUnit() }}</div>
+            </div>
           </div>
         </div>
       </div>
@@ -188,6 +270,7 @@
         </div>
       </div>
     </div>
+
 
     <!-- Liste des étudiants -->
     <div *ngIf="!loading && !error" class="bg-white rounded-lg shadow-sm border border-gray-200">

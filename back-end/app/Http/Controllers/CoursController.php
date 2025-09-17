@@ -57,14 +57,8 @@ class CoursController extends Controller
         $cours = $query->orderByDesc('created_at')
                       ->paginate($size, ['*'], 'page', $page);
 
-        // Calculer automatiquement le statut temporel pour chaque cours
-        $coursItems = $cours->items();
-        foreach ($coursItems as $coursItem) {
-            $coursItem->statut_temporel = $coursItem->getStatutTemporel();
-        }
-
         return response()->json([
-            'data' => $coursItems,
+            'data' => $cours->items(),
             'current_page' => $cours->currentPage(),
             'last_page' => $cours->lastPage(),
             'per_page' => $cours->perPage(),
@@ -81,9 +75,6 @@ class CoursController extends Controller
         if (!$cours) {
             return response()->json(['message' => 'Cours non trouvé'], 404);
         }
-        
-        // Calculer automatiquement le statut temporel
-        $cours->statut_temporel = $cours->getStatutTemporel();
         
         return response()->json($cours);
     }
@@ -344,15 +335,15 @@ class CoursController extends Controller
         try {
             // Récupérer le cours avec ses relations
             $cours = Cours::with(['etablissement', 'promotion', 'type_cours', 'salle', 'option'])
-                ->find($coursId);
-
+            ->find($coursId);
+            
             if (!$cours) {
                 return response()->json([
                     'message' => 'Cours non trouvé',
                     'status' => 404
                 ], 404);
             }
-
+            
             $date = $cours->date;
             $heureDebut = $cours->heure_debut;
             $heureFin = $cours->heure_fin;
@@ -369,16 +360,16 @@ class CoursController extends Controller
             // Initialize variables
             $biostarResults = [];
             $localStudents = collect();
-
+            
             // Create a PDO connection to the SQL Server database
             $dsn = 'sqlsrv:Server=10.0.2.148;Database=BIOSTAR_TA;TrustServerCertificate=true';
             $username = 'dbuser';
             $password = 'Driss@2024';
-
+            
             try {
                 $pdo = new PDO($dsn, $username, $password);
                 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+                
                 // Format date and time for SQL Server compatibility
                 $formattedDate = date('Y-m-d', strtotime($date));
                 $formattedTime1 = date('H:i:s', strtotime($heureDebut));
@@ -389,39 +380,39 @@ class CoursController extends Controller
                 $sql = "SELECT * FROM punchlog WHERE CAST(bsevtdt AS date) = CAST(:date AS date) AND CAST(bsevtdt AS time) BETWEEN CAST(:heure1 AS time) AND CAST(:heure2 AS time) AND devnm NOT LIKE 'TOUR%' AND devnm NOT LIKE 'ACCES HCK%'";
                 $stmt = $pdo->prepare($sql);
                 $stmt->execute(['date' => $formattedDate, 'heure1' => $formattedTimeRef, 'heure2' => $formattedTime2]);
-
+                
                 // Fetch the results
                 $biostarResults = $stmt->fetchAll(PDO::FETCH_ASSOC);
             } catch (PDOException $e) {
                 // If Biostar connection fails, continue with empty results
                 $biostarResults = [];
             }
-
+            
             // Fetch students from the local database with relations
             $query = \App\Models\Etudiant::with(['ville', 'group', 'option', 'etablissement', 'promotion']);
-
+            
             if (!empty($group_id) && $group_id != 'null') {
                 $query->where('group_id', $group_id);
             }
-
+            
             if (!empty($option_id) && $option_id != 'null') {
                 $query->where('option_id', $option_id);
             }
-
+            
             if (!empty($etablissement_id) && $etablissement_id != 'null') {
                 $query->where('etablissement_id', $etablissement_id);
             }
-
+            
             if (!empty($ville_id) && $ville_id != 'null') {
                 $query->where('ville_id', $ville_id);
             }
-
+            
             if (!empty($promotion_id) && $promotion_id != 'null') {
                 $query->where('promotion_id', $promotion_id);
             }
-
+            
             $localStudents = $query->get();
-
+            
             // Check if any students were found
             if ($localStudents->isEmpty()) {
                 return response()->json([
@@ -455,8 +446,8 @@ class CoursController extends Controller
                         "excused" => 0
                     ],
                     "students" => [],
-                    "status" => 404
-                ], 404);
+                    "status" => 200
+                ], 200);
             }
 
             // Get present students (those who have punched in Biostar)
@@ -474,12 +465,38 @@ class CoursController extends Controller
                     $punchTimeFormatted = date('H:i:s', strtotime($punchTime['time']));
                     $heureDebutCours = date('H:i:s', strtotime($heureDebut));
                     
-                    // Calculer l'heure limite (début + tolérance)
-                    $heureLimite = date('H:i:s', strtotime($heureDebut . ' + ' . $tolerance . ' minutes'));
+                    // Convertir la tolérance en minutes (format HH:MM -> minutes)
+                    $toleranceParts = explode(':', $tolerance);
+                    $toleranceMinutes = (int)$toleranceParts[0] * 60 + (int)$toleranceParts[1];
+                    
+                    // Calculer l'heure limite (début + tolérance en minutes)
+                    $heureLimite = date('H:i:s', strtotime($heureDebut . ' + ' . $toleranceMinutes . ' minutes'));
+                    
+                    // Debug logs pour le calcul du statut
+                    \Log::info("Calcul statut pour étudiant {$student->matricule}:", [
+                        'punch_time' => $punchTime['time'],
+                        'punch_time_formatted' => $punchTimeFormatted,
+                        'heure_debut_cours' => $heureDebutCours,
+                        'tolerance_original' => $tolerance,
+                        'tolerance_minutes' => $toleranceMinutes,
+                        'heure_limite' => $heureLimite,
+                        'comparison' => $punchTimeFormatted . ' <= ' . $heureLimite . ' = ' . ($punchTimeFormatted <= $heureLimite ? 'true' : 'false')
+                    ]);
                     
                     if ($punchTimeFormatted <= $heureLimite) {
                         $isPresent = true;
                         $status = $punchTimeFormatted <= $heureDebutCours ? 'present' : 'late';
+                        
+                        \Log::info("Étudiant {$student->matricule} marqué comme présent:", [
+                            'status' => $status,
+                            'is_present' => $isPresent,
+                            'is_late' => $punchTimeFormatted > $heureDebutCours
+                        ]);
+                    } else {
+                        \Log::info("Étudiant {$student->matricule} marqué comme absent (en retard):", [
+                            'punch_time' => $punchTimeFormatted,
+                            'heure_limite' => $heureLimite
+                        ]);
                     }
                 }
 

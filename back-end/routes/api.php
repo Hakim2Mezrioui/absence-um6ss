@@ -103,6 +103,7 @@ Route::apiResource('etablissements', EtablissementController::class);
 Route::apiResource('examens', ExamenController::class);
 
 // Routes pour les cours
+Route::get("/cours/{coursId}/attendance", [CoursController::class, "fetchCoursAttendance"]);
 Route::get('/cours/filter-options', [CoursController::class, 'getFilterOptions']);
 Route::get('/cours', [CoursController::class, 'index']);
 Route::get('/cours/{id}', [CoursController::class, 'show']);
@@ -116,7 +117,6 @@ Route::post('/import-cours', [CoursController::class, 'ImportCourse']);
 // Public routes for students
 Route::get("test-etudiants", [EtudiantController::class, "index"]);
 Route::get("test-etudiants-count", [EtudiantController::class, "testStudentsCount"]);
-Route::get("cours/{coursId}/attendance", [CoursController::class, "fetchCoursAttendance"]);
 
 // Routes d'export publiques pour test (sans authentification)
 Route::get('/export-simple-public', [EtudiantController::class, 'exportSimple']);

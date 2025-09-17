@@ -54,7 +54,6 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     // Récupérer l'ID du cours depuis les paramètres de route
     this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
       this.coursId = +params['id'];
-      console.log('Cours ID récupéré depuis la route:', this.coursId);
       if (this.coursId) {
         this.loadAttendanceData();
       }
@@ -85,15 +84,29 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
             data.cours.statut_temporel = this.coursService.calculateStatutTemporel(data.cours);
           }
           this.coursData = data;
-          this.students = data.students;
+          this.students = data.students || [];
           this.updateStatistics(data.statistics);
           this.loading = false;
+          
+          // Debug temporaire pour la tolérance
+          if (data.cours?.tolerance) {
+            console.log('Tolérance reçue de l\'API:', data.cours.tolerance);
+            console.log('Type de tolérance:', typeof data.cours.tolerance);
+            console.log('Tolérance formatée:', this.formatTolerance());
+          }
         },
         error: (error) => {
           console.error('Erreur lors du chargement des données:', error);
-          this.error = 'Erreur lors du chargement des données d\'attendance';
+          
+          if (error.status === 401) {
+            this.error = 'Authentification requise. Veuillez vous reconnecter.';
+            this.notificationService.error('Authentification', this.error);
+          } else {
+            this.error = 'Erreur lors du chargement des données d\'attendance';
+            this.notificationService.error('Erreur', this.error);
+          }
+          
           this.loading = false;
-          this.notificationService.error('Erreur', this.error);
           
           // Fallback vers la simulation si l'API n'est pas disponible
           this.simulateAttendanceData();
@@ -105,7 +118,6 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
    * Simuler les données d'attendance (à remplacer par un vrai appel API)
    */
   private simulateAttendanceData(): void {
-    console.log('Utilisation des données simulées pour le cours ID:', this.coursId);
     setTimeout(() => {
       // Simulation de données
       this.coursData = {
@@ -530,7 +542,7 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     if (!this.coursData) return `cours_attendance.${format === 'excel' ? 'xlsx' : 'csv'}`;
     
     const date = this.formatDate(this.coursData.cours.date);
-    const time = this.formatTime(this.coursData.cours.heure_debut);
+    const time = this.formatTimeForFileName(this.coursData.cours.heure_debut);
     const extension = format === 'excel' ? 'xlsx' : 'csv';
     
     return `cours_attendance_${date}_${time}.${extension}`;
@@ -545,9 +557,9 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Formater une heure
+   * Formater une heure pour les noms de fichiers
    */
-  private formatTime(timeString: string): string {
+  private formatTimeForFileName(timeString: string): string {
     return timeString.replace(/:/g, '-');
   }
 
@@ -585,9 +597,42 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Formater une heure au format HH:MM
+   */
+  public formatTime(timeString: string): string {
+    if (!timeString) return 'N/A';
+    
+    try {
+      // Si c'est déjà au format HH:MM, le retourner tel quel
+      if (timeString.match(/^\d{2}:\d{2}$/)) {
+        return timeString;
+      }
+      
+      // Si c'est une date ISO, extraire l'heure
+      if (timeString.includes('T')) {
+        const date = new Date(timeString);
+        return date.toLocaleTimeString('fr-FR', { 
+          hour: '2-digit', 
+          minute: '2-digit',
+          hour12: false 
+        });
+      }
+      
+      // Si c'est au format HH:MM:SS, enlever les secondes
+      if (timeString.match(/^\d{2}:\d{2}:\d{2}$/)) {
+        return timeString.substring(0, 5);
+      }
+      
+      return timeString;
+    } catch (error) {
+      return 'N/A';
+    }
+  }
+
+  /**
    * Calculer l'heure de fin de pointage (heure de début + tolérance)
    */
-  calculatePointageEndTime(): string {
+  public calculatePointageEndTime(): string {
     if (!this.coursData?.cours.heure_debut || !this.coursData?.cours.tolerance) {
       return 'N/A';
     }
@@ -611,5 +656,113 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     } catch (error) {
       return 'N/A';
     }
+  }
+
+  /**
+   * Calculer la durée de la période de pointage
+   */
+  public calculatePointageDuration(): string {
+    if (!this.coursData?.cours.pointage_start_hour || !this.coursData?.cours.tolerance) {
+      return 'N/A';
+    }
+
+    try {
+      const [toleranceHours, toleranceMinutes] = this.coursData.cours.tolerance.split(':').map(Number);
+      const totalToleranceMinutes = toleranceHours * 60 + toleranceMinutes;
+      
+      const hours = Math.floor(totalToleranceMinutes / 60);
+      const minutes = totalToleranceMinutes % 60;
+      
+      if (hours > 0) {
+        return `${hours}h ${minutes}min`;
+      } else {
+        return `${minutes}min`;
+      }
+    } catch (error) {
+      return 'N/A';
+    }
+  }
+
+  /**
+   * Calculer la durée du cours
+   */
+  public calculateCoursDuration(): string {
+    if (!this.coursData?.cours.heure_debut || !this.coursData?.cours.heure_fin) {
+      return 'N/A';
+    }
+
+    try {
+      const [startHours, startMinutes] = this.coursData.cours.heure_debut.split(':').map(Number);
+      const [endHours, endMinutes] = this.coursData.cours.heure_fin.split(':').map(Number);
+      
+      const startTotalMinutes = startHours * 60 + startMinutes;
+      const endTotalMinutes = endHours * 60 + endMinutes;
+      
+      const durationMinutes = endTotalMinutes - startTotalMinutes;
+      
+      if (durationMinutes < 0) {
+        return 'N/A';
+      }
+      
+      const hours = Math.floor(durationMinutes / 60);
+      const minutes = durationMinutes % 60;
+      
+      if (hours > 0) {
+        return `${hours}h ${minutes}min`;
+      } else {
+        return `${minutes}min`;
+      }
+    } catch (error) {
+      return 'N/A';
+    }
+  }
+
+  /**
+   * Formater la tolérance en minutes
+   */
+  public formatTolerance(): string {
+    if (!this.coursData?.cours.tolerance) {
+      return '15';
+    }
+
+    try {
+      // Gérer différents formats de tolérance (HH:MM, HH:MM:SS, ou juste des minutes)
+      const toleranceStr = this.coursData.cours.tolerance.toString().trim();
+      
+      // Si c'est juste un nombre, le retourner tel quel
+      if (/^\d+$/.test(toleranceStr)) {
+        return toleranceStr;
+      }
+      
+      // Si c'est au format HH:MM ou HH:MM:SS
+      if (toleranceStr.includes(':')) {
+        const parts = toleranceStr.split(':');
+        const hours = parseInt(parts[0]) || 0;
+        const minutes = parseInt(parts[1]) || 0;
+        const totalMinutes = hours * 60 + minutes;
+        return totalMinutes.toString();
+      }
+      
+      // Si c'est au format "XX minutes" ou "XXmin"
+      const match = toleranceStr.match(/(\d+)\s*(?:minutes?|min)/i);
+      if (match) {
+        return match[1];
+      }
+      
+      // Par défaut, essayer de parser comme nombre
+      const parsed = parseInt(toleranceStr);
+      return isNaN(parsed) ? '15' : parsed.toString();
+    } catch (error) {
+      console.error('Erreur lors du formatage de la tolérance:', error);
+      return '15';
+    }
+  }
+
+  /**
+   * Formater la tolérance avec le texte "minutes"
+   */
+  public formatToleranceWithUnit(): string {
+    const minutes = this.formatTolerance();
+    return `${minutes} minute${parseInt(minutes) > 1 ? 's' : ''}`;
   }
 }
