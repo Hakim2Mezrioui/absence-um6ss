@@ -57,6 +57,26 @@
   border-radius: 12px;
 }
 
+/* Taller select panel (overlay is outside component tree) */
+:host ::ng-deep .tall-select-panel {
+  max-height: 70vh !important;
+  overflow: auto !important;
+}
+
+/* Force Material select panel height */
+:host ::ng-deep .mat-mdc-select-panel.tall-select-panel {
+  max-height: 70vh !important;
+  min-height: 200px !important;
+  overflow-y: auto !important;
+}
+
+/* Alternative approach for Material select overlay */
+:host ::ng-deep .cdk-overlay-pane .mat-mdc-select-panel {
+  max-height: 70vh !important;
+  min-height: 200px !important;
+  overflow-y: auto !important;
+}
+
 /* Animations */
 @keyframes fadeIn {
   from {

@@ -177,6 +177,7 @@ class ExamenController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'date' => 'required|date',
+            'heure_debut_poigntage' => 'required',
             'heure_debut' => 'required',
             'heure_fin' => 'required',
             'tolerance' => 'nullable|integer|min:0|max:60',
@@ -196,7 +197,7 @@ class ExamenController extends Controller
         }
 
         // Update the Examen with the new data
-        $examen->update($request->only(['title', 'date', 'heure_debut', 'heure_fin', 'tolerance', 'option_id', 'salle_id', 'promotion_id', 'type_examen_id', 'etablissement_id', 'group_id', 'ville_id']));
+        $examen->update($request->only(['title', 'date', 'heure_debut_poigntage', 'heure_debut', 'heure_fin', 'tolerance', 'option_id', 'salle_id', 'promotion_id', 'type_examen_id', 'etablissement_id', 'group_id', 'ville_id']));
 
         // Return the updated Examen as a JSON response
         return response()->json($examen, 200);

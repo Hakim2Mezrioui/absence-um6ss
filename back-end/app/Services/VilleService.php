@@ -7,9 +7,9 @@ use Illuminate\Database\Eloquent\Collection;
 
 class VilleService extends BaseService
 {
-    public function __construct(Ville $model)
+    public function __construct()
     {
-        parent::__construct($model);
+        parent::__construct(Ville::class);
     }
 
     /**

@@ -54,6 +54,7 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     // Récupérer l'ID du cours depuis les paramètres de route
     this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
       this.coursId = +params['id'];
+      console.log('Cours ID récupéré depuis la route:', this.coursId);
       if (this.coursId) {
         this.loadAttendanceData();
       }
@@ -71,6 +72,7 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
   loadAttendanceData(): void {
     if (!this.coursId) return;
 
+    console.log('Chargement des données d\'attendance pour le cours ID:', this.coursId);
     this.loading = true;
     this.error = '';
 
@@ -103,6 +105,7 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
    * Simuler les données d'attendance (à remplacer par un vrai appel API)
    */
   private simulateAttendanceData(): void {
+    console.log('Utilisation des données simulées pour le cours ID:', this.coursId);
     setTimeout(() => {
       // Simulation de données
       this.coursData = {

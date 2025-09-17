@@ -14,8 +14,14 @@ class AbsenceSeeder extends Seeder
      */
     public function run(): void
     {
-        // Récupérer les IDs d'examens existants
+        // Récupérer les IDs existants
         $examens = Examen::pluck('id')->toArray();
+        $coursIds = \App\Models\Cours::pluck('id')->toArray();
+
+        // Helper pour obtenir un cours existant par index (ou null)
+        $getCoursId = function (int $zeroBasedIndex) use ($coursIds) {
+            return $coursIds[$zeroBasedIndex] ?? null;
+        };
         
         // Si aucun examen n'existe, créer des absences sans référence d'examen
         if (empty($examens)) {
@@ -26,7 +32,7 @@ class AbsenceSeeder extends Seeder
             [
                 'type_absence' => 'Maladie',
                 'etudiant_id' => 1,
-                'cours_id' => 1,
+                'cours_id' => $getCoursId(0),
                 'examen_id' => null,
                 'date_absence' => '2025-01-20',
                 'justifiee' => true,
@@ -38,7 +44,7 @@ class AbsenceSeeder extends Seeder
             [
                 'type_absence' => 'Retard',
                 'etudiant_id' => 2,
-                'cours_id' => 1,
+                'cours_id' => $getCoursId(0),
                 'examen_id' => null,
                 'date_absence' => '2025-01-20',
                 'justifiee' => false,
@@ -50,7 +56,7 @@ class AbsenceSeeder extends Seeder
             [
                 'type_absence' => 'Absence non justifiée',
                 'etudiant_id' => 3,
-                'cours_id' => 2,
+                'cours_id' => $getCoursId(1),
                 'examen_id' => null,
                 'date_absence' => '2025-01-21',
                 'justifiee' => false,
@@ -62,7 +68,7 @@ class AbsenceSeeder extends Seeder
             [
                 'type_absence' => 'Motif familial',
                 'etudiant_id' => 1,
-                'cours_id' => 3,
+                'cours_id' => $getCoursId(2),
                 'examen_id' => null,
                 'date_absence' => '2025-01-22',
                 'justifiee' => true,
@@ -74,7 +80,7 @@ class AbsenceSeeder extends Seeder
             [
                 'type_absence' => 'Rendez-vous médical',
                 'etudiant_id' => 4,
-                'cours_id' => 2,
+                'cours_id' => $getCoursId(1),
                 'examen_id' => null,
                 'date_absence' => '2025-01-23',
                 'justifiee' => true,
@@ -86,7 +92,7 @@ class AbsenceSeeder extends Seeder
             [
                 'type_absence' => 'Transport',
                 'etudiant_id' => 5,
-                'cours_id' => 1,
+                'cours_id' => $getCoursId(0),
                 'examen_id' => null,
                 'date_absence' => '2025-01-24',
                 'justifiee' => false,
@@ -129,7 +135,7 @@ class AbsenceSeeder extends Seeder
         $absences[] = [
             'type_absence' => 'Maladie',
             'etudiant_id' => 6,
-            'cours_id' => 3,
+            'cours_id' => $getCoursId(2),
             'examen_id' => null,
             'date_absence' => '2025-01-26',
             'justifiee' => true,
@@ -142,7 +148,7 @@ class AbsenceSeeder extends Seeder
         $absences[] = [
             'type_absence' => 'Absence non justifiée',
             'etudiant_id' => 7,
-            'cours_id' => 4,
+            'cours_id' => $getCoursId(3),
             'examen_id' => null,
             'date_absence' => '2025-01-27',
             'justifiee' => false,

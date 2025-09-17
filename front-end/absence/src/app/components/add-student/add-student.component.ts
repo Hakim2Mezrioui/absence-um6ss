@@ -92,6 +92,7 @@ export class AddStudentComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           console.error('Erreur lors du chargement des options:', err);
+          // Conserver les valeurs par défaut en cas d'erreur
           this.error = 'Erreur lors du chargement des options de filtre';
           this.loading = false;
         }
@@ -188,7 +189,8 @@ export class AddStudentComponent implements OnInit, OnDestroy {
   /**
    * Gestionnaire de changement de ville
    */
-  onVilleChange(villeId: number): void {
+  onVilleChange(event: Event): void {
+    const villeId = (event.target as HTMLSelectElement).value;
     // Optionnel: filtrer les établissements par ville
     console.log('Ville sélectionnée:', villeId);
   }
@@ -196,7 +198,8 @@ export class AddStudentComponent implements OnInit, OnDestroy {
   /**
    * Gestionnaire de changement d'établissement
    */
-  onEtablissementChange(etablissementId: number): void {
+  onEtablissementChange(event: Event): void {
+    const etablissementId = (event.target as HTMLSelectElement).value;
     // Optionnel: filtrer les options par établissement
     console.log('Établissement sélectionné:', etablissementId);
   }
@@ -204,8 +207,51 @@ export class AddStudentComponent implements OnInit, OnDestroy {
   /**
    * Gestionnaire de changement de promotion
    */
-  onPromotionChange(promotionId: number): void {
+  onPromotionChange(event: Event): void {
+    const promotionId = (event.target as HTMLSelectElement).value;
     // Optionnel: filtrer les groupes par promotion
     console.log('Promotion sélectionnée:', promotionId);
+  }
+
+  /**
+   * Vérifier si un champ est invalide
+   */
+  isFieldInvalid(fieldName: string): boolean {
+    const field = this.studentForm.get(fieldName);
+    return !!(field && field.invalid && (field.dirty || field.touched));
+  }
+
+  /**
+   * Obtenir le message d'erreur pour un champ
+   */
+  getErrorMessage(fieldName: string): string {
+    const field = this.studentForm.get(fieldName);
+    if (field && field.errors) {
+      if (field.errors['required']) {
+        return `${this.getFieldLabel(fieldName)} est requis`;
+      }
+      if (field.errors['email']) {
+        return 'Format d\'email invalide';
+      }
+    }
+    return '';
+  }
+
+  /**
+   * Obtenir le label d'un champ
+   */
+  private getFieldLabel(fieldName: string): string {
+    const labels: { [key: string]: string } = {
+      'first_name': 'Le prénom',
+      'last_name': 'Le nom de famille',
+      'email': 'L\'email',
+      'matricule': 'Le matricule',
+      'ville_id': 'La ville',
+      'etablissement_id': 'L\'établissement',
+      'promotion_id': 'La promotion',
+      'group_id': 'Le groupe',
+      'option_id': 'L\'option'
+    };
+    return labels[fieldName] || 'Ce champ';
   }
 }

@@ -173,7 +173,7 @@
                     'bg-yellow-100 text-yellow-800': coursItem.statut_temporel === 'futur',
                     'bg-gray-100 text-gray-800': !coursItem.statut_temporel
                   }">
-              {{ getStatusText(coursItem.statut_temporel) }}
+              {{ getStatusText(coursItem.statut_temporel || '') }}
             </span>
           </div>
           
