@@ -48,3 +48,4 @@ try {
     echo "Erreur lors de la création du cours: " . $e->getMessage() . "\n";
 }
 
+

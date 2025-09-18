@@ -119,16 +119,16 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
    */
   private simulateAttendanceData(): void {
     setTimeout(() => {
-      // Simulation de données
+      // Simulation de données avec le format de l'API
       this.coursData = {
         cours: {
           id: this.coursId!,
           name: 'Mathématiques - Analyse 1',
-          date: '2024-01-15',
-          pointage_start_hour: '08:00',
-          heure_debut: '08:30',
-          heure_fin: '10:30',
-          tolerance: '00:15',
+          date: '2024-01-15T00:00:00.000000Z',
+          pointage_start_hour: '2024-01-15T08:00:00.000000Z',
+          heure_debut: '2024-01-15T08:30:00.000000Z',
+          heure_fin: '2024-01-15T10:30:00.000000Z',
+          tolerance: '2024-01-15T00:15:00.000000Z',
           annee_universitaire: '2023-2024',
           etablissement_id: 1,
           promotion_id: 1,
@@ -136,8 +136,8 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
           salle_id: 1,
           option_id: 1,
           statut_temporel: 'futur' as 'passé' | 'en_cours' | 'futur',
-          created_at: '2024-01-01T00:00:00Z',
-          updated_at: '2024-01-01T00:00:00Z',
+          created_at: '2024-01-01T00:00:00.000000Z',
+          updated_at: '2024-01-01T00:00:00.000000Z',
           etablissement: { id: 1, name: 'Université UM6P' },
           promotion: { id: 1, name: 'L1 Informatique' },
           type_cours: { id: 1, name: 'Cours Magistral' },
@@ -525,14 +525,14 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
    */
   private formatDateTime(dateTimeString: string): string {
     const date = new Date(dateTimeString);
-    return date.toLocaleString('fr-FR', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    });
+    // Utiliser l'heure UTC pour éviter le décalage dû au fuseau horaire local
+    const yyyy = date.getUTCFullYear();
+    const mm = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+    const dd = date.getUTCDate().toString().padStart(2, '0');
+    const HH = date.getUTCHours().toString().padStart(2, '0');
+    const MM = date.getUTCMinutes().toString().padStart(2, '0');
+    const SS = date.getUTCSeconds().toString().padStart(2, '0');
+    return `${dd}/${mm}/${yyyy} ${HH}:${MM}:${SS}`;
   }
 
   /**
@@ -552,8 +552,13 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
    * Formater une date
    */
   formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('fr-FR').replace(/\//g, '-');
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('fr-FR').replace(/\//g, '-');
+    } catch (error) {
+      console.error('Erreur lors du formatage de la date:', error);
+      return 'N/A';
+    }
   }
 
   /**
@@ -608,14 +613,12 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
         return timeString;
       }
       
-      // Si c'est une date ISO, extraire l'heure
-      if (timeString.includes('T')) {
+      // Si c'est une date ISO (timestamp), extraire l'heure en UTC
+      if (timeString.includes('T') && timeString.includes('Z')) {
         const date = new Date(timeString);
-        return date.toLocaleTimeString('fr-FR', { 
-          hour: '2-digit', 
-          minute: '2-digit',
-          hour12: false 
-        });
+        const hours = date.getUTCHours().toString().padStart(2, '0');
+        const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+        return `${hours}:${minutes}`;
       }
       
       // Si c'est au format HH:MM:SS, enlever les secondes
@@ -625,6 +628,7 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
       
       return timeString;
     } catch (error) {
+      console.error('Erreur lors du formatage de l\'heure:', error);
       return 'N/A';
     }
   }
@@ -638,14 +642,33 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     }
 
     try {
-      const [hours, minutes] = this.coursData.cours.heure_debut.split(':').map(Number);
-      const [toleranceHours, toleranceMinutes] = this.coursData.cours.tolerance.split(':').map(Number);
-      
-      // Convertir la tolérance en minutes totales
-      const totalToleranceMinutes = toleranceHours * 60 + toleranceMinutes;
+      let startHours: number, startMinutes: number;
+      let toleranceMinutes: number;
+
+      // Gérer l'heure de début (peut être un timestamp ou HH:MM)
+      if (this.coursData.cours.heure_debut.includes('T') && this.coursData.cours.heure_debut.includes('Z')) {
+        const startDate = new Date(this.coursData.cours.heure_debut);
+        startHours = startDate.getUTCHours();
+        startMinutes = startDate.getUTCMinutes();
+      } else {
+        const [h, m] = this.coursData.cours.heure_debut.split(':').map(Number);
+        startHours = h;
+        startMinutes = m;
+      }
+
+      // Gérer la tolérance (peut être un timestamp ou HH:MM)
+      if (this.coursData.cours.tolerance.includes('T') && this.coursData.cours.tolerance.includes('Z')) {
+        const toleranceDate = new Date(this.coursData.cours.tolerance);
+        const toleranceHours = toleranceDate.getUTCHours();
+        const toleranceMins = toleranceDate.getUTCMinutes();
+        toleranceMinutes = toleranceHours * 60 + toleranceMins;
+      } else {
+        const [toleranceH, toleranceM] = this.coursData.cours.tolerance.split(':').map(Number);
+        toleranceMinutes = toleranceH * 60 + toleranceM;
+      }
       
       // Ajouter la tolérance à l'heure de début
-      const totalMinutes = hours * 60 + minutes + totalToleranceMinutes;
+      const totalMinutes = startHours * 60 + startMinutes + toleranceMinutes;
       
       // Calculer les nouvelles heures et minutes
       const newHours = Math.floor(totalMinutes / 60);
@@ -654,6 +677,7 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
       // Formater l'heure
       return `${newHours.toString().padStart(2, '0')}:${newMinutes.toString().padStart(2, '0')}`;
     } catch (error) {
+      console.error('Erreur lors du calcul de l\'heure de fin de pointage:', error);
       return 'N/A';
     }
   }
@@ -667,11 +691,21 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     }
 
     try {
-      const [toleranceHours, toleranceMinutes] = this.coursData.cours.tolerance.split(':').map(Number);
-      const totalToleranceMinutes = toleranceHours * 60 + toleranceMinutes;
+      let toleranceMinutes: number;
+
+      // Gérer la tolérance (peut être un timestamp ou HH:MM)
+      if (this.coursData.cours.tolerance.includes('T') && this.coursData.cours.tolerance.includes('Z')) {
+        const toleranceDate = new Date(this.coursData.cours.tolerance);
+        const toleranceHours = toleranceDate.getUTCHours();
+        const toleranceMins = toleranceDate.getUTCMinutes();
+        toleranceMinutes = toleranceHours * 60 + toleranceMins;
+      } else {
+        const [toleranceH, toleranceM] = this.coursData.cours.tolerance.split(':').map(Number);
+        toleranceMinutes = toleranceH * 60 + toleranceM;
+      }
       
-      const hours = Math.floor(totalToleranceMinutes / 60);
-      const minutes = totalToleranceMinutes % 60;
+      const hours = Math.floor(toleranceMinutes / 60);
+      const minutes = toleranceMinutes % 60;
       
       if (hours > 0) {
         return `${hours}h ${minutes}min`;
@@ -679,6 +713,7 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
         return `${minutes}min`;
       }
     } catch (error) {
+      console.error('Erreur lors du calcul de la durée de pointage:', error);
       return 'N/A';
     }
   }
@@ -692,8 +727,30 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     }
 
     try {
-      const [startHours, startMinutes] = this.coursData.cours.heure_debut.split(':').map(Number);
-      const [endHours, endMinutes] = this.coursData.cours.heure_fin.split(':').map(Number);
+      let startHours: number, startMinutes: number;
+      let endHours: number, endMinutes: number;
+
+      // Gérer l'heure de début (peut être un timestamp ou HH:MM)
+      if (this.coursData.cours.heure_debut.includes('T') && this.coursData.cours.heure_debut.includes('Z')) {
+        const startDate = new Date(this.coursData.cours.heure_debut);
+        startHours = startDate.getUTCHours();
+        startMinutes = startDate.getUTCMinutes();
+      } else {
+        const [h, m] = this.coursData.cours.heure_debut.split(':').map(Number);
+        startHours = h;
+        startMinutes = m;
+      }
+
+      // Gérer l'heure de fin (peut être un timestamp ou HH:MM)
+      if (this.coursData.cours.heure_fin.includes('T') && this.coursData.cours.heure_fin.includes('Z')) {
+        const endDate = new Date(this.coursData.cours.heure_fin);
+        endHours = endDate.getUTCHours();
+        endMinutes = endDate.getUTCMinutes();
+      } else {
+        const [h, m] = this.coursData.cours.heure_fin.split(':').map(Number);
+        endHours = h;
+        endMinutes = m;
+      }
       
       const startTotalMinutes = startHours * 60 + startMinutes;
       const endTotalMinutes = endHours * 60 + endMinutes;
@@ -713,6 +770,7 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
         return `${minutes}min`;
       }
     } catch (error) {
+      console.error('Erreur lors du calcul de la durée du cours:', error);
       return 'N/A';
     }
   }
@@ -726,8 +784,16 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     }
 
     try {
-      // Gérer différents formats de tolérance (HH:MM, HH:MM:SS, ou juste des minutes)
       const toleranceStr = this.coursData.cours.tolerance.toString().trim();
+      
+      // Si c'est un timestamp ISO (contient 'T' et 'Z')
+      if (toleranceStr.includes('T') && toleranceStr.includes('Z')) {
+        const toleranceDate = new Date(toleranceStr);
+        const hours = toleranceDate.getUTCHours();
+        const minutes = toleranceDate.getUTCMinutes();
+        const totalMinutes = hours * 60 + minutes;
+        return totalMinutes.toString();
+      }
       
       // Si c'est juste un nombre, le retourner tel quel
       if (/^\d+$/.test(toleranceStr)) {
