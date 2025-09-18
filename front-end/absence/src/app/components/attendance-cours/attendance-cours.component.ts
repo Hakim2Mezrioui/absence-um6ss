@@ -21,6 +21,7 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
   // Données du cours
   coursData: CoursAttendanceData | null = null;
   students: any[] = [];
+  filteredStudents: any[] = [];
   
   // Statistiques
   totalStudents = 0;
@@ -39,6 +40,25 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
   
   // ID du cours
   coursId: number | null = null;
+  
+  // Filtres de recherche
+  searchFilters = {
+    name: '',
+    matricule: '',
+    status: '',
+    promotion: ''
+  };
+  
+  // Options pour les filtres
+  statusOptions = [
+    { value: '', label: 'Tous les statuts' },
+    { value: 'present', label: 'Présent' },
+    { value: 'absent', label: 'Absent' },
+    { value: 'late', label: 'En retard' },
+    { value: 'excused', label: 'Excusé' }
+  ];
+  
+  promotionOptions: { value: string, label: string }[] = [];
   
   private destroy$ = new Subject<void>();
 
@@ -85,7 +105,9 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
           }
           this.coursData = data;
           this.students = data.students || [];
+          this.filteredStudents = [...this.students];
           this.updateStatistics(data.statistics);
+          this.updatePromotionOptions();
           this.loading = false;
           
           // Debug temporaire pour la tolérance
@@ -198,7 +220,9 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
       };
 
       this.students = this.coursData.students;
+      this.filteredStudents = [...this.students];
       this.updateStatistics(this.coursData.statistics);
+      this.updatePromotionOptions();
       this.loading = false;
     }, 1000);
   }
@@ -218,7 +242,7 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
    * Exporter les données d'attendance en CSV
    */
   exportAttendanceCSV(): void {
-    if (this.students.length === 0) {
+    if (this.filteredStudents.length === 0) {
       this.notificationService.error('Aucune donnée à exporter', 'Aucun étudiant trouvé pour l\'exportation');
       return;
     }
@@ -250,7 +274,7 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
    * Exporter les données d'attendance en Excel
    */
   exportAttendanceExcel(): void {
-    if (this.students.length === 0) {
+    if (this.filteredStudents.length === 0) {
       this.notificationService.error('Aucune donnée à exporter', 'Aucun étudiant trouvé pour l\'exportation');
       return;
     }
@@ -279,7 +303,7 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
    * Préparer les données pour l'export
    */
   private prepareExportData(): any[] {
-    return this.students.map(student => ({
+    return this.filteredStudents.map(student => ({
       nom: student.last_name,
       prenom: student.first_name,
       matricule: student.matricule,
@@ -830,5 +854,63 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
   public formatToleranceWithUnit(): string {
     const minutes = this.formatTolerance();
     return `${minutes} minute${parseInt(minutes) > 1 ? 's' : ''}`;
+  }
+
+  /**
+   * Mettre à jour les options de promotion pour les filtres
+   */
+  private updatePromotionOptions(): void {
+    const promotions = new Set<string>();
+    this.students.forEach(student => {
+      if (student.promotion?.name) {
+        promotions.add(student.promotion.name);
+      }
+    });
+    
+    this.promotionOptions = [
+      { value: '', label: 'Toutes les promotions' },
+      ...Array.from(promotions).map(promo => ({ value: promo, label: promo }))
+    ];
+  }
+
+  /**
+   * Appliquer les filtres de recherche
+   */
+  applyFilters(): void {
+    this.filteredStudents = this.students.filter(student => {
+      const nameMatch = !this.searchFilters.name || 
+        `${student.first_name} ${student.last_name}`.toLowerCase().includes(this.searchFilters.name.toLowerCase());
+      
+      const matriculeMatch = !this.searchFilters.matricule || 
+        student.matricule?.toLowerCase().includes(this.searchFilters.matricule.toLowerCase());
+      
+      const statusMatch = !this.searchFilters.status || 
+        student.status === this.searchFilters.status;
+      
+      const promotionMatch = !this.searchFilters.promotion || 
+        student.promotion?.name === this.searchFilters.promotion;
+      
+      return nameMatch && matriculeMatch && statusMatch && promotionMatch;
+    });
+  }
+
+  /**
+   * Réinitialiser les filtres
+   */
+  resetFilters(): void {
+    this.searchFilters = {
+      name: '',
+      matricule: '',
+      status: '',
+      promotion: ''
+    };
+    this.filteredStudents = [...this.students];
+  }
+
+  /**
+   * Obtenir le nombre d'étudiants filtrés
+   */
+  getFilteredCount(): number {
+    return this.filteredStudents.length;
   }
 }

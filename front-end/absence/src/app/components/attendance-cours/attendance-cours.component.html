@@ -8,13 +8,13 @@
           <p class="mt-2 text-gray-600">Consultez le statut de présence des étudiants pour ce cours</p>
         </div>
         <div class="flex gap-3 items-center">
-          <div *ngIf="students.length > 0" class="text-sm text-gray-600 mr-2">
-            {{ students.length }} étudiant{{ students.length > 1 ? 's' : '' }} à exporter
+          <div *ngIf="filteredStudents.length > 0" class="text-sm text-gray-600 mr-2">
+            {{ filteredStudents.length }} étudiant{{ filteredStudents.length > 1 ? 's' : '' }} à exporter
           </div>
           <div class="flex gap-2">
             <button 
               (click)="exportAttendanceCSV()"
-              [disabled]="isExporting || students.length === 0"
+              [disabled]="isExporting || filteredStudents.length === 0"
               class="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-3 rounded-lg transition-colors duration-200 flex items-center gap-2"
             >
               <span *ngIf="isExporting && exportFormat === 'csv'" class="material-icons animate-spin">refresh</span>
@@ -24,7 +24,7 @@
             </button>
             <button 
               (click)="exportAttendanceExcel()"
-              [disabled]="isExporting || students.length === 0"
+              [disabled]="isExporting || filteredStudents.length === 0"
               class="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-3 rounded-lg transition-colors duration-200 flex items-center gap-2"
             >
               <span *ngIf="isExporting && exportFormat === 'excel'" class="material-icons animate-spin">refresh</span>
@@ -194,6 +194,86 @@
     </div>
 
 
+    <!-- Filtres de recherche -->
+    <div *ngIf="!loading && !error && students.length > 0" class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-medium text-gray-900">Filtres de Recherche</h3>
+          <div class="flex items-center gap-2">
+            <span class="text-sm text-gray-500">{{ getFilteredCount() }} / {{ students.length }} étudiant{{ students.length > 1 ? 's' : '' }}</span>
+            <button 
+              (click)="resetFilters()"
+              class="text-sm text-blue-600 hover:text-blue-800 font-medium"
+            >
+              Réinitialiser
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="px-6 py-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Filtre par nom -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Nom complet</label>
+            <div class="relative">
+              <input
+                type="text"
+                [(ngModel)]="searchFilters.name"
+                (input)="applyFilters()"
+                placeholder="Rechercher par nom..."
+                class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+              <span class="absolute left-3 top-2.5 material-icons text-gray-400 text-lg">search</span>
+            </div>
+          </div>
+          
+          <!-- Filtre par matricule -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Matricule</label>
+            <div class="relative">
+              <input
+                type="text"
+                [(ngModel)]="searchFilters.matricule"
+                (input)="applyFilters()"
+                placeholder="Rechercher par matricule..."
+                class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+              <span class="absolute left-3 top-2.5 material-icons text-gray-400 text-lg">badge</span>
+            </div>
+          </div>
+          
+          <!-- Filtre par statut -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+            <select
+              [(ngModel)]="searchFilters.status"
+              (change)="applyFilters()"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option *ngFor="let option of statusOptions" [value]="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+          </div>
+          
+          <!-- Filtre par promotion -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Promotion</label>
+            <select
+              [(ngModel)]="searchFilters.promotion"
+              (change)="applyFilters()"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option *ngFor="let option of promotionOptions" [value]="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Liste des étudiants -->
     <div *ngIf="!loading && !error" class="bg-white rounded-lg shadow-sm border border-gray-200">
       <div class="px-6 py-4 border-b border-gray-200">
@@ -206,7 +286,19 @@
         <p class="mt-1 text-sm text-gray-500">Aucun étudiant n'est inscrit à ce cours.</p>
       </div>
 
-      <div *ngIf="students.length > 0" class="overflow-x-auto">
+      <div *ngIf="filteredStudents.length === 0 && students.length > 0" class="px-6 py-12 text-center">
+        <span class="material-icons text-gray-400 text-6xl">search_off</span>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">Aucun résultat</h3>
+        <p class="mt-1 text-sm text-gray-500">Aucun étudiant ne correspond aux critères de recherche.</p>
+        <button 
+          (click)="resetFilters()"
+          class="mt-3 text-sm text-blue-600 hover:text-blue-800 font-medium"
+        >
+          Réinitialiser les filtres
+        </button>
+      </div>
+
+      <div *ngIf="filteredStudents.length > 0" class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
@@ -221,7 +313,7 @@
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            <tr *ngFor="let student of students" class="hover:bg-gray-50">
+            <tr *ngFor="let student of filteredStudents" class="hover:bg-gray-50">
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
                   <div class="flex-shrink-0 h-10 w-10">
