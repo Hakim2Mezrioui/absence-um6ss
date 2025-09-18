@@ -907,7 +907,7 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
   applyFilters(): void {
     this.filteredStudents = this.students.filter(student => {
       const nameMatch = !this.searchFilters.name || 
-        `${student.first_name} ${student.last_name}`.toLowerCase().includes(this.searchFilters.name.toLowerCase());
+        `${student.last_name} ${student.first_name}`.toLowerCase().includes(this.searchFilters.name.toLowerCase());
       
       const matriculeMatch = !this.searchFilters.matricule || 
         student.matricule?.toLowerCase().includes(this.searchFilters.matricule.toLowerCase());
@@ -988,8 +988,8 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
       // Extraire la valeur selon la colonne
       switch (this.sortConfig.column) {
         case 'name':
-          valueA = `${a.first_name} ${a.last_name}`.toLowerCase();
-          valueB = `${b.first_name} ${b.last_name}`.toLowerCase();
+          valueA = `${a.last_name} ${a.first_name}`.toLowerCase();
+          valueB = `${b.last_name} ${b.first_name}`.toLowerCase();
           break;
         case 'matricule':
           valueA = a.matricule?.toLowerCase() || '';
@@ -1071,7 +1071,7 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
       return true;
     }
 
-    const fullName = `${student.first_name} ${student.last_name}`.toUpperCase();
+    const fullName = `${student.last_name} ${student.first_name}`.toUpperCase();
     const firstLetter = fullName.charAt(0);
     
     const startIndex = this.alphabetLetters.indexOf(this.alphabetFilter.startLetter);
