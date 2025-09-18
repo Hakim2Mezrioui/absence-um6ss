@@ -41,6 +41,10 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
   // ID du cours
   coursId: number | null = null;
   
+  // Modal de détails
+  selectedStudent: any = null;
+  showDetailsModal = false;
+  
   // Filtres de recherche
   searchFilters = {
     name: '',
@@ -1122,5 +1126,34 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     const endIndex = this.alphabetLetters.indexOf(this.alphabetFilter.endLetter);
     
     return this.alphabetLetters.slice(startIndex, endIndex + 1);
+  }
+
+  /**
+   * Afficher les détails d'un étudiant
+   */
+  showStudentDetails(student: any): void {
+    this.selectedStudent = student;
+    this.showDetailsModal = true;
+  }
+
+  /**
+   * Fermer la modal de détails
+   */
+  closeDetailsModal(): void {
+    this.showDetailsModal = false;
+    this.selectedStudent = null;
+  }
+
+  /**
+   * Obtenir le statut avec icône
+   */
+  getStatusWithIcon(status: string): { label: string, icon: string, color: string } {
+    const statusConfig: { [key: string]: { label: string, icon: string, color: string } } = {
+      'present': { label: 'Présent', icon: 'check_circle', color: 'text-green-600' },
+      'absent': { label: 'Absent', icon: 'cancel', color: 'text-red-600' },
+      'late': { label: 'En retard', icon: 'schedule', color: 'text-yellow-600' },
+      'excused': { label: 'Excusé', icon: 'info', color: 'text-blue-600' }
+    };
+    return statusConfig[status] || { label: status, icon: 'help', color: 'text-gray-600' };
   }
 }
