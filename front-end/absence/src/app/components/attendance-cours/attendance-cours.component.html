@@ -302,14 +302,110 @@
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Étudiant</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Matricule</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Heure de pointage</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Appareil</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Promotion</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Groupe</th>
+              <th 
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                (click)="isSortable('name') ? sortBy('name') : null"
+                [class.cursor-pointer]="isSortable('name')"
+                [class.cursor-default]="!isSortable('name')"
+              >
+                <div class="flex items-center gap-1">
+                  <span>Étudiant</span>
+                  <span *ngIf="isSortable('name')" class="material-icons text-sm" [ngClass]="getSortClass('name')">
+                    {{ getSortIcon('name') }}
+                  </span>
+                </div>
+              </th>
+              <th 
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                (click)="isSortable('matricule') ? sortBy('matricule') : null"
+                [class.cursor-pointer]="isSortable('matricule')"
+                [class.cursor-default]="!isSortable('matricule')"
+              >
+                <div class="flex items-center gap-1">
+                  <span>Matricule</span>
+                  <span *ngIf="isSortable('matricule')" class="material-icons text-sm" [ngClass]="getSortClass('matricule')">
+                    {{ getSortIcon('matricule') }}
+                  </span>
+                </div>
+              </th>
+              <th 
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                (click)="isSortable('email') ? sortBy('email') : null"
+                [class.cursor-pointer]="isSortable('email')"
+                [class.cursor-default]="!isSortable('email')"
+              >
+                <div class="flex items-center gap-1">
+                  <span>Email</span>
+                  <span *ngIf="isSortable('email')" class="material-icons text-sm" [ngClass]="getSortClass('email')">
+                    {{ getSortIcon('email') }}
+                  </span>
+                </div>
+              </th>
+              <th 
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                (click)="isSortable('status') ? sortBy('status') : null"
+                [class.cursor-pointer]="isSortable('status')"
+                [class.cursor-default]="!isSortable('status')"
+              >
+                <div class="flex items-center gap-1">
+                  <span>Statut</span>
+                  <span *ngIf="isSortable('status')" class="material-icons text-sm" [ngClass]="getSortClass('status')">
+                    {{ getSortIcon('status') }}
+                  </span>
+                </div>
+              </th>
+              <th 
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                (click)="isSortable('punch_time') ? sortBy('punch_time') : null"
+                [class.cursor-pointer]="isSortable('punch_time')"
+                [class.cursor-default]="!isSortable('punch_time')"
+              >
+                <div class="flex items-center gap-1">
+                  <span>Heure de pointage</span>
+                  <span *ngIf="isSortable('punch_time')" class="material-icons text-sm" [ngClass]="getSortClass('punch_time')">
+                    {{ getSortIcon('punch_time') }}
+                  </span>
+                </div>
+              </th>
+              <th 
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                (click)="isSortable('device') ? sortBy('device') : null"
+                [class.cursor-pointer]="isSortable('device')"
+                [class.cursor-default]="!isSortable('device')"
+              >
+                <div class="flex items-center gap-1">
+                  <span>Appareil</span>
+                  <span *ngIf="isSortable('device')" class="material-icons text-sm" [ngClass]="getSortClass('device')">
+                    {{ getSortIcon('device') }}
+                  </span>
+                </div>
+              </th>
+              <th 
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                (click)="isSortable('promotion') ? sortBy('promotion') : null"
+                [class.cursor-pointer]="isSortable('promotion')"
+                [class.cursor-default]="!isSortable('promotion')"
+              >
+                <div class="flex items-center gap-1">
+                  <span>Promotion</span>
+                  <span *ngIf="isSortable('promotion')" class="material-icons text-sm" [ngClass]="getSortClass('promotion')">
+                    {{ getSortIcon('promotion') }}
+                  </span>
+                </div>
+              </th>
+              <th 
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                (click)="isSortable('group') ? sortBy('group') : null"
+                [class.cursor-pointer]="isSortable('group')"
+                [class.cursor-default]="!isSortable('group')"
+              >
+                <div class="flex items-center gap-1">
+                  <span>Groupe</span>
+                  <span *ngIf="isSortable('group')" class="material-icons text-sm" [ngClass]="getSortClass('group')">
+                    {{ getSortIcon('group') }}
+                  </span>
+                </div>
+              </th>
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">

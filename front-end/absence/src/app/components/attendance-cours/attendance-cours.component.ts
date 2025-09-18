@@ -60,6 +60,24 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
   
   promotionOptions: { value: string, label: string }[] = [];
   
+  // Tri
+  sortConfig = {
+    column: '',
+    direction: 'asc' as 'asc' | 'desc'
+  };
+  
+  // Colonnes triables
+  sortableColumns = [
+    { key: 'name', label: 'Nom', type: 'string' },
+    { key: 'matricule', label: 'Matricule', type: 'string' },
+    { key: 'email', label: 'Email', type: 'string' },
+    { key: 'status', label: 'Statut', type: 'string' },
+    { key: 'punch_time', label: 'Heure de pointage', type: 'datetime' },
+    { key: 'device', label: 'Appareil', type: 'string' },
+    { key: 'promotion', label: 'Promotion', type: 'string' },
+    { key: 'group', label: 'Groupe', type: 'string' }
+  ];
+  
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -892,6 +910,9 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
       
       return nameMatch && matriculeMatch && statusMatch && promotionMatch;
     });
+    
+    // Appliquer le tri après le filtrage
+    this.applySorting();
   }
 
   /**
@@ -904,6 +925,10 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
       status: '',
       promotion: ''
     };
+    this.sortConfig = {
+      column: '',
+      direction: 'asc'
+    };
     this.filteredStudents = [...this.students];
   }
 
@@ -912,5 +937,111 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
    */
   getFilteredCount(): number {
     return this.filteredStudents.length;
+  }
+
+  /**
+   * Trier par colonne
+   */
+  sortBy(column: string): void {
+    if (this.sortConfig.column === column) {
+      // Inverser la direction si c'est la même colonne
+      this.sortConfig.direction = this.sortConfig.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+      // Nouvelle colonne, commencer par ascendant
+      this.sortConfig.column = column;
+      this.sortConfig.direction = 'asc';
+    }
+    
+    this.applySorting();
+  }
+
+  /**
+   * Appliquer le tri aux étudiants filtrés
+   */
+  private applySorting(): void {
+    if (!this.sortConfig.column) {
+      return;
+    }
+
+    this.filteredStudents.sort((a, b) => {
+      let valueA: any;
+      let valueB: any;
+
+      // Extraire la valeur selon la colonne
+      switch (this.sortConfig.column) {
+        case 'name':
+          valueA = `${a.first_name} ${a.last_name}`.toLowerCase();
+          valueB = `${b.first_name} ${b.last_name}`.toLowerCase();
+          break;
+        case 'matricule':
+          valueA = a.matricule?.toLowerCase() || '';
+          valueB = b.matricule?.toLowerCase() || '';
+          break;
+        case 'email':
+          valueA = a.email?.toLowerCase() || '';
+          valueB = b.email?.toLowerCase() || '';
+          break;
+        case 'status':
+          valueA = this.getStatusLabel(a.status).toLowerCase();
+          valueB = this.getStatusLabel(b.status).toLowerCase();
+          break;
+        case 'punch_time':
+          valueA = a.punch_time?.time ? new Date(a.punch_time.time).getTime() : 0;
+          valueB = b.punch_time?.time ? new Date(b.punch_time.time).getTime() : 0;
+          break;
+        case 'device':
+          valueA = a.punch_time?.device?.toLowerCase() || '';
+          valueB = b.punch_time?.device?.toLowerCase() || '';
+          break;
+        case 'promotion':
+          valueA = a.promotion?.name?.toLowerCase() || '';
+          valueB = b.promotion?.name?.toLowerCase() || '';
+          break;
+        case 'group':
+          valueA = a.group?.title?.toLowerCase() || '';
+          valueB = b.group?.title?.toLowerCase() || '';
+          break;
+        default:
+          return 0;
+      }
+
+      // Comparer les valeurs
+      let comparison = 0;
+      if (valueA < valueB) {
+        comparison = -1;
+      } else if (valueA > valueB) {
+        comparison = 1;
+      }
+
+      // Inverser si direction descendante
+      return this.sortConfig.direction === 'desc' ? -comparison : comparison;
+    });
+  }
+
+  /**
+   * Obtenir la classe CSS pour l'indicateur de tri
+   */
+  getSortClass(column: string): string {
+    if (this.sortConfig.column !== column) {
+      return 'text-gray-400';
+    }
+    return this.sortConfig.direction === 'asc' ? 'text-blue-600' : 'text-blue-600';
+  }
+
+  /**
+   * Obtenir l'icône de tri
+   */
+  getSortIcon(column: string): string {
+    if (this.sortConfig.column !== column) {
+      return 'unfold_more';
+    }
+    return this.sortConfig.direction === 'asc' ? 'keyboard_arrow_up' : 'keyboard_arrow_down';
+  }
+
+  /**
+   * Vérifier si une colonne est triable
+   */
+  isSortable(column: string): boolean {
+    return this.sortableColumns.some(col => col.key === column);
   }
 }
