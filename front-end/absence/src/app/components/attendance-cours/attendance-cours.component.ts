@@ -49,6 +49,16 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     promotion: ''
   };
   
+  // Filtrage alphabétique
+  alphabetFilter = {
+    enabled: false,
+    startLetter: 'A',
+    endLetter: 'Z'
+  };
+  
+  // Lettres de l'alphabet pour la sélection
+  alphabetLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+  
   // Options pour les filtres
   statusOptions = [
     { value: '', label: 'Tous les statuts' },
@@ -908,7 +918,10 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
       const promotionMatch = !this.searchFilters.promotion || 
         student.promotion?.name === this.searchFilters.promotion;
       
-      return nameMatch && matriculeMatch && statusMatch && promotionMatch;
+      // Filtrage alphabétique
+      const alphabetMatch = !this.alphabetFilter.enabled || this.matchesAlphabetFilter(student);
+      
+      return nameMatch && matriculeMatch && statusMatch && promotionMatch && alphabetMatch;
     });
     
     // Appliquer le tri après le filtrage
@@ -924,6 +937,11 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
       matricule: '',
       status: '',
       promotion: ''
+    };
+    this.alphabetFilter = {
+      enabled: false,
+      startLetter: 'A',
+      endLetter: 'Z'
     };
     this.sortConfig = {
       column: '',
@@ -1043,5 +1061,66 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
    */
   isSortable(column: string): boolean {
     return this.sortableColumns.some(col => col.key === column);
+  }
+
+  /**
+   * Vérifier si un étudiant correspond au filtre alphabétique
+   */
+  private matchesAlphabetFilter(student: any): boolean {
+    if (!this.alphabetFilter.enabled) {
+      return true;
+    }
+
+    const fullName = `${student.first_name} ${student.last_name}`.toUpperCase();
+    const firstLetter = fullName.charAt(0);
+    
+    const startIndex = this.alphabetLetters.indexOf(this.alphabetFilter.startLetter);
+    const endIndex = this.alphabetLetters.indexOf(this.alphabetFilter.endLetter);
+    const letterIndex = this.alphabetLetters.indexOf(firstLetter);
+    
+    // Vérifier si la première lettre est dans la plage sélectionnée
+    return letterIndex >= startIndex && letterIndex <= endIndex;
+  }
+
+  /**
+   * Activer/désactiver le filtre alphabétique
+   */
+  toggleAlphabetFilter(): void {
+    this.alphabetFilter.enabled = !this.alphabetFilter.enabled;
+    this.applyFilters();
+  }
+
+  /**
+   * Mettre à jour la plage alphabétique
+   */
+  updateAlphabetRange(): void {
+    if (this.alphabetFilter.enabled) {
+      this.applyFilters();
+    }
+  }
+
+  /**
+   * Obtenir la plage alphabétique formatée
+   */
+  getAlphabetRangeText(): string {
+    if (!this.alphabetFilter.enabled) {
+      return 'Toutes les lettres';
+    }
+    
+    if (this.alphabetFilter.startLetter === this.alphabetFilter.endLetter) {
+      return `Lettre ${this.alphabetFilter.startLetter}`;
+    }
+    
+    return `${this.alphabetFilter.startLetter} - ${this.alphabetFilter.endLetter}`;
+  }
+
+  /**
+   * Obtenir les lettres disponibles dans la plage sélectionnée
+   */
+  getAvailableLettersInRange(): string[] {
+    const startIndex = this.alphabetLetters.indexOf(this.alphabetFilter.startLetter);
+    const endIndex = this.alphabetLetters.indexOf(this.alphabetFilter.endLetter);
+    
+    return this.alphabetLetters.slice(startIndex, endIndex + 1);
   }
 }
