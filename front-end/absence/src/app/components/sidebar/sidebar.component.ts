@@ -44,7 +44,7 @@ export class SidebarComponent implements OnInit {
   }
 
   private checkMobile(): void {
-    this.isMobile = window.innerWidth < 1024; // Utilise le breakpoint lg de Tailwind
+    this.isMobile = window.innerWidth < 768; // Utilise le breakpoint md de Tailwind
   }
 
   private initializeRouteTracking(): void {
@@ -79,7 +79,7 @@ export class SidebarComponent implements OnInit {
           this.hoveredItem = item.route;
         }
       });
-    }, 100);
+    }, 50);
   }
 
   sidebarItems: SidebarItem[] = [
@@ -168,11 +168,11 @@ export class SidebarComponent implements OnInit {
   }
 
   navigateTo(route: string): void {
-    if (this.isMobile) {
+    if (this.isMobile && !this.isCollapsed) {
       // Fermer automatiquement le sidebar sur mobile après navigation
       setTimeout(() => {
         this.toggleSidebar();
-      }, 300);
+      }, 150);
     }
     
     // Navigation avec animation
@@ -207,7 +207,7 @@ export class SidebarComponent implements OnInit {
 
   // Méthodes utilitaires pour les animations
   getAnimationDelay(index: number): string {
-    return `${index * 50}ms`;
+    return `${index * 30}ms`;
   }
 
   // Gestion des événements tactiles pour mobile
@@ -226,9 +226,9 @@ export class SidebarComponent implements OnInit {
   // Méthode pour fermer le sidebar sur mobile en cliquant à l'extérieur
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
-    if (this.isMobile && !this.isCollapsed) {
+    if (this.isMobile && !this.isCollapsed && this.sidebarRef) {
       const target = event.target as HTMLElement;
-      if (this.sidebarRef && !this.sidebarRef.nativeElement.contains(target)) {
+      if (!this.sidebarRef.nativeElement.contains(target)) {
         this.toggleSidebar();
       }
     }
