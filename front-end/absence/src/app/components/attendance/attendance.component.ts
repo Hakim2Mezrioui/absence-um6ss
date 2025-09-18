@@ -45,7 +45,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   sortColumn: string = '';
   sortDirection: 'asc' | 'desc' = 'asc';
   
-  // Propriétés pour le regroupement alphabétique
+  // Propriétés pour le regroupement alphabétique (supprimé - remplacé par filtrage)
   groupedStudents: { [key: string]: any[] } = {};
   alphabetGroups: string[] = [];
   showAlphabeticalGrouping: boolean = false;
@@ -54,6 +54,16 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   searchTerm: string = '';
   filteredStudents: any[] = [];
   isSearchActive: boolean = false;
+  
+  // Filtrage alphabétique
+  alphabetFilter = {
+    enabled: false,
+    startLetter: 'A',
+    endLetter: 'Z'
+  };
+  
+  // Lettres de l'alphabet pour la sélection
+  alphabetLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
   
   // Propriétés pour l'export
   isExporting: boolean = false;
@@ -132,7 +142,6 @@ export class AttendanceComponent implements OnInit, OnDestroy {
         next: (response: AttendanceResponse) => {
           console.log('✅ Données d\'attendance reçues:', response);
           this.students = response.etudiants;
-          this.filteredStudents = [...this.students];
           this.totalStudents = response.total_etudiants;
           this.presents = response.presents;
           this.absents = response.absents;
@@ -146,6 +155,9 @@ export class AttendanceComponent implements OnInit, OnDestroy {
           
           // Appliquer la logique de tolérance aux étudiants
           this.applyToleranceLogic();
+          
+          // Initialiser le filtrage
+          this.filterStudents();
           this.loading = false;
         },
         error: (err) => {
@@ -205,7 +217,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       this.sortDirection = 'asc';
     }
     
-    this.students.sort((a, b) => {
+    this.filteredStudents.sort((a, b) => {
       let valueA: any;
       let valueB: any;
       
@@ -242,14 +254,6 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       }
       return 0;
     });
-
-    // Activer le regroupement alphabétique si on trie par nom
-    if (column === 'name') {
-      this.showAlphabeticalGrouping = true;
-      this.groupStudentsAlphabetically();
-    } else {
-      this.showAlphabeticalGrouping = false;
-    }
   }
 
   getSortIcon(column: string): string {
@@ -266,42 +270,6 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     return this.sortDirection === 'asc' ? 'text-blue-600' : 'text-blue-600';
   }
 
-  // Méthodes pour le regroupement alphabétique
-  groupStudentsAlphabetically(): void {
-    this.groupedStudents = {};
-    this.alphabetGroups = [];
-    
-    // Utiliser les étudiants filtrés pour le regroupement
-    const studentsToGroup = this.getStudentsToDisplay();
-    
-    // Grouper les étudiants par première lettre du nom de famille
-    studentsToGroup.forEach(student => {
-      const firstLetter = student.last_name.charAt(0).toUpperCase();
-      if (!this.groupedStudents[firstLetter]) {
-        this.groupedStudents[firstLetter] = [];
-        this.alphabetGroups.push(firstLetter);
-      }
-      this.groupedStudents[firstLetter].push(student);
-    });
-    
-    // Trier les groupes alphabétiques
-    this.alphabetGroups.sort();
-  }
-
-  getAlphabeticalGroups(): string[] {
-    return this.alphabetGroups;
-  }
-
-  getStudentsForGroup(letter: string): any[] {
-    return this.groupedStudents[letter] || [];
-  }
-
-  toggleAlphabeticalGrouping(): void {
-    this.showAlphabeticalGrouping = !this.showAlphabeticalGrouping;
-    if (this.showAlphabeticalGrouping && this.sortColumn === 'name') {
-      this.groupStudentsAlphabetically();
-    }
-  }
 
   // Méthodes pour la recherche
   onSearchChange(): void {
@@ -310,12 +278,13 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   }
 
   filterStudents(): void {
-    if (!this.searchTerm.trim()) {
-      this.filteredStudents = [...this.students];
-      this.isSearchActive = false;
-    } else {
+    // Commencer avec tous les étudiants
+    let filtered = [...this.students];
+    
+    // Appliquer la recherche textuelle
+    if (this.searchTerm.trim()) {
       const searchLower = this.searchTerm.toLowerCase().trim();
-      this.filteredStudents = this.students.filter(student => {
+      filtered = filtered.filter(student => {
         const fullName = `${student.last_name} ${student.first_name}`.toLowerCase();
         const email = student.email?.toLowerCase() || '';
         const matricule = student.matricule?.toLowerCase() || '';
@@ -325,27 +294,26 @@ export class AttendanceComponent implements OnInit, OnDestroy {
                matricule.includes(searchLower);
       });
       this.isSearchActive = true;
+    } else {
+      this.isSearchActive = false;
     }
     
-    // Mettre à jour le regroupement alphabétique si nécessaire
-    if (this.showAlphabeticalGrouping && this.sortColumn === 'name') {
-      this.groupStudentsAlphabetically();
+    // Appliquer le filtrage alphabétique
+    if (this.alphabetFilter.enabled) {
+      filtered = filtered.filter(student => this.matchesAlphabetFilter(student));
     }
+    
+    this.filteredStudents = filtered;
   }
 
   clearSearch(): void {
     this.searchTerm = '';
     this.isSearchActive = false;
-    this.filteredStudents = [...this.students];
-    
-    // Mettre à jour le regroupement alphabétique si nécessaire
-    if (this.showAlphabeticalGrouping && this.sortColumn === 'name') {
-      this.groupStudentsAlphabetically();
-    }
+    this.filterStudents();
   }
 
   getStudentsToDisplay(): any[] {
-    return this.isSearchActive ? this.filteredStudents : this.students;
+    return this.filteredStudents;
   }
 
   getSearchResultsCount(): number {
@@ -938,5 +906,67 @@ export class AttendanceComponent implements OnInit, OnDestroy {
    */
   getAbsentAndLateStudents(): StudentAttendance[] {
     return this.students.filter(s => s.status === 'absent' || s.status === 'en retard');
+  }
+
+
+  /**
+   * Vérifier si un étudiant correspond au filtre alphabétique
+   */
+  private matchesAlphabetFilter(student: any): boolean {
+    if (!this.alphabetFilter.enabled) {
+      return true;
+    }
+
+    const fullName = `${student.last_name} ${student.first_name}`.toUpperCase();
+    const firstLetter = fullName.charAt(0);
+    
+    const startIndex = this.alphabetLetters.indexOf(this.alphabetFilter.startLetter);
+    const endIndex = this.alphabetLetters.indexOf(this.alphabetFilter.endLetter);
+    const letterIndex = this.alphabetLetters.indexOf(firstLetter);
+    
+    // Vérifier si la première lettre est dans la plage sélectionnée
+    return letterIndex >= startIndex && letterIndex <= endIndex;
+  }
+
+  /**
+   * Activer/désactiver le filtre alphabétique
+   */
+  toggleAlphabetFilter(): void {
+    this.alphabetFilter.enabled = !this.alphabetFilter.enabled;
+    this.filterStudents();
+  }
+
+  /**
+   * Mettre à jour la plage alphabétique
+   */
+  updateAlphabetRange(): void {
+    if (this.alphabetFilter.enabled) {
+      this.filterStudents();
+    }
+  }
+
+  /**
+   * Obtenir la plage alphabétique formatée
+   */
+  getAlphabetRangeText(): string {
+    if (!this.alphabetFilter.enabled) {
+      return 'Toutes les lettres';
+    }
+    
+    if (this.alphabetFilter.startLetter === this.alphabetFilter.endLetter) {
+      return `Lettre ${this.alphabetFilter.startLetter}`;
+    }
+    
+    return `${this.alphabetFilter.startLetter} - ${this.alphabetFilter.endLetter}`;
+  }
+
+  /**
+   * Obtenir les lettres disponibles dans la plage sélectionnée
+   */
+  getAvailableLettersInRange(): string[] {
+    const startIndex = this.alphabetLetters.indexOf(this.alphabetFilter.startLetter);
+    const endIndex = this.alphabetLetters.indexOf(this.alphabetFilter.endLetter);
+    
+    return this.alphabetLetters.slice(startIndex, endIndex + 1);
   }
 }

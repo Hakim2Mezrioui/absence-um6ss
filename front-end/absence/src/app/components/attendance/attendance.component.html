@@ -58,82 +58,66 @@
       </div>
     </div>
 
-    <!-- Informations de l'examen et contexte -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-      <h2 class="text-lg font-semibold text-gray-900 mb-4">Informations de l'examen</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-        <div>
-          <span class="text-sm font-medium text-gray-700">Date:</span>
-          <span class="ml-2 text-sm text-gray-900">{{ formatDate(examDate) }}</span>
-        </div>
-        <div>
-          <span class="text-sm font-medium text-gray-700">Heure début pointage:</span>
-          <span class="ml-2 text-sm text-orange-600 font-medium">{{ formatTime(examPunchStartTime) || 'N/A' }}</span>
-        </div>
-        <div>
-          <span class="text-sm font-medium text-gray-700">Heure début:</span>
-          <span class="ml-2 text-sm text-gray-900">{{ formatTime(examStartTime) }}</span>
-        </div>
-        <div>
-          <span class="text-sm font-medium text-gray-700">Heure fin:</span>
-          <span class="ml-2 text-sm text-gray-900">{{ formatTime(examEndTime) }}</span>
-        </div>
-        <div>
-          <span class="text-sm font-medium text-gray-700">Salle:</span>
-          <span class="ml-2 text-sm text-gray-900">{{ examSalle || 'N/A' }}</span>
-        </div>
-        <div>
-          <span class="text-sm font-medium text-gray-700">Tolérance:</span>
-          <span class="ml-2 text-sm text-orange-600 font-medium">{{ examTolerance }} minutes</span>
-        </div>
+    <!-- Informations de l'examen (style compact comme cours) -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-lg font-semibold text-gray-900">Informations de l'examen</h2>
+        <span class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
+          <span class="material-icons text-[16px]">event</span>
+          {{ formatDate(examDate) }}
+        </span>
       </div>
-      
-      <!-- Informations du contexte (promotion, groupe, option) -->
-      <div *ngIf="students.length > 0" class="mt-4 pt-4 border-t border-gray-200">
-        <h3 class="text-md font-medium text-gray-900 mb-3">Contexte de l'examen</h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <span class="text-sm font-medium text-gray-700">Promotion:</span>
-            <span class="ml-2 text-sm text-gray-900">{{ students[0]?.promotion?.name || 'N/A' }}</span>
+
+      <!-- Métadonnées principales -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-3">
+        <div class="flex items-center gap-2 truncate">
+          <span class="material-icons text-rose-500">meeting_room</span>
+          <div class="min-w-0">
+            <div class="text-[11px] text-gray-500">Salle</div>
+            <div class="font-medium text-gray-900 truncate">{{ examSalle || 'N/A' }}</div>
           </div>
-          <div>
-            <span class="text-sm font-medium text-gray-700">Groupe:</span>
-            <span class="ml-2 text-sm text-gray-900">{{ students[0]?.group?.title || 'N/A' }}</span>
+        </div>
+        <div class="flex items-center gap-2 truncate">
+          <span class="material-icons text-purple-500">school</span>
+          <div class="min-w-0">
+            <div class="text-[11px] text-gray-500">Promotion</div>
+            <div class="font-medium text-gray-900 truncate">{{ students[0]?.promotion?.name || 'N/A' }}</div>
           </div>
-          <div>
-            <span class="text-sm font-medium text-gray-700">Option:</span>
-            <span class="ml-2 text-sm text-gray-900">{{ students[0]?.option?.name || 'N/A' }}</span>
+        </div>
+        <div class="flex items-center gap-2 truncate">
+          <span class="material-icons text-cyan-500">groups</span>
+          <div class="min-w-0">
+            <div class="text-[11px] text-gray-500">Groupe</div>
+            <div class="font-medium text-gray-900 truncate">{{ students[0]?.group?.title || 'N/A' }}</div>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 truncate">
+          <span class="material-icons text-emerald-500">category</span>
+          <div class="min-w-0">
+            <div class="text-[11px] text-gray-500">Option</div>
+            <div class="font-medium text-gray-900 truncate">{{ students[0]?.option?.name || 'N/A' }}</div>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 truncate">
+          <span class="material-icons text-amber-500">timer</span>
+          <div class="min-w-0">
+            <div class="text-[11px] text-gray-500">Tolérance</div>
+            <div class="font-medium text-gray-900 truncate">{{ examTolerance }} minutes</div>
           </div>
         </div>
       </div>
 
-      <!-- Information sur la logique de présence avec tolérance -->
-      <div class="mt-4 pt-4 border-t border-gray-200">
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div class="flex items-start">
-            <div class="flex-shrink-0">
-              <svg class="h-5 w-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div class="ml-3">
-              <h4 class="text-sm font-medium text-blue-800">Logique de présence avec tolérance</h4>
-              <div class="mt-2 space-y-2 text-sm text-blue-700">
-                <div class="flex items-center gap-2">
-                  <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Présent</span>
-                  <span>Entre <span class="font-medium">{{ formatTime(examPunchStartTime) || formatTime(examStartTime) }}</span> et <span class="font-medium">{{ formatTime(examStartTime) }}</span></span>
-                </div>
-                <div class="flex items-center gap-2">
-                  <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">En retard</span>
-                  <span>Entre <span class="font-medium">{{ formatTime(examStartTime) }}</span> et <span class="font-medium">{{ getToleranceEndTime() }}</span> (tolérance: {{ examTolerance }} min)</span>
-                </div>
-                <div class="flex items-center gap-2">
-                  <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">Absent</span>
-                  <span>Après <span class="font-medium">{{ getToleranceEndTime() }}</span> ou pas de pointage</span>
-                </div>
-              </div>
-            </div>
-          </div>
+      <!-- Badges horaires -->
+      <div class="flex flex-wrap gap-2">
+        <div class="inline-flex items-center gap-2 text-sm px-3 py-2 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+          <span class="material-icons text-[18px]">access_time</span>
+          <span class="font-medium">Pointage</span>
+          <span class="text-blue-600">{{ formatTime(examPunchStartTime) || 'N/A' }} - {{ getToleranceEndTime() }}</span>
+        </div>
+        <div class="inline-flex items-center gap-2 text-sm px-3 py-2 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">
+          <span class="material-icons text-[18px]">schedule</span>
+          <span class="font-medium">Examen</span>
+          <span class="text-emerald-600">{{ formatTime(examStartTime) }} - {{ formatTime(examEndTime) }}</span>
         </div>
       </div>
     </div>
@@ -259,11 +243,85 @@
             </button>
           </div>
         </div>
+        
+        <!-- Filtrage alphabétique -->
+        <div class="mt-4 pt-4 border-t border-gray-200">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-sm font-medium text-gray-700 flex items-center gap-2">
+              <span class="material-icons text-lg">sort_by_alpha</span>
+              Filtrage alphabétique
+            </h4>
+            <button
+              (click)="toggleAlphabetFilter()"
+              [class]="alphabetFilter.enabled ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'"
+              class="px-3 py-1 rounded-full text-xs font-medium transition-colors duration-200 flex items-center gap-1"
+            >
+              <span class="material-icons text-sm">{{ alphabetFilter.enabled ? 'check' : 'close' }}</span>
+              {{ alphabetFilter.enabled ? 'Activé' : 'Désactivé' }}
+            </button>
+          </div>
+          
+          <div *ngIf="alphabetFilter.enabled" class="space-y-3">
+            <!-- Sélection de plage -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Lettre de début</label>
+                <select
+                  [(ngModel)]="alphabetFilter.startLetter"
+                  (change)="updateAlphabetRange()"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                >
+                  <option *ngFor="let letter of alphabetLetters" [value]="letter">
+                    {{ letter }}
+                  </option>
+                </select>
+              </div>
+              
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Lettre de fin</label>
+                <select
+                  [(ngModel)]="alphabetFilter.endLetter"
+                  (change)="updateAlphabetRange()"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                >
+                  <option *ngFor="let letter of alphabetLetters" [value]="letter">
+                    {{ letter }}
+                  </option>
+                </select>
+              </div>
+            </div>
+            
+            <!-- Affichage de la plage sélectionnée -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="material-icons text-blue-600 text-sm">filter_list</span>
+                  <span class="text-sm font-medium text-blue-800">
+                    Plage sélectionnée: {{ getAlphabetRangeText() }}
+                  </span>
+                </div>
+                <div class="text-xs text-blue-600">
+                  {{ getAvailableLettersInRange().length }} lettre{{ getAvailableLettersInRange().length > 1 ? 's' : '' }}
+                </div>
+              </div>
+              
+              <!-- Lettres de la plage -->
+              <div class="mt-2 flex flex-wrap gap-1">
+                <span 
+                  *ngFor="let letter of getAvailableLettersInRange()" 
+                  class="inline-flex items-center justify-center w-6 h-6 text-xs font-medium text-blue-700 bg-blue-100 rounded border border-blue-200"
+                >
+                  {{ letter }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       
       <div class="overflow-x-auto">
-        <!-- Affichage normal du tableau -->
-        <table *ngIf="!showAlphabeticalGrouping" class="min-w-full divide-y divide-gray-200">
+        <!-- Tableau des étudiants -->
+        <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -423,100 +481,6 @@
           </tbody>
         </table>
 
-        <!-- Affichage avec regroupement alphabétique -->
-        <div *ngIf="showAlphabeticalGrouping" class="space-y-6">
-          <!-- En-tête du tableau pour le regroupement -->
-          <div class="bg-gray-50 px-6 py-3 border-b border-gray-200">
-            <div class="flex items-center justify-between">
-              <h3 class="text-lg font-medium text-gray-900">Étudiants groupés par ordre alphabétique</h3>
-              <button 
-                (click)="toggleAlphabeticalGrouping()"
-                class="text-sm text-blue-600 hover:text-blue-800 transition-colors"
-              >
-                Voir en tableau normal
-              </button>
-            </div>
-          </div>
-
-          <!-- Groupes alphabétiques -->
-          <div *ngFor="let letter of getAlphabeticalGroups()" class="mb-8">
-            <!-- En-tête du groupe -->
-            <div class="bg-blue-50 border-l-4 border-blue-500 px-6 py-4 mb-4">
-              <div class="flex items-center justify-between">
-                <h4 class="text-xl font-bold text-blue-900">{{ letter }}</h4>
-                <span class="text-sm text-blue-700 bg-blue-100 px-3 py-1 rounded-full">
-                  {{ getStudentsForGroup(letter).length }} étudiant{{ getStudentsForGroup(letter).length > 1 ? 's' : '' }}
-                </span>
-              </div>
-            </div>
-
-            <!-- Tableau pour ce groupe -->
-            <div class="overflow-x-auto">
-              <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                  <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Étudiant</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Matricule</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Heure de pointage</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Appareil</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                  <tr *ngFor="let student of getStudentsForGroup(letter)" class="hover:bg-gray-50">
-                    <td class="px-6 py-4 whitespace-nowrap">
-                      <div class="flex items-center">
-                        <div class="flex-shrink-0 h-10 w-10">
-                          <img *ngIf="student.photo" [src]="student.photo" alt="Photo" class="h-10 w-10 rounded-full">
-                          <div *ngIf="!student.photo" class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                            <span class="text-sm font-medium text-gray-700">
-                              {{ student.first_name.charAt(0) }}{{ student.last_name.charAt(0) }}
-                            </span>
-                          </div>
-                        </div>
-                        <div class="ml-4">
-                          <div class="text-sm font-medium text-gray-900">
-                            {{ student.last_name }} {{ student.first_name }}
-                          </div>
-                          <div class="text-sm text-gray-500">{{ student.email }}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {{ student.matricule }}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                            [ngClass]="getStatusClassWithTolerance(student.status)">
-                        <span class="material-icons text-xs mr-1">{{ getStatusIcon(student.status) }}</span>
-                        {{ student.status }}
-                      </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {{ student.punch_time ? formatDateTime(student.punch_time.time) : 'N/A' }}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {{ student.punch_time ? student.punch_time.device : 'N/A' }}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button 
-                        (click)="showStudentDetails(student)"
-                        class="text-blue-600 hover:text-blue-900 detail-button"
-                        title="Voir les détails de l'étudiant"
-                      >
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
       </div>
 
       <!-- Empty State -->
