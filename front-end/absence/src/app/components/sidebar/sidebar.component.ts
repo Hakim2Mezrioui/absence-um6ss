@@ -143,12 +143,6 @@ export class SidebarComponent implements OnInit {
       icon: 'analytics',
       route: '/dashboard/statistiques',
       tooltip: 'Tableaux de bord et rapports'
-    },
-    {
-      label: 'Paramètres',
-      icon: 'settings',
-      route: '/dashboard/parametres',
-      tooltip: 'Configuration du système'
     }
   ];
 
@@ -254,5 +248,139 @@ export class SidebarComponent implements OnInit {
         }
         break;
     }
+  }
+
+  // Méthode de déconnexion
+  logout(): void {
+    // Confirmation avant déconnexion
+    if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
+      // Supprimer tous les tokens et données utilisateur du localStorage
+      this.clearLocalStorage();
+      
+      // Supprimer tous les tokens et données utilisateur du sessionStorage
+      this.clearSessionStorage();
+      
+      // Supprimer tous les cookies liés à l'authentification
+      this.clearAuthCookies();
+      
+      // Rediriger vers la page de connexion
+      window.location.href = '/login';
+    }
+  }
+
+  // Méthode pour nettoyer le localStorage
+  private clearLocalStorage(): void {
+    const keysToRemove = [
+      'token',
+      'access_token',
+      'refresh_token',
+      'auth_token',
+      'user',
+      'user_data',
+      'user_info',
+      'current_user',
+      'auth_user',
+      'profile',
+      'permissions',
+      'roles',
+      'sidebarCollapsed',
+      'theme',
+      'language'
+    ];
+
+    keysToRemove.forEach(key => {
+      if (localStorage.getItem(key)) {
+        localStorage.removeItem(key);
+      }
+    });
+
+    // Supprimer tous les éléments qui commencent par 'auth_' ou 'user_'
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith('auth_') || key.startsWith('user_') || key.startsWith('token_'))) {
+        localStorage.removeItem(key);
+      }
+    }
+  }
+
+  // Méthode pour nettoyer le sessionStorage
+  private clearSessionStorage(): void {
+    const keysToRemove = [
+      'token',
+      'access_token',
+      'refresh_token',
+      'auth_token',
+      'user',
+      'user_data',
+      'user_info',
+      'current_user',
+      'auth_user',
+      'profile',
+      'permissions',
+      'roles'
+    ];
+
+    keysToRemove.forEach(key => {
+      if (sessionStorage.getItem(key)) {
+        sessionStorage.removeItem(key);
+      }
+    });
+
+    // Supprimer tous les éléments qui commencent par 'auth_' ou 'user_'
+    for (let i = sessionStorage.length - 1; i >= 0; i--) {
+      const key = sessionStorage.key(i);
+      if (key && (key.startsWith('auth_') || key.startsWith('user_') || key.startsWith('token_'))) {
+        sessionStorage.removeItem(key);
+      }
+    }
+  }
+
+  // Méthode pour nettoyer les cookies d'authentification
+  private clearAuthCookies(): void {
+    const cookiesToRemove = [
+      'token',
+      'access_token',
+      'refresh_token',
+      'auth_token',
+      'jwt',
+      'session_id',
+      'user_id',
+      'auth_session',
+      'remember_token',
+      'csrf_token'
+    ];
+
+    // Supprimer les cookies pour le domaine actuel
+    cookiesToRemove.forEach(cookieName => {
+      this.deleteCookie(cookieName);
+      this.deleteCookie(cookieName, '/');
+      this.deleteCookie(cookieName, '/', window.location.hostname);
+      this.deleteCookie(cookieName, '/', '.' + window.location.hostname);
+    });
+
+    // Supprimer tous les cookies qui commencent par 'auth_' ou 'user_'
+    document.cookie.split(';').forEach(cookie => {
+      const cookieName = cookie.split('=')[0].trim();
+      if (cookieName.startsWith('auth_') || cookieName.startsWith('user_') || cookieName.startsWith('token_')) {
+        this.deleteCookie(cookieName);
+        this.deleteCookie(cookieName, '/');
+        this.deleteCookie(cookieName, '/', window.location.hostname);
+        this.deleteCookie(cookieName, '/', '.' + window.location.hostname);
+      }
+    });
+  }
+
+  // Méthode utilitaire pour supprimer un cookie
+  private deleteCookie(name: string, path: string = '/', domain?: string): void {
+    let cookieString = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=${path}`;
+    
+    if (domain) {
+      cookieString += `; domain=${domain}`;
+    }
+    
+    // Supprimer avec et sans le point
+    document.cookie = cookieString;
+    document.cookie = cookieString + '; secure';
+    document.cookie = cookieString + '; samesite=strict';
   }
 }

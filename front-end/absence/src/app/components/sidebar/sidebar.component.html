@@ -163,28 +163,25 @@
         </div>
       </div>
       
-      <!-- Actions utilisateur -->
-      <div class="flex items-center gap-1.5" *ngIf="!isCollapsed || isMobile">
-        <button class="w-8 h-8 bg-transparent rounded-md cursor-pointer transition-all duration-200 ease flex items-center justify-center hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-800" title="Paramètres">
-          <div class="w-full h-full bg-gray-700 rounded-md flex items-center justify-center transition-all duration-200 ease border border-gray-600 hover:bg-blue-600 hover:border-blue-400 focus:bg-blue-600 focus:border-blue-400">
-            <span class="material-icons text-gray-300 text-base transition-all duration-200 ease hover:text-white">settings</span>
-          </div>
-        </button>
-        <button class="w-8 h-8 bg-transparent rounded-md cursor-pointer transition-all duration-200 ease flex items-center justify-center hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 focus:ring-offset-gray-800" title="Déconnexion">
-          <div class="w-full h-full bg-gray-700 rounded-md flex items-center justify-center transition-all duration-200 ease border border-gray-600 hover:bg-red-600 hover:border-red-400 focus:bg-red-600 focus:border-red-400">
-            <span class="material-icons text-gray-300 text-base transition-all duration-200 ease hover:text-white">logout</span>
-          </div>
-        </button>
-      </div>
+       <!-- Actions utilisateur -->
+       <div class="flex items-center gap-1.5" *ngIf="!isCollapsed || isMobile">
+         <button 
+           (click)="logout()"
+           class="w-8 h-8 bg-transparent rounded-md cursor-pointer transition-all duration-200 ease flex items-center justify-center hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 focus:ring-offset-gray-800" 
+           title="Déconnexion">
+           <div class="w-full h-full bg-gray-700 rounded-md flex items-center justify-center transition-all duration-200 ease border border-gray-600 hover:bg-red-600 hover:border-red-400 focus:bg-red-600 focus:border-red-400">
+             <span class="material-icons text-gray-300 text-base transition-all duration-200 ease hover:text-white">logout</span>
+           </div>
+         </button>
+       </div>
       
       <!-- Menu compact pour mode collapsed -->
       <div class="flex items-center justify-center" *ngIf="isCollapsed && !isMobile">
-        <button class="w-9 h-9 bg-gradient-to-br from-gray-700 to-gray-600 rounded-lg cursor-pointer transition-all duration-300 ease flex items-center justify-center border border-gray-600 hover:scale-105 hover:from-gray-600 hover:to-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-800" title="Menu utilisateur">
-          <div class="flex flex-col gap-0.5">
-            <span class="w-1 h-1 bg-gray-300 rounded-full transition-all duration-300 ease hover:bg-white hover:scale-125"></span>
-            <span class="w-1 h-1 bg-gray-300 rounded-full transition-all duration-300 ease hover:bg-white hover:scale-125"></span>
-            <span class="w-1 h-1 bg-gray-300 rounded-full transition-all duration-300 ease hover:bg-white hover:scale-125"></span>
-          </div>
+        <button 
+          (click)="logout()"
+          class="w-9 h-9 bg-gradient-to-br from-red-600 to-red-700 rounded-lg cursor-pointer transition-all duration-300 ease flex items-center justify-center border border-red-500 hover:scale-105 hover:from-red-700 hover:to-red-800 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 focus:ring-offset-gray-800" 
+          title="Déconnexion">
+          <span class="material-icons text-white text-lg">logout</span>
         </button>
       </div>
     </div>
