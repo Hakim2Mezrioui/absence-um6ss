@@ -5,6 +5,7 @@ import { provideHttpClient, withInterceptors, withFetch } from '@angular/common/
 import { routes } from './app.routes';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { TokenInterceptor } from './interceptors/token.interceptor';
+import { CookieService } from 'ngx-cookie-service';
 
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 
@@ -18,6 +19,7 @@ export const appConfig: ApplicationConfig = {
       withInterceptors([TokenInterceptor]),
       withFetch()
     ),
-    provideAnimationsAsync()
+    provideAnimationsAsync(),
+    CookieService
   ]
 };

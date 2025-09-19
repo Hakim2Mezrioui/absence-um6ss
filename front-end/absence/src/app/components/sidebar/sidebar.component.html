@@ -139,50 +139,74 @@
     </div>
   </nav>
 
-  <!-- Footer utilisateur -->
-  <div class="absolute bottom-0 left-0 right-0 z-10 bg-gray-800 border-t border-gray-700 shadow-xl">
-    <div class="px-5 py-4 flex items-center justify-between"
+  <!-- Footer utilisateur compact -->
+  <div class="absolute bottom-0 left-0 right-0 z-10 bg-gray-800 border-t border-gray-700 shadow-lg">
+    <div class="px-4 py-2"
          [ngClass]="{
-           'px-3 justify-center': isCollapsed && !isMobile,
-           'px-6': !isCollapsed || isMobile
+           'px-2': isCollapsed && !isMobile,
+           'px-4': !isCollapsed || isMobile
          }">
-      <!-- Profil utilisateur -->
-      <div class="flex items-center gap-3 transition-all duration-300 ease-in-out"
-           [ngClass]="{
-             'gap-0 justify-center': isCollapsed && !isMobile
-           }">
-        <div class="relative flex items-center justify-center">
-          <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl">
-            <span class="material-icons text-white text-lg">person</span>
+      
+      <!-- Mode normal (non collapsed) -->
+      <div *ngIf="!isCollapsed || isMobile" class="space-y-2">
+        <!-- Profil utilisateur compact -->
+        <div class="flex items-center gap-2 p-2 bg-gray-700/30 rounded-lg hover:bg-gray-700/50 transition-all duration-200">
+          <div class="relative">
+            <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-md">
+              <span class="material-icons text-white text-sm">{{ userData.avatar }}</span>
+            </div>
+            <div class="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-green-400 border border-gray-800 rounded-full"></div>
           </div>
-          <div class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 border-2 border-gray-800 rounded-full shadow-sm"></div>
+          <div class="flex-1 min-w-0">
+            <p class="text-xs font-semibold text-white leading-tight m-0 whitespace-nowrap overflow-hidden text-ellipsis">{{ userData.name }}</p>
+            <p class="text-xs text-gray-400 leading-tight m-0 whitespace-nowrap overflow-hidden text-ellipsis">{{ userData.role }}</p>
+          </div>
         </div>
-        <div class="flex flex-col gap-0.5 min-w-0" *ngIf="!isCollapsed || isMobile">
-          <p class="text-sm font-semibold text-white leading-tight m-0 whitespace-nowrap overflow-hidden text-ellipsis">Administrateur</p>
-          <p class="text-xs font-medium text-gray-300 leading-tight m-0 whitespace-nowrap overflow-hidden text-ellipsis">Admin System</p>
+
+        <!-- Actions utilisateur compactes -->
+        <div class="flex items-center gap-1">
+          <button 
+            class="flex-1 h-8 bg-gray-700 rounded-md cursor-pointer transition-all duration-200 ease flex items-center justify-center gap-1 hover:bg-gray-600 hover:scale-105 focus:outline-none focus:ring-1 focus:ring-blue-400" 
+            title="Profil">
+            <span class="material-icons text-gray-300 text-sm">person</span>
+            <span class="text-xs text-gray-300">Profil</span>
+          </button>
+          
+          <button 
+            (click)="logout()"
+            class="flex-1 h-8 bg-red-600 rounded-md cursor-pointer transition-all duration-200 ease flex items-center justify-center gap-1 hover:bg-red-700 hover:scale-105 focus:outline-none focus:ring-1 focus:ring-red-400" 
+            title="Déconnexion">
+            <span class="material-icons text-white text-sm">logout</span>
+            <span class="text-xs text-white">Déconnexion</span>
+          </button>
         </div>
       </div>
-      
-       <!-- Actions utilisateur -->
-       <div class="flex items-center gap-1.5" *ngIf="!isCollapsed || isMobile">
-         <button 
-           (click)="logout()"
-           class="w-8 h-8 bg-transparent rounded-md cursor-pointer transition-all duration-200 ease flex items-center justify-center hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 focus:ring-offset-gray-800" 
-           title="Déconnexion">
-           <div class="w-full h-full bg-gray-700 rounded-md flex items-center justify-center transition-all duration-200 ease border border-gray-600 hover:bg-red-600 hover:border-red-400 focus:bg-red-600 focus:border-red-400">
-             <span class="material-icons text-gray-300 text-base transition-all duration-200 ease hover:text-white">logout</span>
-           </div>
-         </button>
-       </div>
-      
-      <!-- Menu compact pour mode collapsed -->
-      <div class="flex items-center justify-center" *ngIf="isCollapsed && !isMobile">
-        <button 
-          (click)="logout()"
-          class="w-9 h-9 bg-gradient-to-br from-red-600 to-red-700 rounded-lg cursor-pointer transition-all duration-300 ease flex items-center justify-center border border-red-500 hover:scale-105 hover:from-red-700 hover:to-red-800 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 focus:ring-offset-gray-800" 
-          title="Déconnexion">
-          <span class="material-icons text-white text-lg">logout</span>
-        </button>
+
+      <!-- Mode collapsed -->
+      <div *ngIf="isCollapsed && !isMobile" class="flex flex-col items-center space-y-2">
+        <!-- Avatar compact -->
+        <div class="relative">
+          <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-md">
+            <span class="material-icons text-white text-sm">{{ userData.avatar }}</span>
+          </div>
+          <div class="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-green-400 border border-gray-800 rounded-full"></div>
+        </div>
+
+        <!-- Boutons d'action compacts -->
+        <div class="flex flex-col gap-1 w-full">
+          <button 
+            class="w-full h-8 bg-gray-700 rounded-md cursor-pointer transition-all duration-200 ease flex items-center justify-center hover:bg-gray-600 hover:scale-105 focus:outline-none focus:ring-1 focus:ring-blue-400" 
+            title="Profil">
+            <span class="material-icons text-gray-300 text-sm">person</span>
+          </button>
+          
+          <button 
+            (click)="logout()"
+            class="w-full h-8 bg-red-600 rounded-md cursor-pointer transition-all duration-200 ease flex items-center justify-center hover:bg-red-700 hover:scale-105 focus:outline-none focus:ring-1 focus:ring-red-400" 
+            title="Déconnexion">
+            <span class="material-icons text-white text-sm">logout</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>

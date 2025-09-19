@@ -2,6 +2,7 @@ import { Component, Input, OnInit, Output, EventEmitter, HostListener, ElementRe
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
+import { CookieService } from 'ngx-cookie-service';
 
 export interface SidebarItem {
   label: string;
@@ -30,12 +31,24 @@ export class SidebarComponent implements OnInit {
   isMobile = false;
   sidebarAnimation = 'slideIn';
 
-  constructor(private router: Router) {}
+  // Données utilisateur
+  userData: any = {
+    name: 'Administrateur',
+    role: 'Admin System',
+    email: '',
+    avatar: 'admin_panel_settings'
+  };
+
+  constructor(
+    private router: Router,
+    private cookieService: CookieService
+  ) {}
 
   ngOnInit(): void {
     this.checkMobile();
     this.initializeRouteTracking();
     this.setupKeyboardNavigation();
+    this.loadUserData();
   }
 
   @HostListener('window:resize', ['$event'])
@@ -45,6 +58,60 @@ export class SidebarComponent implements OnInit {
 
   private checkMobile(): void {
     this.isMobile = window.innerWidth < 768; // Utilise le breakpoint md de Tailwind
+  }
+
+  // Méthode pour charger les données utilisateur depuis les cookies
+  private loadUserData(): void {
+    try {
+      // Récupérer les données utilisateur depuis les cookies
+      const userCookie = this.cookieService.get('user');
+      const tokenCookie = this.cookieService.get('token');
+      
+      if (userCookie) {
+        const userData = JSON.parse(userCookie);
+        this.userData = {
+          name: userData.name || userData.nom || userData.firstname || 'Utilisateur',
+          role: userData.role || userData.role_name || userData.fonction || 'Utilisateur',
+          email: userData.email || userData.email_address || '',
+          avatar: this.getUserAvatar(userData.role || userData.role_name || 'user')
+        };
+      } else if (tokenCookie) {
+        // Si pas de données utilisateur mais un token, essayer de décoder le JWT
+        try {
+          const payload = JSON.parse(atob(tokenCookie.split('.')[1]));
+          this.userData = {
+            name: payload.name || payload.nom || payload.sub || 'Utilisateur',
+            role: payload.role || payload.role_name || 'Utilisateur',
+            email: payload.email || '',
+            avatar: this.getUserAvatar(payload.role || 'user')
+          };
+        } catch (e) {
+          console.warn('Impossible de décoder le token JWT');
+        }
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des données utilisateur:', error);
+      // Garder les valeurs par défaut
+    }
+  }
+
+  // Méthode pour déterminer l'icône selon le rôle
+  private getUserAvatar(role: string): string {
+    const roleLower = role.toLowerCase();
+    
+    if (roleLower.includes('admin') || roleLower.includes('administrateur')) {
+      return 'admin_panel_settings';
+    } else if (roleLower.includes('prof') || roleLower.includes('enseignant') || roleLower.includes('teacher')) {
+      return 'school';
+    } else if (roleLower.includes('etudiant') || roleLower.includes('student') || roleLower.includes('élève')) {
+      return 'person';
+    } else if (roleLower.includes('secretaire') || roleLower.includes('secretary')) {
+      return 'admin_panel_settings';
+    } else if (roleLower.includes('directeur') || roleLower.includes('director')) {
+      return 'supervisor_account';
+    } else {
+      return 'person';
+    }
   }
 
   private initializeRouteTracking(): void {
