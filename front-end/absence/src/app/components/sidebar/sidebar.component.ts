@@ -323,6 +323,21 @@ export class SidebarComponent implements OnInit {
     }
   }
 
+  // Méthode pour naviguer vers le profil
+  navigateToProfile(): void {
+    if (this.isMobile && !this.isCollapsed) {
+      // Fermer automatiquement le sidebar sur mobile après navigation
+      setTimeout(() => {
+        this.toggleSidebar();
+      }, 150);
+    }
+    
+    // Navigation vers le profil avec animation
+    this.router.navigate(['/dashboard/profile']).then(() => {
+      this.updateActiveStates();
+    });
+  }
+
   // Méthode de déconnexion
   logout(): void {
     // Confirmation avant déconnexion

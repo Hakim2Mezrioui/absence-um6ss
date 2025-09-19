@@ -166,6 +166,7 @@
         <!-- Actions utilisateur compactes -->
         <div class="flex items-center gap-1">
           <button 
+            (click)="navigateToProfile()"
             class="flex-1 h-8 bg-gray-700 rounded-md cursor-pointer transition-all duration-200 ease flex items-center justify-center gap-1 hover:bg-gray-600 hover:scale-105 focus:outline-none focus:ring-1 focus:ring-blue-400" 
             title="Profil">
             <span class="material-icons text-gray-300 text-sm">person</span>
@@ -195,6 +196,7 @@
         <!-- Boutons d'action compacts -->
         <div class="flex flex-col gap-1 w-full">
           <button 
+            (click)="navigateToProfile()"
             class="w-full h-8 bg-gray-700 rounded-md cursor-pointer transition-all duration-200 ease flex items-center justify-center hover:bg-gray-600 hover:scale-105 focus:outline-none focus:ring-1 focus:ring-blue-400" 
             title="Profil">
             <span class="material-icons text-gray-300 text-sm">person</span>
