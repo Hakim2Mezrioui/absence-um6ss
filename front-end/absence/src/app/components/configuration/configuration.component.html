@@ -194,21 +194,21 @@
               type="button"
               (click)="testConnection()"
               [disabled]="isTestingConnection || isLoading"
-              class="px-6 py-3 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
+              class="px-5 py-2.5 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
             >
               <span *ngIf="isTestingConnection" class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></span>
-              <span class="material-icons text-lg">{{ isTestingConnection ? 'hourglass_empty' : 'wifi_tethering' }}</span>
+              <span class="material-icons text-base">{{ isTestingConnection ? 'hourglass_empty' : 'wifi_tethering' }}</span>
               {{ isTestingConnection ? 'Test en cours...' : 'Tester la Connexion' }}
             </button>
 
             <button
               type="submit"
               [disabled]="isSaving || isLoading"
-              class="px-8 py-3 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 transform hover:-translate-y-0.5 hover:shadow-lg"
+              class="px-6 py-2.5 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
             >
               <span *ngIf="isSaving" class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
-              <span class="material-icons text-lg">{{ isSaving ? 'hourglass_empty' : 'save' }}</span>
-              {{ isSaving ? 'Sauvegarde...' : 'Sauvegarder la Configuration' }}
+              <span class="material-icons text-base">{{ isSaving ? 'hourglass_empty' : 'save' }}</span>
+              {{ isSaving ? 'Sauvegarde...' : 'Sauvegarder' }}
             </button>
           </div>
         </div>
