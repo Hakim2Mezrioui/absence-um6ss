@@ -21,6 +21,7 @@ use App\Http\Controllers\TypeExamenController;
 use App\Http\Controllers\ListStudentController;
 use App\Http\Controllers\StatisticController;
 use App\Http\Controllers\AbsenceAutoController;
+use App\Http\Controllers\ConfigurationController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -42,6 +43,12 @@ Route::post("profile/change-password", [AuthController::class, "changePassword"]
 Route::get("profile", [AuthController::class, "profile"])->middleware('auth:sanctum'); // Nouvelle route
 
 Route::middleware('auth:sanctum')->group(function () {
+// Configuration routes
+Route::get('configuration', [ConfigurationController::class, 'index']);
+Route::put('configuration', [ConfigurationController::class, 'update']);
+Route::post('configuration/test-connection', [ConfigurationController::class, 'testConnection']);
+Route::get('configuration/villes', [ConfigurationController::class, 'getVilles']);
+
 // Routes spéciales pour les étudiants (AVANT les ressources)
 Route::post("import-etudiants", [EtudiantController::class, "ImportEtudiants"]);
 Route::post("import-students-modern", [EtudiantController::class, "importEtudiantsModern"]);

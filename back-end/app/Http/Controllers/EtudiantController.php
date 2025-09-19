@@ -10,6 +10,7 @@ use PDO;
 use PDOException;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\GroupService;
+use App\Services\ConfigurationService;
 // Commenté temporairement en attendant l'activation de l'extension GD
 // use PhpOffice\PhpSpreadsheet\Spreadsheet;
 // use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -19,6 +20,13 @@ use App\Http\Controllers\GroupService;
 
 class EtudiantController extends Controller
 {
+    protected $configurationService;
+
+    public function __construct(ConfigurationService $configurationService)
+    {
+        $this->configurationService = $configurationService;
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -111,13 +119,12 @@ class EtudiantController extends Controller
         $biostarResults = [];
         $localStudents = collect();
 
-        // Create a PDO connection to the SQL Server database
-        $dsn = 'sqlsrv:Server=10.0.2.148;Database=BIOSTAR_TA;TrustServerCertificate=true';
-        $username = 'dbuser';
-        $password = 'Driss@2024';
-
-        try {
-            $pdo = new PDO($dsn, $username, $password);
+        // Get connection configuration from database
+        $config = $this->configurationService->getConnectionConfig();
+        
+        if (is_array($config) && isset($config['dsn'])) {
+            try {
+                $pdo = new PDO($config['dsn'], $config['username'], $config['password']);
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
             // Déterminer l'heure de référence pour la comparaison
@@ -132,8 +139,12 @@ class EtudiantController extends Controller
 
             // Fetch the results
             $biostarResults = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (PDOException $e) {
-            // If Biostar connection fails, continue with empty results
+            } catch (PDOException $e) {
+                // If Biostar connection fails, continue with empty results
+                $biostarResults = [];
+            }
+        } else {
+            // Configuration not found, continue with empty results
             $biostarResults = [];
         }
         

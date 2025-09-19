@@ -22,4 +22,28 @@ abstract class BaseService
     }
 
     // Méthodes de base communes
+    
+    /**
+     * Return a success response
+     */
+    protected function successResponse($data = null, $message = 'Success', $statusCode = 200)
+    {
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+            'data' => $data
+        ], $statusCode);
+    }
+    
+    /**
+     * Return an error response
+     */
+    protected function errorResponse($message = 'Error', $statusCode = 400, $data = null)
+    {
+        return response()->json([
+            'success' => false,
+            'message' => $message,
+            'data' => $data
+        ], $statusCode);
+    }
 } 

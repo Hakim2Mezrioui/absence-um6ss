@@ -1,0 +1,265 @@
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center">
+              <span class="material-icons text-white text-2xl">settings</span>
+            </div>
+            <div>
+              <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                <span>Configuration de la Base de Données</span>
+                <span class="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">Système</span>
+              </h1>
+              <p class="mt-2 text-gray-600 flex items-center gap-2">
+                <span class="material-icons text-blue-600 text-lg">info</span>
+                Configurez la connexion à la base de données SQL Server pour Biostar
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Message d'alerte -->
+    <div *ngIf="message" class="mb-6 p-4 border rounded-xl shadow-sm" [ngClass]="getMessageClass()">
+      <div class="flex items-center gap-3">
+        <span class="material-icons" [ngClass]="messageType === 'success' ? 'text-green-600' : messageType === 'error' ? 'text-red-600' : 'text-blue-600'">
+          {{ messageType === 'success' ? 'check_circle' : messageType === 'error' ? 'error' : 'info' }}
+        </span>
+        <span class="font-medium">{{ message }}</span>
+      </div>
+    </div>
+
+    <!-- Formulaire de configuration -->
+    <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+      <form (ngSubmit)="saveConfiguration()" class="space-y-0">
+        <!-- Section Paramètres de Connexion -->
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200 p-6">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center">
+              <span class="material-icons text-white text-lg">storage</span>
+            </div>
+            <div>
+              <h2 class="text-xl font-semibold text-gray-800">Paramètres de Connexion</h2>
+              <p class="text-sm text-gray-600">Configurez les paramètres de connexion à la base de données Biostar</p>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Serveur SQL Server -->
+            <div>
+              <label for="sqlsrv" class="block text-sm font-medium text-gray-700 mb-2">
+                <span class="material-icons text-blue-600 text-lg mr-2">dns</span>
+                Serveur SQL Server
+              </label>
+              <input
+                type="text"
+                id="sqlsrv"
+                [(ngModel)]="configuration.sqlsrv"
+                name="sqlsrv"
+                placeholder="10.0.2.148"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                required
+              />
+            </div>
+
+            <!-- Base de données -->
+            <div>
+              <label for="database" class="block text-sm font-medium text-gray-700 mb-2">
+                <span class="material-icons text-blue-600 text-lg mr-2">database</span>
+                Nom de la Base de Données
+              </label>
+              <input
+                type="text"
+                id="database"
+                [(ngModel)]="configuration.database"
+                name="database"
+                placeholder="BIOSTAR_TA"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                required
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Section Authentification -->
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200 p-6">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center">
+              <span class="material-icons text-white text-lg">security</span>
+            </div>
+            <div>
+              <h2 class="text-xl font-semibold text-gray-800">Authentification</h2>
+              <p class="text-sm text-gray-600">Identifiants de connexion à la base de données</p>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Nom d'utilisateur -->
+            <div>
+              <label for="biostar_username" class="block text-sm font-medium text-gray-700 mb-2">
+                <span class="material-icons text-blue-600 text-lg mr-2">person</span>
+                Nom d'utilisateur
+              </label>
+              <input
+                type="text"
+                id="biostar_username"
+                [(ngModel)]="configuration.biostar_username"
+                name="biostar_username"
+                placeholder="dbuser"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                required
+              />
+            </div>
+
+            <!-- Mot de passe -->
+            <div>
+              <label for="biostar_password" class="block text-sm font-medium text-gray-700 mb-2">
+                <span class="material-icons text-blue-600 text-lg mr-2">lock</span>
+                Mot de passe
+              </label>
+              <input
+                type="password"
+                id="biostar_password"
+                [(ngModel)]="configuration.biostar_password"
+                name="biostar_password"
+                placeholder="••••••••"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                required
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Section Configuration Avancée -->
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200 p-6">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center">
+              <span class="material-icons text-white text-lg">tune</span>
+            </div>
+            <div>
+              <h2 class="text-xl font-semibold text-gray-800">Configuration Avancée</h2>
+              <p class="text-sm text-gray-600">Paramètres supplémentaires et localisation</p>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Trust Server Certificate -->
+            <div>
+              <label for="trustServerCertificate" class="block text-sm font-medium text-gray-700 mb-2">
+                <span class="material-icons text-blue-600 text-lg mr-2">verified</span>
+                Trust Server Certificate
+              </label>
+              <select
+                id="trustServerCertificate"
+                [(ngModel)]="configuration.trustServerCertificate"
+                name="trustServerCertificate"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                required
+              >
+                <option value="true">Oui</option>
+                <option value="false">Non</option>
+              </select>
+            </div>
+
+            <!-- Ville -->
+            <div>
+              <label for="ville_id" class="block text-sm font-medium text-gray-700 mb-2">
+                <span class="material-icons text-blue-600 text-lg mr-2">location_city</span>
+                Ville
+              </label>
+              <select
+                id="ville_id"
+                [(ngModel)]="configuration.ville_id"
+                name="ville_id"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                required
+              >
+                <option value="0">Sélectionner une ville</option>
+                <option *ngFor="let ville of villes" [value]="ville.id">
+                  {{ ville.name }}
+                </option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section Actions -->
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-6">
+          <div class="flex flex-col sm:flex-row justify-end gap-4">
+            <button
+              type="button"
+              (click)="testConnection()"
+              [disabled]="isTestingConnection || isLoading"
+              class="px-6 py-3 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
+            >
+              <span *ngIf="isTestingConnection" class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></span>
+              <span class="material-icons text-lg">{{ isTestingConnection ? 'hourglass_empty' : 'wifi_tethering' }}</span>
+              {{ isTestingConnection ? 'Test en cours...' : 'Tester la Connexion' }}
+            </button>
+
+            <button
+              type="submit"
+              [disabled]="isSaving || isLoading"
+              class="px-8 py-3 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 transform hover:-translate-y-0.5 hover:shadow-lg"
+            >
+              <span *ngIf="isSaving" class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+              <span class="material-icons text-lg">{{ isSaving ? 'hourglass_empty' : 'save' }}</span>
+              {{ isSaving ? 'Sauvegarde...' : 'Sauvegarder la Configuration' }}
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Informations sur la configuration actuelle -->
+    <div *ngIf="configuration.ville" class="mt-6 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 shadow-sm">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center">
+          <span class="material-icons text-white text-lg">info</span>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold text-blue-800">Configuration Actuelle</h3>
+          <p class="text-sm text-blue-600">Paramètres actuellement configurés dans le système</p>
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white rounded-lg p-4 border border-blue-200">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="material-icons text-blue-600 text-lg">dns</span>
+            <span class="text-sm font-medium text-gray-700">Serveur</span>
+          </div>
+          <p class="text-sm text-gray-900 font-mono">{{ configuration.sqlsrv }}</p>
+        </div>
+        
+        <div class="bg-white rounded-lg p-4 border border-blue-200">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="material-icons text-blue-600 text-lg">database</span>
+            <span class="text-sm font-medium text-gray-700">Base de données</span>
+          </div>
+          <p class="text-sm text-gray-900 font-mono">{{ configuration.database }}</p>
+        </div>
+        
+        <div class="bg-white rounded-lg p-4 border border-blue-200">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="material-icons text-blue-600 text-lg">location_city</span>
+            <span class="text-sm font-medium text-gray-700">Ville</span>
+          </div>
+          <p class="text-sm text-gray-900">{{ configuration.ville.name }}</p>
+        </div>
+        
+        <div class="bg-white rounded-lg p-4 border border-blue-200">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="material-icons text-blue-600 text-lg">person</span>
+            <span class="text-sm font-medium text-gray-700">Utilisateur</span>
+          </div>
+          <p class="text-sm text-gray-900 font-mono">{{ configuration.biostar_username }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

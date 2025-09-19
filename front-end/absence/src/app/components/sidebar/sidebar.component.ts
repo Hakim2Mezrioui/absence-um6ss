@@ -206,6 +206,12 @@ export class SidebarComponent implements OnInit {
       tooltip: 'Gestion des rattrapages'
     },
     {
+      label: 'Configuration',
+      icon: 'settings',
+      route: '/dashboard/configuration',
+      tooltip: 'Configuration de la base de données'
+    },
+    {
       label: 'Statistiques',
       icon: 'analytics',
       route: '/dashboard/statistiques',
