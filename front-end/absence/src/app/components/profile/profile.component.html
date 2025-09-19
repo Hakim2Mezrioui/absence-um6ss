@@ -62,6 +62,10 @@
             <span class="material-icons">business</span>
             {{ getEtablissementName() }}
           </span>
+          <span class="profile-meta__item" *ngIf="getVilleName() !== 'Non spécifiée'">
+            <span class="material-icons">location_on</span>
+            {{ getVilleName() }}
+          </span>
         </div>
       </div>
       
@@ -162,9 +166,25 @@
             </div>
             
             <div class="profile-field">
-              <label class="profile-field__label">Rôle</label>
+              <label class="profile-field__label">Ville</label>
               <div class="profile-field__value">
-                <span class="profile-role-badge">{{ getRoleName() }}</span>
+                <span *ngIf="!isEditing">{{ getVilleName() }}</span>
+                <div *ngIf="isEditing" class="profile-field__select-wrapper">
+                  <select [(ngModel)]="editForm.ville_id"
+                          class="profile-field__select">
+                    <option value="">Sélectionner une ville</option>
+                    <option *ngFor="let ville of villes" 
+                            [value]="ville.id"
+                            [selected]="editForm.ville_id === ville.id">
+                      {{ ville.name }}
+                    </option>
+                  </select>
+                  <span class="profile-field__select-icon material-icons">keyboard_arrow_down</span>
+                </div>
+                <div *ngIf="isEditing && isLoadingVilles" class="profile-field__loading">
+                  <span class="material-icons">refresh</span>
+                  Chargement des villes...
+                </div>
               </div>
             </div>
             
@@ -189,6 +209,13 @@
                        [(ngModel)]="editForm.position"
                        class="profile-field__input"
                        disabled>
+              </div>
+            </div>
+            
+            <div class="profile-field">
+              <label class="profile-field__label">Rôle</label>
+              <div class="profile-field__value">
+                <span class="profile-role-badge">{{ getRoleName() }}</span>
               </div>
             </div>
           </div>

@@ -727,9 +727,21 @@
     color: #f1f5f9;
   }
   
+  .profile-field__select-icon {
+    color: #94a3b8;
+  }
+  
+  .profile-field__select:hover + .profile-field__select-icon {
+    color: #cbd5e1;
+  }
+  
   .profile-field__input:focus,
   .profile-field__select:focus {
     border-color: #3b82f6;
+  }
+  
+  .profile-field__select:focus + .profile-field__select-icon {
+    color: #3b82f6;
   }
   
   .profile-field__checkbox label {
@@ -817,6 +829,89 @@
 
 .profile-section {
   animation: fadeIn 0.4s ease-out;
+}
+
+/* ===== SELECT STYLES ===== */
+.profile-field__select-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.profile-field__select {
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background: transparent;
+  padding-right: 40px;
+  transition: all 0.2s ease;
+  flex: 1;
+}
+
+.profile-field__select-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6b7280;
+  font-size: 20px;
+  pointer-events: none;
+  transition: all 0.2s ease;
+  z-index: 1;
+}
+
+.profile-field__select:hover {
+  border-color: #9ca3af;
+}
+
+.profile-field__select:hover + .profile-field__select-icon {
+  color: #374151;
+  transform: translateY(-50%) scale(1.1);
+}
+
+.profile-field__select:focus {
+  transform: scale(1.02);
+}
+
+.profile-field__select:focus + .profile-field__select-icon {
+  color: #3b82f6;
+  transform: translateY(-50%) scale(1.1);
+}
+
+.profile-field__select option {
+  padding: 8px;
+  color: #1e293b;
+}
+
+.profile-field__select option:first-child {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+/* Animation pour l'icône du select */
+.profile-field__select:active {
+  transform: translateY(1px);
+}
+
+.profile-field__select:active + .profile-field__select-icon {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+/* ===== LOADING STATE FOR VILLES ===== */
+.profile-field__loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  color: #64748b;
+  font-size: 14px;
+  font-style: italic;
+}
+
+.profile-field__loading .material-icons {
+  font-size: 18px;
+  animation: spin 1s linear infinite;
 }
 
 /* ===== PRINT STYLES ===== */

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { ProfileService, UserProfile } from '../../services/profile.service';
+import { VilleService, Ville } from '../../services/ville.service';
 
 @Component({
   selector: 'app-profile',
@@ -25,6 +26,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     email: '',
     department: '',
     position: '',
+    ville_id: null as number | null,
     preferences: {
       language: 'fr',
       theme: 'light',
@@ -42,10 +44,18 @@ export class ProfileComponent implements OnInit, OnDestroy {
   selectedFile: File | null = null;
   avatarPreview: string | null = null;
 
-  constructor(private profileService: ProfileService) {}
+  // Villes
+  villes: Ville[] = [];
+  isLoadingVilles = false;
+
+  constructor(
+    private profileService: ProfileService,
+    private villeService: VilleService
+  ) {}
 
   ngOnInit(): void {
     this.loadUserProfile();
+    this.loadVilles();
   }
 
   ngOnDestroy(): void {
@@ -76,6 +86,23 @@ export class ProfileComponent implements OnInit, OnDestroy {
       });
   }
 
+  loadVilles(): void {
+    this.isLoadingVilles = true;
+    this.villeService.getAllVilles()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (villes) => {
+          this.villes = villes;
+          this.isLoadingVilles = false;
+        },
+        error: (error) => {
+          console.error('Erreur lors du chargement des villes:', error);
+          this.villes = [];
+          this.isLoadingVilles = false;
+        }
+      });
+  }
+
   populateEditForm(): void {
     if (this.userProfile) {
       this.editForm = {
@@ -84,6 +111,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
         email: this.userProfile.email || '',
         department: this.userProfile.etablissement?.name || '',
         position: this.userProfile.post?.name || '',
+        ville_id: this.userProfile.ville_id || null,
         preferences: {
           language: this.userProfile.preferences?.language || 'fr',
           theme: this.userProfile.preferences?.theme || 'light',
@@ -114,9 +142,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       first_name: this.editForm.first_name,
       last_name: this.editForm.last_name,
       email: this.editForm.email,
-      department: this.editForm.department,
-      position: this.editForm.position,
-      preferences: this.editForm.preferences
+      ville_id: this.editForm.ville_id
     };
 
     this.profileService.updateUserProfile(updateData)
@@ -232,5 +258,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   getEtablissementName(): string {
     return this.userProfile ? this.profileService.getEtablissementName(this.userProfile) : '';
+  }
+
+  getVilleName(): string {
+    return this.userProfile ? this.profileService.getVilleName(this.userProfile) : '';
   }
 }

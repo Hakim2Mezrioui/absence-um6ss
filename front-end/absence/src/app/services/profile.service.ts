@@ -13,6 +13,7 @@ export interface UserProfile {
   role_id: number;
   post_id: number;
   etablissement_id: number;
+  ville_id?: number;
   created_at: string;
   updated_at: string;
   role: {
@@ -31,6 +32,12 @@ export interface UserProfile {
     id: number;
     name: string;
     ville_id: number;
+    created_at: string;
+    updated_at: string;
+  };
+  ville?: {
+    id: number;
+    name: string;
     created_at: string;
     updated_at: string;
   };
@@ -387,5 +394,12 @@ export class ProfileService {
    */
   getEtablissementName(profile: UserProfile): string {
     return profile.etablissement?.name || 'Non spécifié';
+  }
+
+  /**
+   * Obtenir le nom de la ville
+   */
+  getVilleName(profile: UserProfile): string {
+    return profile.ville?.name || 'Non spécifiée';
   }
 }

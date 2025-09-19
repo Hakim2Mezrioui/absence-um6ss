@@ -26,6 +26,7 @@ class User extends Authenticatable
         'role_id',
         'post_id',
         'etablissement_id',
+        'ville_id',
     ];
 
     /**
@@ -78,5 +79,13 @@ class User extends Authenticatable
     public function etablissement()
     {
         return $this->belongsTo(Etablissement::class);
+    }
+
+    /**
+     * Get the ville that owns the user.
+     */
+    public function ville()
+    {
+        return $this->belongsTo(Ville::class);
     }
 }

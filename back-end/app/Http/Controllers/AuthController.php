@@ -50,6 +50,7 @@ class AuthController extends Controller
             'role_id' => 'required|integer|exists:roles,id',
             'post_id' => 'required|integer|exists:posts,id',
             'etablissement_id' => 'nullable|integer|exists:etablissements,id',
+            'ville_id' => 'nullable|integer|exists:villes,id',
         ]);
 
         $user = User::create([
@@ -60,6 +61,7 @@ class AuthController extends Controller
             'role_id' => $request->role_id,
             'post_id' => $request->post_id,
             'etablissement_id' => $request->etablissement_id,
+            'ville_id' => $request->ville_id,
         ]);
 
         $token = $user->createToken('token')->plainTextToken;
@@ -97,6 +99,7 @@ class AuthController extends Controller
             "role_id" => ["required", "integer", "exists:roles,id"],
             "post_id" => ["required", "integer", "exists:posts,id"],
             "etablissement_id" => ["nullable", "integer", "exists:etablissements,id"],
+            "ville_id" => ["nullable", "integer", "exists:villes,id"],
         ]);
 
         try {
@@ -109,6 +112,7 @@ class AuthController extends Controller
                 "role_id" => $request->role_id,
                 "post_id" => $request->post_id,
                 "etablissement_id" => $request->etablissement_id,
+                "ville_id" => $request->ville_id,
             ]);
 
             return response()->json([
@@ -129,7 +133,7 @@ class AuthController extends Controller
 
     public function users() {
         try {
-            $users = User::with(['role', 'post', 'etablissement'])->get(); // Ajouter les relations
+            $users = User::with(['role', 'post', 'etablissement', 'ville'])->get(); // Ajouter les relations
             return response()->json([
                 "users" => $users,
             ]);
@@ -152,7 +156,7 @@ class AuthController extends Controller
 
     public function show($id) {
         try {
-            $user = User::with(['role', 'post', 'etablissement'])->findOrFail($id);
+            $user = User::with(['role', 'post', 'etablissement', 'ville'])->findOrFail($id);
             return response()->json([
                 "status" => "success",
                 "user" => $user
@@ -194,7 +198,7 @@ class AuthController extends Controller
         }
         
         // Charger les relations nécessaires
-        $user->load(['role', 'post', 'etablissement']);
+        $user->load(['role', 'post', 'etablissement', 'ville']);
         
         return response()->json([
             "status" => "success",
@@ -291,11 +295,12 @@ class AuthController extends Controller
                 "role_id" => ["sometimes", "integer", "exists:roles,id"],
                 "post_id" => ["sometimes", "integer", "exists:posts,id"],
                 "etablissement_id" => ["sometimes", "nullable", "integer", "exists:etablissements,id"],
+                "ville_id" => ["sometimes", "nullable", "integer", "exists:villes,id"],
             ]);
 
             // Mise à jour des champs fournis
             $updateData = $request->only([
-                'first_name', 'last_name', 'email', 'role_id', 'post_id', 'etablissement_id'
+                'first_name', 'last_name', 'email', 'role_id', 'post_id', 'etablissement_id', 'ville_id'
             ]);
 
             // Hacher le mot de passe si fourni
@@ -306,7 +311,7 @@ class AuthController extends Controller
             $user->update($updateData);
 
             // Recharger l'utilisateur avec les relations
-            $user->load(['role', 'post', 'etablissement']);
+            $user->load(['role', 'post', 'etablissement', 'ville']);
 
             return response()->json([
                 "status" => "success",
