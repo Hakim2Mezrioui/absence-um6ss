@@ -30,7 +30,8 @@ interface Ville {
   styleUrl: './configuration.component.css'
 })
 export class ConfigurationComponent implements OnInit {
-  configuration: Configuration = {
+  configurations: Configuration[] = [];
+  currentConfiguration: Configuration = {
     sqlsrv: '',
     database: '',
     trustServerCertificate: 'true',
@@ -45,26 +46,28 @@ export class ConfigurationComponent implements OnInit {
   isTestingConnection = false;
   message = '';
   messageType = '';
+  activeTab = 'list'; // 'list' or 'add'
+  editingId: number | null = null;
 
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
-    this.loadConfiguration();
+    this.loadConfigurations();
     this.loadVilles();
   }
 
-  loadConfiguration(): void {
+  loadConfigurations(): void {
     this.isLoading = true;
     this.http.get<any>(`${environment.apiUrl}/configuration`).subscribe({
       next: (response) => {
         if (response.success && response.data) {
-          this.configuration = response.data;
+          this.configurations = response.data;
         }
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading configuration:', error);
-        this.showMessage('Erreur lors du chargement de la configuration', 'error');
+        console.error('Error loading configurations:', error);
+        this.showMessage('Erreur lors du chargement des configurations', 'error');
         this.isLoading = false;
       }
     });
@@ -85,10 +88,17 @@ export class ConfigurationComponent implements OnInit {
 
   saveConfiguration(): void {
     this.isSaving = true;
-    this.http.put<any>(`${environment.apiUrl}/configuration`, this.configuration).subscribe({
-      next: (response) => {
+    const url = this.editingId 
+      ? `${environment.apiUrl}/configuration/${this.editingId}`
+      : `${environment.apiUrl}/configuration`;
+    const method = this.editingId ? 'put' : 'post';
+    
+    this.http[method](url, this.currentConfiguration).subscribe({
+      next: (response: any) => {
         if (response.success) {
           this.showMessage('Configuration sauvegardée avec succès', 'success');
+          this.loadConfigurations();
+          this.resetForm();
         } else {
           this.showMessage('Erreur lors de la sauvegarde', 'error');
         }
@@ -104,7 +114,7 @@ export class ConfigurationComponent implements OnInit {
 
   testConnection(): void {
     this.isTestingConnection = true;
-    this.http.post<any>(`${environment.apiUrl}/configuration/test-connection`, this.configuration).subscribe({
+    this.http.post<any>(`${environment.apiUrl}/configuration/test-connection`, this.currentConfiguration).subscribe({
       next: (response) => {
         if (response.success) {
           this.showMessage('Connexion testée avec succès', 'success');
@@ -141,5 +151,55 @@ export class ConfigurationComponent implements OnInit {
       default:
         return 'bg-gray-100 border-gray-400 text-gray-700';
     }
+  }
+
+  // New methods for tab management
+  setActiveTab(tab: string): void {
+    this.activeTab = tab;
+    if (tab === 'add') {
+      this.resetForm();
+    }
+  }
+
+  resetForm(): void {
+    this.currentConfiguration = {
+      sqlsrv: '',
+      database: '',
+      trustServerCertificate: 'true',
+      biostar_username: '',
+      biostar_password: '',
+      ville_id: 0
+    };
+    this.editingId = null;
+  }
+
+  editConfiguration(config: Configuration): void {
+    this.currentConfiguration = { ...config };
+    this.editingId = config.id || null;
+    this.activeTab = 'add';
+  }
+
+  deleteConfiguration(id: number): void {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cette configuration ?')) {
+      this.http.delete<any>(`${environment.apiUrl}/configuration/${id}`).subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.showMessage('Configuration supprimée avec succès', 'success');
+            this.loadConfigurations();
+          } else {
+            this.showMessage('Erreur lors de la suppression', 'error');
+          }
+        },
+        error: (error) => {
+          console.error('Error deleting configuration:', error);
+          this.showMessage('Erreur lors de la suppression de la configuration', 'error');
+        }
+      });
+    }
+  }
+
+  getVilleName(villeId: number): string {
+    const ville = this.villes.find(v => v.id === villeId);
+    return ville ? ville.name : 'Ville inconnue';
   }
 }

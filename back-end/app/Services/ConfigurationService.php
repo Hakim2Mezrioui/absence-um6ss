@@ -14,13 +14,23 @@ class ConfigurationService extends BaseService
     {
         parent::__construct(Configuration::class);
     }
-    public function getConfiguration()
+    public function getAllConfigurations()
     {
         try {
-            $configuration = Configuration::with('ville')->first();
+            $configurations = Configuration::with('ville')->get();
+            return $this->successResponse($configurations, 'Configurations retrieved successfully');
+        } catch (\Exception $e) {
+            return $this->errorResponse('Error retrieving configurations: ' . $e->getMessage(), 500);
+        }
+    }
+
+    public function getConfigurationByVille($villeId)
+    {
+        try {
+            $configuration = Configuration::with('ville')->where('ville_id', $villeId)->first();
             
             if (!$configuration) {
-                return $this->errorResponse('Configuration not found', 404);
+                return $this->errorResponse('Configuration not found for this ville', 404);
             }
 
             return $this->successResponse($configuration, 'Configuration retrieved successfully');
@@ -29,12 +39,13 @@ class ConfigurationService extends BaseService
         }
     }
 
-    public function updateConfiguration($data)
+    public function createOrUpdateConfiguration($data)
     {
         try {
             DB::beginTransaction();
 
-            $configuration = Configuration::first();
+            // Check if configuration already exists for this ville
+            $configuration = Configuration::where('ville_id', $data['ville_id'])->first();
             
             if (!$configuration) {
                 $configuration = new Configuration();
@@ -45,10 +56,45 @@ class ConfigurationService extends BaseService
 
             DB::commit();
 
+            return $this->successResponse($configuration->load('ville'), 'Configuration saved successfully');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->errorResponse('Error saving configuration: ' . $e->getMessage(), 500);
+        }
+    }
+
+    public function updateConfiguration($id, $data)
+    {
+        try {
+            DB::beginTransaction();
+
+            $configuration = Configuration::findOrFail($id);
+            $configuration->fill($data);
+            $configuration->save();
+
+            DB::commit();
+
             return $this->successResponse($configuration->load('ville'), 'Configuration updated successfully');
         } catch (\Exception $e) {
             DB::rollBack();
             return $this->errorResponse('Error updating configuration: ' . $e->getMessage(), 500);
+        }
+    }
+
+    public function deleteConfiguration($id)
+    {
+        try {
+            DB::beginTransaction();
+
+            $configuration = Configuration::findOrFail($id);
+            $configuration->delete();
+
+            DB::commit();
+
+            return $this->successResponse(null, 'Configuration deleted successfully');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->errorResponse('Error deleting configuration: ' . $e->getMessage(), 500);
         }
     }
 

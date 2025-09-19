@@ -45,7 +45,10 @@ Route::get("profile", [AuthController::class, "profile"])->middleware('auth:sanc
 Route::middleware('auth:sanctum')->group(function () {
 // Configuration routes
 Route::get('configuration', [ConfigurationController::class, 'index']);
-Route::put('configuration', [ConfigurationController::class, 'update']);
+Route::get('configuration/ville/{villeId}', [ConfigurationController::class, 'getByVille']);
+Route::post('configuration', [ConfigurationController::class, 'store']);
+Route::put('configuration/{id}', [ConfigurationController::class, 'update']);
+Route::delete('configuration/{id}', [ConfigurationController::class, 'destroy']);
 Route::post('configuration/test-connection', [ConfigurationController::class, 'testConnection']);
 Route::get('configuration/villes', [ConfigurationController::class, 'getVilles']);
 

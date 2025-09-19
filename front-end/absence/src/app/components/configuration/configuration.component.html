@@ -15,10 +15,34 @@
               </h1>
               <p class="mt-2 text-gray-600 flex items-center gap-2">
                 <span class="material-icons text-blue-600 text-lg">info</span>
-                Configurez la connexion à la base de données SQL Server pour Biostar
+                Gérez les configurations de connexion à la base de données SQL Server par ville
               </p>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="mb-6">
+      <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+        <div class="flex">
+          <button
+            (click)="setActiveTab('list')"
+            [class]="activeTab === 'list' ? 'bg-blue-600 text-white' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'"
+            class="flex-1 px-6 py-4 text-center font-medium transition-all duration-200 flex items-center justify-center gap-2"
+          >
+            <span class="material-icons text-lg">list</span>
+            <span>Liste des Configurations</span>
+          </button>
+          <button
+            (click)="setActiveTab('add')"
+            [class]="activeTab === 'add' ? 'bg-blue-600 text-white' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'"
+            class="flex-1 px-6 py-4 text-center font-medium transition-all duration-200 flex items-center justify-center gap-2"
+          >
+            <span class="material-icons text-lg">{{ editingId ? 'edit' : 'add' }}</span>
+            <span>{{ editingId ? 'Modifier Configuration' : 'Ajouter Configuration' }}</span>
+          </button>
         </div>
       </div>
     </div>
@@ -33,7 +57,99 @@
       </div>
     </div>
 
+    <!-- Liste des configurations -->
+    <div *ngIf="activeTab === 'list'" class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+      <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200 p-6">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center">
+            <span class="material-icons text-white text-lg">list</span>
+          </div>
+          <div>
+            <h2 class="text-xl font-semibold text-gray-800">Configurations par Ville</h2>
+            <p class="text-sm text-gray-600">Gérez les configurations de base de données pour chaque ville</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-6">
+        <div *ngIf="isLoading" class="flex items-center justify-center py-8">
+          <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span class="ml-3 text-gray-600">Chargement des configurations...</span>
+        </div>
+
+        <div *ngIf="!isLoading && configurations.length === 0" class="text-center py-8">
+          <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span class="material-icons text-gray-400 text-2xl">settings</span>
+          </div>
+          <h3 class="text-lg font-medium text-gray-900 mb-2">Aucune configuration trouvée</h3>
+          <p class="text-gray-600 mb-4">Commencez par ajouter une configuration pour une ville</p>
+          <button
+            (click)="setActiveTab('add')"
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Ajouter une configuration
+          </button>
+        </div>
+
+        <div *ngIf="!isLoading && configurations.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div *ngFor="let config of configurations" class="bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex items-start justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center">
+                  <span class="material-icons text-white text-lg">location_city</span>
+                </div>
+                <div>
+                  <h3 class="font-semibold text-gray-900">{{ getVilleName(config.ville_id) }}</h3>
+                  <p class="text-sm text-gray-600">Configuration de base de données</p>
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <button
+                  (click)="editConfiguration(config)"
+                  class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+                  title="Modifier"
+                >
+                  <span class="material-icons text-sm">edit</span>
+                </button>
+                <button
+                  (click)="deleteConfiguration(config.id!)"
+                  class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                  title="Supprimer"
+                >
+                  <span class="material-icons text-sm">delete</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="space-y-3">
+              <div class="grid grid-cols-[24px_80px_1fr] gap-2 items-center">
+                <span class="material-icons text-blue-600 text-sm">dns</span>
+                <span class="text-sm text-gray-600">Serveur:</span>
+                <span class="text-sm font-mono text-gray-900">{{ config.sqlsrv }}</span>
+              </div>
+              <div class="grid grid-cols-[24px_80px_1fr] gap-2 items-center">
+                <span class="material-icons text-blue-600 text-sm">storage</span>
+                <span class="text-sm text-gray-600">Base:</span>
+                <span class="text-sm font-mono text-gray-900">{{ config.database }}</span>
+              </div>
+              <div class="grid grid-cols-[24px_80px_1fr] gap-2 items-center">
+                <span class="material-icons text-blue-600 text-sm">person</span>
+                <span class="text-sm text-gray-600">Utilisateur:</span>
+                <span class="text-sm font-mono text-gray-900">{{ config.biostar_username }}</span>
+              </div>
+              <div class="grid grid-cols-[24px_80px_1fr] gap-2 items-center">
+                <span class="material-icons text-blue-600 text-sm">verified</span>
+                <span class="text-sm text-gray-600">Certificat:</span>
+                <span class="text-sm text-gray-900">{{ config.trustServerCertificate === 'true' ? 'Oui' : 'Non' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Formulaire de configuration -->
+    <div *ngIf="activeTab === 'add'">
     <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
       <form (ngSubmit)="saveConfiguration()" class="space-y-0">
         <!-- Section Paramètres de Connexion -->
@@ -58,7 +174,7 @@
               <input
                 type="text"
                 id="sqlsrv"
-                [(ngModel)]="configuration.sqlsrv"
+                [(ngModel)]="currentConfiguration.sqlsrv"
                 name="sqlsrv"
                 placeholder="10.0.2.148"
                 class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
@@ -75,7 +191,7 @@
               <input
                 type="text"
                 id="database"
-                [(ngModel)]="configuration.database"
+                [(ngModel)]="currentConfiguration.database"
                 name="database"
                 placeholder="BIOSTAR_TA"
                 class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
@@ -107,7 +223,7 @@
               <input
                 type="text"
                 id="biostar_username"
-                [(ngModel)]="configuration.biostar_username"
+                [(ngModel)]="currentConfiguration.biostar_username"
                 name="biostar_username"
                 placeholder="dbuser"
                 class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
@@ -124,7 +240,7 @@
               <input
                 type="password"
                 id="biostar_password"
-                [(ngModel)]="configuration.biostar_password"
+                [(ngModel)]="currentConfiguration.biostar_password"
                 name="biostar_password"
                 placeholder="••••••••"
                 class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
@@ -155,7 +271,7 @@
               </label>
               <select
                 id="trustServerCertificate"
-                [(ngModel)]="configuration.trustServerCertificate"
+                [(ngModel)]="currentConfiguration.trustServerCertificate"
                 name="trustServerCertificate"
                 class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                 required
@@ -173,7 +289,7 @@
               </label>
               <select
                 id="ville_id"
-                [(ngModel)]="configuration.ville_id"
+                [(ngModel)]="currentConfiguration.ville_id"
                 name="ville_id"
                 class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                 required
@@ -189,77 +305,43 @@
 
         <!-- Section Actions -->
         <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-6">
-          <div class="flex flex-col sm:flex-row justify-end gap-4">
+          <div class="flex flex-col sm:flex-row justify-between gap-4">
             <button
               type="button"
-              (click)="testConnection()"
-              [disabled]="isTestingConnection || isLoading"
-              class="px-5 py-2.5 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
+              (click)="setActiveTab('list')"
+              class="px-5 py-2.5 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 flex items-center justify-center gap-2"
             >
-              <span *ngIf="isTestingConnection" class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></span>
-              <span class="material-icons text-base">{{ isTestingConnection ? 'hourglass_empty' : 'wifi_tethering' }}</span>
-              {{ isTestingConnection ? 'Test en cours...' : 'Tester la Connexion' }}
+              <span class="material-icons text-base">arrow_back</span>
+              Retour à la liste
             </button>
 
-            <button
-              type="submit"
-              [disabled]="isSaving || isLoading"
-              class="px-6 py-2.5 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
-            >
-              <span *ngIf="isSaving" class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
-              <span class="material-icons text-base">{{ isSaving ? 'hourglass_empty' : 'save' }}</span>
-              {{ isSaving ? 'Sauvegarde...' : 'Sauvegarder' }}
-            </button>
+            <div class="flex flex-col sm:flex-row gap-4">
+              <button
+                type="button"
+                (click)="testConnection()"
+                [disabled]="isTestingConnection || isLoading"
+                class="px-5 py-2.5 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
+              >
+                <span *ngIf="isTestingConnection" class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></span>
+                <span class="material-icons text-base">{{ isTestingConnection ? 'hourglass_empty' : 'wifi_tethering' }}</span>
+                {{ isTestingConnection ? 'Test en cours...' : 'Tester la Connexion' }}
+              </button>
+
+              <button
+                type="submit"
+                [disabled]="isSaving || isLoading"
+                class="px-6 py-2.5 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
+              >
+                <span *ngIf="isSaving" class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+                <span class="material-icons text-base">{{ isSaving ? 'hourglass_empty' : 'save' }}</span>
+                {{ isSaving ? 'Sauvegarde...' : (editingId ? 'Modifier' : 'Sauvegarder') }}
+              </button>
+            </div>
           </div>
         </div>
       </form>
     </div>
 
-    <!-- Informations sur la configuration actuelle -->
-    <div *ngIf="configuration.ville" class="mt-6 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 shadow-sm">
-      <div class="flex items-center gap-3 mb-4">
-        <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center">
-          <span class="material-icons text-white text-lg">info</span>
-        </div>
-        <div>
-          <h3 class="text-lg font-semibold text-blue-800">Configuration Actuelle</h3>
-          <p class="text-sm text-blue-600">Paramètres actuellement configurés dans le système</p>
-        </div>
-      </div>
-      
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white rounded-lg p-4 border border-blue-200">
-          <div class="flex items-center gap-2 mb-2">
-            <span class="material-icons text-blue-600 text-lg">dns</span>
-            <span class="text-sm font-medium text-gray-700">Serveur</span>
-          </div>
-          <p class="text-sm text-gray-900 font-mono">{{ configuration.sqlsrv }}</p>
-        </div>
-        
-        <div class="bg-white rounded-lg p-4 border border-blue-200">
-          <div class="flex items-center gap-2 mb-2">
-            <span class="material-icons text-blue-600 text-lg">database</span>
-            <span class="text-sm font-medium text-gray-700">Base de données</span>
-          </div>
-          <p class="text-sm text-gray-900 font-mono">{{ configuration.database }}</p>
-        </div>
-        
-        <div class="bg-white rounded-lg p-4 border border-blue-200">
-          <div class="flex items-center gap-2 mb-2">
-            <span class="material-icons text-blue-600 text-lg">location_city</span>
-            <span class="text-sm font-medium text-gray-700">Ville</span>
-          </div>
-          <p class="text-sm text-gray-900">{{ configuration.ville.name }}</p>
-        </div>
-        
-        <div class="bg-white rounded-lg p-4 border border-blue-200">
-          <div class="flex items-center gap-2 mb-2">
-            <span class="material-icons text-blue-600 text-lg">person</span>
-            <span class="text-sm font-medium text-gray-700">Utilisateur</span>
-          </div>
-          <p class="text-sm text-gray-900 font-mono">{{ configuration.biostar_username }}</p>
-        </div>
-      </div>
     </div>
   </div>
 </div>

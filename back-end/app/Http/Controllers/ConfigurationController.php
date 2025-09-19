@@ -16,17 +16,25 @@ class ConfigurationController extends Controller
     }
 
     /**
-     * Get current configuration
+     * Get all configurations
      */
     public function index(): JsonResponse
     {
-        return $this->configurationService->getConfiguration();
+        return $this->configurationService->getAllConfigurations();
     }
 
     /**
-     * Update configuration
+     * Get configuration by ville
      */
-    public function update(Request $request): JsonResponse
+    public function getByVille($villeId): JsonResponse
+    {
+        return $this->configurationService->getConfigurationByVille($villeId);
+    }
+
+    /**
+     * Create or update configuration for a ville
+     */
+    public function store(Request $request): JsonResponse
     {
         $request->validate([
             'sqlsrv' => 'required|string|max:255',
@@ -37,7 +45,32 @@ class ConfigurationController extends Controller
             'ville_id' => 'required|exists:villes,id'
         ]);
 
-        return $this->configurationService->updateConfiguration($request->all());
+        return $this->configurationService->createOrUpdateConfiguration($request->all());
+    }
+
+    /**
+     * Update configuration
+     */
+    public function update(Request $request, $id): JsonResponse
+    {
+        $request->validate([
+            'sqlsrv' => 'required|string|max:255',
+            'database' => 'required|string|max:255',
+            'trustServerCertificate' => 'required|string|in:true,false',
+            'biostar_username' => 'required|string|max:255',
+            'biostar_password' => 'required|string|max:255',
+            'ville_id' => 'required|exists:villes,id'
+        ]);
+
+        return $this->configurationService->updateConfiguration($id, $request->all());
+    }
+
+    /**
+     * Delete configuration
+     */
+    public function destroy($id): JsonResponse
+    {
+        return $this->configurationService->deleteConfiguration($id);
     }
 
     /**

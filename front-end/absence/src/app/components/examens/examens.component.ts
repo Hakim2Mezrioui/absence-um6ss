@@ -136,6 +136,7 @@ export class ExamensComponent implements OnInit, OnDestroy {
         heure_debut: '09:00:00',
         heure_fin: '11:00:00',
         heure_debut_poigntage: '08:30:00',
+        tolerance: 15,
         salle_id: 1,
         promotion_id: 1,
         type_examen_id: 1,
