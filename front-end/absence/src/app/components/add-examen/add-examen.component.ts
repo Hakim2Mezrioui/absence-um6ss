@@ -7,6 +7,7 @@ import { ExamensService, Examen } from '../../services/examens.service';
 import { NotificationService } from '../../services/notification.service';
 import { TypesExamenService, TypeExamen } from '../../services/types-examen.service';
 import { Subject, takeUntil } from 'rxjs';
+import { SallesService, CreateSalleRequest, Salle } from '../../services/salles.service';
 
 @Component({
   selector: 'app-add-examen',
@@ -24,11 +25,18 @@ export class AddExamenComponent implements OnInit, OnDestroy {
   etablissements: any[] = [];
   promotions: any[] = [];
   salles: any[] = [];
+  filteredSalles: any[] = [];
   options: any[] = [];
   groups: any[] = [];
   villes: any[] = [];
   typesExamen: TypeExamen[] = [];
   anneesUniversitaires: string[] = [];
+  salleSearchTerm = '';
+
+  // Quick add salle modal state
+  showAddSalleModal = false;
+  newSalleForm: FormGroup;
+  salleDropdownOpen = false;
   
   private destroy$ = new Subject<void>();
 
@@ -37,7 +45,8 @@ export class AddExamenComponent implements OnInit, OnDestroy {
     private notificationService: NotificationService,
     private fb: FormBuilder,
     private typesExamenService: TypesExamenService,
-    private router: Router
+    private router: Router,
+    private sallesService: SallesService
   ) {
     this.examenForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(3)]],
@@ -53,7 +62,17 @@ export class AddExamenComponent implements OnInit, OnDestroy {
       salle_id: ['', Validators.required],
       group_id: ['', Validators.required],
       ville_id: ['', Validators.required],
-      annee_universitaire: ['', Validators.required]
+      annee_universitaire: ['', Validators.required],
+      all_groups: [false]
+    });
+
+    this.newSalleForm = this.fb.group({
+      name: ['', [Validators.required, Validators.minLength(2)]],
+      batiment: [''],
+      etage: [0],
+      capacite: [null],
+      description: [''],
+      etablissement_id: [null, Validators.required]
     });
   }
 
@@ -93,6 +112,7 @@ export class AddExamenComponent implements OnInit, OnDestroy {
           this.etablissements = response.etablissements || [];
           this.promotions = response.promotions || [];
           this.salles = response.salles || [];
+          this.updateFilteredSalles();
           this.options = response.options || [];
           this.groups = response.groups || [];
           this.villes = response.villes || [];
@@ -100,6 +120,99 @@ export class AddExamenComponent implements OnInit, OnDestroy {
         error: (err) => {
           console.error('Error loading filter options:', err);
           this.error = 'Erreur lors du chargement des options';
+        }
+      });
+  }
+
+  onSalleSearch(term: string): void {
+    this.salleSearchTerm = term || '';
+    this.updateFilteredSalles();
+  }
+
+  updateFilteredSalles(): void {
+    const term = this.salleSearchTerm.trim().toLowerCase();
+    if (!term) {
+      this.filteredSalles = [...this.salles];
+      return;
+    }
+    this.filteredSalles = (this.salles || []).filter((s: any) => {
+      const name = (s?.name || '').toString().toLowerCase();
+      const batiment = (s?.batiment || '').toString().toLowerCase();
+      return name.includes(term) || batiment.includes(term);
+    });
+  }
+
+  openAddSalleModal(): void {
+    const etabId = this.examenForm.get('etablissement_id')?.value || null;
+    this.newSalleForm.reset({
+      name: '',
+      batiment: '',
+      etage: 0,
+      capacite: null,
+      description: '',
+      etablissement_id: etabId
+    });
+    this.showAddSalleModal = true;
+  }
+
+  closeAddSalleModal(): void {
+    this.showAddSalleModal = false;
+  }
+
+  toggleSalleDropdown(): void {
+    this.salleDropdownOpen = !this.salleDropdownOpen;
+  }
+
+  closeSalleDropdown(): void {
+    this.salleDropdownOpen = false;
+  }
+
+  selectSalle(salle: any): void {
+    if (!salle) {
+      this.examenForm.patchValue({ salle_id: '' });
+    } else {
+      this.examenForm.patchValue({ salle_id: salle.id });
+    }
+    this.closeSalleDropdown();
+  }
+
+  getSalleName(id: number | string): string {
+    const numericId = Number(id);
+    const found = (this.salles || []).find((s: any) => Number(s?.id) === numericId);
+    return found?.name || 'Salle sélectionnée';
+  }
+
+  submitNewSalle(): void {
+    if (this.newSalleForm.invalid) {
+      Object.values(this.newSalleForm.controls).forEach(c => c.markAsTouched());
+      return;
+    }
+    const payload: CreateSalleRequest = {
+      name: this.newSalleForm.value.name,
+      batiment: this.newSalleForm.value.batiment || '',
+      etage: Number(this.newSalleForm.value.etage) || 0,
+      etablissement_id: Number(this.newSalleForm.value.etablissement_id),
+      capacite: this.newSalleForm.value.capacite ? Number(this.newSalleForm.value.capacite) : undefined,
+      description: this.newSalleForm.value.description || undefined
+    };
+
+    this.loading = true;
+    this.sallesService.createSalle(payload)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          const created: Salle = res.salle;
+          this.salles = [created, ...this.salles];
+          this.updateFilteredSalles();
+          this.examenForm.patchValue({ salle_id: created.id });
+          this.notificationService.success('Salle créée', 'La salle a été ajoutée et sélectionnée');
+          this.closeAddSalleModal();
+          this.loading = false;
+        },
+        error: (err) => {
+          console.error('Error creating salle:', err);
+          this.notificationService.error('Erreur', 'Impossible de créer la salle');
+          this.loading = false;
         }
       });
   }
@@ -123,7 +236,11 @@ export class AddExamenComponent implements OnInit, OnDestroy {
       this.loading = true;
       this.error = '';
 
-      const formData = this.examenForm.value;
+      const formData = { ...this.examenForm.value };
+      if (formData.group_id === 'ALL') {
+        formData.all_groups = true;
+        formData.group_id = null;
+      }
       
       // Validation de la date et heure
       if (formData.heure_fin <= formData.heure_debut) {

@@ -132,8 +132,8 @@ class ExamenController extends Controller
     }
 
     public function store(Request $request) {
-        // Validate the request input
-        $request->validate([
+        // Build validation rules to support "Tous les groupes"
+        $rules = [
             'title' => 'required|string|max:255',
             'date' => 'required|date',
             'heure_debut_poigntage' => 'required',
@@ -146,9 +146,19 @@ class ExamenController extends Controller
             'type_examen_id' => 'required|exists:types_examen,id',
             'etablissement_id' => 'required|exists:etablissements,id',
             'annee_universitaire' => 'required|string|max:255',
-            'group_id' => 'required|exists:groups,id',
             'ville_id' => 'required|exists:villes,id',
-        ]);
+            'all_groups' => 'nullable|boolean',
+        ];
+
+        // If not all groups, require a specific group_id; otherwise allow nullable
+        if (!$request->boolean('all_groups')) {
+            $rules['group_id'] = 'required|exists:groups,id';
+        } else {
+            $rules['group_id'] = 'nullable|exists:groups,id';
+        }
+
+        // Validate the request input
+        $request->validate($rules);
 
         // Create a new Examen
         $examen = Examen::create([
@@ -173,8 +183,8 @@ class ExamenController extends Controller
     }
 
     public function update(Request $request, $id) {
-        // Validate the request input
-        $request->validate([
+        // Build validation rules to support "Tous les groupes"
+        $rules = [
             'title' => 'required|string|max:255',
             'date' => 'required|date',
             'heure_debut_poigntage' => 'required',
@@ -186,9 +196,17 @@ class ExamenController extends Controller
             'promotion_id' => 'required|exists:promotions,id',
             'type_examen_id' => 'required|exists:types_examen,id',
             'etablissement_id' => 'required|exists:etablissements,id',
-            'group_id' => 'required|exists:groups,id',
             'ville_id' => 'required|exists:villes,id',
-        ]);
+            'all_groups' => 'nullable|boolean',
+        ];
+
+        if (!$request->boolean('all_groups')) {
+            $rules['group_id'] = 'required|exists:groups,id';
+        } else {
+            $rules['group_id'] = 'nullable|exists:groups,id';
+        }
+
+        $request->validate($rules);
 
         // Find the Examen by id
         $examen = Examen::find($id);
@@ -197,7 +215,8 @@ class ExamenController extends Controller
         }
 
         // Update the Examen with the new data
-        $examen->update($request->only(['title', 'date', 'heure_debut_poigntage', 'heure_debut', 'heure_fin', 'tolerance', 'option_id', 'salle_id', 'promotion_id', 'type_examen_id', 'etablissement_id', 'group_id', 'ville_id']));
+        $payload = $request->only(['title', 'date', 'heure_debut_poigntage', 'heure_debut', 'heure_fin', 'tolerance', 'option_id', 'salle_id', 'promotion_id', 'type_examen_id', 'etablissement_id', 'group_id', 'ville_id']);
+        $examen->update($payload);
 
         // Return the updated Examen as a JSON response
         return response()->json($examen, 200);
