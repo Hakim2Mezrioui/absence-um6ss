@@ -109,11 +109,26 @@ class EtudiantController extends Controller
         $formattedDate = date('Y-m-d', strtotime($date));
         $formattedTime1 = date('H:i:s', strtotime($heure1));
         $formattedTime2 = date('H:i:s', strtotime($heure2));
-        $promotion_id = $request->input("promotion_id", 1);
-        $etablissement_id = $request->input("etablissement_id", 1);
+        $promotion_id = $request->input("promotion_id", null);
+        $etablissement_id = $request->input("etablissement_id", null);
         $ville_id = $request->input("ville_id", null);
         $group_id = $request->query("group_id", null);
         $option_id = $request->query("option_id", null);
+
+        // Si un examen est trouvé, utiliser ses méta-données comme valeurs par défaut
+        if ($examen) {
+            if (empty($promotion_id) || $promotion_id === 'null') {
+                $promotion_id = $examen->promotion_id;
+            }
+            if (empty($etablissement_id) || $etablissement_id === 'null') {
+                $etablissement_id = $examen->etablissement_id;
+            }
+            if (empty($ville_id) || $ville_id === 'null') {
+                $ville_id = $examen->ville_id ?? null;
+            }
+            // IMPORTANT: ne pas déduire group_id/option_id de l'examen
+            // Si le client ne fournit pas group_id ou option_id, on n'applique PAS ces filtres
+        }
 
         // Initialize variables
         $biostarResults = [];
