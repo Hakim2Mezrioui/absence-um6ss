@@ -1,16 +1,21 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { HttpClientModule } from '@angular/common/http';
+import { RouterModule, Router } from '@angular/router';
 import { CoursService, Cours } from '../../services/cours.service';
+import { NotificationService } from '../../services/notification.service';
+import { SallesService, CreateSalleRequest, Salle } from '../../services/salles.service';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-add-cours',
-  imports: [CommonModule, FormsModule],
+  standalone: true,
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, HttpClientModule, RouterModule],
   templateUrl: './add-cours.component.html',
   styleUrl: './add-cours.component.css'
 })
-export class AddCoursComponent implements OnInit {
+export class AddCoursComponent implements OnInit, OnDestroy {
   cours: Partial<Cours> = {
     name: '',
     date: '',
@@ -39,40 +44,69 @@ export class AddCoursComponent implements OnInit {
   etablissements: any[] = [];
   promotions: any[] = [];
   salles: any[] = [];
+  filteredSalles: any[] = [];
   typesCours: any[] = [];
   options: any[] = [];
   groups: any[] = [];
   villes: any[] = [];
+  salleSearchTerm = '';
 
   // Années universitaires
   anneesUniversitaires: string[] = [];
 
+  // Quick add salle modal state
+  showAddSalleModal = false;
+  newSalleForm: FormGroup;
+  salleDropdownOpen = false;
+  
+  private destroy$ = new Subject<void>();
+
   constructor(
     private coursService: CoursService,
-    private router: Router
-  ) {}
+    private notificationService: NotificationService,
+    private fb: FormBuilder,
+    private router: Router,
+    private sallesService: SallesService
+  ) {
+    this.newSalleForm = this.fb.group({
+      name: ['', [Validators.required, Validators.minLength(2)]],
+      batiment: [''],
+      etage: [0],
+      capacite: [null],
+      description: [''],
+      etablissement_id: [null, Validators.required]
+    });
+  }
 
   ngOnInit() {
     this.loadFilterOptions();
     this.generateAnneesUniversitaires();
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   loadFilterOptions() {
-    this.coursService.getFilterOptions().subscribe({
-      next: (options) => {
-        this.etablissements = options.etablissements || [];
-        this.promotions = options.promotions || [];
-        this.salles = options.salles || [];
-        this.typesCours = options.types_cours || [];
-        this.options = options.options || [];
-        this.groups = options.groups || [];
-        this.villes = options.villes || [];
-      },
-      error: (error) => {
-        this.error = 'Erreur lors du chargement des options';
-        console.error('Erreur:', error);
-      }
-    });
+    this.coursService.getFilterOptions()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (options) => {
+          this.etablissements = options.etablissements || [];
+          this.promotions = options.promotions || [];
+          this.salles = options.salles || [];
+          this.updateFilteredSalles();
+          this.typesCours = options.types_cours || [];
+          this.options = options.options || [];
+          this.groups = options.groups || [];
+          this.villes = options.villes || [];
+        },
+        error: (error) => {
+          this.error = 'Erreur lors du chargement des options';
+          console.error('Erreur:', error);
+        }
+      });
   }
 
   generateAnneesUniversitaires() {
@@ -285,5 +319,99 @@ export class AddCoursComponent implements OnInit {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+  }
+
+  // Méthodes pour la gestion des salles
+  onSalleSearch(term: string): void {
+    this.salleSearchTerm = term || '';
+    this.updateFilteredSalles();
+  }
+
+  updateFilteredSalles(): void {
+    const term = this.salleSearchTerm.trim().toLowerCase();
+    if (!term) {
+      this.filteredSalles = [...this.salles];
+      return;
+    }
+    this.filteredSalles = (this.salles || []).filter((s: any) => {
+      const name = (s?.name || '').toString().toLowerCase();
+      const batiment = (s?.batiment || '').toString().toLowerCase();
+      return name.includes(term) || batiment.includes(term);
+    });
+  }
+
+  openAddSalleModal(): void {
+    const etabId = this.cours.etablissement_id || null;
+    this.newSalleForm.reset({
+      name: '',
+      batiment: '',
+      etage: 0,
+      capacite: null,
+      description: '',
+      etablissement_id: etabId
+    });
+    this.showAddSalleModal = true;
+  }
+
+  closeAddSalleModal(): void {
+    this.showAddSalleModal = false;
+  }
+
+  toggleSalleDropdown(): void {
+    this.salleDropdownOpen = !this.salleDropdownOpen;
+  }
+
+  closeSalleDropdown(): void {
+    this.salleDropdownOpen = false;
+  }
+
+  selectSalle(salle: any): void {
+    if (!salle) {
+      this.cours.salle_id = undefined;
+    } else {
+      this.cours.salle_id = salle.id;
+    }
+    this.closeSalleDropdown();
+  }
+
+  getSalleName(id: number | string): string {
+    const numericId = Number(id);
+    const found = (this.salles || []).find((s: any) => Number(s?.id) === numericId);
+    return found?.name || 'Salle sélectionnée';
+  }
+
+  submitNewSalle(): void {
+    if (this.newSalleForm.invalid) {
+      Object.values(this.newSalleForm.controls).forEach(c => c.markAsTouched());
+      return;
+    }
+    const payload: CreateSalleRequest = {
+      name: this.newSalleForm.value.name,
+      batiment: this.newSalleForm.value.batiment || '',
+      etage: Number(this.newSalleForm.value.etage) || 0,
+      etablissement_id: Number(this.newSalleForm.value.etablissement_id),
+      capacite: this.newSalleForm.value.capacite ? Number(this.newSalleForm.value.capacite) : undefined,
+      description: this.newSalleForm.value.description || undefined
+    };
+
+    this.loading = true;
+    this.sallesService.createSalle(payload)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          const created: Salle = res.salle;
+          this.salles = [created, ...this.salles];
+          this.updateFilteredSalles();
+          this.cours.salle_id = created.id;
+          this.notificationService.success('Salle créée', 'La salle a été ajoutée et sélectionnée');
+          this.closeAddSalleModal();
+          this.loading = false;
+        },
+        error: (err) => {
+          console.error('Error creating salle:', err);
+          this.notificationService.error('Erreur', 'Impossible de créer la salle');
+          this.loading = false;
+        }
+      });
   }
 }
