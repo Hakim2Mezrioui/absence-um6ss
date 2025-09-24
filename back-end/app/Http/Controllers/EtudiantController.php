@@ -96,7 +96,7 @@ class EtudiantController extends Controller
         $heure2 = $request->input('hour2', '10:00'); // Default end time if not provided
         
         // Récupérer l'heure de début de pointage et la salle depuis l'examen correspondant
-        $examen = \App\Models\Examen::with('salle')
+        $examen = \App\Models\Examen::with(['salle', 'promotion', 'etablissement', 'ville', 'typeExamen', 'option'])
             ->where('date', $date)
             ->where('heure_debut', $heure1)
             ->where('heure_fin', $heure2)
@@ -190,6 +190,50 @@ class EtudiantController extends Controller
             
             // Check if any students were found
             if ($localStudents->isEmpty()) {
+                // Préparer les informations complètes de l'examen pour le cas d'erreur
+                $examenInfo = null;
+                if ($examen) {
+                    $examenInfo = [
+                        'id' => $examen->id,
+                        'date' => $examen->date,
+                        'heure_debut' => $examen->heure_debut,
+                        'heure_fin' => $examen->heure_fin,
+                        'heure_debut_poigntage' => $examen->heure_debut_poigntage,
+                        'tolerance' => $examen->tolerance,
+                        'salle' => $examen->salle ? [
+                            'id' => $examen->salle->id,
+                            'name' => $examen->salle->name,
+                            'capacity' => $examen->salle->capacity ?? null,
+                            'location' => $examen->salle->location ?? null
+                        ] : null,
+                        'promotion' => $examen->promotion ? [
+                            'id' => $examen->promotion->id,
+                            'name' => $examen->promotion->name,
+                            'year' => $examen->promotion->year ?? null
+                        ] : null,
+                        'etablissement' => $examen->etablissement ? [
+                            'id' => $examen->etablissement->id,
+                            'name' => $examen->etablissement->name,
+                            'address' => $examen->etablissement->address ?? null
+                        ] : null,
+                        'ville' => $examen->ville ? [
+                            'id' => $examen->ville->id,
+                            'name' => $examen->ville->name
+                        ] : null,
+                        'type_examen' => $examen->typeExamen ? [
+                            'id' => $examen->typeExamen->id,
+                            'name' => $examen->typeExamen->name,
+                            'description' => $examen->typeExamen->description ?? null
+                        ] : null,
+                        'option' => $examen->option ? [
+                            'id' => $examen->option->id,
+                            'name' => $examen->option->name
+                        ] : null,
+                        'created_at' => $examen->created_at,
+                        'updated_at' => $examen->updated_at
+                    ];
+                }
+                
                 return response()->json([
                     "message" => "Aucun étudiant trouvé avec les critères spécifiés",
                     "date" => $date,
@@ -198,6 +242,7 @@ class EtudiantController extends Controller
                     "heure_fin" => $heure2,
                     "tolerance" => $examen ? $examen->tolerance : 15,
                     "salle" => $salle,
+                    "examen" => $examenInfo,
                     "filtres_appliques" => [
                         'promotion_id' => $promotion_id,
                         'etablissement_id' => $etablissement_id,
@@ -255,6 +300,45 @@ class EtudiantController extends Controller
             // ca marche pas bien ici
 
             
+            // Préparer les informations complètes de l'examen
+            $examenInfo = null;
+            if ($examen) {
+                $examenInfo = [
+                    'id' => $examen->id,
+                    'date' => $examen->date,
+                    'heure_debut' => $examen->heure_debut,
+                    'heure_fin' => $examen->heure_fin,
+                    'heure_debut_poigntage' => $examen->heure_debut_poigntage,
+                    'tolerance' => $examen->tolerance,
+                    'salle' => $examen->salle ? [
+                        'id' => $examen->salle->id,
+                        'name' => $examen->salle->name,
+                    ] : null,
+                    'promotion' => $examen->promotion ? [
+                        'id' => $examen->promotion->id,
+                        'name' => $examen->promotion->name,
+                    ] : null,
+                    'etablissement' => $examen->etablissement ? [
+                        'id' => $examen->etablissement->id,
+                        'name' => $examen->etablissement->name,
+                    ] : null,
+                    'ville' => $examen->ville ? [
+                        'id' => $examen->ville->id,
+                        'name' => $examen->ville->name
+                    ] : null,
+                    'type_examen' => $examen->typeExamen ? [
+                        'id' => $examen->typeExamen->id,
+                        'name' => $examen->typeExamen->name,
+                    ] : null,
+                    'option' => $examen->option ? [
+                        'id' => $examen->option->id,
+                        'name' => $examen->option->name
+                    ] : null,
+                    'created_at' => $examen->created_at,
+                    'updated_at' => $examen->updated_at
+                ];
+            }
+            
             return response()->json([
                 "message" => "Liste des étudiants avec statut de présence",
                 "date" => $date,
@@ -263,7 +347,7 @@ class EtudiantController extends Controller
                 "heure_fin" => $heure2,
                 "tolerance" => $examen ? $examen->tolerance : 15,
                 "salle" => $salle,
-                "examen_id" => $examen ? $examen->id : null,
+                "examen" => $examenInfo,
                 "logique_presence" => [
                     "heure_debut_examen" => $heure1,
                     "heure_debut_pointage" => $heureDebutPointage,

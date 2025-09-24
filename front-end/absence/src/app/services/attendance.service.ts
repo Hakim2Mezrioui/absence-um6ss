@@ -73,6 +73,40 @@ export interface AttendanceResponse {
   tolerance?: number;
   salle?: string;
   examen_id?: number;
+  examen?: {
+    id: number;
+    date: string;
+    heure_debut: string;
+    heure_fin: string;
+    heure_debut_poigntage?: string;
+    tolerance: number;
+    salle?: {
+      id: number;
+      name: string;
+    };
+    promotion?: {
+      id: number;
+      name: string;
+    };
+    etablissement?: {
+      id: number;
+      name: string;
+    };
+    ville?: {
+      id: number;
+      name: string;
+    };
+    type_examen?: {
+      id: number;
+      name: string;
+    };
+    option?: {
+      id: number;
+      name: string;
+    };
+    created_at: string;
+    updated_at: string;
+  };
   total_etudiants: number;
   presents: number;
   absents: number;

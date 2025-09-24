@@ -32,6 +32,8 @@ export class CoursComponent implements OnInit {
   promotions: any[] = [];
   salles: any[] = [];
   typesCours: any[] = [];
+  groups: any[] = [];
+  villes: any[] = [];
 
   constructor(
     private coursService: CoursService,
@@ -107,6 +109,8 @@ export class CoursComponent implements OnInit {
         this.promotions = options.promotions || [];
         this.salles = options.salles || [];
         this.typesCours = options.types_cours || [];
+        this.groups = options.groups || [];
+        this.villes = options.villes || [];
       },
       error: (error) => {
         console.error('Erreur lors du chargement des options de filtre:', error);

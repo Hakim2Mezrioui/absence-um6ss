@@ -74,6 +74,36 @@
           </select>
         </div>
 
+        <!-- Ville -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Ville</label>
+          <select
+            [(ngModel)]="filters.ville_id"
+            (change)="onFilterChange()"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">Toutes</option>
+            <option *ngFor="let ville of villes" [value]="ville.id">
+              {{ ville.name }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Groupe -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Groupe</label>
+          <select
+            [(ngModel)]="filters.group_id"
+            (change)="onFilterChange()"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">Tous</option>
+            <option *ngFor="let group of groups" [value]="group.id">
+              {{ group.name }}
+            </option>
+          </select>
+        </div>
+
         <!-- Type de cours -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Type de cours</label>
@@ -291,6 +321,32 @@
             <div>
               <div class="text-sm font-medium text-gray-900">Option</div>
               <div class="text-sm text-gray-600">{{ coursItem.option?.name || 'N/A' }}</div>
+            </div>
+          </div>
+
+          <!-- Groupe -->
+          <div class="flex items-center space-x-3">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M9 20H4v-2a3 3 0 015.356-1.857M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a3 3 0 11-6 0 3 3 0 016 0zM9 10a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            <div>
+              <div class="text-sm font-medium text-gray-900">Groupe</div>
+              <div class="text-sm text-gray-600">{{ coursItem.group?.name || 'N/A' }}</div>
+            </div>
+          </div>
+
+          <!-- Ville -->
+          <div class="flex items-center space-x-3">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c1.657 0 3-1.343 3-3S13.657 5 12 5 9 6.343 9 8s1.343 3 3 3zm0 10s7-6.268 7-11a7 7 0 10-14 0c0 4.732 7 11 7 11z" />
+              </svg>
+            </div>
+            <div>
+              <div class="text-sm font-medium text-gray-900">Ville</div>
+              <div class="text-sm text-gray-600">{{ coursItem.ville?.name || 'N/A' }}</div>
             </div>
           </div>
 

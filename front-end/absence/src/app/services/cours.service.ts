@@ -15,6 +15,8 @@ export interface Cours {
   type_cours_id: number;
   salle_id: number;
   option_id?: number;
+  group_id?: number;
+  ville_id?: number;
   annee_universitaire: string;
   statut_temporel?: 'passé' | 'en_cours' | 'futur'; // Calculé côté frontend
   created_at: string;
@@ -39,6 +41,15 @@ export interface Cours {
     id: number;
     name: string;
   };
+  group?: {
+    id: number;
+    name: string;
+    title?: string;
+  };
+  ville?: {
+    id: number;
+    name: string;
+  };
 }
 
 export interface CoursResponse {
@@ -56,6 +67,8 @@ export interface CoursFilters {
   promotion_id?: number;
   salle_id?: number;
   type_cours_id?: number;
+  group_id?: number;
+  ville_id?: number;
   searchValue?: string;
   date?: string;
 }

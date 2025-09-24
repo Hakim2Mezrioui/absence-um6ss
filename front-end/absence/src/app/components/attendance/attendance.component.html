@@ -81,7 +81,7 @@
           <span class="material-icons text-purple-500">school</span>
           <div class="min-w-0">
             <div class="text-[11px] text-gray-500">Promotion</div>
-            <div class="font-medium text-gray-900 truncate">{{ students[0]?.promotion?.name || 'N/A' }}</div>
+            <div class="font-medium text-gray-900 truncate">{{ examData?.promotion?.name || 'N/A' }}</div>
           </div>
         </div>
         <div class="flex items-center gap-2 truncate">
@@ -95,7 +95,7 @@
           <span class="material-icons text-emerald-500">category</span>
           <div class="min-w-0">
             <div class="text-[11px] text-gray-500">Option</div>
-            <div class="font-medium text-gray-900 truncate">{{ students[0]?.option?.name || 'N/A' }}</div>
+            <div class="font-medium text-gray-900 truncate">{{ examData?.option?.name || 'N/A' }}</div>
           </div>
         </div>
         <div class="flex items-center gap-2 truncate">
@@ -568,7 +568,7 @@
                   </div>
                   <div>
                     <span class="text-sm text-gray-600">Option:</span>
-                    <span class="ml-2 text-sm text-gray-900">{{ selectedStudent.option?.name || 'N/A' }}</span>
+                    <span class="ml-2 text-sm text-gray-900">{{ examData?.option?.name || 'N/A' }}</span>
                   </div>
                 </div>
               </div>

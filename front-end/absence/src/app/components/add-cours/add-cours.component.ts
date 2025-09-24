@@ -23,6 +23,8 @@ export class AddCoursComponent implements OnInit {
     type_cours_id: 0,
     salle_id: 0,
     option_id: undefined,
+    group_id: undefined,
+    ville_id: 0,
     annee_universitaire: '' // Sera défini dans generateAnneesUniversitaires()
   };
 
@@ -39,6 +41,8 @@ export class AddCoursComponent implements OnInit {
   salles: any[] = [];
   typesCours: any[] = [];
   options: any[] = [];
+  groups: any[] = [];
+  villes: any[] = [];
 
   // Années universitaires
   anneesUniversitaires: string[] = [];
@@ -61,6 +65,8 @@ export class AddCoursComponent implements OnInit {
         this.salles = options.salles || [];
         this.typesCours = options.types_cours || [];
         this.options = options.options || [];
+        this.groups = options.groups || [];
+        this.villes = options.villes || [];
       },
       error: (error) => {
         this.error = 'Erreur lors du chargement des options';
@@ -106,6 +112,8 @@ export class AddCoursComponent implements OnInit {
       type_cours_id: Number(this.cours.type_cours_id),
       salle_id: Number(this.cours.salle_id),
       option_id: this.cours.option_id ? Number(this.cours.option_id) : undefined,
+      group_id: this.cours.group_id ? Number(this.cours.group_id) : undefined,
+      ville_id: Number(this.cours.ville_id),
       tolerance: this.formatToleranceToTime(this.toleranceMinutes)
     };
 
@@ -176,6 +184,11 @@ export class AddCoursComponent implements OnInit {
       return false;
     }
 
+    if (!this.cours.ville_id || this.cours.ville_id === 0) {
+      this.error = 'La ville est requise';
+      return false;
+    }
+
     if (!this.cours.annee_universitaire) {
       this.error = 'L\'année universitaire est requise';
       return false;
@@ -215,6 +228,8 @@ export class AddCoursComponent implements OnInit {
       type_cours_id: 0,
       salle_id: 0,
       option_id: undefined,
+      group_id: undefined,
+      ville_id: 0,
       annee_universitaire: `${currentYear}-${currentYear + 1}`
     };
     this.toleranceMinutes = 15;

@@ -37,6 +37,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   examSalle = '';
   examTolerance = 15; // Tolérance par défaut en minutes
   examId: number | null = null;
+  examData: any = null; // Données complètes de l'examen
   
   // Étudiant sélectionné pour les détails
   selectedStudent: StudentAttendance | null = null;
@@ -152,6 +153,11 @@ export class AttendanceComponent implements OnInit, OnDestroy {
           this.examSalle = response.salle || 'N/A';
           this.examTolerance = response.tolerance || 15;
           this.examId = response.examen_id || null;
+          this.examData = response.examen || null;
+          
+          // Debug: Vérifier les données de l'examen
+          console.log('🔍 Données de l\'examen:', this.examData);
+          console.log('🔍 Option de l\'examen:', this.examData?.option);
           
           // Appliquer la logique de tolérance aux étudiants
           this.applyToleranceLogic();

@@ -20,7 +20,9 @@ class Cours extends Model
         'promotion_id',
         'type_cours_id',
         'salle_id',
-        'option_id'
+        'option_id',
+        'group_id',
+        'ville_id'
     ];
 
     protected $casts = [
@@ -69,6 +71,22 @@ class Cours extends Model
     public function option(): BelongsTo
     {
         return $this->belongsTo(Option::class);
+    }
+
+    /**
+     * Get the group that owns the cours.
+     */
+    public function group(): BelongsTo
+    {
+        return $this->belongsTo(Group::class);
+    }
+
+    /**
+     * Get the ville that owns the cours.
+     */
+    public function ville(): BelongsTo
+    {
+        return $this->belongsTo(Ville::class);
     }
 
 }

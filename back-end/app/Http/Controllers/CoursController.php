@@ -20,10 +20,12 @@ class CoursController extends Controller
         $promotion_id = $request->query('promotion_id');
         $salle_id = $request->query('salle_id');
         $type_cours_id = $request->query('type_cours_id');
+        $group_id = $request->query('group_id');
+        $ville_id = $request->query('ville_id');
         $searchValue = $request->query('searchValue', '');
         $date = $request->query('date');
 
-        $query = Cours::with(['etablissement', 'promotion', 'type_cours', 'salle', 'option']);
+        $query = Cours::with(['etablissement', 'promotion', 'type_cours', 'salle', 'option', 'group', 'ville']);
 
         // Appliquer les filtres
         if (!empty($etablissement_id)) {
@@ -40,6 +42,14 @@ class CoursController extends Controller
 
         if (!empty($type_cours_id)) {
             $query->where('type_cours_id', $type_cours_id);
+        }
+
+        if (!empty($group_id)) {
+            $query->where('group_id', $group_id);
+        }
+
+        if (!empty($ville_id)) {
+            $query->where('ville_id', $ville_id);
         }
 
         if (!empty($searchValue)) {
@@ -71,7 +81,7 @@ class CoursController extends Controller
      */
     public function show($id)
     {
-        $cours = Cours::with(['etablissement', 'promotion', 'type_cours', 'salle', 'option'])->find($id);
+        $cours = Cours::with(['etablissement', 'promotion', 'type_cours', 'salle', 'option', 'group', 'ville'])->find($id);
         if (!$cours) {
             return response()->json(['message' => 'Cours non trouvé'], 404);
         }
@@ -96,11 +106,13 @@ class CoursController extends Controller
             'type_cours_id' => 'required|exists:types_cours,id',
             'salle_id' => 'required|exists:salles,id',
             'option_id' => 'nullable|exists:options,id',
+            'group_id' => 'nullable|exists:groups,id',
+            'ville_id' => 'required|exists:villes,id',
             'annee_universitaire' => 'required|string|max:9'
         ]);
 
         $cours = Cours::create($validatedData);
-        $cours->load(['etablissement', 'promotion', 'type_cours', 'salle', 'option']);
+        $cours->load(['etablissement', 'promotion', 'type_cours', 'salle', 'option', 'group', 'ville']);
 
         return response()->json(['message' => 'Cours ajouté avec succès', 'cours' => $cours], 201);
     }
@@ -127,11 +139,13 @@ class CoursController extends Controller
             'type_cours_id' => 'sometimes|exists:types_cours,id',
             'salle_id' => 'sometimes|exists:salles,id',
             'option_id' => 'nullable|exists:options,id',
+            'group_id' => 'nullable|exists:groups,id',
+            'ville_id' => 'sometimes|exists:villes,id',
             'annee_universitaire' => 'sometimes|string|max:9'
         ]);
 
         $cours->update($validatedData);
-        $cours->load(['etablissement', 'promotion', 'type_cours', 'salle', 'option']);
+        $cours->load(['etablissement', 'promotion', 'type_cours', 'salle', 'option', 'group', 'ville']);
 
         return response()->json(['message' => 'Cours mis à jour avec succès', 'cours' => $cours]);
     }
@@ -312,12 +326,24 @@ class CoursController extends Controller
                 ->orderBy('name')
                 ->get();
 
+            // Récupérer les groupes
+            $groups = \App\Models\Group::select('id', \DB::raw('title as name'))
+                ->orderBy('title')
+                ->get();
+
+            // Récupérer les villes
+            $villes = \App\Models\Ville::select('id', 'name')
+                ->orderBy('name')
+                ->get();
+
             return response()->json([
                 'etablissements' => $etablissements,
                 'promotions' => $promotions,
                 'salles' => $salles,
                 'types_cours' => $typesCours,
-                'options' => $options
+                'options' => $options,
+                'groups' => $groups,
+                'villes' => $villes
             ]);
         } catch (\Exception $e) {
             return response()->json([
