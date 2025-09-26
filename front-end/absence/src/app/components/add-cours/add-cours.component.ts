@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
@@ -28,7 +28,6 @@ export class AddCoursComponent implements OnInit, OnDestroy {
     type_cours_id: 0,
     salle_id: 0,
     option_id: undefined,
-    group_id: undefined,
     ville_id: 0,
     annee_universitaire: '' // Sera défini dans generateAnneesUniversitaires()
   };
@@ -48,6 +47,10 @@ export class AddCoursComponent implements OnInit, OnDestroy {
   typesCours: any[] = [];
   options: any[] = [];
   groups: any[] = [];
+  filteredGroups: any[] = [];
+  selectedGroups: number[] = [];
+  groupsDropdownOpen = false;
+  groupSearchTerm = '';
   villes: any[] = [];
   salleSearchTerm = '';
 
@@ -88,6 +91,21 @@ export class AddCoursComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event): void {
+    // Fermer le dropdown des salles si on clique en dehors
+    if (this.salleDropdownOpen) {
+      const target = event.target as HTMLElement;
+      const salleDropdown = target.closest('.salle-dropdown');
+      const salleButton = target.closest('#salle-dropdown-button');
+      
+      if (!salleDropdown && !salleButton) {
+        this.closeSalleDropdown();
+      }
+    }
+  }
+
+
   loadFilterOptions() {
     this.coursService.getFilterOptions()
       .pipe(takeUntil(this.destroy$))
@@ -100,6 +118,7 @@ export class AddCoursComponent implements OnInit, OnDestroy {
           this.typesCours = options.types_cours || [];
           this.options = options.options || [];
           this.groups = options.groups || [];
+          this.updateFilteredGroups();
           this.villes = options.villes || [];
         },
         error: (error) => {
@@ -146,9 +165,9 @@ export class AddCoursComponent implements OnInit, OnDestroy {
       type_cours_id: Number(this.cours.type_cours_id),
       salle_id: Number(this.cours.salle_id),
       option_id: this.cours.option_id ? Number(this.cours.option_id) : undefined,
-      group_id: this.cours.group_id ? Number(this.cours.group_id) : undefined,
       ville_id: Number(this.cours.ville_id),
-      tolerance: this.formatToleranceToTime(this.toleranceMinutes)
+      tolerance: this.formatToleranceToTime(this.toleranceMinutes),
+      group_ids: this.selectedGroups // Envoyer les groupes sélectionnés
     };
 
     this.coursService.createCours(coursData).subscribe({
@@ -262,7 +281,6 @@ export class AddCoursComponent implements OnInit, OnDestroy {
       type_cours_id: 0,
       salle_id: 0,
       option_id: undefined,
-      group_id: undefined,
       ville_id: 0,
       annee_universitaire: `${currentYear}-${currentYear + 1}`
     };
@@ -340,6 +358,46 @@ export class AddCoursComponent implements OnInit, OnDestroy {
     });
   }
 
+  // Groups dropdown helpers
+  onGroupSearch(term: string): void {
+    this.groupSearchTerm = term || '';
+    this.updateFilteredGroups();
+  }
+
+  updateFilteredGroups(): void {
+    const term = (this.groupSearchTerm || '').trim().toLowerCase();
+    if (!term) {
+      this.filteredGroups = [...(this.groups || [])];
+      return;
+    }
+    this.filteredGroups = (this.groups || []).filter((g: any) => {
+      const name = (g?.name || '').toString().toLowerCase();
+      return name.includes(term);
+    });
+  }
+
+  toggleGroupsDropdown(): void {
+    this.groupsDropdownOpen = !this.groupsDropdownOpen;
+  }
+
+  isGroupSelected(groupId: number): boolean {
+    return this.selectedGroups.includes(groupId);
+  }
+
+  toggleGroupSelection(groupId: number): void {
+    const index = this.selectedGroups.indexOf(groupId);
+    if (index > -1) {
+      this.selectedGroups.splice(index, 1);
+    } else {
+      this.selectedGroups.push(groupId);
+    }
+  }
+
+  getGroupName(groupId: number): string {
+    const group = this.groups.find(g => g.id === groupId);
+    return group ? group.name : 'Groupe inconnu';
+  }
+
   openAddSalleModal(): void {
     const etabId = this.cours.etablissement_id || null;
     this.newSalleForm.reset({
@@ -378,6 +436,10 @@ export class AddCoursComponent implements OnInit, OnDestroy {
     const numericId = Number(id);
     const found = (this.salles || []).find((s: any) => Number(s?.id) === numericId);
     return found?.name || 'Salle sélectionnée';
+  }
+
+  trackBySalleId(index: number, salle: any): any {
+    return salle?.id || index;
   }
 
   submitNewSalle(): void {

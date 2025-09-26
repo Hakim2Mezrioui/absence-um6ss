@@ -28,7 +28,6 @@ return new class extends Migration
             $table->foreignId('type_cours_id')->constrained('types_cours')->onDelete('cascade');
             $table->foreignId('salle_id')->constrained('salles')->onDelete('cascade');
             $table->foreignId('option_id')->nullable()->constrained('options')->onDelete('cascade');
-            $table->foreignId('group_id')->nullable()->constrained('groups')->onDelete('cascade');
             $table->foreignId('ville_id')->constrained('villes')->onDelete('cascade');
             $table->string('annee_universitaire')->comment('Format: YYYY-YYYY (ex: 2024-2025)');
             $table->timestamps();

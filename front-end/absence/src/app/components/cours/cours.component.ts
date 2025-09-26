@@ -277,4 +277,11 @@ export class CoursComponent implements OnInit {
     
     return pages;
   }
+
+  getGroupsNames(groups: any[] | undefined): string {
+    if (!groups || groups.length === 0) {
+      return 'N/A';
+    }
+    return groups.map(group => group.name).join(', ');
+  }
 }

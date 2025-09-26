@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Carbon\Carbon;
 
 class Cours extends Model
@@ -21,7 +22,6 @@ class Cours extends Model
         'type_cours_id',
         'salle_id',
         'option_id',
-        'group_id',
         'ville_id'
     ];
 
@@ -74,11 +74,11 @@ class Cours extends Model
     }
 
     /**
-     * Get the group that owns the cours.
+     * Get the groups that belong to the cours.
      */
-    public function group(): BelongsTo
+    public function groups(): BelongsToMany
     {
-        return $this->belongsTo(Group::class);
+        return $this->belongsToMany(Group::class, 'cours_groups');
     }
 
     /**

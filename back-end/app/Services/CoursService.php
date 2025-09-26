@@ -23,7 +23,7 @@ class CoursService
      */
     public function getCoursById(int $id): ?Cours
     {
-        return Cours::with(['etablissement', 'faculte', 'salle', 'typeCours'])->find($id);
+        return Cours::with(['etablissement', 'promotion', 'salle', 'type_cours', 'option', 'ville', 'groups'])->find($id);
     }
 
     /**
@@ -31,7 +31,19 @@ class CoursService
      */
     public function createCours(array $data): Cours
     {
-        return Cours::create($data);
+        // Extract group_ids from data
+        $groupIds = $data['group_ids'] ?? [];
+        unset($data['group_ids']); // Remove from main data
+        
+        // Create the course
+        $cours = Cours::create($data);
+        
+        // Attach groups if provided
+        if (!empty($groupIds)) {
+            $cours->groups()->attach($groupIds);
+        }
+        
+        return $cours->load('groups');
     }
 
     /**
@@ -41,8 +53,19 @@ class CoursService
     {
         $cours = Cours::find($id);
         if ($cours) {
+            // Extract group_ids from data
+            $groupIds = $data['group_ids'] ?? [];
+            unset($data['group_ids']); // Remove from main data
+            
+            // Update the course
             $cours->update($data);
-            return $cours->fresh();
+            
+            // Sync groups if provided
+            if (isset($groupIds)) {
+                $cours->groups()->sync($groupIds);
+            }
+            
+            return $cours->fresh(['groups']);
         }
         return null;
     }

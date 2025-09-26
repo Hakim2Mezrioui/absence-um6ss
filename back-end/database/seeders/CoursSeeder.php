@@ -13,7 +13,7 @@ class CoursSeeder extends Seeder
     public function run(): void
     {
         // Créer quelques cours de test
-        Cours::create([
+        $cours1 = Cours::create([
             'name' => 'Mathématiques - Analyse 1',
             'date' => '2024-01-15',
             'pointage_start_hour' => '08:00:00',
@@ -25,11 +25,11 @@ class CoursSeeder extends Seeder
             'type_cours_id' => 1,
             'salle_id' => 1,
             'option_id' => 1,
-            'annee_universitaire' => '2023-2024',
-            'statut_temporel' => 'futur'
+            'ville_id' => 1,
+            'annee_universitaire' => '2023-2024'
         ]);
 
-        Cours::create([
+        $cours2 = Cours::create([
             'name' => 'Physique - Mécanique',
             'date' => '2024-01-16',
             'pointage_start_hour' => '10:00:00',
@@ -41,8 +41,15 @@ class CoursSeeder extends Seeder
             'type_cours_id' => 1,
             'salle_id' => 1,
             'option_id' => 1,
-            'annee_universitaire' => '2023-2024',
-            'statut_temporel' => 'futur'
+            'ville_id' => 1,
+            'annee_universitaire' => '2023-2024'
         ]);
+
+        // Attacher des groupes aux cours (si des groupes existent)
+        if (\App\Models\Group::count() > 0) {
+            $groups = \App\Models\Group::take(2)->pluck('id')->toArray();
+            $cours1->groups()->attach($groups);
+            $cours2->groups()->attach($groups);
+        }
     }
 }

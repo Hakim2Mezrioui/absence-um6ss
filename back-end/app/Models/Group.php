@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Group extends Model
 {
@@ -45,5 +46,13 @@ class Group extends Model
     public function etudiants(): HasMany
     {
         return $this->hasMany(Etudiant::class);
+    }
+
+    /**
+     * Get the cours that belong to the group.
+     */
+    public function cours(): BelongsToMany
+    {
+        return $this->belongsToMany(Cours::class, 'cours_groups');
     }
 }

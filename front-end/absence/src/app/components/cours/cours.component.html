@@ -333,7 +333,7 @@
             </div>
             <div>
               <div class="text-sm font-medium text-gray-900">Groupe</div>
-              <div class="text-sm text-gray-600">{{ coursItem.group?.name || 'N/A' }}</div>
+              <div class="text-sm text-gray-600">{{ getGroupsNames(coursItem.groups) || 'N/A' }}</div>
             </div>
           </div>
 
