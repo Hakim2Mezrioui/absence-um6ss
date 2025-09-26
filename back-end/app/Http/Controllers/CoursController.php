@@ -403,9 +403,12 @@ class CoursController extends Controller
             // Récupérer les paramètres de filtre
             $promotion_id = $request->input("promotion_id", $cours->promotion_id);
             $etablissement_id = $request->input("etablissement_id", $cours->etablissement_id);
-            $ville_id = $request->input("ville_id", null);
+            $ville_id = $request->input("ville_id", $cours->ville_id);
             $group_id = $request->query("group_id", null);
             $option_id = $request->query("option_id", $cours->option_id);
+            
+            // Récupérer les IDs des groupes associés au cours
+            $coursGroupIds = $cours->groups->pluck('id')->toArray();
 
             // Initialize variables
             $biostarResults = [];
@@ -441,6 +444,17 @@ class CoursController extends Controller
             // Fetch students from the local database with relations
             $query = \App\Models\Etudiant::with(['ville', 'group', 'option', 'etablissement', 'promotion']);
             
+            // Filtrer par les groupes du cours (si des groupes sont associés au cours)
+            if (!empty($coursGroupIds)) {
+                $query->whereIn('group_id', $coursGroupIds);
+            }
+            
+            // Filtrer par ville du cours (obligatoire)
+            if (!empty($ville_id) && $ville_id != 'null') {
+                $query->where('ville_id', $ville_id);
+            }
+            
+            // Filtres optionnels supplémentaires
             if (!empty($group_id) && $group_id != 'null') {
                 $query->where('group_id', $group_id);
             }
@@ -451,10 +465,6 @@ class CoursController extends Controller
             
             if (!empty($etablissement_id) && $etablissement_id != 'null') {
                 $query->where('etablissement_id', $etablissement_id);
-            }
-            
-            if (!empty($ville_id) && $ville_id != 'null') {
-                $query->where('ville_id', $ville_id);
             }
             
             if (!empty($promotion_id) && $promotion_id != 'null') {
@@ -487,6 +497,7 @@ class CoursController extends Controller
                         'promotion_id' => $promotion_id,
                         'etablissement_id' => $etablissement_id,
                         'ville_id' => $ville_id,
+                        'cours_group_ids' => $coursGroupIds,
                         'group_id' => $group_id,
                         'option_id' => $option_id
                     ],
