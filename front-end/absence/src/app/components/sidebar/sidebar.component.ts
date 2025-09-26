@@ -33,10 +33,10 @@ export class SidebarComponent implements OnInit {
 
   // Données utilisateur
   userData: any = {
-    name: 'Administrateur',
-    role: 'Admin System',
+    name: 'Utilisateur',
+    role: 'Utilisateur',
     email: '',
-    avatar: 'admin_panel_settings'
+    avatar: 'person'
   };
 
   constructor(
@@ -49,6 +49,11 @@ export class SidebarComponent implements OnInit {
     this.initializeRouteTracking();
     this.setupKeyboardNavigation();
     this.loadUserData();
+    
+    // Recharger les données utilisateur périodiquement pour s'assurer qu'elles sont à jour
+    setInterval(() => {
+      this.loadUserData();
+    }, 30000); // Toutes les 30 secondes
   }
 
   @HostListener('window:resize', ['$event'])
@@ -63,31 +68,39 @@ export class SidebarComponent implements OnInit {
   // Méthode pour charger les données utilisateur depuis les cookies
   private loadUserData(): void {
     try {
-      // Récupérer les données utilisateur depuis les cookies
-      const userCookie = this.cookieService.get('user');
-      const tokenCookie = this.cookieService.get('token');
+      // Récupérer les données utilisateur depuis les cookies avec les bonnes clés
+      const userDataString = this.cookieService.get('user_data');
+      const token = this.cookieService.get('auth_token');
       
-      if (userCookie) {
-        const userData = JSON.parse(userCookie);
+      if (userDataString) {
+        const userData = JSON.parse(userDataString);
+        console.log('Données utilisateur récupérées:', userData);
+        
         this.userData = {
-          name: userData.name || userData.nom || userData.firstname || 'Utilisateur',
-          role: userData.role || userData.role_name || userData.fonction || 'Utilisateur',
-          email: userData.email || userData.email_address || '',
-          avatar: this.getUserAvatar(userData.role || userData.role_name || 'user')
+          name: this.formatUserName(userData),
+          role: this.formatUserRole(userData),
+          email: userData.email || '',
+          avatar: this.getUserAvatar(userData.role_id || userData.role?.name || 'user')
         };
-      } else if (tokenCookie) {
+        
+        console.log('Données utilisateur formatées:', this.userData);
+      } else if (token) {
         // Si pas de données utilisateur mais un token, essayer de décoder le JWT
         try {
-          const payload = JSON.parse(atob(tokenCookie.split('.')[1]));
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          console.log('Payload JWT:', payload);
+          
           this.userData = {
-            name: payload.name || payload.nom || payload.sub || 'Utilisateur',
-            role: payload.role || payload.role_name || 'Utilisateur',
+            name: this.formatUserName(payload),
+            role: this.formatUserRole(payload),
             email: payload.email || '',
             avatar: this.getUserAvatar(payload.role || 'user')
           };
         } catch (e) {
-          console.warn('Impossible de décoder le token JWT');
+          console.warn('Impossible de décoder le token JWT:', e);
         }
+      } else {
+        console.warn('Aucune donnée utilisateur trouvée dans les cookies');
       }
     } catch (error) {
       console.error('Erreur lors du chargement des données utilisateur:', error);
@@ -95,12 +108,70 @@ export class SidebarComponent implements OnInit {
     }
   }
 
+  // Méthode pour formater le nom de l'utilisateur
+  private formatUserName(userData: any): string {
+    // Essayer différentes propriétés possibles pour le nom
+    const firstName = userData.firstname || userData.first_name || userData.prenom || '';
+    const lastName = userData.lastname || userData.last_name || userData.nom || userData.name || '';
+    
+    // Si on a prénom et nom, les combiner
+    if (firstName && lastName) {
+      return `${firstName} ${lastName}`;
+    }
+    
+    // Sinon, utiliser ce qui est disponible
+    return firstName || lastName || userData.username || userData.login || 'Utilisateur';
+  }
+
+  // Méthode pour formater le rôle de l'utilisateur
+  private formatUserRole(userData: any): string {
+    // Essayer différentes propriétés pour le rôle
+    let role = userData.role?.name || userData.role_name || userData.fonction || userData.position || '';
+    
+    // Si on a un role_id, mapper vers le nom de rôle
+    if (!role && userData.role_id) {
+      role = this.getRoleNameById(userData.role_id);
+    }
+    
+    // Formater le rôle pour qu'il soit plus lisible
+    if (role) {
+      // Remplacer les tirets par des espaces et capitaliser
+      return role.replace(/-/g, ' ')
+                 .split(' ')
+                 .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                 .join(' ');
+    }
+    
+    return 'Utilisateur';
+  }
+
+  // Méthode pour mapper les IDs de rôles vers les noms (identique à AuthService)
+  private getRoleNameById(roleId: number): string {
+    const roleMapping: { [key: number]: string } = {
+      1: 'Super Administrateur',
+      2: 'Administrateur', 
+      3: 'Scolarité',
+      4: 'Utilisateur'
+    };
+    
+    return roleMapping[roleId] || 'Utilisateur';
+  }
+
   // Méthode pour déterminer l'icône selon le rôle
-  private getUserAvatar(role: string): string {
+  private getUserAvatar(role: string | number): string {
+    // Si c'est un nombre, mapper vers le nom de rôle
+    if (typeof role === 'number') {
+      role = this.getRoleNameById(role);
+    }
+    
     const roleLower = role.toLowerCase();
     
-    if (roleLower.includes('admin') || roleLower.includes('administrateur')) {
+    if (roleLower.includes('super') || roleLower.includes('super-admin')) {
+      return 'supervisor_account';
+    } else if (roleLower.includes('admin') || roleLower.includes('administrateur')) {
       return 'admin_panel_settings';
+    } else if (roleLower.includes('scolarite') || roleLower.includes('scolarité')) {
+      return 'school';
     } else if (roleLower.includes('prof') || roleLower.includes('enseignant') || roleLower.includes('teacher')) {
       return 'school';
     } else if (roleLower.includes('etudiant') || roleLower.includes('student') || roleLower.includes('élève')) {
@@ -421,6 +492,11 @@ export class SidebarComponent implements OnInit {
         sessionStorage.removeItem(key);
       }
     }
+  }
+
+  // Méthode publique pour recharger les données utilisateur
+  public refreshUserData(): void {
+    this.loadUserData();
   }
 
   // Méthode pour nettoyer les cookies d'authentification
