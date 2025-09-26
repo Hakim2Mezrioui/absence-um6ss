@@ -108,19 +108,40 @@ export class SidebarComponent implements OnInit {
     }
   }
 
-  // Méthode pour formater le nom de l'utilisateur
+  // Méthode pour formater le nom de l'utilisateur de manière professionnelle
   private formatUserName(userData: any): string {
     // Essayer différentes propriétés possibles pour le nom
     const firstName = userData.firstname || userData.first_name || userData.prenom || '';
     const lastName = userData.lastname || userData.last_name || userData.nom || userData.name || '';
     
-    // Si on a prénom et nom, les combiner
+    // Si on a prénom et nom, les combiner avec une mise en forme professionnelle
     if (firstName && lastName) {
-      return `${firstName} ${lastName}`;
+      return `${this.formatNameProperly(firstName)} ${this.formatNameProperly(lastName)}`;
     }
     
-    // Sinon, utiliser ce qui est disponible
-    return firstName || lastName || userData.username || userData.login || 'Utilisateur';
+    // Sinon, utiliser ce qui est disponible avec formatage approprié
+    const name = firstName || lastName || userData.username || userData.login || 'Utilisateur';
+    return this.formatNameProperly(name);
+  }
+
+  // Méthode pour formater un nom de manière professionnelle
+  private formatNameProperly(name: string): string {
+    if (!name) return name;
+    
+    // Supprimer les espaces en début/fin et normaliser les espaces multiples
+    const cleanName = name.trim().replace(/\s+/g, ' ');
+    
+    // Diviser en mots et capitaliser chaque mot
+    return cleanName
+      .split(' ')
+      .map(word => this.capitalizeFirstLetter(word))
+      .join(' ');
+  }
+
+  // Méthode utilitaire pour capitaliser la première lettre
+  private capitalizeFirstLetter(text: string): string {
+    if (!text) return text;
+    return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
   }
 
   // Méthode pour formater le rôle de l'utilisateur
@@ -145,16 +166,28 @@ export class SidebarComponent implements OnInit {
     return 'Utilisateur';
   }
 
-  // Méthode pour mapper les IDs de rôles vers les noms (identique à AuthService)
+  // Méthode pour mapper les IDs de rôles vers les noms avec icônes
   private getRoleNameById(roleId: number): string {
     const roleMapping: { [key: number]: string } = {
-      1: 'Super Administrateur',
+      1: 'Super Admin',
       2: 'Administrateur', 
       3: 'Scolarité',
       4: 'Utilisateur'
     };
     
     return roleMapping[roleId] || 'Utilisateur';
+  }
+
+  // Méthode pour obtenir une description plus détaillée du rôle
+  public getRoleDescription(roleId: number): string {
+    const descriptions: { [key: number]: string } = {
+      1: 'Accès complet au système',
+      2: 'Gestion administrative',
+      3: 'Gestion scolaire',
+      4: 'Accès utilisateur standard'
+    };
+    
+    return descriptions[roleId] || 'Accès standard';
   }
 
   // Méthode pour déterminer l'icône selon le rôle

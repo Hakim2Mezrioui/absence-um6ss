@@ -10,53 +10,57 @@
      role="navigation"
      aria-label="Navigation principale">
   
-  <!-- Header -->
-  <div class="sticky top-0 z-10 bg-gray-800 border-b border-gray-700 min-h-16 flex items-center">
+  <!-- Header Premium -->
+  <div class="sticky top-0 z-10 bg-gradient-to-r from-slate-900/95 via-gray-900/95 to-slate-800/95 backdrop-blur-xl border-b border-slate-700/50 min-h-16 flex items-center shadow-2xl">
     <div class="flex items-center justify-between px-5 py-4 w-full min-h-16"
          [ngClass]="{
            'px-3 justify-center': isCollapsed && !isMobile,
            'px-6': !isCollapsed || isMobile
          }">
-      <!-- Logo et branding -->
+      <!-- Logo et branding Premium -->
       <div class="flex items-center gap-4 transition-all duration-300 ease-in-out"
            *ngIf="!isCollapsed || isMobile">
         <div class="relative flex items-center justify-center">
-          <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl">
-            <span class="material-icons text-white text-xl">school</span>
+          <div class="w-12 h-12 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-2xl ring-2 ring-blue-400/20 transition-all duration-300 hover:-translate-y-1 hover:shadow-3xl hover:ring-blue-400/40 hover:scale-105">
+            <span class="material-icons text-white text-xl drop-shadow-lg">school</span>
           </div>
+          <!-- Effet de brillance -->
+          <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
         </div>
-        <div class="flex flex-col gap-0.5" *ngIf="!isCollapsed || isMobile">
-          <h1 class="text-base font-semibold text-white leading-tight m-0">UM6SS</h1>
-          <p class="text-xs font-medium text-gray-300 leading-tight m-0">Gestion Absences</p>
+        <div class="flex flex-col gap-1" *ngIf="!isCollapsed || isMobile">
+          <h1 class="text-lg font-bold text-white leading-tight m-0 drop-shadow-sm bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">UM6SS</h1>
+          <p class="text-xs font-semibold text-slate-300 leading-tight m-0">Gestion Absences</p>
         </div>
       </div>
       
-      <!-- Toggle button -->
+      <!-- Toggle button Premium -->
       <button 
         (click)="toggleSidebar()"
-        class="relative w-9 h-9 bg-gray-700 rounded-lg cursor-pointer transition-all duration-200 ease border border-gray-600 shadow-lg flex items-center justify-center hover:bg-gray-600 hover:border-gray-500 hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0 active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-800"
+        class="relative w-10 h-10 bg-gradient-to-br from-slate-700/80 to-slate-600/80 backdrop-blur-sm rounded-xl cursor-pointer transition-all duration-300 ease border border-slate-600/50 shadow-xl flex items-center justify-center hover:from-slate-600 hover:to-slate-500 hover:border-slate-500/70 hover:-translate-y-1 hover:shadow-2xl hover:scale-105 active:translate-y-0 active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:ring-offset-2 focus:ring-offset-slate-900"
         [ngClass]="{
-          'mx-auto w-11 h-11': isCollapsed && !isMobile
+          'mx-auto w-12 h-12': isCollapsed && !isMobile
         }"
         [attr.aria-label]="isCollapsed ? 'Ouvrir le menu' : 'Fermer le menu'"
         [attr.aria-expanded]="!isCollapsed">
-        <span class="material-icons text-gray-300 text-lg font-medium transition-all duration-200 ease"
+        <span class="material-icons text-slate-200 text-lg font-medium transition-all duration-300 ease drop-shadow-sm"
               [ngClass]="{
                 'rotate-180': isCollapsed,
                 'text-xl': isCollapsed && !isMobile
               }">
           {{ isCollapsed ? 'menu' : 'menu_open' }}
         </span>
+        <!-- Effet de brillance sur le bouton -->
+        <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
       </button>
     </div>
   </div>
 
-  <!-- Navigation -->
-  <nav class="flex-1 p-0 m-0 pb-24" role="menubar">
-    <div class="px-5 py-6 flex flex-col gap-2"
+  <!-- Navigation Compact -->
+  <nav class="flex-1 p-0 m-0 pb-20 bg-gradient-to-b from-transparent to-slate-900/20" role="menubar">
+    <div class="px-4 py-3 flex flex-col gap-2"
          [ngClass]="{
-           'px-3 gap-3': isCollapsed && !isMobile,
-           'px-6': !isCollapsed || isMobile
+           'px-2 gap-2': isCollapsed && !isMobile,
+           'px-4': !isCollapsed || isMobile
          }">
       <ng-container *ngFor="let item of sidebarItems; let i = index">
         <!-- Élément de navigation -->
@@ -68,13 +72,13 @@
             (mouseleave)="onItemLeave()"
             (touchstart)="onTouchStart($event)"
             (touchend)="onTouchEnd($event)"
-            class="relative w-full h-11 bg-transparent rounded-lg cursor-pointer transition-all duration-200 ease flex items-center my-0.5 hover:bg-gray-800 hover:translate-x-0.5 focus:bg-gray-700 focus:border focus:border-blue-400 focus:translate-x-0.5 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
+            class="relative w-full h-10 bg-transparent rounded-lg cursor-pointer transition-all duration-300 ease flex items-center my-0.5 hover:bg-slate-800/60 hover:translate-x-1 hover:shadow-lg focus:bg-slate-700/80 focus:border focus:border-blue-400/50 focus:translate-x-1 focus:outline-none focus:ring-2 focus:ring-blue-400/30 focus:ring-offset-2 focus:ring-offset-slate-900 backdrop-blur-sm"
             [ngClass]="{
-              'bg-gray-800 border border-gray-600 translate-x-0.5': isActiveRoute(item.route),
-              'hover:bg-gray-800': hoveredItem === item.route,
+              'bg-gradient-to-r from-blue-600/20 to-indigo-600/20 border border-blue-400/30 translate-x-1 shadow-lg backdrop-blur-sm': isActiveRoute(item.route),
+              'hover:bg-slate-800/60': hoveredItem === item.route,
               'opacity-40 cursor-not-allowed pointer-events-none': item.disabled,
-              'justify-center px-2': isCollapsed && !isMobile,
-              'justify-start px-3': !isCollapsed || isMobile
+              'justify-center px-3': isCollapsed && !isMobile,
+              'justify-start px-4': !isCollapsed || isMobile
             }"
             [title]="getTooltipText(item)"
             [attr.aria-label]="item.label"
@@ -83,26 +87,26 @@
             role="menuitem"
             [disabled]="item.disabled">
             
-            <!-- Container principal -->
+            <!-- Container principal Compact -->
             <div class="flex items-center gap-3 w-full relative z-10"
                  [ngClass]="{
                    'justify-center gap-0': isCollapsed && !isMobile,
                    'justify-start gap-3': !isCollapsed || isMobile
                  }">
-              <!-- Icône -->
+              <!-- Icône Compact -->
               <div class="relative flex items-center justify-center flex-shrink-0"
                    [ngClass]="{
-                     'w-10 h-10 mx-auto': isCollapsed && !isMobile,
+                     'w-9 h-9 mx-auto': isCollapsed && !isMobile,
                      'w-7 h-7': !isCollapsed || isMobile
                    }">
-                <div class="w-full h-full bg-gray-700 rounded-md flex items-center justify-center transition-all duration-200 ease border border-gray-600"
+                <div class="w-full h-full bg-gradient-to-br from-slate-700/80 to-slate-600/80 backdrop-blur-sm rounded-lg flex items-center justify-center transition-all duration-300 ease border border-slate-600/50 shadow-lg"
                      [ngClass]="{
-                       'hover:bg-gray-600 hover:border-gray-500': true,
-                       'focus:bg-gray-600 focus:border-blue-400': true,
-                       'bg-gray-600 border-gray-500': isActiveRoute(item.route),
-                       'rounded-xl': isCollapsed && !isMobile
+                       'hover:from-slate-600 hover:to-slate-500 hover:border-slate-500/70 hover:shadow-xl': true,
+                       'focus:from-slate-600 focus:to-slate-500 focus:border-blue-400/50 focus:shadow-xl': true,
+                       'from-blue-600/80 to-indigo-600/80 border-blue-400/50 shadow-xl': isActiveRoute(item.route),
+                       'rounded-lg': isCollapsed && !isMobile
                      }">
-                  <span class="material-icons text-gray-300 transition-all duration-200 ease"
+                  <span class="material-icons text-slate-300 transition-all duration-300 ease drop-shadow-sm"
                         [ngClass]="{
                           'hover:text-white': true,
                           'text-white': isActiveRoute(item.route),
@@ -110,26 +114,31 @@
                           'text-lg': !isCollapsed || isMobile
                         }">{{ item.icon }}</span>
                 </div>
+                <!-- Effet de brillance sur l'icône -->
+                <div class="absolute inset-0 rounded-lg bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"
+                     [ngClass]="{
+                       'rounded-lg': isCollapsed && !isMobile
+                     }"></div>
               </div>
               
-              <!-- Contenu textuel -->
+              <!-- Contenu textuel Premium -->
               <div class="flex items-center justify-between flex-1 min-w-0" 
                    *ngIf="!isCollapsed || isMobile">
-                <span class="text-sm font-medium text-gray-300 leading-snug transition-all duration-200 ease"
+                <span class="text-sm font-semibold text-slate-300 leading-snug transition-all duration-300 ease drop-shadow-sm"
                       [ngClass]="{
-                        'hover:text-white hover:font-semibold': true,
-                        'text-white font-bold': isActiveRoute(item.route)
+                        'hover:text-white hover:font-bold': true,
+                        'text-white font-bold bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent': isActiveRoute(item.route)
                       }">{{ item.label }}</span>
                 <span *ngIf="item.badge" 
-                      class="inline-flex items-center px-2.5 py-1 text-xs font-semibold bg-red-100 text-red-600 rounded-full border border-red-200 shadow-sm animate-pulse"
+                      class="inline-flex items-center px-3 py-1.5 text-xs font-bold bg-gradient-to-r from-red-500/20 to-pink-500/20 text-red-300 rounded-full border border-red-400/30 shadow-lg backdrop-blur-sm animate-pulse"
                       [attr.aria-label]="'Badge: ' + item.badge">
                   {{ item.badge }}
                 </span>
               </div>
             </div>
             
-            <!-- Indicateur de sélection -->
-            <div class="absolute left-0 top-1/2 transform -translate-y-1/2 w-0.5 h-5 bg-blue-400 rounded-r-sm opacity-0 transition-all duration-200 ease"
+            <!-- Indicateur de sélection Premium -->
+            <div class="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-blue-400 to-indigo-500 rounded-r-lg opacity-0 transition-all duration-300 ease shadow-lg"
                  [ngClass]="{
                    'opacity-100': isActiveRoute(item.route)
                  }"></div>
@@ -139,74 +148,117 @@
     </div>
   </nav>
 
-  <!-- Footer utilisateur compact -->
-  <div class="absolute bottom-0 left-0 right-0 z-10 bg-gray-800 border-t border-gray-700 shadow-lg">
-    <div class="px-4 py-2"
+  <!-- Footer utilisateur Compact -->
+  <div class="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-r from-slate-900/95 via-gray-900/95 to-slate-800/95 backdrop-blur-xl border-t border-slate-700/50 shadow-2xl">
+    <div class="px-3 py-2"
          [ngClass]="{
            'px-2': isCollapsed && !isMobile,
-           'px-4': !isCollapsed || isMobile
+           'px-3': !isCollapsed || isMobile
          }">
       
       <!-- Mode normal (non collapsed) -->
-      <div *ngIf="!isCollapsed || isMobile" class="space-y-2">
-        <!-- Profil utilisateur compact -->
-        <div class="flex items-center gap-2 p-2 bg-gray-700/30 rounded-lg hover:bg-gray-700/50 transition-all duration-200">
-          <div class="relative">
-            <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-md">
-              <span class="material-icons text-white text-sm">{{ userData.avatar }}</span>
+      <div *ngIf="!isCollapsed || isMobile" class="space-y-1">
+        <!-- Profil utilisateur Ultra-Compact -->
+        <div class="bg-gradient-to-r from-slate-800/60 to-slate-700/40 backdrop-blur-sm rounded-lg border border-slate-600/30 hover:border-slate-500/50 transition-all duration-200 overflow-hidden shadow-lg">
+          <!-- Profil vertical compact -->
+          <div class="flex items-start gap-2 p-2">
+            <!-- Avatar Mini -->
+            <div class="relative flex-shrink-0">
+              <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center shadow-lg ring-1 ring-blue-400/20 transition-all duration-200">
+                <span class="material-icons text-white text-sm drop-shadow-sm">{{ userData.avatar }}</span>
+              </div>
+              <!-- Indicateur de statut Mini -->
+              <div class="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-emerald-400 border border-slate-900 rounded-full shadow-sm animate-pulse"></div>
             </div>
-            <div class="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-green-400 border border-gray-800 rounded-full"></div>
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-xs font-semibold text-white leading-tight m-0 whitespace-nowrap overflow-hidden text-ellipsis">{{ userData.name }}</p>
-            <p class="text-xs text-gray-400 leading-tight m-0 whitespace-nowrap overflow-hidden text-ellipsis">{{ userData.role }}</p>
+            
+            <!-- Informations utilisateur verticales -->
+            <div class="flex-1 min-w-0">
+              <!-- Nom et prénom en haut -->
+              <h3 class="text-xs font-bold text-white leading-tight m-0 truncate drop-shadow-sm">
+                {{ userData.name }}
+              </h3>
+              
+              <!-- Email juste en dessous -->
+              <p *ngIf="userData.email" class="text-xs text-slate-400 leading-tight m-0 truncate -mt-0.5">
+                {{ userData.email }}
+              </p>
+              
+              <!-- Rôle en dernier -->
+              <div class="flex items-center gap-1 mt-1">
+                <span class="material-icons text-blue-400 text-xs drop-shadow-sm">verified_user</span>
+                <span class="text-xs font-medium text-blue-300 bg-blue-500/10 px-1.5 py-0.5 rounded border border-blue-400/20">
+                  {{ userData.role }}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Actions utilisateur compactes -->
-        <div class="flex items-center gap-1">
+        <!-- Actions utilisateur Compactes -->
+        <div class="flex items-center gap-2">
           <button 
             (click)="navigateToProfile()"
-            class="flex-1 h-8 bg-gray-700 rounded-md cursor-pointer transition-all duration-200 ease flex items-center justify-center gap-1 hover:bg-gray-600 hover:scale-105 focus:outline-none focus:ring-1 focus:ring-blue-400" 
-            title="Profil">
-            <span class="material-icons text-gray-300 text-sm">person</span>
-            <span class="text-xs text-gray-300">Profil</span>
+            class="flex-1 h-9 bg-gradient-to-r from-slate-700/90 to-slate-600/90 backdrop-blur-xl rounded-lg cursor-pointer transition-all duration-300 ease flex items-center justify-center gap-2 hover:from-slate-600 hover:to-slate-500 hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:ring-offset-2 focus:ring-offset-slate-900 border border-slate-600/50 hover:border-slate-500/70 shadow-lg" 
+            title="Voir le profil">
+            <span class="material-icons text-slate-300 text-sm drop-shadow-sm">person</span>
+            <span class="text-xs font-semibold text-slate-300 drop-shadow-sm">Profil</span>
           </button>
           
           <button 
             (click)="logout()"
-            class="flex-1 h-8 bg-red-600 rounded-md cursor-pointer transition-all duration-200 ease flex items-center justify-center gap-1 hover:bg-red-700 hover:scale-105 focus:outline-none focus:ring-1 focus:ring-red-400" 
-            title="Déconnexion">
-            <span class="material-icons text-white text-sm">logout</span>
-            <span class="text-xs text-white">Déconnexion</span>
+            class="flex-1 h-9 bg-gradient-to-r from-red-600/90 to-red-700/90 backdrop-blur-xl rounded-lg cursor-pointer transition-all duration-300 ease flex items-center justify-center gap-2 hover:from-red-700 hover:to-red-800 hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-red-400/50 focus:ring-offset-2 focus:ring-offset-slate-900 border border-red-500/50 hover:border-red-400/70 shadow-lg" 
+            title="Se déconnecter">
+            <span class="material-icons text-white text-sm drop-shadow-sm">logout</span>
+            <span class="text-xs font-semibold text-white drop-shadow-sm">Déconnexion</span>
           </button>
         </div>
       </div>
 
-      <!-- Mode collapsed -->
-      <div *ngIf="isCollapsed && !isMobile" class="flex flex-col items-center space-y-2">
-        <!-- Avatar compact -->
-        <div class="relative">
-          <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-md">
-            <span class="material-icons text-white text-sm">{{ userData.avatar }}</span>
+      <!-- Mode collapsed Ultra-Compact -->
+      <div *ngIf="isCollapsed && !isMobile" class="flex flex-col items-center space-y-1">
+        <!-- Avatar Ultra-Compact avec tooltip -->
+        <div class="relative group">
+          <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center shadow-lg ring-1 ring-blue-400/20 hover:ring-blue-400/40 transition-all duration-200 cursor-pointer">
+            <span class="material-icons text-white text-sm drop-shadow-sm">{{ userData.avatar }}</span>
           </div>
-          <div class="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-green-400 border border-gray-800 rounded-full"></div>
+          <!-- Indicateur de statut Mini -->
+          <div class="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-emerald-400 border border-slate-900 rounded-full shadow-sm animate-pulse"></div>
+          
+          <!-- Tooltip Ultra-Compact -->
+          <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 bg-gray-900/95 backdrop-blur-sm text-white text-xs rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-50 border border-gray-600/50 min-w-32">
+            <div class="text-center">
+              <!-- Nom et prénom en haut -->
+              <div class="font-bold text-white text-xs">{{ userData.name }}</div>
+              
+              <!-- Email juste en dessous -->
+              <div *ngIf="userData.email" class="text-gray-400 text-xs truncate max-w-28 -mt-0.5">
+                {{ userData.email }}
+              </div>
+              
+              <!-- Rôle en dernier -->
+              <div class="flex items-center justify-center gap-1 mt-1">
+                <span class="material-icons text-blue-400 text-xs">verified_user</span>
+                <span class="text-blue-300 text-xs">{{ userData.role }}</span>
+              </div>
+            </div>
+            <div class="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-3 border-r-3 border-t-3 border-transparent border-t-gray-900/95"></div>
+          </div>
         </div>
 
-        <!-- Boutons d'action compacts -->
+        <!-- Boutons d'action ultra-compacts -->
         <div class="flex flex-col gap-1 w-full">
           <button 
             (click)="navigateToProfile()"
-            class="w-full h-8 bg-gray-700 rounded-md cursor-pointer transition-all duration-200 ease flex items-center justify-center hover:bg-gray-600 hover:scale-105 focus:outline-none focus:ring-1 focus:ring-blue-400" 
-            title="Profil">
-            <span class="material-icons text-gray-300 text-sm">person</span>
+            class="w-full h-6 bg-gradient-to-r from-slate-700/80 to-slate-600/80 backdrop-blur-sm rounded-md cursor-pointer transition-all duration-200 ease flex items-center justify-center hover:from-slate-600 hover:to-slate-500 hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-1 focus:ring-blue-400/50 focus:ring-offset-1 focus:ring-offset-slate-900 border border-slate-600/40 hover:border-slate-500/60 shadow-md" 
+            title="Voir le profil">
+            <span class="material-icons text-slate-300 text-xs">person</span>
           </button>
           
           <button 
             (click)="logout()"
-            class="w-full h-8 bg-red-600 rounded-md cursor-pointer transition-all duration-200 ease flex items-center justify-center hover:bg-red-700 hover:scale-105 focus:outline-none focus:ring-1 focus:ring-red-400" 
-            title="Déconnexion">
-            <span class="material-icons text-white text-sm">logout</span>
+            class="w-full h-6 bg-gradient-to-r from-red-600/90 to-red-700/90 backdrop-blur-sm rounded-md cursor-pointer transition-all duration-200 ease flex items-center justify-center hover:from-red-700 hover:to-red-800 hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-1 focus:ring-red-400/50 focus:ring-offset-1 focus:ring-offset-slate-900 border border-red-500/40 hover:border-red-400/60 shadow-md" 
+            title="Se déconnecter">
+            <span class="material-icons text-white text-xs">logout</span>
           </button>
         </div>
       </div>
