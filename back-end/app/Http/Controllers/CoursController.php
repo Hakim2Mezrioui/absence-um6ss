@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cours;
+use App\Services\AttendanceStateService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use DateTime;   
@@ -12,6 +13,12 @@ use PDOException;
 
 class CoursController extends Controller
 {
+    protected $attendanceStateService;
+
+    public function __construct(AttendanceStateService $attendanceStateService)
+    {
+        $this->attendanceStateService = $attendanceStateService;
+    }
     public function index(Request $request)
     {
         $size = $request->query('size', 10);
@@ -517,7 +524,32 @@ class CoursController extends Controller
             $presentStudentMatricules = collect($biostarResults)->pluck('user_id')->toArray();
 
             // Prepare the final response with attendance status
-            $studentsWithAttendance = $localStudents->map(function ($student) use ($presentStudentMatricules, $biostarResults, $heureDebutPointage, $heureDebut, $tolerance) {
+            $studentsWithAttendance = $localStudents->map(function ($student) use ($presentStudentMatricules, $biostarResults, $heureDebutPointage, $heureDebut, $tolerance, $cours) {
+                // Vérifier d'abord s'il y a un état manuellement défini dans la table absences
+                $manualState = $this->attendanceStateService->getStudentAttendanceState($cours->id, $student->id);
+                
+                // Si un état manuel existe, l'utiliser
+                if ($manualState['absence']) {
+                    return [
+                        'id' => $student->id,
+                        'matricule' => $student->matricule,
+                        'first_name' => $student->first_name,
+                        'last_name' => $student->last_name,
+                        'email' => $student->email,
+                        'photo' => $student->photo,
+                        'promotion' => $student->promotion,
+                        'etablissement' => $student->etablissement,
+                        'ville' => $student->ville,
+                        'group' => $student->group,
+                        'option' => $student->option,
+                        'status' => $manualState['status'],
+                        'punch_time' => null,
+                        'manual_override' => true,
+                        'absence' => $manualState['absence']
+                    ];
+                }
+
+                // Sinon, calculer l'état basé sur les données Biostar
                 $punchTime = $this->getPunchTime($student->matricule, $biostarResults);
                 $isPresent = false;
                 $isLate = false;
@@ -577,6 +609,8 @@ class CoursController extends Controller
                     'option' => $student->option,
                     'status' => $status,
                     'punch_time' => $punchTime,
+                    'manual_override' => false,
+                    'absence' => null
                 ];
             });
 

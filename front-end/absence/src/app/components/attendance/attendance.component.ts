@@ -29,6 +29,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   // Filtres
   filtersForm: FormGroup;
   
+  
   // Informations de l'examen
   examDate = '';
   examPunchStartTime = '';
@@ -900,6 +901,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     return null;
   }
 
+
   /**
    * Obtient le nombre d'étudiants absents et en retard
    */
@@ -975,4 +977,5 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     
     return this.alphabetLetters.slice(startIndex, endIndex + 1);
   }
+
 }

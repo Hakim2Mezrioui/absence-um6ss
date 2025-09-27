@@ -22,6 +22,7 @@ use App\Http\Controllers\ListStudentController;
 use App\Http\Controllers\StatisticController;
 use App\Http\Controllers\AbsenceAutoController;
 use App\Http\Controllers\ConfigurationController;
+use App\Http\Controllers\AttendanceStateController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -185,6 +186,16 @@ Route::post('absences/auto/create-for-examen', [AbsenceAutoController::class, 'c
 Route::post('absences/auto/create-for-date', [AbsenceAutoController::class, 'createAbsencesForDate']);
 Route::post('absences/auto/create-from-attendance', [AbsenceAutoController::class, 'createAbsencesFromAttendance']);
 Route::get('absences/auto/statistics', [AbsenceAutoController::class, 'getAbsenceStatistics']);
+
+// Routes pour la gestion des états de présence
+Route::post('attendance-states/cours/update', [AttendanceStateController::class, 'updateCoursAttendanceState']);
+Route::post('attendance-states/examen/update', [AttendanceStateController::class, 'updateExamenAttendanceState']);
+Route::get('attendance-states/cours/get', [AttendanceStateController::class, 'getCoursAttendanceState']);
+Route::get('attendance-states/examen/get', [AttendanceStateController::class, 'getExamenAttendanceState']);
+Route::post('attendance-states/justify', [AttendanceStateController::class, 'justifyAbsence']);
+Route::get('attendance-states/available-statuses', [AttendanceStateController::class, 'getAvailableStatuses']);
+Route::post('attendance-states/cours/bulk-update', [AttendanceStateController::class, 'updateCoursAttendanceStatesBulk']);
+Route::post('attendance-states/examen/bulk-update', [AttendanceStateController::class, 'updateExamenAttendanceStatesBulk']);
 
 Route::apiResource('absences', AbsenceController::class);
 

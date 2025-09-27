@@ -9,11 +9,13 @@ import * as XLSX from 'xlsx';
 import { CoursService, Cours } from '../../services/cours.service';
 import { CoursAttendanceService, CoursAttendanceData } from '../../services/cours-attendance.service';
 import { NotificationService } from '../../services/notification.service';
+import { AttendanceStateService } from '../../services/attendance-state.service';
+import { AttendanceStateModalComponent } from '../attendance-state-modal/attendance-state-modal.component';
 
 
 @Component({
   selector: 'app-attendance-cours',
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, HttpClientModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, HttpClientModule, AttendanceStateModalComponent],
   templateUrl: './attendance-cours.component.html',
   styleUrl: './attendance-cours.component.css'
 })
@@ -44,6 +46,11 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
   // Modal de détails
   selectedStudent: any = null;
   showDetailsModal = false;
+  
+  // Mode édition et modal de modification d'état
+  editMode = false;
+  attendanceStateModalOpen = false;
+  selectedStudentForEdit: any = null;
   
   // Filtres de recherche
   searchFilters = {
@@ -98,6 +105,7 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     private coursService: CoursService,
     private coursAttendanceService: CoursAttendanceService,
     private notificationService: NotificationService,
+    private attendanceStateService: AttendanceStateService,
     private fb: FormBuilder,
     private route: ActivatedRoute
   ) {}
@@ -1155,5 +1163,153 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
       'excused': { label: 'Excusé', icon: 'info', color: 'text-blue-600' }
     };
     return statusConfig[status] || { label: status, icon: 'help', color: 'text-gray-600' };
+  }
+
+  /**
+   * Basculer le mode édition
+   */
+  toggleEditMode() {
+    this.editMode = !this.editMode;
+    if (!this.editMode) {
+      this.closeAttendanceStateModal();
+    }
+  }
+
+  /**
+   * Ouvrir le modal de modification d'état de présence
+   */
+  openAttendanceStateModal(student: any) {
+    this.selectedStudentForEdit = student;
+    this.attendanceStateModalOpen = true;
+  }
+
+  /**
+   * Fermer le modal de modification d'état de présence
+   */
+  closeAttendanceStateModal() {
+    this.attendanceStateModalOpen = false;
+    this.selectedStudentForEdit = null;
+  }
+
+  /**
+   * Mettre à jour le statut d'un étudiant via le menu déroulant
+   */
+  updateStudentStatus(student: any, event: any) {
+    const newStatus = event.target.value as 'present' | 'absent' | 'late' | 'excused';
+    
+    // Mettre à jour l'étudiant dans la liste principale
+    const studentIndex = this.students.findIndex(s => s.id === student.id);
+    if (studentIndex !== -1) {
+      this.students[studentIndex].status = newStatus;
+      this.students[studentIndex].manual_override = true;
+    }
+
+    // Mettre à jour la liste filtrée
+    const filteredIndex = this.filteredStudents.findIndex(s => s.id === student.id);
+    if (filteredIndex !== -1) {
+      this.filteredStudents[filteredIndex].status = newStatus;
+      this.filteredStudents[filteredIndex].manual_override = true;
+    }
+
+    // Recalculer les statistiques
+    this.updateStatistics({
+      total_students: this.students.length,
+      presents: this.students.filter(s => s.status === 'present').length,
+      absents: this.students.filter(s => s.status === 'absent').length,
+      lates: this.students.filter(s => s.status === 'late').length,
+      excused: this.students.filter(s => s.status === 'excused').length
+    });
+
+    // Afficher une notification de succès
+    this.notificationService.success('Succès', `Statut mis à jour pour ${student.first_name} ${student.last_name}: ${this.getStatusLabel(newStatus)}`);
+
+    // Sauvegarder en base de données via l'API
+    this.saveStatusToDatabase(student, newStatus);
+  }
+
+  /**
+   * Sauvegarder le statut en base de données
+   */
+  private saveStatusToDatabase(student: any, newStatus: string) {
+    if (!this.coursId) {
+      console.error('ID du cours non disponible');
+      return;
+    }
+
+    // Préparer les données pour l'API
+    const updateData = {
+      cours_id: this.coursId,
+      etudiant_id: student.id,
+      status: (newStatus === 'excused' ? 'left_early' : newStatus) as 'present' | 'absent' | 'late' | 'left_early',
+      motif: undefined,
+      justificatif: undefined
+    };
+
+    console.log('🔄 Sauvegarde du statut:', {
+      student: student.first_name + ' ' + student.last_name,
+      newStatus: newStatus,
+      updateData: updateData
+    });
+
+    // Appeler l'API pour sauvegarder
+    this.attendanceStateService.updateCoursAttendanceState(updateData).subscribe({
+      next: (response) => {
+        console.log('✅ Statut sauvegardé avec succès:', response);
+        this.notificationService.success('Succès', `Statut sauvegardé pour ${student.first_name} ${student.last_name}`);
+      },
+      error: (error) => {
+        console.error('❌ Erreur lors de la sauvegarde:', error);
+        this.notificationService.error('Erreur', `Impossible de sauvegarder le statut: ${error.message || 'Erreur inconnue'}`);
+        
+        // Revenir au statut précédent en cas d'erreur
+        this.revertStudentStatus(student);
+      }
+    });
+  }
+
+  /**
+   * Revenir au statut précédent en cas d'erreur de sauvegarde
+   */
+  private revertStudentStatus(student: any) {
+    // Recharger les données pour revenir au statut original
+    this.loadAttendanceData();
+  }
+
+  /**
+   * Gérer la mise à jour de l'état de présence (pour le modal - gardé pour compatibilité)
+   */
+  onAttendanceStateUpdated(event: any) {
+    const { student, newStatus, absence } = event;
+    
+    // Mettre à jour l'étudiant dans la liste
+    const studentIndex = this.students.findIndex(s => s.id === student.id);
+    if (studentIndex !== -1) {
+      this.students[studentIndex].status = newStatus;
+      this.students[studentIndex].manual_override = true;
+      this.students[studentIndex].absence = absence;
+    }
+
+    // Mettre à jour la liste filtrée
+    const filteredIndex = this.filteredStudents.findIndex(s => s.id === student.id);
+    if (filteredIndex !== -1) {
+      this.filteredStudents[filteredIndex].status = newStatus;
+      this.filteredStudents[filteredIndex].manual_override = true;
+      this.filteredStudents[filteredIndex].absence = absence;
+    }
+
+    // Recalculer les statistiques
+    this.updateStatistics({
+      total_students: this.students.length,
+      presents: this.students.filter(s => s.status === 'present').length,
+      absents: this.students.filter(s => s.status === 'absent').length,
+      lates: this.students.filter(s => s.status === 'late').length,
+      excused: this.students.filter(s => s.status === 'excused').length
+    });
+
+    // Afficher une notification de succès
+    this.notificationService.success('Succès', `État de présence mis à jour pour ${student.first_name} ${student.last_name}`);
+
+    // Fermer le modal
+    this.closeAttendanceStateModal();
   }
 }

@@ -34,6 +34,17 @@
             </button>
           </div>
           <button 
+            (click)="toggleEditMode()"
+            class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center gap-2 font-medium shadow-md hover:shadow-lg"
+            [class.bg-purple-700]="editMode"
+            [class.ring-2]="editMode"
+            [class.ring-purple-300]="editMode"
+            title="Modifier manuellement les états de présence"
+          >
+            <span class="material-icons">{{ editMode ? 'edit_off' : 'edit' }}</span>
+            {{ editMode ? 'Arrêter la modification' : 'Modifier les statuts' }}
+          </button>
+          <button 
             (click)="refreshData()"
             class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center gap-2"
           >
@@ -351,7 +362,13 @@
     <!-- Liste des étudiants -->
     <div *ngIf="!loading && !error" class="bg-white rounded-lg shadow-sm border border-gray-200">
       <div class="px-6 py-4 border-b border-gray-200">
-        <h3 class="text-lg font-medium text-gray-900">Liste des Étudiants</h3>
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-medium text-gray-900">Liste des Étudiants</h3>
+          <div *ngIf="editMode" class="flex items-center gap-2 px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
+            <span class="material-icons text-sm">edit</span>
+            Mode édition actif
+          </div>
+        </div>
       </div>
       
       <div *ngIf="students.length === 0" class="px-6 py-12 text-center">
@@ -455,7 +472,23 @@
                   <span class="material-icons text-sm" [ngClass]="getStatusWithIcon(student.status).color">
                     {{ getStatusWithIcon(student.status).icon }}
                   </span>
-                  <span class="text-sm font-medium" [ngClass]="getStatusWithIcon(student.status).color">
+                  
+                  <!-- Menu déroulant pour changer le statut -->
+                  <select 
+                    *ngIf="editMode"
+                    [value]="student.status"
+                    (change)="updateStudentStatus(student, $event)"
+                    class="text-sm border border-gray-300 rounded-md px-2 py-1 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    [ngClass]="getStatusWithIcon(student.status).color"
+                  >
+                    <option value="present" class="text-green-600">✅ Présent</option>
+                    <option value="absent" class="text-red-600">❌ Absent</option>
+                    <option value="late" class="text-yellow-600">⏰ En retard</option>
+                    <option value="excused" class="text-blue-600">ℹ️ Excusé</option>
+                  </select>
+                  
+                  <!-- Affichage normal quand pas en mode édition -->
+                  <span *ngIf="!editMode" class="text-sm font-medium" [ngClass]="getStatusWithIcon(student.status).color">
                     {{ getStatusWithIcon(student.status).label }}
                   </span>
                 </div>
@@ -599,3 +632,14 @@
     </div>
   </div>
 </div>
+
+<!-- Modal de modification d'état de présence -->
+<app-attendance-state-modal
+  [isOpen]="attendanceStateModalOpen"
+  [student]="selectedStudentForEdit"
+  [coursId]="coursId"
+  [examenId]="null"
+  [currentStatus]="selectedStudentForEdit?.status || 'absent'"
+  (close)="closeAttendanceStateModal()"
+  (stateUpdated)="onAttendanceStateUpdated($event)"
+></app-attendance-state-modal>
