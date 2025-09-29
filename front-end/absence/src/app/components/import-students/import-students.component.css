@@ -1,54 +1,109 @@
 /* Styles pour le composant d'importation d'étudiants */
 
+/* Variables CSS - Scheme Bleu/Blanc épuré */
+:root {
+  /* Couleurs principales */
+  --primary-blue: #2563eb;
+  --light-blue: #3b82f6;
+  --blue-50: #eff6ff;
+  --blue-100: #dbeafe;
+  
+  /* Couleurs d'accent */
+  --accent-green: #10b981;
+  --accent-orange: #f59e0b;
+  
+  /* Neutres */
+  --white: #ffffff;
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-500: #6b7280;
+  --gray-700: #374151;
+  --gray-900: #111827;
+  
+  /* Design */
+  --border-radius: 0.75rem;
+  --border-radius-lg: 1rem;
+  --border-radius-xl: 1.5rem;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --transition: all 0.2s ease-in-out;
+}
+
 /* Zone de dépôt de fichier */
 .drag-drop-zone {
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .drag-drop-zone.drag-over {
-  background-color: #eff6ff;
-  border-color: #3b82f6;
-  transform: scale(1.02);
+  background-color: #dbeafe;
+  border-color: var(--primary-blue);
+  transform: scale(1.01);
 }
 
 /* Icône d'upload animée */
 .upload-icon {
-  transition: transform 0.3s ease;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .drag-drop-zone:hover .upload-icon {
-  transform: scale(1.1);
+  transform: scale(1.05);
 }
 
-/* Styles pour les boutons */
-.mat-mdc-raised-button {
-  border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+/* Styles pour les boutons épurés */
+.btn-primary {
+  background: var(--primary-blue);
+  border: none;
+  border-radius: var(--border-radius-lg);
+  color: var(--white);
+  font-weight: 500;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
 }
 
-.mat-mdc-raised-button:hover {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  transform: translateY(-1px);
+.btn-primary:hover {
+  background: var(--light-blue);
+  box-shadow: var(--shadow-md);
 }
 
-.mat-mdc-outlined-button {
-  border-radius: 12px;
-  border: 2px solid;
-  transition: all 0.3s ease;
+.btn-secondary {
+  background: var(--white);
+  border: 2px solid var(--gray-200);
+  border-radius: var(--border-radius-lg);
+  color: var(--gray-700);
+  font-weight: 500;
+  transition: var(--transition);
 }
 
-/* Styles pour les messages d'état */
+.btn-secondary:hover {
+  border-color: var(--gray-200);
+  background: var(--gray-50);
+}
+
+/* Boutons d'accent */
+.btn-success {
+  background: var(--accent-green);
+  color: var(--white);
+}
+
+.btn-warning {
+  background: var(--accent-orange);
+  color: var(--white);
+}
+
+/* Messages d'état épurés */
 .status-message {
-  border-radius: 12px;
+  border-radius: var(--border-radius-lg);
   padding: 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
+  border: 1px solid;
+  transition: var(--transition);
 }
 
 .status-message.loading {
-  background-color: #eff6ff;
-  border-color: #3b82f6;
-  color: #1e40af;
+  background-color: var(--blue-50);
+  border-color: var(--primary-blue);
+  color: var(--primary-blue);
 }
 
 .status-message.error {
@@ -59,8 +114,30 @@
 
 .status-message.success {
   background-color: #f0fdf4;
-  border-color: #22c55e;
-  color: #16a34a;
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+}
+
+/* Design épuré global */
+.clean-card {
+  background: var(--white);
+  border: 1px solid var(--gray-100);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+
+.clean-header {
+  background: var(--blue-50);
+  border-bottom: 1px solid var(--blue-100);
+}
+
+.text-light {
+  font-weight: 300;
+}
+
+.text-medium {
+  font-weight: 500;
 }
 
 /* Animation pour les cartes */

@@ -512,4 +512,34 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
     
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
+
+  /**
+   * Copier l'exemple CSV dans le presse-papiers
+   */
+  copyCSVExample(): void {
+    const csvContent = 'matricule,first_name,last_name,email,password\n' +
+                       'ETU2024001,Jean,Dupont,jean.dupont@email.com,password123\n' +
+                       'ETU2024002,Marie,Martin,marie.martin@email.com,password123\n' +
+                       'ETU2024003,Pierre,Durand,pierre.durand@email.com,password123';
+    
+    navigator.clipboard.writeText(csvContent).then(() => {
+      this.snackBar.open('Exemple CSV copié dans le presse-papiers!', 'Fermer', {
+        duration: 3000,
+        panelClass: ['success-snackbar']
+      });
+    }).catch(() => {
+      // Fallback pour les navigateurs qui ne supportent pas l'API Clipboard
+      const textArea = document.createElement('textarea');
+      textArea.value = csvContent;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
+      this.snackBar.open('Exemple CSV copié dans le presse-papiers!', 'Fermer', {
+        duration: 3000,
+        panelClass: ['success-snackbar']
+      });
+    });
+  }
 }
