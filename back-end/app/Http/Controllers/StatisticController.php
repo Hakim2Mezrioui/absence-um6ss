@@ -601,8 +601,33 @@ class StatisticController extends Controller
             $query->whereDate('date', '<=', $dateFin);
         }
         
+        // Filtrer par statut temporel sans colonne dédiée
         if ($statutTemporel) {
-            $query->where('statut_temporel', $statutTemporel);
+            $now = now();
+            $today = $now->toDateString();
+            $currentTime = $now->toTimeString();
+
+            if ($statutTemporel === 'en_cours') {
+                $query->whereDate('date', $today)
+                      ->whereTime('heure_debut', '<=', $currentTime)
+                      ->whereTime('heure_fin', '>=', $currentTime);
+            } elseif ($statutTemporel === 'passé') {
+                $query->where(function($q) use ($today, $currentTime) {
+                    $q->whereDate('date', '<', $today)
+                      ->orWhere(function($qq) use ($today, $currentTime) {
+                          $qq->whereDate('date', $today)
+                             ->whereTime('heure_fin', '<', $currentTime);
+                      });
+                });
+            } elseif ($statutTemporel === 'futur') {
+                $query->where(function($q) use ($today, $currentTime) {
+                    $q->whereDate('date', '>', $today)
+                      ->orWhere(function($qq) use ($today, $currentTime) {
+                          $qq->whereDate('date', $today)
+                             ->whereTime('heure_debut', '>', $currentTime);
+                      });
+                });
+            }
         }
         
         $totalCours = $query->count();
@@ -639,18 +664,49 @@ class StatisticController extends Controller
             ->orderBy('annee_universitaire', 'desc')
             ->get();
 
-        // Statistiques par statut temporel
-        $coursParStatut = (clone $query)
-            ->select('statut_temporel', DB::raw('count(*) as count'))
-            ->whereNotNull('statut_temporel')
-            ->groupBy('statut_temporel')
-            ->get();
+        // Statistiques par statut temporel (calculées dynamiquement)
+        $now = now();
+        $today = $now->toDateString();
+        $currentTime = $now->toTimeString();
+
+        $baseQuery = clone $query;
+        $enCoursCount = (clone $baseQuery)
+            ->whereDate('date', $today)
+            ->whereTime('heure_debut', '<=', $currentTime)
+            ->whereTime('heure_fin', '>=', $currentTime)
+            ->count();
+
+        $enPasseCount = (clone $baseQuery)
+            ->where(function($q) use ($today, $currentTime) {
+                $q->whereDate('date', '<', $today)
+                  ->orWhere(function($qq) use ($today, $currentTime) {
+                      $qq->whereDate('date', $today)
+                         ->whereTime('heure_fin', '<', $currentTime);
+                  });
+            })
+            ->count();
+
+        $futurCount = (clone $baseQuery)
+            ->where(function($q) use ($today, $currentTime) {
+                $q->whereDate('date', '>', $today)
+                  ->orWhere(function($qq) use ($today, $currentTime) {
+                      $qq->whereDate('date', $today)
+                         ->whereTime('heure_debut', '>', $currentTime);
+                  });
+            })
+            ->count();
+
+        $coursParStatut = collect([
+            ['statut_temporel' => 'en_cours', 'count' => $enCoursCount],
+            ['statut_temporel' => 'passé', 'count' => $enPasseCount],
+            ['statut_temporel' => 'futur', 'count' => $futurCount],
+        ]);
 
         // Détail du statut temporel
         $statutTemporelDetail = [
-            'en_cours' => (clone $query)->where('statut_temporel', 'en_cours')->count(),
-            'en_passe' => (clone $query)->where('statut_temporel', 'passé')->count(),
-            'futur' => (clone $query)->where('statut_temporel', 'futur')->count(),
+            'en_cours' => $enCoursCount,
+            'en_passe' => $enPasseCount,
+            'futur' => $futurCount,
         ];
 
         return [
@@ -684,8 +740,33 @@ class StatisticController extends Controller
             $query->whereDate('date', '<=', $dateFin);
         }
         
+        // Filtrer par statut temporel sans colonne dédiée
         if ($statutTemporel) {
-            $query->where('statut_temporel', $statutTemporel);
+            $now = now();
+            $today = $now->toDateString();
+            $currentTime = $now->toTimeString();
+
+            if ($statutTemporel === 'en_cours') {
+                $query->whereDate('date', $today)
+                      ->whereTime('heure_debut', '<=', $currentTime)
+                      ->whereTime('heure_fin', '>=', $currentTime);
+            } elseif ($statutTemporel === 'passé') {
+                $query->where(function($q) use ($today, $currentTime) {
+                    $q->whereDate('date', '<', $today)
+                      ->orWhere(function($qq) use ($today, $currentTime) {
+                          $qq->whereDate('date', $today)
+                             ->whereTime('heure_fin', '<', $currentTime);
+                      });
+                });
+            } elseif ($statutTemporel === 'futur') {
+                $query->where(function($q) use ($today, $currentTime) {
+                    $q->whereDate('date', '>', $today)
+                      ->orWhere(function($qq) use ($today, $currentTime) {
+                          $qq->whereDate('date', $today)
+                             ->whereTime('heure_debut', '>', $currentTime);
+                      });
+                });
+            }
         }
         
         $totalExamens = $query->count();
@@ -714,18 +795,49 @@ class StatisticController extends Controller
             ->orderBy('annee_universitaire', 'desc')
             ->get();
 
-        // Statistiques par statut temporel
-        $examensParStatut = (clone $query)
-            ->select('statut_temporel', DB::raw('count(*) as count'))
-            ->whereNotNull('statut_temporel')
-            ->groupBy('statut_temporel')
-            ->get();
+        // Statistiques par statut temporel (calculées dynamiquement)
+        $now = now();
+        $today = $now->toDateString();
+        $currentTime = $now->toTimeString();
+
+        $baseQuery = clone $query;
+        $enCoursCount = (clone $baseQuery)
+            ->whereDate('date', $today)
+            ->whereTime('heure_debut', '<=', $currentTime)
+            ->whereTime('heure_fin', '>=', $currentTime)
+            ->count();
+
+        $enPasseCount = (clone $baseQuery)
+            ->where(function($q) use ($today, $currentTime) {
+                $q->whereDate('date', '<', $today)
+                  ->orWhere(function($qq) use ($today, $currentTime) {
+                      $qq->whereDate('date', $today)
+                         ->whereTime('heure_fin', '<', $currentTime);
+                  });
+            })
+            ->count();
+
+        $futurCount = (clone $baseQuery)
+            ->where(function($q) use ($today, $currentTime) {
+                $q->whereDate('date', '>', $today)
+                  ->orWhere(function($qq) use ($today, $currentTime) {
+                      $qq->whereDate('date', $today)
+                         ->whereTime('heure_debut', '>', $currentTime);
+                  });
+            })
+            ->count();
+
+        $examensParStatut = collect([
+            ['statut_temporel' => 'en_cours', 'count' => $enCoursCount],
+            ['statut_temporel' => 'passé', 'count' => $enPasseCount],
+            ['statut_temporel' => 'futur', 'count' => $futurCount],
+        ]);
 
         // Détail du statut temporel
         $statutTemporelDetail = [
-            'en_cours' => (clone $query)->where('statut_temporel', 'en_cours')->count(),
-            'en_passe' => (clone $query)->where('statut_temporel', 'passé')->count(),
-            'futur' => (clone $query)->where('statut_temporel', 'futur')->count(),
+            'en_cours' => $enCoursCount,
+            'en_passe' => $enPasseCount,
+            'futur' => $futurCount,
         ];
 
         return [
