@@ -82,6 +82,14 @@ class Cours extends Model
     }
 
     /**
+     * Get the enseignants that belong to the cours.
+     */
+    public function enseignants(): BelongsToMany
+    {
+        return $this->belongsToMany(Enseignant::class, 'cours_enseignant');
+    }
+
+    /**
      * Get the ville that owns the cours.
      */
     public function ville(): BelongsTo

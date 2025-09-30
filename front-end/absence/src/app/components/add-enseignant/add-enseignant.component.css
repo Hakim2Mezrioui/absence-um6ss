@@ -1,0 +1,200 @@
+/* Styles pour le formulaire d'ajout d'enseignant */
+
+/* Style global du formulaire */
+.form-section {
+  animation: fadeIn 0.6s ease-out;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Amélioration des champs de saisie */
+input, select {
+  transition: all 0.3s ease;
+}
+
+input:focus, select:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+/* Style des icônes Material */
+.material-icons {
+  vertical-align: middle;
+  font-size: 1.25rem;
+}
+
+/* Hover effects pour les sections */
+.bg-gradient-to-r:hover {
+  transform: translateY(-2px);
+  transition: transform 0.3s ease;
+}
+
+/* Style des boutons avec animations */
+button {
+  transition: all 0.3s ease;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Style des messages */
+.message-container {
+  animation: slideIn 0.4s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Loading state */
+.loading-skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .grid-cols-2 {
+    grid-template-columns: 1fr;
+  }
+  
+  .flex-row {
+    flex-direction: column;
+  }
+  
+  .gap-4 {
+    gap: 1rem;
+  }
+  
+  .text-3xl {
+    font-size: 1.875rem;
+  }
+  
+  .px-6 {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* Focus states améliorés */
+input:focus,
+select:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Style des labels avec icônes */
+label {
+  transition: color 0.2s ease;
+}
+
+label:hover {
+  color: #374151;
+}
+
+/* Style des sections avec dégradés */
+.bg-gradient-to-r {
+  position: relative;
+  overflow: hidden;
+}
+
+.bg-gradient-to-r::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.bg-gradient-to-r:hover::before {
+  left: 100%;
+}
+
+/* Style des badges */
+.badge {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* Style des icônes dans les boutons */
+button .material-icons {
+  transition: transform 0.2s ease;
+}
+
+button:hover .material-icons {
+  transform: scale(1.1);
+}
+
+/* Style des champs avec erreurs */
+.error-field {
+  border-color: #ef4444 !important;
+  background-color: #fef2f2 !important;
+}
+
+.error-field:focus {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+}
+

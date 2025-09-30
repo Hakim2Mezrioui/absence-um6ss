@@ -25,7 +25,7 @@ class User extends Authenticatable
         'password',
         'role_id',
         'post_id',
-        'etablissement_id',
+        // 'etablissement_id',
         'ville_id',
     ];
 
@@ -87,5 +87,13 @@ class User extends Authenticatable
     public function ville()
     {
         return $this->belongsTo(Ville::class);
+    }
+
+    /**
+     * Enseignant profile if user is a teacher.
+     */
+    public function enseignant()
+    {
+        return $this->hasOne(Enseignant::class);
     }
 }

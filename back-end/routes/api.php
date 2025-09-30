@@ -23,6 +23,7 @@ use App\Http\Controllers\StatisticController;
 use App\Http\Controllers\AbsenceAutoController;
 use App\Http\Controllers\ConfigurationController;
 use App\Http\Controllers\AttendanceStateController;
+use App\Http\Controllers\EnseignantController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -42,6 +43,9 @@ Route::get("users/{id}", [AuthController::class, "show"]); // Nouvelle route
 Route::put("users/{id}", [AuthController::class, "update"]); // Nouvelle route
 Route::post("profile/change-password", [AuthController::class, "changePassword"])->middleware('auth:sanctum'); // Nouvelle route
 Route::get("profile", [AuthController::class, "profile"])->middleware('auth:sanctum'); // Nouvelle route
+
+// Public route for enseignants filter options (must be defined BEFORE the resource route)
+Route::get('enseignants/filter-options', [EnseignantController::class, 'getFilterOptions']);
 
 Route::middleware('auth:sanctum')->group(function () {
 // Configuration routes
@@ -123,6 +127,9 @@ Route::put('/cours/{id}', [CoursController::class, 'update']);
 Route::delete('/cours/{id}', [CoursController::class, 'destroy']);
 Route::post('/import-cours', [CoursController::class, 'ImportCourse']);
 
+// Enseignants - API Resource (protected)
+Route::post('enseignants-with-user', [EnseignantController::class, 'storeWithUser']);
+Route::apiResource('enseignants', EnseignantController::class);
 });
 
 // Public routes for students

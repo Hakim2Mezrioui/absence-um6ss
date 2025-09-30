@@ -1,0 +1,339 @@
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center">
+              <span class="material-icons text-white text-2xl">person_add</span>
+      </div>
+      <div>
+              <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                <span>Ajouter un Enseignant</span>
+                <span class="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">Nouveau</span>
+              </h1>
+              <p class="mt-2 text-gray-600 flex items-center gap-2">
+                <span class="material-icons text-blue-600 text-lg">info</span>
+                Créez un nouveau profil enseignant dans le système
+              </p>
+            </div>
+          </div>
+          <button 
+            (click)="goBack()"
+            [disabled]="isLoading"
+            class="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white px-6 py-3 rounded-xl transition-all duration-300 flex items-center gap-3 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+          >
+            <span class="material-icons">arrow_back</span>
+            <span class="font-medium">Retour aux enseignants</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading state -->
+    <div *ngIf="isLoading" class="bg-white rounded-xl shadow-lg border border-gray-200 p-8 text-center">
+      <div class="inline-flex items-center px-4 py-2 text-gray-600">
+        <span class="material-icons animate-spin mr-3 text-blue-600">refresh</span>
+        Chargement des options...
+      </div>
+    </div>
+
+    <!-- Formulaire -->
+    <div *ngIf="!isLoading" class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+      <form (ngSubmit)="submit()" class="space-y-0">
+          
+        <!-- Section Informations Personnelles -->
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200 p-6">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center">
+              <span class="material-icons text-white text-lg">person</span>
+      </div>
+      <div>
+              <h2 class="text-xl font-semibold text-gray-800">Informations Personnelles</h2>
+              <p class="text-sm text-gray-600">Détails de base de l'enseignant</p>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Prénom -->
+            <div>
+              <label for="first_name" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <span class="material-icons text-blue-600 text-lg">person</span>
+                Prénom <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                <input
+                  id="first_name"
+                  type="text"
+                  [(ngModel)]="user.first_name"
+                  name="first_name"
+                  required
+                  placeholder="Saisissez le prénom"
+                  class="w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white hover:border-blue-400 transition-all duration-200"
+                >
+                <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">edit</span>
+              </div>
+            </div>
+
+            <!-- Nom -->
+            <div>
+              <label for="last_name" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <span class="material-icons text-blue-600 text-lg">person</span>
+                Nom de famille <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                <input
+                  id="last_name"
+                  type="text"
+                  [(ngModel)]="user.last_name"
+                  name="last_name"
+                  required
+                  placeholder="Saisissez le nom de famille"
+                  class="w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white hover:border-blue-400 transition-all duration-200"
+                >
+                <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">edit</span>
+              </div>
+            </div>
+
+            <!-- Email -->
+            <div>
+              <label for="email" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <span class="material-icons text-blue-600 text-lg">email</span>
+                Adresse email <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                <input
+                  id="email"
+                  type="email"
+                  [(ngModel)]="user.email"
+                  name="email"
+                  required
+                  placeholder="exemple@email.com"
+                  class="w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white hover:border-blue-400 transition-all duration-200"
+                >
+                <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">email</span>
+              </div>
+      </div>
+
+            <!-- Mot de passe -->
+      <div>
+              <label for="password" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <span class="material-icons text-blue-600 text-lg">lock</span>
+                Mot de passe <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                <input
+                  id="password"
+                  type="password"
+                  [(ngModel)]="user.password"
+                  name="password"
+                  required
+                  placeholder="Mot de passe sécurisé"
+                  class="w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white hover:border-blue-400 transition-all duration-200"
+                >
+                <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">lock</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section Informations Professionnelles -->
+        <div class="bg-gradient-to-r from-purple-50 to-violet-50 border-b border-gray-200 p-6">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-gradient-to-br from-purple-600 to-violet-700 rounded-lg flex items-center justify-center">
+              <span class="material-icons text-white text-lg">work</span>
+      </div>
+      <div>
+              <h2 class="text-xl font-semibold text-gray-800">Informations Professionnelles</h2>
+              <p class="text-sm text-gray-600">Rôle, poste et établissement</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Rôle -->
+            <div>
+              <label for="role_id" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <span class="material-icons text-purple-600 text-lg">admin_panel_settings</span>
+                Rôle <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                 <select
+                   id="role_id"
+                   [(ngModel)]="user.role_id"
+                   name="role_id"
+                   required
+                   class="w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white hover:border-purple-400 transition-all duration-200"
+                 >
+                   <option value="">Sélectionner un rôle</option>
+                   <option *ngFor="let role of roles" [ngValue]="role.id">{{ role.name }}</option>
+                 </select>
+                <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">arrow_drop_down</span>
+              </div>
+      </div>
+
+            <!-- Poste -->
+      <div>
+              <label for="post_id" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <span class="material-icons text-purple-600 text-lg">business_center</span>
+                Poste <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                 <select
+                   id="post_id"
+                   [(ngModel)]="user.post_id"
+                   name="post_id"
+                   required
+                   class="w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white hover:border-purple-400 transition-all duration-200"
+                 >
+                   <option value="">Sélectionner un poste</option>
+                   <option *ngFor="let post of posts" [ngValue]="post.id">{{ post.name }}</option>
+                 </select>
+                <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">arrow_drop_down</span>
+              </div>
+      </div>
+
+            <!-- Établissement -->
+      <div>
+              <label for="etablissement_id" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <span class="material-icons text-purple-600 text-lg">business</span>
+                Établissement
+              </label>
+              <div class="relative">
+                 <select
+                   id="etablissement_id"
+                   [(ngModel)]="user.etablissement_id"
+                   name="etablissement_id"
+                   class="w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white hover:border-purple-400 transition-all duration-200"
+                 >
+                   <option value="">Sélectionner un établissement (optionnel)</option>
+                   <option *ngFor="let etab of etablissements" [ngValue]="etab.id">{{ etab.name }}</option>
+                 </select>
+                <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">arrow_drop_down</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section Informations Géographiques -->
+        <div class="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-gray-200 p-6">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-gradient-to-br from-green-600 to-emerald-700 rounded-lg flex items-center justify-center">
+              <span class="material-icons text-white text-lg">location_on</span>
+      </div>
+      <div>
+              <h2 class="text-xl font-semibold text-gray-800">Informations Géographiques</h2>
+              <p class="text-sm text-gray-600">Villes d'affectation</p>
+            </div>
+      </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Ville Utilisateur -->
+      <div>
+              <label for="user_ville_id" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <span class="material-icons text-green-600 text-lg">person_pin</span>
+                Ville (Utilisateur) <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                 <select
+                   id="user_ville_id"
+                   [(ngModel)]="user.ville_id"
+                   name="user_ville_id"
+                   required
+                   class="w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white hover:border-green-400 transition-all duration-200"
+                 >
+                   <option value="">Sélectionner une ville</option>
+                   <option *ngFor="let ville of villes" [ngValue]="ville.id">{{ ville.name }}</option>
+                 </select>
+                <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">arrow_drop_down</span>
+              </div>
+      </div>
+
+            <!-- Ville Enseignant -->
+      <div>
+              <label for="ens_ville_id" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <span class="material-icons text-green-600 text-lg">school</span>
+                Ville (Enseignant) <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                 <select
+                   id="ens_ville_id"
+                   [(ngModel)]="enseignant.ville_id"
+                   name="ens_ville_id"
+                   required
+                   class="w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white hover:border-green-400 transition-all duration-200"
+                 >
+                   <option value="">Sélectionner une ville</option>
+                   <option *ngFor="let ville of villes" [ngValue]="ville.id">{{ ville.name }}</option>
+                 </select>
+                <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">arrow_drop_down</span>
+              </div>
+            </div>
+          </div>
+         </div>
+
+         <!-- Messages d'erreur -->
+        <div *ngIf="errorMessage" class="bg-gradient-to-r from-red-50 to-pink-50 border-l-4 border-red-500 p-6 mx-6 mb-6">
+          <div class="flex items-start gap-4">
+            <div class="flex-shrink-0">
+              <div class="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center">
+                <span class="material-icons text-white text-lg">error</span>
+              </div>
+            </div>
+            <div class="flex-1">
+              <h3 class="text-lg font-semibold text-red-800 mb-2">Erreur lors de la création</h3>
+              <p class="text-red-700">{{ errorMessage }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Messages de succès -->
+        <div *ngIf="successMessage" class="bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-500 p-6 mx-6 mb-6">
+          <div class="flex items-start gap-4">
+            <div class="flex-shrink-0">
+              <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                <span class="material-icons text-white text-lg">check_circle</span>
+              </div>
+            </div>
+            <div class="flex-1">
+              <h3 class="text-lg font-semibold text-green-800 mb-2">Succès</h3>
+              <p class="text-green-700">{{ successMessage }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Boutons d'action -->
+        <div class="bg-gray-50 border-t border-gray-200 p-6">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3 text-sm text-gray-600">
+              <span class="material-icons text-lg">info</span>
+              <span>Tous les champs marqués d'un <span class="text-red-500 font-semibold">*</span> sont obligatoires</span>
+            </div>
+            <div class="flex items-center gap-4">
+              <button
+                type="button"
+                (click)="resetForm()"
+                class="px-6 py-3 border-2 border-gray-300 text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 rounded-xl transition-all duration-300 flex items-center gap-3 shadow-sm hover:shadow-md transform hover:-translate-y-0.5"
+              >
+                <span class="material-icons">refresh</span>
+                <span class="font-medium">Réinitialiser</span>
+              </button>
+              <button
+                type="submit"
+                [disabled]="isSubmitting"
+                class="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 disabled:from-gray-400 disabled:to-gray-500 text-white rounded-xl transition-all duration-300 flex items-center gap-3 shadow-lg hover:shadow-xl transform hover:-translate-y-1 disabled:transform-none disabled:shadow-sm"
+              >
+                <span *ngIf="isSubmitting" class="material-icons animate-spin">refresh</span>
+                <span *ngIf="!isSubmitting" class="material-icons">add</span>
+                <span class="font-medium">
+                  <span *ngIf="!isSubmitting">Créer l'enseignant</span>
+                  <span *ngIf="isSubmitting">Création en cours...</span>
+                </span>
+              </button>
+      </div>
+      </div>
+    </div>
+  </form>
+    </div>
+  </div>
+</div>

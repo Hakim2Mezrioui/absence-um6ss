@@ -274,6 +274,12 @@ export class SidebarComponent implements OnInit {
       tooltip: 'Gestion des cours'
     },
     {
+      label: 'Enseignants',
+      icon: 'person_pin',
+      route: '/dashboard/enseignants',
+      tooltip: 'Gestion des enseignants'
+    },
+    {
       label: 'Étudiants',
       icon: 'people',
       route: '/dashboard/etudiants',

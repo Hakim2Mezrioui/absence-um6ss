@@ -1,0 +1,101 @@
+/* Custom styles for Material Design components integration with Tailwind */
+
+/* Override Material Design table styles to work better with Tailwind */
+.mat-table {
+  background: transparent !important;
+}
+
+.mat-header-cell {
+  background-color: transparent !important;
+  border-bottom: none !important;
+}
+
+.mat-cell {
+  border-bottom: none !important;
+}
+
+.mat-row {
+  border-bottom: none !important;
+}
+
+.mat-header-row {
+  border-bottom: none !important;
+}
+
+/* Custom paginator styling */
+.mat-paginator {
+  background: transparent !important;
+  border-top: 1px solid #e2e8f0 !important;
+}
+
+.mat-paginator .mat-paginator-page-size-label,
+.mat-paginator .mat-paginator-range-label {
+  color: #64748b !important;
+  font-size: 0.875rem !important;
+}
+
+.mat-paginator .mat-select-value {
+  color: #1e293b !important;
+}
+
+.mat-paginator .mat-icon-button {
+  color: #64748b !important;
+}
+
+.mat-paginator .mat-icon-button:hover {
+  background-color: #f1f5f9 !important;
+}
+
+/* Sort indicator styling */
+.mat-sort-header-arrow {
+  color: #64748b !important;
+}
+
+.mat-sort-header-sorted .mat-sort-header-arrow {
+  color: #2563eb !important;
+}
+
+/* Focus states for accessibility */
+.mat-sort-header:focus {
+  outline: 2px solid #2563eb !important;
+  outline-offset: 2px !important;
+}
+
+/* Button hover effects */
+.mat-icon-button:hover {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Custom animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Loading state */
+.loading-skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+

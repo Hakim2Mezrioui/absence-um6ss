@@ -22,7 +22,7 @@ class UserSeeder extends Seeder
         $etablissements = Etablissement::pluck('id')->toArray();
 
         // Vérifier que les tables de référence ont des données
-        if (empty($roles) || empty($posts) || empty($etablissements)) {
+        if (empty($roles) || empty($posts)) {
             $this->command->warn('Certaines tables de référence sont vides. Veuillez exécuter leurs seeders d\'abord.');
             return;
         }
@@ -36,7 +36,6 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('admin123'),
                 'role_id' => $roles[0], // Premier rôle (probablement Admin)
                 'post_id' => $posts[0], // Premier poste
-                'etablissement_id' => $etablissements[0], // Premier établissement
             ],
             [
                 'first_name' => 'Mohammed',
@@ -45,7 +44,6 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password123'),
                 'role_id' => $roles[1] ?? $roles[0], // Deuxième rôle ou premier si pas assez
                 'post_id' => $posts[1] ?? $posts[0], // Deuxième poste ou premier si pas assez
-                'etablissement_id' => $etablissements[0],
             ],
             [
                 'first_name' => 'Fatima',
@@ -54,7 +52,6 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password123'),
                 'role_id' => $roles[1] ?? $roles[0],
                 'post_id' => $posts[2] ?? $posts[0],
-                'etablissement_id' => $etablissements[0],
             ],
             [
                 'first_name' => 'Ahmed',
@@ -63,7 +60,6 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password123'),
                 'role_id' => $roles[2] ?? $roles[0],
                 'post_id' => $posts[3] ?? $posts[0],
-                'etablissement_id' => $etablissements[0],
             ],
             [
                 'first_name' => 'Amina',
@@ -72,7 +68,6 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password123'),
                 'role_id' => $roles[2] ?? $roles[0],
                 'post_id' => $posts[4] ?? $posts[0],
-                'etablissement_id' => $etablissements[0],
             ],
             [
                 'first_name' => 'Karim',
@@ -81,7 +76,6 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password123'),
                 'role_id' => $roles[1] ?? $roles[0],
                 'post_id' => $posts[1] ?? $posts[0],
-                'etablissement_id' => $etablissements[1] ?? $etablissements[0],
             ],
             [
                 'first_name' => 'Sara',
@@ -90,7 +84,6 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password123'),
                 'role_id' => $roles[1] ?? $roles[0],
                 'post_id' => $posts[2] ?? $posts[0],
-                'etablissement_id' => $etablissements[1] ?? $etablissements[0],
             ],
             [
                 'first_name' => 'Youssef',
@@ -99,7 +92,6 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password123'),
                 'role_id' => $roles[2] ?? $roles[0],
                 'post_id' => $posts[3] ?? $posts[0],
-                'etablissement_id' => $etablissements[1] ?? $etablissements[0],
             ]
         ];
 

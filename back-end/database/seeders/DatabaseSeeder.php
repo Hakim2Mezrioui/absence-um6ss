@@ -35,6 +35,7 @@ class DatabaseSeeder extends Seeder
             EtudiantSeeder::class,
             CoursSeeder::class,
             UserSeeder::class,
+            EnseignantSeeder::class,
             AbsenceSeeder::class,      // Après ExamenSeeder
             RattrapageSeeder::class,
         ]);

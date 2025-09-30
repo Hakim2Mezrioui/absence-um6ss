@@ -23,10 +23,14 @@ import { AddCoursComponent } from './components/add-cours/add-cours.component';
 import { EditCoursComponent } from './components/edit-cours/edit-cours.component';
 import { AttendanceCoursComponent } from './components/attendance-cours/attendance-cours.component';
 import { ConfigurationComponent } from './components/configuration/configuration.component';
+import { EnseignantsComponent } from './components/enseignants/enseignants.component';
+import { AddEnseignantComponent } from './components/add-enseignant/add-enseignant.component';
 
 export const routes: Routes = [
     {path: "", redirectTo: "login", pathMatch: "full"},
     {path: "login", component: LoginComponent},
+    // Public access to add-enseignant (no AuthGuard)
+    {path: "add-enseignant", component: AddEnseignantComponent},
     {
         path: "dashboard", 
         component: LayoutComponent,
@@ -52,6 +56,9 @@ export const routes: Routes = [
                    { path: "edit-cours/:id", component: EditCoursComponent },
                    { path: "cours/:id/attendance", component: AttendanceCoursComponent },
                    { path: "configuration", component: ConfigurationComponent },
+                   { path: "enseignants", component: EnseignantsComponent },
+                   { path: "add-enseignant", component: AddEnseignantComponent },
+                   // kept for backward compatibility if needed, but main public route is defined above
                    { path: "statistiques", component: DashboardComponent }, // Placeholder
                    { path: "parametres", component: DashboardComponent }, // Placeholder
                    { path: "profile", component: ProfileComponent },
