@@ -161,6 +161,10 @@ export class CoursComponent implements OnInit {
     this.router.navigate(['/dashboard/add-cours']);
   }
 
+  importCours() {
+    this.router.navigate(['/dashboard/import-cours']);
+  }
+
   editCours(cours: Cours) {
     this.router.navigate(['/dashboard/edit-cours', cours.id]);
   }

@@ -7,6 +7,7 @@ use App\Models\Cours;
 use App\Models\User;
 use App\Models\Ville;
 use App\Models\Role;
+use App\Models\Post;
 use Illuminate\Support\Facades\DB;
 
 class EnseignantService extends BaseService
@@ -139,10 +140,12 @@ class EnseignantService extends BaseService
         try {
             $villes = Ville::select('id', 'name')->orderBy('name')->get();
             $roles = Role::select('id', 'name')->orderBy('name')->get();
+            $posts = Post::select('id', 'name')->orderBy('name')->get();
 
             return $this->successResponse([
                 'villes' => $villes,
                 'roles' => $roles,
+                'posts' => $posts,
             ], 'Options de filtre récupérées');
         } catch (\Throwable $e) {
             return $this->errorResponse('Erreur lors du chargement des options: ' . $e->getMessage(), 500);

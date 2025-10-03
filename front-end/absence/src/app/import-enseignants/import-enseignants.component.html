@@ -1,1 +1,262 @@
-<p>import-enseignants works!</p>
+<div class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-8">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 class="text-3xl font-bold text-slate-900 mb-2">Importation des Enseignants</h1>
+          <p class="text-slate-600">Importez des enseignants depuis un fichier CSV</p>
+        </div>
+        <div class="flex gap-3">
+          <button 
+            (click)="goBack()"
+            class="inline-flex items-center px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition-colors duration-200">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            Retour
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Formulaire d'importation -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+      <form [formGroup]="importForm" (ngSubmit)="importFile()">
+        <!-- Configuration -->
+        <div class="mb-6">
+          <h3 class="text-lg font-semibold text-slate-900 mb-4">Configuration de l'importation</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-2">
+                Ville <span class="text-red-500">*</span>
+              </label>
+              <select 
+                formControlName="ville_id"
+                [class.border-red-500]="isFieldInvalid('ville_id')"
+                class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200">
+                <option value="">Sélectionnez une ville</option>
+                <option *ngFor="let ville of villes" [value]="ville.id">
+                  {{ ville.name || ville.nom || ('Ville #' + ville.id) }}
+                </option>
+              </select>
+              <p *ngIf="isFieldInvalid('ville_id')" class="mt-1 text-sm text-red-600">
+                {{ getErrorMessage('ville_id') }}
+              </p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-2">
+                Rôle <span class="text-red-500">*</span>
+              </label>
+              <select 
+                formControlName="role_id"
+                [class.border-red-500]="isFieldInvalid('role_id')"
+                class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200">
+                <option value="">Sélectionnez un rôle</option>
+                <option *ngFor="let role of roles" [value]="role.id">
+                  {{ role.name }}
+                </option>
+              </select>
+              <p *ngIf="isFieldInvalid('role_id')" class="mt-1 text-sm text-red-600">
+                {{ getErrorMessage('role_id') }}
+              </p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-2">
+                Poste <span class="text-red-500">*</span>
+              </label>
+              <select 
+                formControlName="post_id"
+                [class.border-red-500]="isFieldInvalid('post_id')"
+                class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200">
+                <option value="">Sélectionnez un poste</option>
+                <option *ngFor="let post of posts" [value]="post.id">
+                  {{ post.name || post.title }}
+                </option>
+              </select>
+              <p *ngIf="isFieldInvalid('post_id')" class="mt-1 text-sm text-red-600">
+                {{ getErrorMessage('post_id') }}
+              </p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-2">
+                Mot de passe par défaut <span class="text-red-500">*</span>
+              </label>
+              <input 
+                type="text"
+                formControlName="default_password"
+                [class.border-red-500]="isFieldInvalid('default_password')"
+                class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                placeholder="Mot de passe par défaut">
+              <p *ngIf="isFieldInvalid('default_password')" class="mt-1 text-sm text-red-600">
+                {{ getErrorMessage('default_password') }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sélection de fichier -->
+        <div class="mb-6">
+          <h3 class="text-lg font-semibold text-slate-900 mb-4">Sélection du fichier</h3>
+          
+          <!-- Zone de drop -->
+          <div 
+            class="border-2 border-dashed rounded-lg p-8 text-center transition-colors duration-200"
+            [class.border-blue-400]="isDragOver"
+            [class.bg-blue-50]="isDragOver"
+            [class.border-slate-300]="!isDragOver"
+            [class.bg-slate-50]="!isDragOver"
+            (dragover)="onDragOver($event)"
+            (dragleave)="onDragLeave($event)"
+            (drop)="onDrop($event)">
+            
+            <div *ngIf="!selectedFile" class="space-y-4">
+              <svg class="mx-auto h-12 w-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+              <div>
+                <p class="text-lg font-medium text-slate-900">Glissez-déposez votre fichier ici</p>
+                <p class="text-slate-500">ou</p>
+                <label class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 cursor-pointer">
+                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                  </svg>
+                  Parcourir les fichiers
+                  <input type="file" accept=".csv,.txt" (change)="onFileSelected($event)" class="hidden">
+                </label>
+              </div>
+              <p class="text-sm text-slate-500">Formats supportés: CSV, TXT</p>
+            </div>
+
+            <div *ngIf="selectedFile" class="space-y-4">
+              <svg class="mx-auto h-12 w-12 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div>
+                <p class="text-lg font-medium text-slate-900">{{ selectedFile.name }}</p>
+                <p class="text-slate-500">{{ (selectedFile.size / 1024).toFixed(1) }} KB</p>
+              </div>
+              <button 
+                type="button"
+                (click)="removeFile()"
+                class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+                Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Prévisualisation -->
+        <div *ngIf="filePreview.length > 0" class="mb-6">
+          <h3 class="text-lg font-semibold text-slate-900 mb-4">Prévisualisation (5 premières lignes)</h3>
+          <div class="overflow-x-auto border border-slate-200 rounded-lg">
+            <table class="w-full">
+              <thead class="bg-slate-50">
+                <tr>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Ligne</th>
+                  <th *ngFor="let header of getHeaders()" class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    {{ header }}
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-slate-200">
+                <tr *ngFor="let item of filePreview">
+                  <td class="px-4 py-3 text-sm text-slate-500">{{ item.lineNumber }}</td>
+                  <td *ngFor="let header of getHeaders()" class="px-4 py-3 text-sm text-slate-900">
+                    {{ item.row[header] }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex flex-col sm:flex-row gap-3">
+          <button 
+            type="submit"
+            [disabled]="loading || !selectedFile || importForm.invalid"
+            class="flex-1 inline-flex items-center justify-center px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white font-medium rounded-lg transition-colors duration-200 shadow-sm">
+            <svg *ngIf="!loading" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+            </svg>
+            <svg *ngIf="loading" class="animate-spin w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            {{ loading ? 'Importation en cours...' : 'Importer les enseignants' }}
+          </button>
+          
+          <button 
+            type="button"
+            (click)="downloadTemplate()"
+            class="inline-flex items-center px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition-colors duration-200">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            Télécharger le modèle
+          </button>
+          
+          <button 
+            type="button"
+            (click)="resetForm()"
+            class="inline-flex items-center px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition-colors duration-200">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            Réinitialiser
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Messages d'erreur et de succès -->
+    <div *ngIf="error" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+      <div class="flex">
+        <svg class="w-5 h-5 text-red-400 mr-3 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <div>
+          <h3 class="text-sm font-medium text-red-800">Erreur</h3>
+          <p class="text-sm text-red-700 mt-1">{{ error }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="success" class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+      <div class="flex">
+        <svg class="w-5 h-5 text-green-400 mr-3 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <div>
+          <h3 class="text-sm font-medium text-green-800">Succès</h3>
+          <p class="text-sm text-green-700 mt-1">{{ success }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Résultats détaillés -->
+    <div *ngIf="importResults.details.length > 0" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+      <h3 class="text-lg font-semibold text-slate-900 mb-4">Résultats détaillés</h3>
+      <div class="space-y-2 max-h-64 overflow-y-auto">
+        <div *ngFor="let detail of importResults.details" 
+             class="flex items-center p-2 rounded text-sm"
+             [class.bg-green-50]="detail.includes('succès')"
+             [class.text-green-800]="detail.includes('succès')"
+             [class.bg-red-50]="detail.includes('Erreur')"
+             [class.text-red-800]="detail.includes('Erreur')">
+          <svg *ngIf="detail.includes('succès')" class="w-4 h-4 mr-2 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <svg *ngIf="detail.includes('Erreur')" class="w-4 h-4 mr-2 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          {{ detail }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

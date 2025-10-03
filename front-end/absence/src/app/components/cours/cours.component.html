@@ -9,6 +9,13 @@
         </div>
         <div class="flex gap-3">
           <button 
+            (click)="importCours()"
+            class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center gap-2"
+          >
+            <span class="material-icons">upload_file</span>
+            Importer des cours
+          </button>
+          <button 
             (click)="addCours()"
             class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center gap-2"
           >
@@ -490,4 +497,5 @@
       </div>
     </div>
   </div>
+
 </div>

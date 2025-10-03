@@ -6,8 +6,13 @@ import { AuthService } from './auth.service';
 
 export interface Enseignant {
   id?: number;
-  user_id: number;
+  user_id?: number;
   ville_id: number;
+  role_id?: number;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  phone?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -42,6 +47,10 @@ export class EnseignantService {
   assignCours(id: number, cours_ids: number[]): Observable<any> { return this.http.post(`${this.baseUrl}/${id}/assign-cours`, { cours_ids }, this.getAuthHeaders()); }
   createWithUser(payload: { user: any; enseignant: { ville_id: number } }): Observable<any> {
     return this.http.post(`${environment.apiUrl}/enseignants-with-user`, payload, this.getAuthHeaders());
+  }
+
+  getFilterOptions(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/filter-options`, this.getAuthHeaders());
   }
 }
 
