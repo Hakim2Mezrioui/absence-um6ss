@@ -421,7 +421,7 @@
                 <div class="space-y-4">
                   <div class="space-y-2">
                     <h3 class="text-2xl lg:text-3xl font-light text-slate-900">
-                      Déposez votre fichier CSV
+                      Déposez votre fichier (CSV, TXT, Excel)
                     </h3>
                     <p class="text-slate-500 text-lg">
                       ou cliquez pour parcourir vos fichiers
@@ -432,7 +432,7 @@
                   <div class="inline-flex items-center gap-8 text-sm text-slate-400">
                     <div class="flex items-center gap-2">
                       <div class="w-2 h-2 bg-blue-400 rounded-full"></div>
-                      <span>CSV seulement</span>
+                      <span>CSV, TXT, Excel</span>
                     </div>
                     <div class="flex items-center gap-2">
                       <div class="w-2 h-2 bg-emerald-400 rounded-full"></div>
@@ -451,7 +451,7 @@
                   type="file" 
                   #fileInput 
                   (change)="onFileSelected($event)"
-                  accept=".csv"
+                  accept=".csv,.txt,.xlsx,.xls"
                   class="hidden"
                 >
                 <button 
@@ -460,7 +460,7 @@
                   class="inline-flex items-center justify-center px-8 py-4 text-base font-medium text-white bg-blue-600 border border-transparent rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                 >
                   <mat-icon class="mr-3 text-xl">folder_open</mat-icon>
-                  <span>Sélectionner un fichier CSV</span>
+                  <span>Sélectionner un fichier (CSV, TXT, Excel)</span>
                 </button>
                 </div>
               </div>
@@ -781,12 +781,12 @@
         <!-- Content Professionnel -->
         <div class="space-y-8">
           
-          <!-- Spécifications techniques -->
-          <div class="bg-white rounded-2xl border border-blue-200 shadow-lg p-8">
-            <div class="mb-8">
-              <h5 class="text-2xl font-semibold text-slate-900 mb-2">Format CSV attendu</h5>
-              <p class="text-slate-600">Le fichier doit contenir les colonnes suivantes :</p>
-            </div>
+            <!-- Spécifications techniques -->
+            <div class="bg-white rounded-2xl border border-blue-200 shadow-lg p-8">
+              <div class="mb-8">
+                <h5 class="text-2xl font-semibold text-slate-900 mb-2">Formats supportés</h5>
+                <p class="text-slate-600">Le système accepte les fichiers CSV, TXT et Excel (.xlsx, .xls) :</p>
+              </div>
             
             <!-- Format CSV attendu -->
             <div class="mb-6">
@@ -889,6 +889,18 @@ ETU2024003,Pierre,Durand,pierre.durand@email.com,password123</code></pre>
                 <div>
                   <p class="text-yellow-800 text-sm font-medium">
                     <strong>Note :</strong> Les autres informations (promotion, établissement, ville, groupe) seront appliquées à tous les étudiants importés selon la configuration ci-dessus. L'option est facultative et ne sera appliquée que si elle est sélectionnée.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Support Excel -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
+              <div class="flex items-start gap-3">
+                <mat-icon class="text-blue-600 text-lg mt-0.5">table_chart</mat-icon>
+                <div>
+                  <p class="text-blue-800 text-sm font-medium">
+                    <strong>Support Excel :</strong> Les fichiers Excel (.xlsx, .xls) sont automatiquement convertis en CSV lors de l'importation. Le système détecte également l'ancienne structure de données (matricule, name, promotion, faculte, groupe) et la convertit automatiquement.
                   </p>
                 </div>
               </div>

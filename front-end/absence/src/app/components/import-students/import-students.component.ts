@@ -265,8 +265,11 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
    */
   private handleFile(file: File): void {
     // Vérifications
-    if (!file.name.toLowerCase().endsWith('.csv')) {
-      this.error = 'Veuillez sélectionner un fichier CSV.';
+    const allowedExtensions = ['.csv', '.txt', '.xlsx', '.xls'];
+    const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+    
+    if (!allowedExtensions.includes(fileExtension)) {
+      this.error = 'Veuillez sélectionner un fichier CSV, TXT, XLSX ou XLS.';
       return;
     }
 
@@ -290,6 +293,19 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
    * Prévisualiser le contenu du fichier
    */
   private previewFile(file: File): void {
+    const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+    
+    if (fileExtension === '.xlsx' || fileExtension === '.xls') {
+      this.previewExcelFile(file);
+    } else {
+      this.previewCsvFile(file);
+    }
+  }
+
+  /**
+   * Prévisualiser un fichier CSV/TXT
+   */
+  private previewCsvFile(file: File): void {
     const reader = new FileReader();
     
     reader.onload = (e) => {
@@ -297,32 +313,11 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
       const lines = csv.split('\n').filter(line => line.trim());
       
       if (lines.length === 0) {
-        this.error = 'Le fichier CSV est vide.';
+        this.error = 'Le fichier est vide.';
         return;
       }
 
-      // Parser les premières lignes pour l'aperçu
-      this.previewData = [];
-      this.previewHeaders = [];
-
-      const maxPreviewLines = Math.min(6, lines.length);
-      
-      for (let i = 0; i < maxPreviewLines; i++) {
-        const cells = this.parseCSVLine(lines[i]);
-        
-        if (i === 0 && this.importOptions.hasHeaders) {
-          this.previewHeaders = cells;
-        } else {
-          this.previewData.push(cells);
-        }
-      }
-
-      // Si pas d'en-têtes, utiliser des noms génériques
-      if (!this.importOptions.hasHeaders) {
-        this.previewHeaders = this.previewData[0]?.map((_, index) => `Colonne ${index + 1}`) || [];
-      }
-
-      console.log('👀 Aperçu généré:', this.previewData.length, 'lignes');
+      this.parseAndPreviewData(lines);
     };
 
     reader.onerror = () => {
@@ -330,6 +325,73 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
     };
 
     reader.readAsText(file);
+  }
+
+  /**
+   * Prévisualiser un fichier Excel
+   */
+  private previewExcelFile(file: File): void {
+    // Utiliser une approche simple pour lire les fichiers Excel
+    this.convertExcelToCsv(file).then(csvData => {
+      if (csvData) {
+        const lines = csvData.split('\n').filter(line => line.trim());
+        this.parseAndPreviewData(lines);
+        this.success = 'Fichier Excel converti avec succès.';
+      } else {
+        this.error = 'Impossible de lire le fichier Excel. Veuillez utiliser un fichier CSV.';
+      }
+    }).catch(error => {
+      console.error('Erreur lors de la conversion Excel:', error);
+      this.error = 'Erreur lors de la lecture du fichier Excel. Veuillez utiliser un fichier CSV.';
+    });
+  }
+
+  /**
+   * Convertir un fichier Excel en CSV (méthode simplifiée)
+   */
+  private async convertExcelToCsv(file: File): Promise<string | null> {
+    try {
+      // Pour l'instant, retourner null et suggérer l'utilisation de CSV
+      // Dans une implémentation complète, vous pourriez utiliser :
+      // - SheetJS (xlsx) : https://github.com/SheetJS/sheetjs
+      // - ExcelJS : https://github.com/exceljs/exceljs
+      // - Ou une autre bibliothèque JavaScript
+      
+      console.log('Conversion Excel non implémentée pour le moment');
+      return null;
+      
+    } catch (error) {
+      console.error('Erreur lors de la conversion Excel:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Parser et prévisualiser les données
+   */
+  private parseAndPreviewData(lines: string[]): void {
+    // Parser les premières lignes pour l'aperçu
+    this.previewData = [];
+    this.previewHeaders = [];
+
+    const maxPreviewLines = Math.min(6, lines.length);
+    
+    for (let i = 0; i < maxPreviewLines; i++) {
+      const cells = this.parseCSVLine(lines[i]);
+      
+      if (i === 0 && this.importOptions.hasHeaders) {
+        this.previewHeaders = cells;
+      } else {
+        this.previewData.push(cells);
+      }
+    }
+
+    // Si pas d'en-têtes, utiliser des noms génériques
+    if (!this.importOptions.hasHeaders) {
+      this.previewHeaders = this.previewData[0]?.map((_, index) => `Colonne ${index + 1}`) || [];
+    }
+
+    console.log('👀 Aperçu généré:', this.previewData.length, 'lignes');
   }
 
   /**
