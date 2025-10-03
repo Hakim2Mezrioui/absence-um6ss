@@ -79,7 +79,7 @@ export class EditEtudiantComponent implements OnInit, OnDestroy {
       etablissement_id: ['', Validators.required],
       ville_id: ['', Validators.required],
       group_id: ['', Validators.required],
-      option_id: ['', Validators.required]
+      option_id: [''] // Optionnel - toutes les écoles n'utilisent pas les options
     });
   }
 
@@ -300,7 +300,7 @@ export class EditEtudiantComponent implements OnInit, OnDestroy {
       'etablissement_id': 'L\'établissement',
       'ville_id': 'La ville',
       'group_id': 'Le groupe',
-      'option_id': 'L\'option'
+      'option_id': 'L\'option (optionnel)'
     };
     return labels[fieldName] || fieldName;
   }

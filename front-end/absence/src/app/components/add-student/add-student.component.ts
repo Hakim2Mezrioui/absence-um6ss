@@ -65,7 +65,7 @@ export class AddStudentComponent implements OnInit, OnDestroy {
       etablissement_id: ['', [Validators.required]],
       promotion_id: ['', [Validators.required]],
       group_id: ['', [Validators.required]],
-      option_id: ['', [Validators.required]]
+      option_id: [''] // Optionnel - toutes les écoles n'utilisent pas les options
     });
   }
 
@@ -250,7 +250,7 @@ export class AddStudentComponent implements OnInit, OnDestroy {
       'etablissement_id': 'L\'établissement',
       'promotion_id': 'La promotion',
       'group_id': 'Le groupe',
-      'option_id': 'L\'option'
+      'option_id': 'L\'option (optionnel)'
     };
     return labels[fieldName] || 'Ce champ';
   }

@@ -545,7 +545,7 @@ class EtudiantController extends Controller
             'etablissement_id' => 'required|exists:etablissements,id',
             'ville_id' => 'required|exists:villes,id',
             'group_id' => 'required|exists:groups,id',
-            'option_id' => 'required|exists:options,id',
+            'option_id' => 'nullable|exists:options,id', // Optionnel - toutes les écoles n'utilisent pas les options
         ]);
 
         // Create a new Etudiant
@@ -559,7 +559,7 @@ class EtudiantController extends Controller
             'etablissement_id' => $request->input('etablissement_id'),
             'ville_id' => $request->input('ville_id'),
             'group_id' => $request->input('group_id'),
-            'option_id' => $request->input('option_id'),
+            'option_id' => $request->input('option_id'), // Peut être null
         ]);
 
         if ($request->hasFile("photo")) {
@@ -638,7 +638,7 @@ class EtudiantController extends Controller
             'etablissement_id' => 'sometimes|required|exists:etablissements,id',
             'ville_id' => 'sometimes|required|exists:villes,id',
             'group_id' => 'sometimes|required|exists:groups,id',
-            'option_id' => 'sometimes|required|exists:options,id',
+            'option_id' => 'sometimes|nullable|exists:options,id', // Optionnel - toutes les écoles n'utilisent pas les options
         ]);
 
         // Find the Etudiant by ID
@@ -681,7 +681,7 @@ class EtudiantController extends Controller
             'etablissement_id' => 'sometimes|required|exists:etablissements,id',
             'ville_id' => 'sometimes|required|exists:villes,id',
             'group_id' => 'sometimes|required|exists:groups,id',
-            'option_id' => 'sometimes|required|exists:options,id',
+            'option_id' => 'sometimes|nullable|exists:options,id', // Optionnel - toutes les écoles n'utilisent pas les options
         ]);
 
         // Update the Etudiant with the new data
@@ -871,13 +871,13 @@ class EtudiantController extends Controller
             // Définir les colonnes requises en fonction du mode
             if ($useDefaultValues) {
                 $requiredColumns = ['matricule', 'first_name', 'last_name', 'email'];
-                $optionalColumns = ['promotion_id', 'etablissement_id', 'ville_id', 'group_id', 'option_id'];
+                $optionalColumns = ['promotion_id', 'etablissement_id', 'ville_id', 'group_id', 'option_id']; // option_id est optionnel
             } else {
                 $requiredColumns = [
                     'matricule', 'first_name', 'last_name', 'email', 
-                    'promotion_id', 'etablissement_id', 'ville_id', 'group_id', 'option_id'
+                    'promotion_id', 'etablissement_id', 'ville_id', 'group_id'
                 ];
-                $optionalColumns = [];
+                $optionalColumns = ['option_id']; // option_id est toujours optionnel
             }
 
             // Validation des colonnes requises
@@ -941,7 +941,7 @@ class EtudiantController extends Controller
                         $dataToSave['etablissement_id'] = (int) $defaultValues['etablissement_id'];
                         $dataToSave['ville_id'] = (int) $defaultValues['ville_id'];
                         $dataToSave['group_id'] = (int) $defaultValues['group_id'];
-                        $dataToSave['option_id'] = (int) $defaultValues['option_id'];
+                        $dataToSave['option_id'] = isset($defaultValues['option_id']) ? (int) $defaultValues['option_id'] : null;
                         
                         // Si des colonnes optionnelles sont présentes dans le CSV, les utiliser
                         foreach ($optionalColumns as $column) {
@@ -955,7 +955,7 @@ class EtudiantController extends Controller
                         $dataToSave['etablissement_id'] = (int) $studentData['etablissement_id'];
                         $dataToSave['ville_id'] = (int) $studentData['ville_id'];
                         $dataToSave['group_id'] = (int) $studentData['group_id'];
-                        $dataToSave['option_id'] = (int) $studentData['option_id'];
+                        $dataToSave['option_id'] = !empty($studentData['option_id']) ? (int) $studentData['option_id'] : null;
                     }
 
                     // Vérifier si l'étudiant existe déjà

@@ -48,7 +48,7 @@ class EtudiantSeeder extends Seeder
                         'etablissement_id' => (int)$data['etablissement_id'],
                         'ville_id' => (int)$data['ville_id'],
                         'group_id' => $data['group_id'] ? (int)$data['group_id'] : null,
-                        'option_id' => 1, // option_id par défaut (Pharmacie)
+                        'option_id' => isset($data['option_id']) && !empty($data['option_id']) ? (int)$data['option_id'] : null, // Optionnel
                     ]);
                     $count++;
                 } catch (\Exception $e) {

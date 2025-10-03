@@ -132,8 +132,8 @@ class EtudiantService
             $query->where('groupe', $filters['groupe']);
         }
 
-        if (isset($filters['option']) && $filters['option'] != 0) {
-            $query->where('option', $filters['option']);
+        if (isset($filters['option_id']) && $filters['option_id'] != 0) {
+            $query->where('option_id', $filters['option_id']);
         }
 
         if (isset($filters['faculte']) && !empty($filters['faculte'])) {
@@ -270,8 +270,8 @@ class EtudiantService
             $query->where('groupe', $filters['groupe']);
         }
 
-        if (isset($filters['option']) && $filters['option'] != 0) {
-            $query->where('option', $filters['option']);
+        if (isset($filters['option_id']) && $filters['option_id'] != 0) {
+            $query->where('option_id', $filters['option_id']);
         }
 
         return $query->with(['group', 'etablissement'])->get();

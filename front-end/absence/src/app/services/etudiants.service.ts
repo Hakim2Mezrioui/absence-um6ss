@@ -14,7 +14,7 @@ export interface Etudiant {
   etablissement_id: number;
   ville_id: number;
   group_id: number;
-  option_id: number;
+  option_id?: number | null; // Optionnel - toutes les écoles n'utilisent pas les options
   created_at: string;
   updated_at: string;
   
@@ -63,7 +63,7 @@ export interface EtudiantFilters {
   group_id?: number;
   ville_id?: number;
   etablissement_id?: number;
-  option_id?: number;
+  option_id?: number | null; // Optionnel - toutes les écoles n'utilisent pas les options
 }
 
 export interface EtudiantResponse {

@@ -23,7 +23,7 @@ export interface ImportOptions {
     etablissement_id?: number;
     ville_id?: number;
     group_id?: number;
-    option_id?: number;
+    option_id?: number | null; // Optionnel - toutes les écoles n'utilisent pas les options
   };
 }
 
@@ -104,7 +104,7 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
       etablissement_id: ['', Validators.required],
       ville_id: ['', Validators.required],
       group_id: ['', Validators.required],
-      option_id: ['', Validators.required],
+      option_id: [''], // Optionnel - toutes les écoles n'utilisent pas les options
       useAsDefault: [true]
     });
   }

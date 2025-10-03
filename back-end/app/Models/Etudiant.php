@@ -25,7 +25,7 @@ class Etudiant extends Model
         "etablissement_id",
         "ville_id",
         "group_id",
-        "option_id",
+        "option_id", // Optionnel - toutes les écoles n'utilisent pas les options
     ];
 
     /**
