@@ -809,6 +809,179 @@ class EtudiantController extends Controller
     }
 
     /**
+     * Valider un fichier avant l'importation
+     */
+    public function validateStudentsFile(Request $request)
+    {
+        try {
+            // Validation du fichier
+            $request->validate([
+                'file' => 'required|file|mimes:csv,txt,xlsx,xls|max:10240', // 10MB max
+            ]);
+
+            $file = $request->file('file');
+            $importOptions = json_decode($request->input('import_options', '{}'), true);
+
+            // Détecter le type de fichier
+            $extension = strtolower($file->getClientOriginalExtension());
+            $isExcel = in_array($extension, ['xlsx', 'xls']);
+
+            // Parser le fichier
+            if ($isExcel) {
+                $data = $this->parseExcelFile($file);
+            } else {
+                $data = $this->parseCsvFile($file);
+            }
+
+            if (empty($data)) {
+                return response()->json([
+                    'valid' => false,
+                    'totalRows' => 0,
+                    'validRows' => 0,
+                    'errorRows' => 0,
+                    'warnings' => 0,
+                    'errors' => [[
+                        'line' => 0,
+                        'message' => 'Le fichier est vide ou ne peut pas être lu.',
+                        'suggestions' => []
+                    ]],
+                    'warnings' => [],
+                    'summary' => [
+                        'hasHeaders' => false,
+                        'detectedFormat' => 'unknown',
+                        'columns' => [],
+                        'sampleData' => []
+                    ]
+                ], 422);
+            }
+
+            // Détecter le format et les en-têtes
+            $headers = array_keys($data[0]);
+            $hasHeaders = $this->hasHeaders($headers);
+            $detectedFormat = $this->detectFormat($headers);
+
+            // Si format legacy, convertir
+            if ($detectedFormat === 'legacy') {
+                $data = $this->convertLegacyFormat($data, $headers);
+                $headers = ['matricule', 'first_name', 'last_name', 'email', 'password'];
+            }
+
+            // Validation des données
+            $validationResults = $this->validateFileData($data, $headers, $importOptions);
+
+            // Préparer les données d'échantillon
+            $sampleData = array_slice($data, 0, 5);
+
+            return response()->json([
+                'valid' => $validationResults['valid'],
+                'totalRows' => $validationResults['totalRows'],
+                'validRows' => $validationResults['validRows'],
+                'errorRows' => $validationResults['errorRows'],
+                'warnings' => $validationResults['warnings'],
+                'errors' => $validationResults['errors'],
+                'warnings' => $validationResults['warningsList'],
+                'summary' => [
+                    'hasHeaders' => $hasHeaders,
+                    'detectedFormat' => $detectedFormat,
+                    'columns' => $headers,
+                    'sampleData' => $sampleData
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'valid' => false,
+                'totalRows' => 0,
+                'validRows' => 0,
+                'errorRows' => 1,
+                'warnings' => 0,
+                'errors' => [[
+                    'line' => 0,
+                    'message' => 'Erreur lors de la lecture du fichier: ' . $e->getMessage(),
+                    'suggestions' => []
+                ]],
+                'warnings' => [],
+                'summary' => [
+                    'hasHeaders' => false,
+                    'detectedFormat' => 'unknown',
+                    'columns' => [],
+                    'sampleData' => []
+                ]
+            ], 422);
+        }
+    }
+
+    /**
+     * Valider les données du fichier
+     */
+    private function validateFileData($data, $headers, $importOptions)
+    {
+        $errors = [];
+        $warnings = [];
+        $validRows = 0;
+        $totalRows = count($data);
+        $useDefaultValues = $importOptions['useDefaultValues'] ?? false;
+        $defaultValues = $importOptions['defaultValues'] ?? [];
+
+        foreach ($data as $index => $row) {
+            $lineNumber = $index + 1;
+            $validationResult = $this->validateStudentData($row, $headers, $useDefaultValues, $defaultValues);
+            
+            if (!$validationResult['valid']) {
+                $errors[] = [
+                    'line' => $lineNumber,
+                    'message' => $validationResult['message'],
+                    'suggestions' => $validationResult['suggestions'] ?? []
+                ];
+            } else {
+                $validRows++;
+            }
+        }
+
+        return [
+            'valid' => empty($errors),
+            'totalRows' => $totalRows,
+            'validRows' => $validRows,
+            'errorRows' => count($errors),
+            'warnings' => count($warnings),
+            'errors' => $errors,
+            'warningsList' => $warnings
+        ];
+    }
+
+    /**
+     * Détecter si le fichier a des en-têtes
+     */
+    private function hasHeaders($headers)
+    {
+        $expectedHeaders = ['matricule', 'first_name', 'last_name', 'email', 'password'];
+        $legacyHeaders = ['matricule', 'name', 'promotion', 'faculte', 'groupe'];
+        
+        return count(array_intersect($headers, $expectedHeaders)) >= 3 || 
+               count(array_intersect($headers, $legacyHeaders)) >= 3;
+    }
+
+    /**
+     * Détecter le format du fichier
+     */
+    private function detectFormat($headers)
+    {
+        $modernHeaders = ['matricule', 'first_name', 'last_name', 'email', 'password'];
+        $legacyHeaders = ['matricule', 'name', 'promotion', 'faculte', 'groupe'];
+        
+        $modernCount = count(array_intersect($headers, $modernHeaders));
+        $legacyCount = count(array_intersect($headers, $legacyHeaders));
+        
+        if ($modernCount >= 3) {
+            return 'modern';
+        } elseif ($legacyCount >= 3) {
+            return 'legacy';
+        } else {
+            return 'mixed';
+        }
+    }
+
+    /**
      * Import students using modern structure (nouvelle méthode)
      */
     public function importEtudiantsModern(Request $request) 
@@ -893,11 +1066,9 @@ class EtudiantController extends Controller
                 $requiredColumns = ['matricule', 'first_name', 'last_name', 'email'];
                 $optionalColumns = ['promotion_id', 'etablissement_id', 'ville_id', 'group_id', 'option_id']; // option_id est optionnel
             } else {
-                $requiredColumns = [
-                    'matricule', 'first_name', 'last_name', 'email', 
-                    'promotion_id', 'etablissement_id', 'ville_id', 'group_id'
-                ];
-                $optionalColumns = ['option_id']; // option_id est toujours optionnel
+                // Mode importation complète - toutes les colonnes peuvent être dans le fichier
+                $requiredColumns = ['matricule', 'first_name', 'last_name', 'email'];
+                $optionalColumns = ['promotion_id', 'etablissement_id', 'ville_id', 'group_id', 'option_id'];
             }
 
             // Validation des colonnes requises
@@ -945,38 +1116,20 @@ class EtudiantController extends Controller
                         continue;
                     }
 
-                    // Préparer les données à sauvegarder
-                    $dataToSave = [
-                        'matricule' => $studentData['matricule'],
-                        'first_name' => $studentData['first_name'],
-                        'last_name' => $studentData['last_name'],
-                        'email' => $studentData['email'],
-                        'password' => bcrypt('password123'), // Mot de passe par défaut
-                    ];
-
-                    // Ajouter les IDs selon le mode
-                    if ($useDefaultValues) {
-                        // Utiliser les valeurs par défaut de la configuration
-                        $dataToSave['promotion_id'] = (int) $defaultValues['promotion_id'];
-                        $dataToSave['etablissement_id'] = (int) $defaultValues['etablissement_id'];
-                        $dataToSave['ville_id'] = (int) $defaultValues['ville_id'];
-                        $dataToSave['group_id'] = (int) $defaultValues['group_id'];
-                        $dataToSave['option_id'] = isset($defaultValues['option_id']) ? (int) $defaultValues['option_id'] : null;
-                        
-                        // Si des colonnes optionnelles sont présentes dans le CSV, les utiliser
-                        foreach ($optionalColumns as $column) {
-                            if (in_array($column, $headers) && !empty($studentData[$column])) {
-                                $dataToSave[$column] = (int) $studentData[$column];
-                            }
-                        }
-                    } else {
-                        // Utiliser les valeurs du CSV
-                        $dataToSave['promotion_id'] = (int) $studentData['promotion_id'];
-                        $dataToSave['etablissement_id'] = (int) $studentData['etablissement_id'];
-                        $dataToSave['ville_id'] = (int) $studentData['ville_id'];
-                        $dataToSave['group_id'] = (int) $studentData['group_id'];
-                        $dataToSave['option_id'] = !empty($studentData['option_id']) ? (int) $studentData['option_id'] : null;
+                    // Valider et préparer les données avec suggestions
+                    $validationResult = $this->validateStudentData($studentData, $headers, $useDefaultValues, $defaultValues);
+                    
+                    if (!$validationResult['valid']) {
+                        $errorDetails[] = [
+                            'line' => $lineNumber,
+                            'message' => $validationResult['message'],
+                            'suggestions' => $validationResult['suggestions'] ?? []
+                        ];
+                        $errors++;
+                        continue;
                     }
+                    
+                    $dataToSave = $validationResult['data'];
 
                     // Vérifier si l'étudiant existe déjà
                     $existingStudent = Etudiant::where('matricule', $studentData['matricule'])
@@ -1521,6 +1674,285 @@ class EtudiantController extends Controller
         }
         
         return $convertedData;
+    }
+
+    /**
+     * Valider les données d'un étudiant avec suggestions de correction
+     */
+    private function validateStudentData($studentData, $headers, $useDefaultValues, $defaultValues)
+    {
+        $errors = [];
+        $suggestions = [];
+        $data = [];
+        
+        // Validation des champs obligatoires
+        if (empty($studentData['matricule'])) {
+            $errors[] = 'Le matricule est obligatoire';
+        } else {
+            $data['matricule'] = $studentData['matricule'];
+        }
+        
+        if (empty($studentData['first_name'])) {
+            $errors[] = 'Le prénom est obligatoire';
+        } else {
+            $data['first_name'] = $studentData['first_name'];
+        }
+        
+        if (empty($studentData['last_name'])) {
+            $errors[] = 'Le nom est obligatoire';
+        } else {
+            $data['last_name'] = $studentData['last_name'];
+        }
+        
+        if (empty($studentData['email'])) {
+            $errors[] = 'L\'email est obligatoire';
+        } else {
+            $data['email'] = $studentData['email'];
+        }
+        
+        $data['password'] = bcrypt('password123');
+        
+        // Validation des relations avec suggestions
+        $relations = ['promotion_id', 'etablissement_id', 'ville_id', 'group_id', 'option_id'];
+        
+        foreach ($relations as $relation) {
+            $value = null;
+            $suggestion = null;
+            
+            if ($useDefaultValues && isset($defaultValues[$relation])) {
+                // Utiliser la valeur par défaut
+                $value = (int) $defaultValues[$relation];
+            } elseif (in_array($relation, $headers) && !empty($studentData[$relation])) {
+                // Utiliser la valeur du fichier
+                $value = $this->validateRelationValue($relation, $studentData[$relation], $suggestion);
+            } elseif ($relation === 'option_id') {
+                // Option est toujours optionnelle
+                $value = null;
+            } else {
+                // Champ manquant
+                $errors[] = "Le champ {$relation} est manquant";
+                $suggestion = $this->getRelationSuggestions($relation);
+            }
+            
+            if ($suggestion) {
+                $suggestions[$relation] = $suggestion;
+            }
+            
+            $data[$relation] = $value;
+        }
+        
+        return [
+            'valid' => empty($errors),
+            'message' => implode(', ', $errors),
+            'suggestions' => $suggestions,
+            'data' => $data
+        ];
+    }
+    
+    /**
+     * Valider une valeur de relation et suggérer des corrections
+     */
+    private function validateRelationValue($relation, $value, &$suggestion)
+    {
+        $suggestion = null;
+        
+        switch ($relation) {
+            case 'promotion_id':
+                if (is_numeric($value)) {
+                    $promotion = \App\Models\Promotion::find($value);
+                    if ($promotion) {
+                        return (int) $value;
+                    }
+                }
+                // Chercher par nom
+                $promotion = \App\Models\Promotion::where('name', 'like', '%' . $value . '%')->first();
+                if ($promotion) {
+                    $suggestion = "Utiliser l'ID {$promotion->id} pour '{$promotion->name}'";
+                    return $promotion->id;
+                }
+                $suggestion = $this->getPromotionSuggestions($value);
+                return null;
+                
+            case 'etablissement_id':
+                if (is_numeric($value)) {
+                    $etablissement = \App\Models\Etablissement::find($value);
+                    if ($etablissement) {
+                        return (int) $value;
+                    }
+                }
+                $etablissement = \App\Models\Etablissement::where('name', 'like', '%' . $value . '%')->first();
+                if ($etablissement) {
+                    $suggestion = "Utiliser l'ID {$etablissement->id} pour '{$etablissement->name}'";
+                    return $etablissement->id;
+                }
+                $suggestion = $this->getEtablissementSuggestions($value);
+                return null;
+                
+            case 'ville_id':
+                if (is_numeric($value)) {
+                    $ville = \App\Models\Ville::find($value);
+                    if ($ville) {
+                        return (int) $value;
+                    }
+                }
+                $ville = \App\Models\Ville::where('name', 'like', '%' . $value . '%')->first();
+                if ($ville) {
+                    $suggestion = "Utiliser l'ID {$ville->id} pour '{$ville->name}'";
+                    return $ville->id;
+                }
+                $suggestion = $this->getVilleSuggestions($value);
+                return null;
+                
+            case 'group_id':
+                if (is_numeric($value)) {
+                    $group = \App\Models\Group::find($value);
+                    if ($group) {
+                        return (int) $value;
+                    }
+                }
+                $group = \App\Models\Group::where('title', 'like', '%' . $value . '%')->first();
+                if ($group) {
+                    $suggestion = "Utiliser l'ID {$group->id} pour '{$group->title}'";
+                    return $group->id;
+                }
+                $suggestion = $this->getGroupSuggestions($value);
+                return null;
+                
+            case 'option_id':
+                if (empty($value)) {
+                    return null; // Optionnel
+                }
+                if (is_numeric($value)) {
+                    $option = \App\Models\Option::find($value);
+                    if ($option) {
+                        return (int) $value;
+                    }
+                }
+                $option = \App\Models\Option::where('name', 'like', '%' . $value . '%')->first();
+                if ($option) {
+                    $suggestion = "Utiliser l'ID {$option->id} pour '{$option->name}'";
+                    return $option->id;
+                }
+                $suggestion = $this->getOptionSuggestions($value);
+                return null;
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Obtenir des suggestions pour les promotions
+     */
+    private function getPromotionSuggestions($value)
+    {
+        $promotions = \App\Models\Promotion::all();
+        $suggestions = [];
+        
+        foreach ($promotions as $promotion) {
+            $similarity = similar_text(strtolower($value), strtolower($promotion->name));
+            if ($similarity > 3) { // Seuil de similarité
+                $suggestions[] = "ID {$promotion->id}: {$promotion->name}";
+            }
+        }
+        
+        return !empty($suggestions) ? implode(', ', $suggestions) : 'Aucune promotion trouvée';
+    }
+    
+    /**
+     * Obtenir des suggestions pour les établissements
+     */
+    private function getEtablissementSuggestions($value)
+    {
+        $etablissements = \App\Models\Etablissement::all();
+        $suggestions = [];
+        
+        foreach ($etablissements as $etablissement) {
+            $similarity = similar_text(strtolower($value), strtolower($etablissement->name));
+            if ($similarity > 3) {
+                $suggestions[] = "ID {$etablissement->id}: {$etablissement->name}";
+            }
+        }
+        
+        return !empty($suggestions) ? implode(', ', $suggestions) : 'Aucun établissement trouvé';
+    }
+    
+    /**
+     * Obtenir des suggestions pour les villes
+     */
+    private function getVilleSuggestions($value)
+    {
+        $villes = \App\Models\Ville::all();
+        $suggestions = [];
+        
+        foreach ($villes as $ville) {
+            $similarity = similar_text(strtolower($value), strtolower($ville->name));
+            if ($similarity > 3) {
+                $suggestions[] = "ID {$ville->id}: {$ville->name}";
+            }
+        }
+        
+        return !empty($suggestions) ? implode(', ', $suggestions) : 'Aucune ville trouvée';
+    }
+    
+    /**
+     * Obtenir des suggestions pour les groupes
+     */
+    private function getGroupSuggestions($value)
+    {
+        $groups = \App\Models\Group::all();
+        $suggestions = [];
+        
+        foreach ($groups as $group) {
+            $similarity = similar_text(strtolower($value), strtolower($group->title));
+            if ($similarity > 3) {
+                $suggestions[] = "ID {$group->id}: {$group->title}";
+            }
+        }
+        
+        return !empty($suggestions) ? implode(', ', $suggestions) : 'Aucun groupe trouvé';
+    }
+    
+    /**
+     * Obtenir des suggestions pour les options
+     */
+    private function getOptionSuggestions($value)
+    {
+        $options = \App\Models\Option::all();
+        $suggestions = [];
+        
+        foreach ($options as $option) {
+            $similarity = similar_text(strtolower($value), strtolower($option->name));
+            if ($similarity > 3) {
+                $suggestions[] = "ID {$option->id}: {$option->name}";
+            }
+        }
+        
+        return !empty($suggestions) ? implode(', ', $suggestions) : 'Aucune option trouvée';
+    }
+    
+    /**
+     * Obtenir des suggestions générales pour une relation
+     */
+    private function getRelationSuggestions($relation)
+    {
+        switch ($relation) {
+            case 'promotion_id':
+                $promotions = \App\Models\Promotion::all();
+                return 'Promotions disponibles: ' . $promotions->pluck('name')->implode(', ');
+            case 'etablissement_id':
+                $etablissements = \App\Models\Etablissement::all();
+                return 'Établissements disponibles: ' . $etablissements->pluck('name')->implode(', ');
+            case 'ville_id':
+                $villes = \App\Models\Ville::all();
+                return 'Villes disponibles: ' . $villes->pluck('name')->implode(', ');
+            case 'group_id':
+                $groups = \App\Models\Group::all();
+                return 'Groupes disponibles: ' . $groups->pluck('title')->implode(', ');
+            case 'option_id':
+                $options = \App\Models\Option::all();
+                return 'Options disponibles: ' . $options->pluck('name')->implode(', ');
+        }
+        return '';
     }
 
     /**

@@ -1,0 +1,13 @@
+matricule,first_name,last_name,email,password,promotion_id,etablissement_id,ville_id,group_id,option_id
+ETU2024001,Jean,Dupont,jean.dupont@email.com,password123,1,1,1,1,1
+ETU2024002,Marie,Martin,marie.martin@email.com,password123,2,1,1,1,2
+ETU2024003,Pierre,Durand,pierre.durand@email.com,password123,3,1,1,2,1
+ETU2024004,Sophie,Bernard,sophie.bernard@email.com,password123,4,1,1,2,2
+ETU2024005,Lucas,Moreau,lucas.moreau@email.com,password123,5,1,1,3,1
+ETU2024006,Emma,Petit,emma.petit@email.com,password123,1,1,1,1,1
+ETU2024007,Thomas,Rousseau,thomas.rousseau@email.com,password123,2,1,1,1,2
+ETU2024008,Laura,Moreau,laura.moreau@email.com,password123,3,1,1,2,1
+ETU2024009,Alexandre,Simon,alexandre.simon@email.com,password123,4,1,1,2,2
+ETU2024010,Camille,Laurent,camille.laurent@email.com,password123,5,1,1,3,1
+
+

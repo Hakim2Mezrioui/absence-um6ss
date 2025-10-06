@@ -84,6 +84,43 @@ export interface FilterOptions {
   options: { id: number; name: string; }[];
 }
 
+export interface ImportResults {
+  message: string;
+  total?: number;
+  created?: number;
+  updated?: number;
+  errors?: number;
+  errorDetails?: Array<{
+    line: number,
+    message: string,
+    suggestions?: {[key: string]: string}
+  }>;
+}
+
+export interface ValidationResults {
+  valid: boolean;
+  totalRows: number;
+  validRows: number;
+  errorRows: number;
+  warnings: number;
+  errors: Array<{
+    line: number;
+    message: string;
+    suggestions?: {[key: string]: string};
+  }>;
+  warningsList: Array<{
+    line: number;
+    message: string;
+    suggestions?: {[key: string]: string};
+  }>;
+  summary: {
+    hasHeaders: boolean;
+    detectedFormat: 'modern' | 'legacy' | 'mixed';
+    columns: string[];
+    sampleData: any[][];
+  };
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -216,5 +253,12 @@ export class EtudiantsService {
    */
   getEtudiantsStats(): Observable<any> {
     return this.http.get(`${this.baseUrl}/etudiants/stats`);
+  }
+
+  /**
+   * Valider un fichier avant l'importation
+   */
+  validateFile(formData: FormData): Observable<ValidationResults> {
+    return this.http.post<ValidationResults>(`${this.baseUrl}/validate-students-file`, formData);
   }
 }

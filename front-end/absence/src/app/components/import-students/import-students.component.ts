@@ -4,7 +4,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { Subject, takeUntil } from 'rxjs';
-import { EtudiantsService, FilterOptions } from '../../services/etudiants.service';
+import { EtudiantsService, FilterOptions, ValidationResults } from '../../services/etudiants.service';
 
 // Angular Material Imports
 import { MatButtonModule } from '@angular/material/button';
@@ -33,7 +33,11 @@ export interface ImportResults {
   created?: number;
   updated?: number;
   errors?: number;
-  errorDetails?: Array<{line: number, message: string}>;
+  errorDetails?: Array<{
+    line: number, 
+    message: string, 
+    suggestions?: {[key: string]: string}
+  }>;
 }
 
 @Component({
@@ -85,10 +89,26 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
     defaultValues: {}
   };
 
+  // Mode d'importation
+  importMode: 'complete' | 'preconfigured' = 'complete';
+
   // Données
   previewData: any[][] = [];
   previewHeaders: string[] = [];
   importResults: ImportResults | null = null;
+
+  // Validation
+  validationResults: ValidationResults | null = null;
+  isValidating = false;
+  validationCompleted = false;
+
+  // Édition de fichier comme Excel
+  showFileEditor = false;
+  editableData: any[][] = [];
+  editableHeaders: string[] = [];
+  suggestions: {[key: string]: any} = {};
+  editingCell: {row: number, col: number} | null = null;
+  cellSuggestions: any[] = [];
 
   private destroy$ = new Subject<void>();
 
@@ -100,12 +120,12 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
     private fb: FormBuilder
   ) {
     this.configForm = this.fb.group({
-      promotion_id: ['', Validators.required],
-      etablissement_id: ['', Validators.required],
-      ville_id: ['', Validators.required],
-      group_id: ['', Validators.required],
+      promotion_id: [''],
+      etablissement_id: [''],
+      ville_id: [''],
+      group_id: [''],
       option_id: [''], // Optionnel - toutes les écoles n'utilisent pas les options
-      useAsDefault: [true]
+      useAsDefault: [false]
     });
   }
 
@@ -189,14 +209,31 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Télécharger le modèle CSV
+   * Télécharger le modèle CSV adapté au mode d'importation
    */
   downloadTemplate(): void {
-    // Modèle unique avec les colonnes de base
-    const csvContent = 'id,matricule,first_name,last_name,email,password\n' +
-                       '1,ETU2024001,Jean,Dupont,jean.dupont@email.com,password123\n' +
-                       '2,ETU2024002,Marie,Martin,marie.martin@email.com,password123\n' +
-                       '3,ETU2024003,Pierre,Durand,pierre.durand@email.com,password123';
+    let csvContent = '';
+    let fileName = '';
+    
+    if (this.importMode === 'complete') {
+      // Modèle complet avec toutes les colonnes
+      csvContent = 'matricule,first_name,last_name,email,password,promotion_id,etablissement_id,ville_id,group_id,option_id\n' +
+                   'ETU2024001,Jean,Dupont,jean.dupont@email.com,password123,1ere annee,Faculte de Medecine,Casablanca,Groupe A,Pharmacie\n' +
+                   'ETU2024002,Marie,Martin,marie.martin@email.com,password123,2eme annee,Hopital Universitaire,Rabat,Groupe B,Medecine\n' +
+                   'ETU2024003,Pierre,Durand,pierre.durand@email.com,password123,3eme annee,Institut Superieur,Fes,Groupe C,Chirurgie\n' +
+                   'ETU2024004,Sophie,Bernard,sophie.bernard@email.com,password123,4eme annee,Ecole de Sante,Marrakech,Groupe D,\n' +
+                   'ETU2024005,Lucas,Moreau,lucas.moreau@email.com,password123,5eme annee,Centre Medical,Tanger,Groupe E,Biologie';
+      fileName = 'modele_etudiants_complet.csv';
+    } else {
+      // Modèle minimal pour mode pré-configuré
+      csvContent = 'matricule,first_name,last_name,email,password\n' +
+                   'ETU2024001,Jean,Dupont,jean.dupont@email.com,password123\n' +
+                   'ETU2024002,Marie,Martin,marie.martin@email.com,password123\n' +
+                   'ETU2024003,Pierre,Durand,pierre.durand@email.com,password123\n' +
+                   'ETU2024004,Sophie,Bernard,sophie.bernard@email.com,password123\n' +
+                   'ETU2024005,Lucas,Moreau,lucas.moreau@email.com,password123';
+      fileName = 'modele_etudiants_minimal.csv';
+    }
     
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
@@ -204,14 +241,15 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
     if (link.download !== undefined) {
       const url = URL.createObjectURL(blob);
       link.setAttribute('href', url);
-      link.setAttribute('download', 'modele_etudiants.csv');
+      link.setAttribute('download', fileName);
       link.style.visibility = 'hidden';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     }
 
-    this.snackBar.open('Modèle CSV téléchargé!', 'Fermer', {
+    const modeText = this.importMode === 'complete' ? 'complet' : 'minimal';
+    this.snackBar.open(`Modèle CSV ${modeText} téléchargé!`, 'Fermer', {
       duration: 3000
     });
   }
@@ -432,6 +470,66 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Valider le fichier avant l'importation
+   */
+  validateFile(): void {
+    if (!this.selectedFile) {
+      this.error = 'Aucun fichier sélectionné.';
+      return;
+    }
+
+    this.isValidating = true;
+    this.error = '';
+    this.success = '';
+    this.validationResults = null;
+    this.validationCompleted = false;
+
+    // Créer FormData pour la validation
+    const formData = new FormData();
+    formData.append('file', this.selectedFile);
+    formData.append('import_options', JSON.stringify(this.importOptions));
+
+    console.log('🔍 Début de la validation du fichier...');
+
+    this.etudiantsService.validateFile(formData)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (results) => {
+          this.validationResults = results;
+          this.validationCompleted = true;
+          this.isValidating = false;
+
+          if (results.valid) {
+            this.success = `✅ Fichier validé avec succès ! ${results.validRows} lignes valides sur ${results.totalRows}`;
+            if (results.warnings > 0) {
+              this.success += ` (${results.warnings} avertissements)`;
+            }
+          } else {
+            this.error = `❌ Fichier invalide : ${results.errorRows} erreurs trouvées sur ${results.totalRows} lignes`;
+            // Ouvrir l'éditeur pour corriger les erreurs
+            this.openFileEditor(results);
+          }
+
+          console.log('✅ Validation terminée:', results);
+        },
+        error: (err) => {
+          this.isValidating = false;
+          this.validationCompleted = false;
+          
+          console.error('❌ Erreur de validation:', err);
+          
+          if (err.status === 422) {
+            this.error = 'Format de fichier invalide.';
+          } else if (err.status === 413) {
+            this.error = 'Fichier trop volumineux.';
+          } else {
+            this.error = err.error?.message || 'Erreur lors de la validation du fichier.';
+          }
+        }
+      });
+  }
+
+  /**
    * Lancer l'importation
    */
   startImport(): void {
@@ -440,10 +538,30 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Configuration automatique - pas de validation nécessaire
+    // Vérifier si le fichier a été validé
+    if (!this.validationCompleted || !this.validationResults) {
+      this.error = 'Veuillez d\'abord valider le fichier avant de lancer l\'importation.';
+      return;
+    }
+
+    // Vérifier si le fichier est valide
+    if (!this.validationResults.valid) {
+      this.error = 'Le fichier contient des erreurs. Veuillez les corriger avant l\'importation.';
+      return;
+    }
+
+    // Validation selon le mode
+    if (this.importMode === 'preconfigured') {
+      // Mode pré-configuré - vérifier la configuration
+      const formValue = this.configForm.value;
+      if (!formValue.promotion_id || !formValue.etablissement_id || !formValue.ville_id || !formValue.group_id) {
+        this.error = 'Veuillez configurer tous les champs obligatoires avant l\'importation.';
+        return;
+      }
+    }
 
     this.loading = true;
-    this.loadingMessage = 'Préparation de l\'import...';
+    this.loadingMessage = this.importMode === 'complete' ? 'Importation complète en cours...' : 'Importation pré-configurée en cours...';
     this.error = '';
     this.success = '';
     this.uploadProgress = 0;
@@ -519,6 +637,15 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
     this.previewData = [];
     this.previewHeaders = [];
     this.importResults = null;
+    this.validationResults = null;
+    this.validationCompleted = false;
+    this.isValidating = false;
+    this.showFileEditor = false;
+    this.editableData = [];
+    this.editableHeaders = [];
+    this.suggestions = {};
+    this.editingCell = null;
+    this.cellSuggestions = [];
     this.error = '';
     this.success = '';
     this.uploadProgress = 0;
@@ -579,13 +706,13 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
    * Copier l'exemple CSV dans le presse-papiers
    */
   copyCSVExample(): void {
-    const csvContent = 'matricule,first_name,last_name,email,password\n' +
-                       'ETU2024001,Jean,Dupont,jean.dupont@email.com,password123\n' +
-                       'ETU2024002,Marie,Martin,marie.martin@email.com,password123\n' +
-                       'ETU2024003,Pierre,Durand,pierre.durand@email.com,password123';
+    const csvContent = 'matricule,first_name,last_name,email,password,promotion_id,etablissement_id,ville_id,group_id,option_id\n' +
+                       'ETU2024001,Jean,Dupont,jean.dupont@email.com,password123,1,1,1,1,1\n' +
+                       'ETU2024002,Marie,Martin,marie.martin@email.com,password123,1,1,1,1,2\n' +
+                       'ETU2024003,Pierre,Durand,pierre.durand@email.com,password123,2,1,1,2,1';
     
     navigator.clipboard.writeText(csvContent).then(() => {
-      this.snackBar.open('Exemple CSV copié dans le presse-papiers!', 'Fermer', {
+      this.snackBar.open('Exemple CSV complet copié dans le presse-papiers!', 'Fermer', {
         duration: 3000,
         panelClass: ['success-snackbar']
       });
@@ -598,10 +725,360 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
       document.execCommand('copy');
       document.body.removeChild(textArea);
       
-      this.snackBar.open('Exemple CSV copié dans le presse-papiers!', 'Fermer', {
+      this.snackBar.open('Exemple CSV complet copié dans le presse-papiers!', 'Fermer', {
         duration: 3000,
         panelClass: ['success-snackbar']
       });
+    });
+  }
+
+  /**
+   * Copier l'exemple CSV avec noms dans le presse-papiers
+   */
+  copyCSVExampleWithNames(): void {
+    const csvContent = 'matricule,first_name,last_name,email,password,promotion_id,etablissement_id,ville_id,group_id,option_id\n' +
+                       'ETU2024001,Jean,Dupont,jean.dupont@email.com,password123,1ere annee,Faculte de Medecine,Casablanca,Groupe A,Pharmacie\n' +
+                       'ETU2024002,Marie,Martin,marie.martin@email.com,password123,2eme annee,Hopital Universitaire,Rabat,Groupe B,Medecine\n' +
+                       'ETU2024003,Pierre,Durand,pierre.durand@email.com,password123,3eme annee,Institut Superieur,Fes,Groupe C,Chirurgie';
+    
+    navigator.clipboard.writeText(csvContent).then(() => {
+      this.snackBar.open('Exemple CSV avec noms copié dans le presse-papiers!', 'Fermer', {
+        duration: 3000,
+        panelClass: ['success-snackbar']
+      });
+    }).catch(() => {
+      // Fallback pour les navigateurs qui ne supportent pas l'API Clipboard
+      const textArea = document.createElement('textarea');
+      textArea.value = csvContent;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
+      this.snackBar.open('Exemple CSV avec noms copié dans le presse-papiers!', 'Fermer', {
+        duration: 3000,
+        panelClass: ['success-snackbar']
+      });
+    });
+  }
+
+  /**
+   * Copier l'exemple CSV avec IDs dans le presse-papiers
+   */
+  copyCSVExampleWithIds(): void {
+    const csvContent = 'matricule,first_name,last_name,email,password,promotion_id,etablissement_id,ville_id,group_id,option_id\n' +
+                       'ETU2024001,Jean,Dupont,jean.dupont@email.com,password123,1,1,1,1,1\n' +
+                       'ETU2024002,Marie,Martin,marie.martin@email.com,password123,2,1,1,1,2\n' +
+                       'ETU2024003,Pierre,Durand,pierre.durand@email.com,password123,3,1,1,2,1';
+    
+    navigator.clipboard.writeText(csvContent).then(() => {
+      this.snackBar.open('Exemple CSV avec IDs copié dans le presse-papiers!', 'Fermer', {
+        duration: 3000,
+        panelClass: ['success-snackbar']
+      });
+    }).catch(() => {
+      // Fallback pour les navigateurs qui ne supportent pas l'API Clipboard
+      const textArea = document.createElement('textarea');
+      textArea.value = csvContent;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
+      this.snackBar.open('Exemple CSV avec IDs copié dans le presse-papiers!', 'Fermer', {
+        duration: 3000,
+        panelClass: ['success-snackbar']
+      });
+    });
+  }
+
+  /**
+   * Obtenir les clés d'un objet (pour le template)
+   */
+  getObjectKeys(obj: any): string[] {
+    return obj ? Object.keys(obj) : [];
+  }
+
+  /**
+   * Vérifier si un objet a des propriétés (pour le template)
+   */
+  hasObjectKeys(obj: any): boolean {
+    return obj && Object.keys(obj).length > 0;
+  }
+
+  /**
+   * Changer le mode d'importation
+   */
+  changeImportMode(mode: 'complete' | 'preconfigured'): void {
+    this.importMode = mode;
+    this.importOptions.useDefaultValues = mode === 'preconfigured';
+    
+    if (mode === 'complete') {
+      // Mode importation complète - pas besoin de pré-configuration
+      this.showConfiguration = false;
+    } else {
+      // Mode pré-configuré - afficher la configuration
+      this.showConfiguration = true;
+    }
+  }
+
+  /**
+   * Basculer entre les modes d'importation
+   */
+  toggleImportMode(): void {
+    this.changeImportMode(this.importMode === 'complete' ? 'preconfigured' : 'complete');
+  }
+
+  /**
+   * Ouvrir l'éditeur de fichier pour corriger les erreurs
+   */
+  openFileEditor(validationResults: ValidationResults): void {
+    this.showFileEditor = true;
+    
+    // Préparer les données éditables
+    this.editableHeaders = validationResults.summary.columns;
+    this.editableData = validationResults.summary.sampleData.map(row => [...row]);
+    
+    // Charger les suggestions pour chaque colonne
+    this.loadSuggestions();
+    
+    console.log('📝 Éditeur de fichier ouvert avec', this.editableData.length, 'lignes');
+  }
+
+  /**
+   * Fermer l'éditeur de fichier
+   */
+  closeFileEditor(): void {
+    this.showFileEditor = false;
+    this.editableData = [];
+    this.editableHeaders = [];
+    this.suggestions = {};
+    this.editingCell = null;
+    this.cellSuggestions = [];
+  }
+
+  /**
+   * Charger les suggestions pour chaque colonne
+   */
+  loadSuggestions(): void {
+    this.suggestions = {
+      promotion_id: this.filterOptions.promotions,
+      etablissement_id: this.filterOptions.etablissements,
+      ville_id: this.filterOptions.villes,
+      group_id: this.filterOptions.groups,
+      option_id: this.filterOptions.options
+    };
+  }
+
+  /**
+   * Commencer l'édition d'une cellule
+   */
+  startEditingCell(row: number, col: number): void {
+    this.editingCell = { row, col };
+    const columnName = this.editableHeaders[col];
+    
+    // Charger les suggestions pour cette colonne
+    if (this.suggestions[columnName]) {
+      this.cellSuggestions = this.suggestions[columnName];
+    } else {
+      this.cellSuggestions = [];
+    }
+  }
+
+  /**
+   * Terminer l'édition d'une cellule
+   */
+  finishEditingCell(): void {
+    this.editingCell = null;
+    this.cellSuggestions = [];
+  }
+
+  /**
+   * Mettre à jour la valeur d'une cellule
+   */
+  updateCellValue(row: number, col: number, value: any): void {
+    if (this.editableData[row] && this.editableData[row][col] !== undefined) {
+      this.editableData[row][col] = value;
+    }
+  }
+
+  /**
+   * Appliquer une suggestion à une cellule
+   */
+  applySuggestion(row: number, col: number, suggestion: any): void {
+    const columnName = this.editableHeaders[col];
+    
+    if (columnName.includes('_id')) {
+      // Pour les colonnes ID, utiliser l'ID
+      this.updateCellValue(row, col, suggestion.id);
+    } else {
+      // Pour les autres colonnes, utiliser le nom
+      this.updateCellValue(row, col, suggestion.name || suggestion.title);
+    }
+    
+    this.finishEditingCell();
+  }
+
+  /**
+   * Rechercher des suggestions pour une valeur
+   */
+  searchSuggestions(columnName: string, searchTerm: string): any[] {
+    if (!this.suggestions[columnName]) return [];
+    
+    const suggestions = this.suggestions[columnName];
+    const term = searchTerm.toLowerCase();
+    
+    return suggestions.filter((item: any) => 
+      (item.name && item.name.toLowerCase().includes(term)) ||
+      (item.title && item.title.toLowerCase().includes(term)) ||
+      (item.id && item.id.toString().includes(term))
+    );
+  }
+
+  /**
+   * Valider une cellule spécifique
+   */
+  validateCell(row: number, col: number): {valid: boolean, message: string, suggestions: any[]} {
+    const columnName = this.editableHeaders[col];
+    const value = this.editableData[row][col];
+    
+    // Validation des champs obligatoires
+    if (['matricule', 'first_name', 'last_name', 'email', 'password'].includes(columnName)) {
+      if (!value || value.toString().trim() === '') {
+        return {
+          valid: false,
+          message: `${columnName} est obligatoire`,
+          suggestions: []
+        };
+      }
+    }
+    
+    // Validation des relations
+    if (columnName.includes('_id')) {
+      const suggestions = this.suggestions[columnName] || [];
+      const found = suggestions.find((item: any) => 
+        item.id.toString() === value.toString() ||
+        (item.name && item.name.toLowerCase() === value.toString().toLowerCase()) ||
+        (item.title && item.title.toLowerCase() === value.toString().toLowerCase())
+      );
+      
+      if (!found) {
+        return {
+          valid: false,
+          message: `${columnName} introuvable`,
+          suggestions: this.searchSuggestions(columnName, value.toString())
+        };
+      }
+    }
+    
+    return { valid: true, message: '', suggestions: [] };
+  }
+
+  /**
+   * Sauvegarder le fichier corrigé
+   */
+  saveCorrectedFile(): void {
+    // Convertir les données en CSV
+    const csvContent = this.convertToCSV(this.editableHeaders, this.editableData);
+    
+    // Créer un nouveau fichier
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const fileName = this.selectedFile?.name.replace('.csv', '_corrected.csv') || 'fichier_corrige.csv';
+    
+    // Télécharger le fichier corrigé
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', fileName);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    this.snackBar.open('Fichier corrigé sauvegardé!', 'Fermer', {
+      duration: 3000
+    });
+    
+    // Fermer l'éditeur
+    this.closeFileEditor();
+  }
+
+  /**
+   * Obtenir la classe CSS pour une cellule
+   */
+  getCellClass(row: number, col: number): string {
+    const validation = this.validateCell(row, col);
+    const isEditing = this.editingCell?.row === row && this.editingCell?.col === col;
+    
+    let classes = 'relative';
+    
+    if (isEditing) {
+      classes += ' bg-blue-50 border border-blue-300';
+    } else if (!validation.valid) {
+      classes += ' bg-red-50 border border-red-300';
+    } else {
+      classes += ' bg-green-50 border border-green-300';
+    }
+    
+    return classes;
+  }
+
+  /**
+   * Convertir les données en format CSV
+   */
+  convertToCSV(headers: string[], data: any[][]): string {
+    const csvRows = [];
+    
+    // Ajouter les en-têtes
+    csvRows.push(headers.join(','));
+    
+    // Ajouter les données
+    data.forEach(row => {
+      const escapedRow = row.map(cell => {
+        const cellStr = cell ? cell.toString() : '';
+        // Échapper les guillemets et les virgules
+        if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
+          return `"${cellStr.replace(/"/g, '""')}"`;
+        }
+        return cellStr;
+      });
+      csvRows.push(escapedRow.join(','));
+    });
+    
+    return csvRows.join('\n');
+  }
+
+  /**
+   * Télécharger le modèle avec IDs numériques
+   */
+  downloadTemplateWithIds(): void {
+    const csvContent = 'matricule,first_name,last_name,email,password,promotion_id,etablissement_id,ville_id,group_id,option_id\n' +
+                       'ETU2024001,Jean,Dupont,jean.dupont@email.com,password123,1,1,1,1,1\n' +
+                       'ETU2024002,Marie,Martin,marie.martin@email.com,password123,2,1,1,1,2\n' +
+                       'ETU2024003,Pierre,Durand,pierre.durand@email.com,password123,3,1,1,2,1\n' +
+                       'ETU2024004,Sophie,Bernard,sophie.bernard@email.com,password123,4,1,1,2,2\n' +
+                       'ETU2024005,Lucas,Moreau,lucas.moreau@email.com,password123,5,1,1,3,1\n' +
+                       'ETU2024006,Emma,Petit,emma.petit@email.com,password123,1,1,1,1,1\n' +
+                       'ETU2024007,Thomas,Rousseau,thomas.rousseau@email.com,password123,2,1,1,1,2\n' +
+                       'ETU2024008,Laura,Moreau,laura.moreau@email.com,password123,3,1,1,2,1\n' +
+                       'ETU2024009,Alexandre,Simon,alexandre.simon@email.com,password123,4,1,1,2,2\n' +
+                       'ETU2024010,Camille,Laurent,camille.laurent@email.com,password123,5,1,1,3,1';
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', 'modele_etudiants_ids.csv');
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    this.snackBar.open('Modèle CSV avec IDs numériques téléchargé!', 'Fermer', {
+      duration: 3000
     });
   }
 }

@@ -62,7 +62,7 @@
            'px-2 gap-2': isCollapsed && !isMobile,
            'px-4': !isCollapsed || isMobile
          }">
-      <ng-container *ngFor="let item of sidebarItems; let i = index">
+      <ng-container *ngFor="let item of filteredSidebarItems; let i = index">
         <!-- Élément de navigation -->
         <div class="relative animate-slide-in"
              [style.animation-delay]="getAnimationDelay(i)">

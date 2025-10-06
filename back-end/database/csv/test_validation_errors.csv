@@ -1,0 +1,13 @@
+matricule,first_name,last_name,email,password,promotion_id,etablissement_id,ville_id,group_id,option_id
+ETU2024001,Jean,Dupont,jean.dupont@email.com,password123,1ere annee,Faculte de Medecine,Casablanca,Groupe A,Pharmacie
+ETU2024002,,Martin,marie.martin@email.com,password123,2eme annee,Hopital Universitaire,Rabat,Groupe B,Medecine
+ETU2024003,Pierre,,pierre.durand@email.com,password123,3eme annee,Institut Superieur,Fes,Groupe C,Chirurgie
+ETU2024004,Sophie,Bernard,,password123,4eme annee,Ecole de Sante,Marrakech,Groupe D,
+ETU2024005,Lucas,Moreau,lucas.moreau@email.com,,5eme annee,Centre Medical,Tanger,Groupe E,Biologie
+ETU2024006,Emma,Petit,emma.petit@email.com,password123,Promotion Inconnue,Faculte de Medecine,Casablanca,Groupe A,Pharmacie
+ETU2024007,Thomas,Rousseau,thomas.rousseau@email.com,password123,2eme annee,Etablissement Inconnu,Rabat,Groupe B,Medecine
+ETU2024008,Laura,Moreau,laura.moreau@email.com,password123,3eme annee,Institut Superieur,Ville Inconnue,Groupe C,Chirurgie
+ETU2024009,Alexandre,Simon,alexandre.simon@email.com,password123,4eme annee,Ecole de Sante,Marrakech,Groupe Inconnu,
+ETU2024010,Camille,Laurent,camille.laurent@email.com,password123,5eme annee,Centre Medical,Tanger,Groupe E,Option Inconnue
+
+

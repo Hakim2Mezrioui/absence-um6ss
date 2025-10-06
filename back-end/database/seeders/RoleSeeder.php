@@ -15,7 +15,8 @@ class RoleSeeder extends Seeder
         \App\Models\Role::create(['name' => 'Super Admin']);
         \App\Models\Role::create(['name' => 'Admin']);
         \App\Models\Role::create(['name' => 'Scolarité']);
-        \App\Models\Role::create(['name' => 'Professeur']);
-        \App\Models\Role::create(['name' => 'User']);
+        \App\Models\Role::create(['name' => 'Doyen']);
+        \App\Models\Role::create(['name' => 'Technicien SI']);
+        \App\Models\Role::create(['name' => 'Enseignant']);
     }
 }

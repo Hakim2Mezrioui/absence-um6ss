@@ -60,6 +60,7 @@ Route::get('configuration/villes', [ConfigurationController::class, 'getVilles']
 // Routes spéciales pour les étudiants (AVANT les ressources)
 Route::post("import-etudiants", [EtudiantController::class, "ImportEtudiants"]);
 Route::post("import-students-modern", [EtudiantController::class, "importEtudiantsModern"]);
+Route::post("validate-students-file", [EtudiantController::class, "validateStudentsFile"]);
 
 // Route pour les statistiques
 Route::get("statistics", [StatisticController::class, "getAllStatistics"]);

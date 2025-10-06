@@ -12,6 +12,7 @@ export interface SidebarItem {
   children?: SidebarItem[];
   disabled?: boolean;
   tooltip?: string;
+  roles?: string[]; // Add roles property
 }
 
 @Component({
@@ -30,6 +31,7 @@ export class SidebarComponent implements OnInit {
   hoveredItem: string | null = null;
   isMobile = false;
   sidebarAnimation = 'slideIn';
+  filteredSidebarItems: SidebarItem[] = [];
 
   // Données utilisateur
   userData: any = {
@@ -83,6 +85,9 @@ export class SidebarComponent implements OnInit {
           avatar: this.getUserAvatar(userData.role_id || userData.role?.name || 'user')
         };
         
+        // Synchroniser le stockage local avec le rôle réel
+        this.synchronizeRoleStorage(userData);
+        
         console.log('Données utilisateur formatées:', this.userData);
       } else if (token) {
         // Si pas de données utilisateur mais un token, essayer de décoder le JWT
@@ -96,16 +101,67 @@ export class SidebarComponent implements OnInit {
             email: payload.email || '',
             avatar: this.getUserAvatar(payload.role || 'user')
           };
+          
+          // Synchroniser le stockage local avec le rôle réel
+          this.synchronizeRoleStorage(payload);
         } catch (e) {
           console.warn('Impossible de décoder le token JWT:', e);
         }
       } else {
         console.warn('Aucune donnée utilisateur trouvée dans les cookies');
       }
+      
+      // Filtrer les éléments de sidebar après chargement des données utilisateur
+      this.filterSidebarItems();
     } catch (error) {
       console.error('Erreur lors du chargement des données utilisateur:', error);
       // Garder les valeurs par défaut
     }
+  }
+
+  // Synchronise le rôle dans le localStorage pour un usage cohérent côté app/guards
+  private synchronizeRoleStorage(source: any): void {
+    try {
+      // Extraire le role_id et le nom du rôle quand disponibles
+      const roleId = source.role_id || source.role?.id || null;
+      let roleName = source.role?.name || source.role_name || null;
+
+      // Mapper role_id quand rôle absent (ex: 6 => enseignant)
+      if (!roleName && roleId) {
+        roleName = this.getRoleNameById(roleId);
+      }
+
+      // Normaliser en minuscule pour cohérence avec RoleGuard
+      if (roleName) {
+        const normalized = String(roleName).toLowerCase();
+        localStorage.setItem('userRole', normalized);
+      }
+      if (roleId) {
+        localStorage.setItem('role_id', String(roleId));
+      }
+    } catch (e) {
+      console.warn('Impossible de synchroniser le rôle dans le stockage local:', e);
+    }
+  }
+
+  // Méthode pour filtrer les éléments de sidebar selon le rôle
+  private filterSidebarItems(): void {
+    const userRole = localStorage.getItem('userRole') || this.userData.role?.toLowerCase();
+    
+    if (!userRole) {
+      this.filteredSidebarItems = [];
+      return;
+    }
+
+    this.filteredSidebarItems = this.sidebarItems.filter(item => {
+      // Si l'élément n'a pas de rôles définis, l'afficher pour tous
+      if (!item.roles || item.roles.length === 0) {
+        return true;
+      }
+      
+      // Vérifier si le rôle de l'utilisateur est dans la liste des rôles autorisés
+      return item.roles.includes(userRole);
+    });
   }
 
   // Méthode pour formater le nom de l'utilisateur de manière professionnelle
@@ -169,13 +225,14 @@ export class SidebarComponent implements OnInit {
   // Méthode pour mapper les IDs de rôles vers les noms avec icônes
   private getRoleNameById(roleId: number): string {
     const roleMapping: { [key: number]: string } = {
-      1: 'Super Admin',
-      2: 'Administrateur', 
-      3: 'Scolarité',
-      4: 'Utilisateur'
+      1: 'super-admin',
+      2: 'admin', 
+      3: 'scolarite',
+      4: 'enseignant',
+      6: 'enseignant'
     };
     
-    return roleMapping[roleId] || 'Utilisateur';
+    return roleMapping[roleId] || 'user';
   }
 
   // Méthode pour obtenir une description plus détaillée du rôle
@@ -197,7 +254,7 @@ export class SidebarComponent implements OnInit {
       role = this.getRoleNameById(role);
     }
     
-    const roleLower = role.toLowerCase();
+    const roleLower = (role as string).toLowerCase();
     
     if (roleLower.includes('super') || roleLower.includes('super-admin')) {
       return 'supervisor_account';
@@ -245,7 +302,7 @@ export class SidebarComponent implements OnInit {
   private updateActiveStates(): void {
     // Mettre à jour les états actifs après un délai pour permettre l'animation
     setTimeout(() => {
-      this.sidebarItems.forEach(item => {
+      this.filteredSidebarItems.forEach(item => {
         if (this.isActiveRoute(item.route)) {
           this.hoveredItem = item.route;
         }
@@ -258,74 +315,86 @@ export class SidebarComponent implements OnInit {
       label: 'Tableau de bord',
       icon: 'dashboard',
       route: '/dashboard',
-      tooltip: 'Vue d\'ensemble du système'
+      tooltip: 'Vue d\'ensemble du système',
+      roles: ['super-admin', 'admin', 'scolarite', 'enseignant']
     },
     {
       label: 'Examens',
       icon: 'quiz',
-      route: '/dashboard/examens',
+      route: '/examens',
       badge: '',
-      tooltip: 'Gestion des examens'
+      tooltip: 'Gestion des examens',
+      roles: ['super-admin', 'admin', 'scolarite']
     },
     {
       label: 'Cours',
       icon: 'class',
-      route: '/dashboard/cours',
-      tooltip: 'Gestion des cours'
+      route: '/cours',
+      tooltip: 'Gestion des cours',
+      roles: ['super-admin', 'admin', 'scolarite', 'enseignant']
     },
     {
       label: 'Enseignants',
       icon: 'person_pin',
-      route: '/dashboard/enseignants',
-      tooltip: 'Gestion des enseignants'
+      route: '/enseignants',
+      tooltip: 'Gestion des enseignants',
+      roles: ['super-admin', 'admin']
     },
     {
       label: 'Étudiants',
       icon: 'people',
-      route: '/dashboard/etudiants',
-      tooltip: 'Gestion des étudiants'
+      route: '/etudiants',
+      tooltip: 'Gestion des étudiants',
+      roles: ['super-admin', 'admin', 'scolarite']
     },
     {
       label: 'Absences',
       icon: 'event_busy',
-      route: '/dashboard/absences',
-      tooltip: 'Suivi des absences'
+      route: '/absences',
+      tooltip: 'Suivi des absences',
+      roles: ['super-admin', 'admin', 'scolarite']
     },
     {
       label: 'Promotions',
       icon: 'school',
-      route: '/dashboard/promotions',
-      tooltip: 'Gestion des promotions'
+      route: '/promotions',
+      tooltip: 'Gestion des promotions',
+      roles: ['super-admin', 'admin', 'scolarite']
     },
     {
       label: 'Établissements',
       icon: 'business',
-      route: '/dashboard/etablissements',
-      tooltip: 'Gestion des établissements'
+      route: '/etablissements',
+      tooltip: 'Gestion des établissements',
+      roles: ['super-admin', 'admin']
     },
     {
       label: 'Salles',
       icon: 'meeting_room',
-      route: '/dashboard/salles',
-      tooltip: 'Gestion des salles'
+      route: '/salles',
+      tooltip: 'Gestion des salles',
+      roles: ['super-admin', 'admin', 'scolarite']
     },
     {
       label: 'Rattrapages',
       icon: 'event_note',
-      route: '/dashboard/rattrapages',
-      tooltip: 'Gestion des rattrapages'
+      route: '/rattrapages',
+      tooltip: 'Gestion des rattrapages',
+      roles: ['super-admin', 'admin', 'scolarite']
     },
     {
       label: 'Configuration',
       icon: 'settings',
-      route: '/dashboard/configuration',
-      tooltip: 'Configuration de la base de données'
+      route: '/configuration',
+      tooltip: 'Configuration de la base de données',
+      roles: ['super-admin']
     },
     {
       label: 'Statistiques',
       icon: 'analytics',
-      route: '/dashboard/statistiques',
-      tooltip: 'Tableaux de bord et rapports'
+      route: '/statistiques',
+      tooltip: 'Tableaux de bord et rapports',
+      roles: ['super-admin', 'admin']
     }
   ];
 
@@ -443,7 +512,7 @@ export class SidebarComponent implements OnInit {
     }
     
     // Navigation vers le profil avec animation
-    this.router.navigate(['/dashboard/profile']).then(() => {
+    this.router.navigate(['/profile']).then(() => {
       this.updateActiveStates();
     });
   }
