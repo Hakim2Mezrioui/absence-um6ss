@@ -1,0 +1,110 @@
+<div class="min-h-screen bg-gray-50 py-10">
+  <div class="max-w-6xl mx-auto px-4 space-y-6">
+    <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-6 space-y-6">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 class="text-2xl font-semibold text-gray-800">Importation simple des étudiants</h1>
+          <p class="text-sm text-gray-500">Téléchargez le modèle, remplissez-le et importez-le pour corriger directement les données.</p>
+        </div>
+        <div class="flex flex-wrap gap-3">
+          <button type="button"
+                  (click)="downloadTemplate()"
+                  class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-100">
+            <span class="material-icons text-base">download</span>
+            Télécharger le modèle
+          </button>
+          <label class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium cursor-pointer hover:bg-blue-700">
+            <span class="material-icons text-base">file_upload</span>
+            Importer un fichier
+            <input type="file"
+                   accept=".xlsx,.xls"
+                   class="hidden"
+                   (change)="onFileSelected($event)" />
+          </label>
+          <button *ngIf="tableRows.length"
+                  type="button"
+                  (click)="clearTable()"
+                  class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-100">
+            <span class="material-icons text-base">refresh</span>
+            Réinitialiser
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="fileName" class="text-sm text-gray-500">
+        Fichier sélectionné : <span class="font-medium text-gray-700">{{ fileName }}</span>
+      </div>
+
+      <div *ngIf="errorMessage" class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+        {{ errorMessage }}
+      </div>
+
+      <div *ngIf="successMessage" class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+        {{ successMessage }}
+      </div>
+
+      <div *ngIf="isProcessing" class="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+        Lecture du fichier en cours...
+      </div>
+
+      <div *ngIf="referenceError" class="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-700">
+        {{ referenceError }}
+      </div>
+
+      <div *ngIf="tableRows.length" class="overflow-x-auto border border-gray-200 rounded-xl bg-white">
+        <table class="min-w-full divide-y divide-gray-200 text-sm">
+          <thead class="bg-gray-100">
+            <tr>
+              <th class="px-4 py-3 text-left font-medium text-gray-600">#</th>
+              <th *ngFor="let header of tableHeaders; trackBy: trackByHeader"
+                  class="px-4 py-3 text-left font-medium text-gray-600">
+                {{ header }}
+              </th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200">
+            <tr *ngFor="let row of tableRows; index as i; trackBy: trackByRow" class="hover:bg-gray-50">
+              <td class="px-4 py-3 text-gray-500">{{ i + 1 }}</td>
+              <td *ngFor="let header of tableHeaders; trackBy: trackByHeader" class="px-4 py-3 align-top">
+                <div class="flex flex-col gap-2">
+                  <input [(ngModel)]="tableRows[i][header]"
+                         (ngModelChange)="updateCell(i, header, $event)"
+                         class="w-full rounded-md border px-2 py-1 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                         [class.border-red-400]="isCellInvalid(i, header)"
+                         [class.border-gray-300]="!isCellInvalid(i, header)"
+                         type="text" />
+
+                  <div *ngIf="isCellInvalid(i, header) && getSuggestions(i, header).length"
+                       class="rounded-md border border-blue-200 bg-blue-50 text-xs text-blue-700">
+                    <div class="px-2 py-1 font-medium">Suggestions</div>
+                    <div class="divide-y divide-blue-100">
+                      <button type="button"
+                              *ngFor="let suggestion of getSuggestions(i, header)"
+                              (click)="applySuggestion(i, header, suggestion)"
+                              class="w-full text-left px-2 py-1 hover:bg-blue-100 focus:outline-none">
+                        {{ suggestion.label }}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div *ngIf="isCellInvalid(i, header) && !getSuggestions(i, header).length"
+                       class="text-xs text-red-500">
+                    Valeur inconnue, veuillez corriger manuellement.
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div *ngIf="!tableRows.length" class="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-6 py-10 text-center text-gray-500">
+        <div class="flex flex-col items-center gap-3">
+          <span class="material-icons text-4xl text-gray-300">table_chart</span>
+          <p class="text-sm">Importez un fichier Excel pour prévisualiser et modifier les informations des étudiants avant importation.</p>
+          <p *ngIf="!filterOptions" class="text-xs text-gray-400">Chargement des données de référence...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

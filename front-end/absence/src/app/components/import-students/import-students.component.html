@@ -2,7 +2,7 @@
   <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
     
     <!-- Header Ultra-Professionnel -->
-    <div class="relative">
+    <div *ngIf="false" class="relative">
       <div class="bg-white rounded-2xl border border-blue-200 shadow-lg p-8 lg:p-12">
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
           <div class="flex items-start gap-6">
@@ -521,7 +521,7 @@
       <!-- Animated Background -->
       <div class="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-indigo-50/30 to-purple-50/20 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
       
-      <div class="relative bg-white/90 backdrop-blur-md rounded-3xl border border-white/30 shadow-2xl shadow-blue-500/10 overflow-hidden transform transition-all duration-500 group-hover:scale-[1.01] group-hover:shadow-3xl group-hover:shadow-blue-500/20">
+            <div class="relative bg-white rounded-2xl border border-gray-200 shadow-md overflow-hidden">
         <!-- Header Élégant -->
         <div class="relative bg-gradient-to-r from-slate-50 to-blue-50/50 border-b border-slate-200/50 px-8 py-6">
         <div class="flex items-center justify-between">
@@ -566,25 +566,25 @@
       <!-- Contenu principal -->
       <div class="p-6">
         <!-- Messages d'état -->
-        <div *ngIf="loading" class="mb-6 flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <mat-spinner diameter="24"></mat-spinner>
-          <span class="text-blue-700 font-medium">{{ loadingMessage || 'Traitement en cours...' }}</span>
+        <div *ngIf="loading" class="mb-4 flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-md p-3">
+          <mat-spinner diameter="20"></mat-spinner>
+          <span class="text-gray-700">{{ loadingMessage || 'Traitement en cours...' }}</span>
         </div>
 
-        <div *ngIf="error" class="mb-6 flex items-center gap-3 bg-red-50 border border-red-200 rounded-lg p-4">
+        <div *ngIf="error" class="mb-4 flex items-center gap-3 bg-red-50 border border-red-200 rounded-md p-3">
           <mat-icon class="text-red-500">error</mat-icon>
-          <span class="text-red-700 font-medium">{{ error }}</span>
+          <span class="text-red-700">{{ error }}</span>
         </div>
 
-        <div *ngIf="success" class="mb-6 flex items-center gap-3 bg-green-50 border border-green-200 rounded-lg p-4">
+        <div *ngIf="success" class="mb-4 flex items-center gap-3 bg-green-50 border border-green-200 rounded-md p-3">
           <mat-icon class="text-green-500">check_circle</mat-icon>
-          <span class="text-green-700 font-medium">{{ success }}</span>
+          <span class="text-green-700">{{ success }}</span>
         </div>
 
         <!-- Zone de Dépôt -->
         <div class="p-8 lg:p-12">
           <div 
-            class="border-2 border-dashed border-slate-200 rounded-2xl p-16 text-center transition-colors duration-200 hover:border-blue-400 hover:bg-blue-50/30"
+            class="border-2 border-dashed border-gray-200 rounded-xl p-10 text-center transition-colors duration-200 hover:border-gray-300 hover:bg-gray-50"
             [class.border-blue-500]="isDragOver"
             [class.bg-blue-50]="isDragOver"
             (dragover)="onDragOver($event)"
@@ -594,7 +594,7 @@
               <div class="space-y-8">
                 <!-- Icône centrale -->
               <div class="flex justify-center">
-                  <div class="w-24 h-24 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <div class="w-20 h-20 bg-gray-800 rounded-xl flex items-center justify-center">
                     <mat-icon class="text-white text-4xl">cloud_upload</mat-icon>
                   </div>
                 </div>
@@ -602,16 +602,16 @@
                 <!-- Contenu textuel -->
                 <div class="space-y-4">
                   <div class="space-y-2">
-                    <h3 class="text-2xl lg:text-3xl font-light text-slate-900">
+                    <h3 class="text-2xl lg:text-3xl font-light text-gray-900">
                       Déposez votre fichier (CSV, TXT, Excel)
                     </h3>
-                    <p class="text-slate-500 text-lg">
+                    <p class="text-gray-500 text-lg">
                       ou cliquez pour parcourir vos fichiers
                     </p>
               </div>
               
                   <!-- Spécifications techniques -->
-                  <div class="inline-flex items-center gap-8 text-sm text-slate-400">
+                  <div class="inline-flex items-center gap-8 text-sm text-gray-400">
                     <div class="flex items-center gap-2">
                       <div class="w-2 h-2 bg-blue-400 rounded-full"></div>
                       <span>CSV, TXT, Excel</span>
@@ -639,7 +639,7 @@
                 <button 
                   (click)="fileInput.click()"
                   [disabled]="loading"
-                  class="inline-flex items-center justify-center px-8 py-4 text-base font-medium text-white bg-blue-600 border border-transparent rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                  class="inline-flex items-center justify-center px-6 py-3 text-base font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-400 disabled:opacity-50"
                 >
                   <mat-icon class="mr-3 text-xl">folder_open</mat-icon>
                   <span>Sélectionner un fichier (CSV, TXT, Excel)</span>
@@ -695,109 +695,7 @@
               </button>
             </div>
             
-            <!-- Aperçu Ultra-Moderne -->
-            <div class="relative">
-              <div class="absolute inset-0 bg-gradient-to-r from-slate-500/5 to-blue-500/5 rounded-2xl"></div>
-              <div class="relative bg-slate-50/50 backdrop-blur-sm border border-slate-200/50 rounded-2xl overflow-hidden">
-                <!-- Header de l'aperçu premium -->
-                <div class="bg-white/80 backdrop-blur-sm border-b border-slate-200/50 px-8 py-6">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-6">
-                      <div class="w-12 h-12 bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl flex items-center justify-center shadow-lg">
-                        <mat-icon class="text-white text-xl">table_view</mat-icon>
-                      </div>
-                      <div class="space-y-2">
-                        <h5 class="text-xl font-semibold text-slate-900 tracking-tight">Aperçu des Données</h5>
-                        <p class="text-slate-500">Vérification et validation du contenu importé</p>
-                      </div>
-                    </div>
-                    <div class="flex items-center gap-3">
-                      <div class="flex items-center gap-2 bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-2 rounded-xl border border-blue-200/50">
-                        <mat-icon class="text-blue-600 text-lg">assessment</mat-icon>
-                        <span class="text-base font-semibold text-blue-700">{{ previewData.length }} entrées</span>
-                      </div>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Contenu de l'aperçu -->
-              <div class="p-0">
-                <div *ngIf="previewData.length > 0" class="overflow-x-auto">
-                  <div class="min-w-full">
-                    <!-- Tableau simple -->
-                    <table class="w-full">
-                      <thead>
-                        <tr class="bg-slate-100 border-b border-slate-200">
-                          <th *ngFor="let header of previewHeaders" 
-                              class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider border-r border-slate-200 last:border-r-0">
-                            {{ header }}
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody class="bg-white divide-y divide-slate-200">
-                        <tr *ngFor="let row of previewData; let i = index" 
-                            class="hover:bg-blue-50 transition-colors"
-                            [class.bg-slate-50]="i % 2 === 0">
-                          <td *ngFor="let cell of row" 
-                              class="px-6 py-4 text-sm text-gray-800 border-r border-slate-100 last:border-r-0">
-                            <span class="truncate max-w-xs block" [title]="cell">{{ cell || '-' }}</span>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                    
-                    <!-- Statistiques Premium -->
-                    <div class="bg-gradient-to-r from-white to-slate-50/50 border-t border-slate-200/50 px-8 py-6">
-                      <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-8">
-                          <div class="flex items-center gap-3 text-slate-600">
-                            <div class="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
-                              <mat-icon class="text-slate-500">table_rows</mat-icon>
-                            </div>
-                            <div>
-                              <div class="text-lg font-semibold text-slate-900">{{ previewData.length }}</div>
-                              <div class="text-xs text-slate-500">Lignes détectées</div>
-                            </div>
-                          </div>
-                          <div class="flex items-center gap-3 text-slate-600">
-                            <div class="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
-                              <mat-icon class="text-slate-500">view_column</mat-icon>
-                            </div>
-                            <div>
-                              <div class="text-lg font-semibold text-slate-900">{{ previewHeaders.length }}</div>
-                              <div class="text-xs text-slate-500">Colonnes validées</div>
-                            </div>
-                          </div>
-                        </div>
-                        <div class="flex items-center gap-3 bg-gradient-to-r from-emerald-50 to-green-50 px-6 py-3 rounded-xl border border-emerald-200/50">
-                          <div class="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></div>
-                          <span class="text-emerald-700 font-semibold">Prêt pour import</span>
-                          <mat-icon class="text-emerald-500">check_circle</mat-icon>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <!-- État vide élégant -->
-                <div *ngIf="previewData.length === 0" class="text-center py-20">
-                  <div class="relative mx-auto mb-8">
-                    <div class="w-24 h-24 bg-gradient-to-br from-slate-100 to-slate-200 rounded-3xl flex items-center justify-center mx-auto shadow-lg">
-                      <mat-icon class="text-slate-400 text-3xl">description</mat-icon>
-                    </div>
-                    <div class="absolute -inset-2 bg-gradient-to-r from-slate-200 to-blue-200 rounded-3xl blur opacity-20"></div>
-                  </div>
-                  <div class="space-y-4">
-                    <h6 class="text-2xl font-light text-slate-900">En attente de fichier</h6>
-                    <p class="text-slate-500 text-lg max-w-md mx-auto leading-relaxed">
-                      Sélectionnez un fichier CSV pour visualiser et valider son contenu avant l'importation
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+            <!-- Aperçu des données supprimé : l'éditeur devient la vue principale -->
 
         <!-- Espacement entre les sections -->
         <div class="py-6"></div>
@@ -947,11 +845,27 @@
                 </div>
                 <div class="flex gap-3">
                   <button 
+                    (click)="revalidateEditedData()"
+                    [disabled]="isValidating"
+                    class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-purple-600 border border-transparent rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  >
+                    <mat-icon class="mr-2 text-lg">verified</mat-icon>
+                    Revalider
+                  </button>
+                  <button 
                     (click)="saveCorrectedFile()"
                     class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
                   >
                     <mat-icon class="mr-2 text-lg">save</mat-icon>
                     Sauvegarder
+                  </button>
+                  <button 
+                    (click)="startImport()"
+                    [disabled]="isValidating"
+                    class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-emerald-600 border border-transparent rounded-lg hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  >
+                    <mat-icon class="mr-2 text-lg">rocket_launch</mat-icon>
+                    Importer le fichier corrigé
                   </button>
                   <button 
                     (click)="closeFileEditor()"
@@ -1023,15 +937,15 @@
                             type="text" 
                             [value]="cell"
                             (blur)="finishEditingCell()"
-                            (keyup.enter)="finishEditingCell()"
-                            (keyup)="updateCellValue(rowIndex, colIndex, $event.target.value)"
+                            (keydown.enter)="$event.preventDefault(); finishEditingCell()"
+                            (input)="onEditInput(rowIndex, colIndex, $event.target.value)"
                             class="w-full px-2 py-1 border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                             autofocus>
                           
                           <!-- Suggestions -->
                           <div *ngIf="cellSuggestions.length > 0" 
                                class="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
-                            <div *ngFor="let suggestion of cellSuggestions" 
+                            <div *ngFor="let suggestion of cellSuggestions; trackBy: trackSuggestion"
                                  (click)="applySuggestion(rowIndex, colIndex, suggestion)"
                                  class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100 last:border-b-0">
                               <div class="font-medium">{{ suggestion.name || suggestion.title }}</div>
@@ -1225,302 +1139,7 @@
     <!-- Espacement -->
     <div class="py-8"></div>
 
-    <!-- Instructions Professionnelles -->
-    <div class="relative">
-      <div class="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 rounded-3xl opacity-80"></div>
-      <div class="relative bg-white/90 backdrop-blur-sm border border-blue-200/50 rounded-3xl p-10 shadow-xl">
-        <!-- Header Professionnel -->
-        <div class="flex items-center gap-6 mb-10 pb-8 border-b-2 border-blue-200/50">
-          <div class="relative group">
-            <div class="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300 shadow-lg">
-              <mat-icon class="text-white text-2xl">description</mat-icon>
-            </div>
-            <!-- Status Indicator -->
-            <div class="absolute -top-1 -right-1 w-7 h-7 bg-emerald-500 rounded-full flex items-center justify-center border-2 border-white">
-              <mat-icon class="text-white text-sm">check</mat-icon>
-            </div>
-          </div>
-          <div class="space-y-3">
-            <div class="flex items-center gap-4">
-              <h3 class="text-3xl font-black text-slate-900 leading-tight">
-                Guide de Format CSV
-              </h3>
-              <div class="px-4 py-2 bg-blue-50 rounded-full border border-blue-200">
-                <span class="text-sm font-bold text-blue-700 uppercase tracking-wider">PRO</span>
-              </div>
-            </div>
-            <p class="text-lg text-slate-600 font-medium max-w-2xl">
-              Spécifications techniques et structure requise pour l'importation des étudiants
-            </p>
-            <div class="flex items-center gap-6">
-              <div class="flex items-center gap-2">
-                <div class="w-3 h-3 bg-emerald-500 rounded-full"></div>
-                <span class="text-sm font-semibold text-slate-600">Format validé</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <div class="w-3 h-3 bg-blue-600 rounded-full"></div>
-                <span class="text-sm font-semibold text-slate-600">Sécurisé & fiable</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <div class="w-3 h-3 bg-slate-500 rounded-full"></div>
-                <span class="text-sm font-semibold text-slate-600">Interface professionnelle</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Content Professionnel -->
-        <div class="space-y-8">
-          
-            <!-- Spécifications techniques -->
-            <div class="bg-white rounded-2xl border border-blue-200 shadow-lg p-8">
-              <div class="mb-8">
-                <h5 class="text-2xl font-semibold text-slate-900 mb-2">Formats supportés</h5>
-                <p class="text-slate-600">Le système accepte les fichiers CSV, TXT et Excel (.xlsx, .xls) :</p>
-              </div>
-            
-            <!-- Format CSV attendu -->
-            <div class="mb-6">
-              
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Matricule -->
-                <div class="bg-white rounded-lg p-6 border border-slate-200 shadow-sm">
-                  <div class="flex items-center gap-4 mb-3">
-                    <div class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
-                      <span class="text-white text-lg font-bold">M</span>
-                    </div>
-                    <div>
-                      <code class="bg-blue-50 text-blue-700 px-3 py-1 rounded font-mono text-sm font-bold">matricule</code>
-                    </div>
-                  </div>
-                  <p class="text-slate-600 text-sm">Numéro matricule de l'étudiant (obligatoire)</p>
-                </div>
-                
-                <!-- Prénom -->
-                <div class="bg-white rounded-lg p-6 border border-slate-200 shadow-sm">
-                  <div class="flex items-center gap-4 mb-3">
-                    <div class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
-                      <span class="text-white text-lg font-bold">P</span>
-                    </div>
-                    <div>
-                      <code class="bg-blue-50 text-blue-700 px-3 py-1 rounded font-mono text-sm font-bold">first_name</code>
-                    </div>
-                  </div>
-                  <p class="text-slate-600 text-sm">Prénom de l'étudiant (obligatoire)</p>
-                </div>
-                
-                <!-- Nom -->
-                <div class="bg-white rounded-lg p-6 border border-slate-200 shadow-sm">
-                  <div class="flex items-center gap-4 mb-3">
-                    <div class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
-                      <span class="text-white text-lg font-bold">N</span>
-                    </div>
-                    <div>
-                      <code class="bg-blue-50 text-blue-700 px-3 py-1 rounded font-mono text-sm font-bold">last_name</code>
-                    </div>
-                  </div>
-                  <p class="text-slate-600 text-sm">Nom de famille de l'étudiant (obligatoire)</p>
-                </div>
-                
-                <!-- Email -->
-                <div class="bg-white rounded-lg p-6 border border-slate-200 shadow-sm">
-                  <div class="flex items-center gap-4 mb-3">
-                    <div class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
-                      <span class="text-white text-lg font-bold">@</span>
-                    </div>
-                    <div>
-                      <code class="bg-blue-50 text-blue-700 px-3 py-1 rounded font-mono text-sm font-bold">email</code>
-                    </div>
-                  </div>
-                  <p class="text-slate-600 text-sm">Adresse email de l'étudiant (obligatoire)</p>
-                </div>
-                
-                <!-- Password -->
-                <div class="bg-white rounded-lg p-6 border border-slate-200 shadow-sm md:col-span-2">
-                  <div class="flex items-center gap-4 mb-3">
-                    <div class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
-                      <span class="text-white text-lg font-bold">🔒</span>
-                    </div>
-                    <div>
-                      <code class="bg-blue-50 text-blue-700 px-3 py-1 rounded font-mono text-sm font-bold">password</code>
-                    </div>
-                  </div>
-                  <p class="text-slate-600 text-sm">Mot de passe de l'étudiant (obligatoire)</p>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Modèles disponibles -->
-            <div class="space-y-6">
-              <!-- Modèle avec noms textuels -->
-              <div class="bg-slate-900 rounded-2xl p-6 overflow-x-auto border border-slate-700">
-                <div class="flex items-center justify-between mb-4">
-                  <div class="flex items-center gap-3">
-                    <div class="w-3 h-3 bg-red-400 rounded-full"></div>
-                    <div class="w-3 h-3 bg-yellow-400 rounded-full"></div>
-                    <div class="w-3 h-3 bg-green-400 rounded-full"></div>
-                    <span class="text-slate-300 ml-3 font-medium">Modèle avec noms textuels (Recommandé)</span>
-                  </div>
-                  <button 
-                    (click)="copyCSVExample()"
-                    class="flex items-center gap-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200"
-                  >
-                    <mat-icon class="text-sm">content_copy</mat-icon>
-                    <span class="text-sm">Copier</span>
-                  </button>
-                </div>
-                <pre class="text-slate-200 font-mono leading-relaxed text-sm"><code>matricule,first_name,last_name,email,password,promotion_id,etablissement_id,ville_id,group_id,option_id
-ETU2024001,Jean,Dupont,jean.dupont@email.com,password123,1ere annee,Faculte de Medecine,Casablanca,Groupe A,Pharmacie
-ETU2024002,Marie,Martin,marie.martin@email.com,password123,2eme annee,Hopital Universitaire,Rabat,Groupe B,Medecine
-ETU2024003,Pierre,Durand,pierre.durand@email.com,password123,3eme annee,Institut Superieur,Fes,Groupe C,Chirurgie</code></pre>
-              </div>
-
-              <!-- Modèle avec IDs numériques -->
-              <div class="bg-slate-800 rounded-2xl p-6 overflow-x-auto border border-slate-600">
-                <div class="flex items-center justify-between mb-4">
-                  <div class="flex items-center gap-3">
-                    <div class="w-3 h-3 bg-blue-400 rounded-full"></div>
-                    <div class="w-3 h-3 bg-purple-400 rounded-full"></div>
-                    <div class="w-3 h-3 bg-pink-400 rounded-full"></div>
-                    <span class="text-slate-300 ml-3 font-medium">Modèle avec IDs numériques</span>
-                  </div>
-                  <button 
-                    (click)="copyCSVExampleWithIds()"
-                    class="flex items-center gap-2 px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors duration-200"
-                  >
-                    <mat-icon class="text-sm">content_copy</mat-icon>
-                    <span class="text-sm">Copier</span>
-                  </button>
-                </div>
-                <pre class="text-slate-200 font-mono leading-relaxed text-sm"><code>matricule,first_name,last_name,email,password,promotion_id,etablissement_id,ville_id,group_id,option_id
-ETU2024001,Jean,Dupont,jean.dupont@email.com,password123,1,1,1,1,1
-ETU2024002,Marie,Martin,marie.martin@email.com,password123,2,1,1,1,2
-ETU2024003,Pierre,Durand,pierre.durand@email.com,password123,3,1,1,2,1</code></pre>
-              </div>
-            </div>
-            
-            <!-- Exemple avec noms au lieu d'IDs -->
-            <div class="bg-slate-800 rounded-2xl p-6 overflow-x-auto border border-slate-600 mt-4">
-              <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-3">
-                  <div class="w-3 h-3 bg-blue-400 rounded-full"></div>
-                  <div class="w-3 h-3 bg-purple-400 rounded-full"></div>
-                  <div class="w-3 h-3 bg-pink-400 rounded-full"></div>
-                  <span class="text-slate-300 ml-3 font-medium">Exemple avec noms (conversion automatique)</span>
-                </div>
-                <button 
-                  (click)="copyCSVExampleWithNames()"
-                  class="flex items-center gap-2 px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors duration-200"
-                >
-                  <mat-icon class="text-sm">content_copy</mat-icon>
-                  <span class="text-sm">Copier</span>
-                </button>
-              </div>
-              <pre class="text-slate-200 font-mono leading-relaxed text-sm"><code>matricule,first_name,last_name,email,password,promotion_id,etablissement_id,ville_id,group_id,option_id
-ETU2024001,Jean,Dupont,jean.dupont@email.com,password123,1ere annee,Faculte de Medecine,Casablanca,Groupe A,Pharmacie
-ETU2024002,Marie,Martin,marie.martin@email.com,password123,2eme annee,Hopital Universitaire,Rabat,Groupe B,Medecine
-ETU2024003,Pierre,Durand,pierre.durand@email.com,password123,3eme annee,Institut Superieur,Fes,Groupe C,Chirurgie</code></pre>
-            </div>
-            
-            <!-- Note -->
-            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-6">
-              <div class="flex items-start gap-3">
-                <mat-icon class="text-yellow-600 text-lg mt-0.5">lightbulb</mat-icon>
-                <div>
-                  <p class="text-yellow-800 text-sm font-medium">
-                    <strong>Note :</strong> Les autres informations (promotion, établissement, ville, groupe) seront appliquées à tous les étudiants importés selon la configuration ci-dessus. L'option est facultative et ne sera appliquée que si elle est sélectionnée.
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Support Excel -->
-            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
-              <div class="flex items-start gap-3">
-                <mat-icon class="text-blue-600 text-lg mt-0.5">table_chart</mat-icon>
-                <div>
-                  <p class="text-blue-800 text-sm font-medium">
-                    <strong>Support Excel :</strong> Les fichiers Excel (.xlsx, .xls) sont automatiquement convertis en CSV lors de l'importation. Le système détecte également l'ancienne structure de données (matricule, name, promotion, faculte, groupe) et la convertit automatiquement.
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Importation Complète -->
-            <div class="bg-green-50 border border-green-200 rounded-lg p-4 mt-6">
-              <div class="flex items-start gap-3">
-                <mat-icon class="text-green-600 text-lg mt-0.5">auto_awesome</mat-icon>
-                <div>
-                  <p class="text-green-800 text-sm font-medium">
-                    <strong>Importation Complète :</strong> Vous pouvez maintenant inclure toutes les informations (promotion, établissement, ville, groupe, option) directement dans le fichier. Le système valide automatiquement les données et suggère des corrections en cas d'erreur.
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Validation Intelligente -->
-            <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 mt-6">
-              <div class="flex items-start gap-3">
-                <mat-icon class="text-purple-600 text-lg mt-0.5">psychology</mat-icon>
-                <div>
-                  <p class="text-purple-800 text-sm font-medium">
-                    <strong>Validation Intelligente :</strong> Le système accepte les IDs numériques ET les noms textuels. Si une valeur n'est pas trouvée, le système suggère automatiquement les options disponibles avec des correspondances intelligentes.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Configuration automatique -->
-          <div class="bg-white rounded-2xl border border-green-200 shadow-lg p-8">
-            <div class="flex items-start gap-6">
-              <div class="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
-                <mat-icon class="text-white text-xl">auto_awesome</mat-icon>
-              </div>
-              <div class="space-y-3">
-                <h6 class="text-xl font-semibold text-slate-900">Configuration Automatique</h6>
-                <p class="text-slate-600 leading-relaxed font-medium">
-                  Les entités liées (promotion, établissement, ville, groupe) sont automatiquement 
-                  appliquées depuis la base de données. L'option est facultative et ne sera appliquée que si elle est sélectionnée.
-                </p>
-                <div class="flex items-center gap-4">
-                  <div class="flex items-center gap-2 px-3 py-1 bg-green-100 rounded-full border border-green-200">
-                    <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span class="text-sm font-semibold text-green-700">Configuration automatique</span>
-                  </div>
-                  <div class="flex items-center gap-2 px-3 py-1 bg-blue-100 rounded-full border border-blue-200">
-                    <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <span class="text-sm font-semibold text-blue-700">Base de données</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Conseils professionnels -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="bg-white rounded-xl p-6 border border-blue-200 shadow-sm hover:shadow-md transition-all duration-300">
-              <div class="flex items-center gap-4 mb-3">
-                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
-                  <mat-icon class="text-white">lightbulb</mat-icon>
-                </div>
-                <span class="text-lg font-semibold text-slate-900">Conseil Pro</span>
-              </div>
-              <p class="text-slate-600 font-medium">La configuration est automatiquement chargée depuis la base de données.</p>
-            </div>
-            
-            <div class="bg-white rounded-xl p-6 border border-green-200 shadow-sm hover:shadow-md transition-all duration-300">
-              <div class="flex items-center gap-4 mb-3">
-                <div class="w-10 h-10 bg-green-600 rounded-xl flex items-center justify-center">
-                  <mat-icon class="text-white">download</mat-icon>
-                </div>
-                <span class="text-lg font-semibold text-slate-900">Téléchargement</span>
-              </div>
-              <p class="text-slate-600 font-medium">Le modèle CSV utilise la configuration automatique.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- CSV guide hidden -->
+    <!-- The detailed CSV guide content has been removed for now to keep the template concise. -->
   </div>
 </div>

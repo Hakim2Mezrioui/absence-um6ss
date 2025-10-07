@@ -109,6 +109,12 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
   suggestions: {[key: string]: any} = {};
   editingCell: {row: number, col: number} | null = null;
   cellSuggestions: any[] = [];
+  // Fichier corrigé en mémoire
+  private correctedFileBlob: Blob | null = null;
+
+  // Affichages optionnels
+  showPreview = false;
+  showGuide = false;
 
   private destroy$ = new Subject<void>();
 
@@ -325,6 +331,8 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
     
     // Prévisualiser le fichier
     this.previewFile(file);
+    // Lancer une validation rapide automatiquement
+    setTimeout(() => this.validateFile(), 0);
   }
 
   /**
@@ -499,15 +507,14 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
           this.validationCompleted = true;
           this.isValidating = false;
 
+          // Toujours ouvrir l'éditeur pour permettre les corrections avant import
+          this.openFileEditor(results);
+
           if (results.valid) {
-            this.success = `✅ Fichier validé avec succès ! ${results.validRows} lignes valides sur ${results.totalRows}`;
-            if (results.warnings > 0) {
-              this.success += ` (${results.warnings} avertissements)`;
-            }
+            this.success = `✅ Fichier validé: ${results.validRows}/${results.totalRows}`;
+            if (results.warnings > 0) this.success += ` (${results.warnings} avertissements)`;
           } else {
-            this.error = `❌ Fichier invalide : ${results.errorRows} erreurs trouvées sur ${results.totalRows} lignes`;
-            // Ouvrir l'éditeur pour corriger les erreurs
-            this.openFileEditor(results);
+            this.error = `❌ ${results.errorRows} erreur(s) à corriger sur ${results.totalRows}`;
           }
 
           console.log('✅ Validation terminée:', results);
@@ -566,9 +573,13 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
     this.success = '';
     this.uploadProgress = 0;
 
-    // Créer FormData pour l'upload
+    // Créer FormData pour l'upload (utiliser le fichier corrigé s'il existe)
     const formData = new FormData();
-    formData.append('file', this.selectedFile);
+    if (this.correctedFileBlob) {
+      formData.append('file', this.correctedFileBlob, this.selectedFile?.name || 'corrected.csv');
+    } else {
+      formData.append('file', this.selectedFile);
+    }
     
     // Ajouter les options d'importation
     formData.append('import_options', JSON.stringify(this.importOptions));
@@ -846,6 +857,45 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Revalider les données éditées sans télécharger un nouveau fichier
+   */
+  revalidateEditedData(): void {
+    if (!this.showFileEditor || this.editableHeaders.length === 0) return;
+
+    // Construire un CSV à partir des données éditées
+    const csvContent = this.convertToCSV(this.editableHeaders, this.editableData);
+    this.correctedFileBlob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+
+    const formData = new FormData();
+    formData.append('file', this.correctedFileBlob, this.selectedFile?.name || 'corrected.csv');
+    formData.append('import_options', JSON.stringify(this.importOptions));
+
+    this.isValidating = true;
+    this.error = '';
+    this.success = '';
+
+    this.etudiantsService.validateFile(formData)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (results) => {
+          this.validationResults = results;
+          this.validationCompleted = true;
+          this.isValidating = false;
+          if (results.valid) {
+            this.success = `✅ Corrections valides: ${results.validRows}/${results.totalRows}`;
+          } else {
+            this.error = `❌ Encore ${results.errorRows} erreur(s) à corriger`;
+          }
+        },
+        error: (err) => {
+          this.isValidating = false;
+          this.validationCompleted = false;
+          this.error = err.error?.message || 'Erreur lors de la revalidation.';
+        }
+      });
+  }
+
+  /**
    * Fermer l'éditeur de fichier
    */
   closeFileEditor(): void {
@@ -903,6 +953,17 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Mise à jour en tapant + suggestions dynamiques
+   */
+  onEditInput(row: number, col: number, value: string): void {
+    this.updateCellValue(row, col, value);
+    const columnName = this.editableHeaders[col];
+    if (this.suggestions[columnName]) {
+      this.cellSuggestions = this.searchSuggestions(columnName, value);
+    }
+  }
+
+  /**
    * Appliquer une suggestion à une cellule
    */
   applySuggestion(row: number, col: number, suggestion: any): void {
@@ -935,6 +996,8 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
     );
   }
 
+  trackSuggestion = (_: number, item: any) => item.id;
+
   /**
    * Valider une cellule spécifique
    */
@@ -953,7 +1016,7 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
       }
     }
     
-    // Validation des relations
+    // Validation des relations (vérifier contre les données de la base chargées côté client)
     if (columnName.includes('_id')) {
       const suggestions = this.suggestions[columnName] || [];
       const found = suggestions.find((item: any) => 
@@ -966,12 +1029,63 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
         return {
           valid: false,
           message: `${columnName} introuvable`,
-          suggestions: this.searchSuggestions(columnName, value.toString())
+          // Suggestions intelligentes (proches dans la base)
+          suggestions: this.getSuggestionCandidates(columnName, value?.toString() || '')
         };
       }
     }
     
     return { valid: true, message: '', suggestions: [] };
+  }
+
+  private normalize(input: string): string {
+    return (input || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/\p{Diacritic}/gu, '')
+      .trim();
+  }
+
+  private levenshteinDistance(a: string, b: string): number {
+    const an = a ? a.length : 0;
+    const bn = b ? b.length : 0;
+    if (an === 0) return bn;
+    if (bn === 0) return an;
+    const matrix: number[][] = Array.from({ length: bn + 1 }, () => new Array(an + 1).fill(0));
+    for (let i = 0; i <= bn; i++) matrix[i][0] = i;
+    for (let j = 0; j <= an; j++) matrix[0][j] = j;
+    for (let i = 1; i <= bn; i++) {
+      for (let j = 1; j <= an; j++) {
+        const cost = a[j - 1] === b[i - 1] ? 0 : 1;
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j - 1] + cost
+        );
+      }
+    }
+    return matrix[bn][an];
+  }
+
+  private getSuggestionCandidates(columnName: string, rawValue: string): any[] {
+    const list = this.suggestions[columnName] || [];
+    const value = this.normalize(rawValue);
+    if (!value) return list.slice(0, 5);
+
+    const scored = list.map((item: any) => {
+      const candidate = this.normalize(item.name || item.title || item.id?.toString() || '');
+      let score = 0;
+      if (candidate.includes(value)) score += 50;
+      const dist = this.levenshteinDistance(candidate, value);
+      score += Math.max(0, 40 - dist);
+      if (candidate.startsWith(value)) score += 20;
+      return { item, score };
+    });
+
+    return scored
+      .sort((a: any, b: any) => b.score - a.score)
+      .slice(0, 5)
+      .map((s: any) => s.item);
   }
 
   /**
@@ -1010,14 +1124,14 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
     const validation = this.validateCell(row, col);
     const isEditing = this.editingCell?.row === row && this.editingCell?.col === col;
     
-    let classes = 'relative';
+    let classes = 'relative border';
     
     if (isEditing) {
-      classes += ' bg-blue-50 border border-blue-300';
+      classes += ' ring-1 ring-blue-300 border-gray-300';
     } else if (!validation.valid) {
-      classes += ' bg-red-50 border border-red-300';
+      classes += ' border-red-400';
     } else {
-      classes += ' bg-green-50 border border-green-300';
+      classes += ' border-gray-200';
     }
     
     return classes;

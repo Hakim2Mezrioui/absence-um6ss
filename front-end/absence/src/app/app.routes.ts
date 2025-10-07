@@ -28,6 +28,7 @@ import { ImportCoursComponent } from './components/import-cours/import-cours.com
 import { ConfigurationComponent } from './components/configuration/configuration.component';
 import { EnseignantsComponent } from './components/enseignants/enseignants.component';
 import { ImportEnseignantsComponent } from './import-enseignants/import-enseignants.component';
+import { SimpleStudentImportComponent } from './components/simple-import/simple-import.component';
 
 export const routes: Routes = [
     {path: "", redirectTo: "login", pathMatch: "full"},
@@ -58,6 +59,7 @@ export const routes: Routes = [
             { path: "etudiants", component: EtudiantsComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },
             { path: "add-student", component: AddStudentComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },
             { path: "import-students", component: ImportStudentsComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },
+            { path: "import-students-simple", component: SimpleStudentImportComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },
 
             { path: "absences", component: AbsencesComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },
             { path: "promotions", component: PromotionsComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },

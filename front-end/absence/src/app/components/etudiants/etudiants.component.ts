@@ -417,14 +417,14 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
    * Naviguer vers la page d'ajout d'étudiant
    */
   navigateToAddStudent(): void {
-    this.router.navigate(['/dashboard/add-student']);
+    this.router.navigate(['/add-student']);
   }
 
   /**
    * Naviguer vers la page d'import d'étudiants
    */
   navigateToImport(): void {
-    this.router.navigate(['/dashboard/import-students']);
+    this.router.navigate(['/import-students']);
   }
 
   /**

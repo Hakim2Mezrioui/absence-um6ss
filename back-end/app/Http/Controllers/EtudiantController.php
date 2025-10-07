@@ -828,7 +828,7 @@ class EtudiantController extends Controller
 
             // Parser le fichier
             if ($isExcel) {
-                $data = $this->parseExcelFile($file);
+                $data = $this->parseExcelFile($file->getRealPath());
             } else {
                 $data = $this->parseCsvFile($file);
             }
@@ -845,7 +845,7 @@ class EtudiantController extends Controller
                         'message' => 'Le fichier est vide ou ne peut pas être lu.',
                         'suggestions' => []
                     ]],
-                    'warnings' => [],
+                    'warningsList' => [],
                     'summary' => [
                         'hasHeaders' => false,
                         'detectedFormat' => 'unknown',
@@ -869,17 +869,25 @@ class EtudiantController extends Controller
             // Validation des données
             $validationResults = $this->validateFileData($data, $headers, $importOptions);
 
-            // Préparer les données d'échantillon
-            $sampleData = array_slice($data, 0, 5);
+            // Préparer les données d'échantillon (tableau aligné sur l'ordre des colonnes)
+            $sampleRaw = array_slice($data, 0, 5);
+            $sampleData = [];
+            foreach ($sampleRaw as $row) {
+                $line = [];
+                foreach ($headers as $h) {
+                    $line[] = is_array($row) && array_key_exists($h, $row) ? $row[$h] : null;
+                }
+                $sampleData[] = $line;
+            }
 
             return response()->json([
                 'valid' => $validationResults['valid'],
                 'totalRows' => $validationResults['totalRows'],
                 'validRows' => $validationResults['validRows'],
                 'errorRows' => $validationResults['errorRows'],
-                'warnings' => $validationResults['warnings'],
                 'errors' => $validationResults['errors'],
-                'warnings' => $validationResults['warningsList'],
+                'warnings' => $validationResults['warnings'],
+                'warningsList' => $validationResults['warningsList'],
                 'summary' => [
                     'hasHeaders' => $hasHeaders,
                     'detectedFormat' => $detectedFormat,
@@ -1583,18 +1591,16 @@ class EtudiantController extends Controller
     private function parseExcelFile($filePath)
     {
         try {
-            // Méthode alternative : convertir Excel en CSV temporairement
-            // Cette approche fonctionne si le système a accès à des outils de conversion
-            
-            // Pour l'instant, retourner un tableau vide et suggérer l'utilisation de CSV
-            // Dans un environnement de production, vous pourriez utiliser :
-            // - LibreOffice en ligne de commande
-            // - Python avec pandas
-            // - Node.js avec xlsx
-            // - Ou installer PhpSpreadsheet avec les extensions requises
-            
+            // Essayer de convertir Excel en CSV temporairement puis parser comme CSV
+            $csvPath = $this->convertExcelToCsv($filePath);
+            if ($csvPath && file_exists($csvPath)) {
+                // Réutiliser la logique CSV
+                return $this->parseCsvFile($csvPath);
+            }
+
+            // Fallback: retourner vide (le frontend affichera un message approprié)
             return [];
-            
+
         } catch (\Exception $e) {
             \Log::error('Erreur lors du parsing Excel: ' . $e->getMessage());
             return [];
@@ -1627,6 +1633,59 @@ class EtudiantController extends Controller
         } catch (\Exception $e) {
             \Log::error('Erreur lors de la conversion Excel: ' . $e->getMessage());
             return null;
+        }
+    }
+
+    /**
+     * Parser un fichier CSV/TXT en tableau associatif
+     */
+    private function parseCsvFile($uploadedFile)
+    {
+        try {
+            $path = is_string($uploadedFile) ? $uploadedFile : $uploadedFile->getRealPath();
+            $handle = fopen($path, 'r');
+            if ($handle === false) {
+                return [];
+            }
+
+            // Détecter le délimiteur
+            $firstLine = fgets($handle);
+            if ($firstLine === false) {
+                fclose($handle);
+                return [];
+            }
+            $delimiter = $this->detectDelimiter($firstLine);
+            rewind($handle);
+
+            // Lire l'entête
+            $headers = fgetcsv($handle, 0, $delimiter);
+            if (!$headers) {
+                fclose($handle);
+                return [];
+            }
+            $headers = array_map('trim', $headers);
+            $headers = array_map('strtolower', $headers);
+
+            $rows = [];
+            while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
+                if (count($row) === 1 && trim($row[0]) === '') {
+                    continue; // ignorer lignes vides
+                }
+                // Ajuster la ligne à la taille des headers
+                if (count($row) < count($headers)) {
+                    $row = array_pad($row, count($headers), null);
+                } elseif (count($row) > count($headers)) {
+                    $row = array_slice($row, 0, count($headers));
+                }
+                $assoc = array_combine($headers, array_map('trim', $row));
+                $rows[] = $assoc;
+            }
+
+            fclose($handle);
+            return $rows;
+        } catch (\Exception $e) {
+            \Log::error('Erreur parseCsvFile: ' . $e->getMessage());
+            return [];
         }
     }
 
