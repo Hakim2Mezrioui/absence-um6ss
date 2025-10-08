@@ -249,17 +249,6 @@ export class SimpleStudentImportComponent implements OnInit {
     return count;
   }
 
-  getInvalidCellsDebug(): string {
-    const invalidList: string[] = [];
-    Object.keys(this.invalidCells).forEach(rowIndex => {
-      Object.keys(this.invalidCells[parseInt(rowIndex)]).forEach(header => {
-        if (this.invalidCells[parseInt(rowIndex)][header]) {
-          invalidList.push(`Ligne ${parseInt(rowIndex) + 1}, ${header}`);
-        }
-      });
-    });
-    return invalidList.join(', ') || 'Aucune';
-  }
 
   importStudents(): void {
     if (this.hasInvalidCells()) {
