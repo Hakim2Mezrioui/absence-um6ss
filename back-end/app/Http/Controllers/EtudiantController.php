@@ -1032,7 +1032,16 @@ class EtudiantController extends Controller
                 // Traitement des fichiers Excel
                 $data = $this->parseExcelFile($path);
                 if (empty($data)) {
-                    return response()->json(['message' => 'Unable to parse Excel file. Please convert to CSV format.'], 400);
+                    \Log::error('Échec du parsing Excel pour le fichier: ' . $file->getClientOriginalName());
+                    return response()->json([
+                        'message' => 'Unable to parse Excel file. Please convert to CSV format.',
+                        'debug_info' => [
+                            'file_name' => $file->getClientOriginalName(),
+                            'file_size' => $file->getSize(),
+                            'file_path' => $path,
+                            'extension' => $fileExtension
+                        ]
+                    ], 400);
                 }
                 $headers = array_keys($data[0]);
             } else {
@@ -1591,20 +1600,206 @@ class EtudiantController extends Controller
     private function parseExcelFile($filePath)
     {
         try {
-            // Essayer de convertir Excel en CSV temporairement puis parser comme CSV
-            $csvPath = $this->convertExcelToCsv($filePath);
-            if ($csvPath && file_exists($csvPath)) {
-                // Réutiliser la logique CSV
-                return $this->parseCsvFile($csvPath);
+            // Vérifier si PhpSpreadsheet est disponible
+            if (class_exists('\PhpOffice\PhpSpreadsheet\IOFactory')) {
+                return $this->parseExcelWithPhpSpreadsheet($filePath);
             }
 
-            // Fallback: retourner vide (le frontend affichera un message approprié)
-            return [];
+            // Fallback: essayer avec SimpleXLSX si disponible
+            if (class_exists('\SimpleXLSX')) {
+                return $this->parseExcelWithSimpleXLSX($filePath);
+            }
+
+            // Dernier recours: essayer la conversion LibreOffice
+            $csvPath = $this->convertExcelToCsv($filePath);
+            if ($csvPath && file_exists($csvPath)) {
+                $result = $this->parseCsvFile($csvPath);
+                // Nettoyer le fichier temporaire
+                unlink($csvPath);
+                return $result;
+            }
+
+            // Si rien ne fonctionne, essayer une approche basique avec XML
+            return $this->parseExcelBasic($filePath);
 
         } catch (\Exception $e) {
             \Log::error('Erreur lors du parsing Excel: ' . $e->getMessage());
             return [];
         }
+    }
+
+    /**
+     * Parser Excel avec PhpSpreadsheet
+     */
+    private function parseExcelWithPhpSpreadsheet($filePath)
+    {
+        try {
+            $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile($filePath);
+            $reader->setReadDataOnly(true);
+            $spreadsheet = $reader->load($filePath);
+            $worksheet = $spreadsheet->getActiveSheet();
+            
+            $data = [];
+            $highestRow = $worksheet->getHighestRow();
+            $highestColumn = $worksheet->getHighestColumn();
+            
+            // Lire toutes les données
+            for ($row = 1; $row <= $highestRow; $row++) {
+                $rowData = [];
+                for ($col = 'A'; $col <= $highestColumn; $col++) {
+                    $cellValue = $worksheet->getCell($col . $row)->getCalculatedValue();
+                    $rowData[] = $cellValue ?? '';
+                }
+                $data[] = $rowData;
+            }
+            
+            return $data;
+            
+        } catch (\Exception $e) {
+            \Log::error('Erreur PhpSpreadsheet: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Parser Excel avec SimpleXLSX
+     */
+    private function parseExcelWithSimpleXLSX($filePath)
+    {
+        try {
+            $xlsx = new \SimpleXLSX($filePath);
+            if ($xlsx->success()) {
+                return $xlsx->rows();
+            }
+            return [];
+            
+        } catch (\Exception $e) {
+            \Log::error('Erreur SimpleXLSX: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Parser Excel basique pour les fichiers .xlsx (format XML)
+     */
+    private function parseExcelBasic($filePath)
+    {
+        try {
+            // Vérifier si c'est un fichier .xlsx
+            if (!file_exists($filePath)) {
+                \Log::error('Fichier Excel non trouvé: ' . $filePath);
+                return [];
+            }
+
+            $zip = new \ZipArchive();
+            if ($zip->open($filePath) !== TRUE) {
+                \Log::error('Impossible d\'ouvrir le fichier Excel: ' . $filePath);
+                return [];
+            }
+
+            // Lire le fichier sharedStrings.xml pour les chaînes partagées
+            $sharedStrings = $zip->getFromName('xl/sharedStrings.xml');
+            $strings = [];
+            if ($sharedStrings) {
+                // Parser les chaînes partagées
+                $dom = new \DOMDocument();
+                $dom->loadXML($sharedStrings);
+                $siElements = $dom->getElementsByTagName('si');
+                foreach ($siElements as $si) {
+                    $tElements = $si->getElementsByTagName('t');
+                    if ($tElements->length > 0) {
+                        $strings[] = $tElements->item(0)->nodeValue;
+                    }
+                }
+            }
+
+            // Lire le fichier worksheet
+            $worksheet = $zip->getFromName('xl/worksheets/sheet1.xml');
+            if (!$worksheet) {
+                $zip->close();
+                \Log::error('Impossible de lire le worksheet Excel');
+                return [];
+            }
+
+            $dom = new \DOMDocument();
+            $dom->loadXML($worksheet);
+            $cells = $dom->getElementsByTagName('c');
+            
+            $rows = [];
+            $maxRow = 0;
+            $maxCol = 0;
+            
+            foreach ($cells as $cell) {
+                $r = $cell->getAttribute('r');
+                if (preg_match('/^([A-Z]+)(\d+)$/', $r, $matches)) {
+                    $col = $matches[1];
+                    $row = (int)$matches[2];
+                    
+                    $vElement = $cell->getElementsByTagName('v');
+                    if ($vElement->length > 0) {
+                        $value = $vElement->item(0)->nodeValue;
+                        
+                        // Si c'est une référence à sharedStrings
+                        if ($cell->getAttribute('t') === 's' && isset($strings[$value])) {
+                            $value = $strings[$value];
+                        }
+                        
+                        if (!isset($rows[$row])) {
+                            $rows[$row] = [];
+                        }
+                        $rows[$row][$col] = $value;
+                        $maxRow = max($maxRow, $row);
+                        $maxCol = max($maxCol, $this->columnToNumber($col));
+                    }
+                }
+            }
+            
+            $zip->close();
+            
+            // Convertir en tableau 2D
+            $data = [];
+            for ($row = 1; $row <= $maxRow; $row++) {
+                $rowData = [];
+                for ($colNum = 1; $colNum <= $maxCol; $colNum++) {
+                    $col = $this->numberToColumn($colNum);
+                    $rowData[] = $rows[$row][$col] ?? '';
+                }
+                $data[] = $rowData;
+            }
+            
+            return $data;
+            
+        } catch (\Exception $e) {
+            \Log::error('Erreur parsing Excel basique: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Convertir une colonne Excel en numéro
+     */
+    private function columnToNumber($column)
+    {
+        $number = 0;
+        $length = strlen($column);
+        for ($i = 0; $i < $length; $i++) {
+            $number = $number * 26 + (ord($column[$i]) - ord('A') + 1);
+        }
+        return $number;
+    }
+
+    /**
+     * Convertir un numéro en colonne Excel
+     */
+    private function numberToColumn($number)
+    {
+        $column = '';
+        while ($number > 0) {
+            $remainder = ($number - 1) % 26;
+            $column = chr(ord('A') + $remainder) . $column;
+            $number = intval(($number - 1) / 26);
+        }
+        return $column;
     }
 
     /**

@@ -28,6 +28,18 @@
             <span class="material-icons text-base">refresh</span>
             Réinitialiser
           </button>
+          <button *ngIf="tableRows.length"
+                  type="button"
+                  (click)="importStudents()"
+                  [disabled]="isImporting || hasInvalidCells()"
+                  class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  [class.bg-green-600]="!hasInvalidCells()"
+                  [class.hover:bg-green-700]="!hasInvalidCells()"
+                  [class.bg-gray-400]="hasInvalidCells()">
+            <span class="material-icons text-base" *ngIf="!isImporting">cloud_upload</span>
+            <span class="material-icons text-base animate-spin" *ngIf="isImporting">refresh</span>
+            {{ isImporting ? 'Importation...' : (hasInvalidCells() ? 'Corrigez les erreurs d\'abord' : 'Importer les étudiants') }}
+          </button>
         </div>
       </div>
 
@@ -51,45 +63,131 @@
         {{ referenceError }}
       </div>
 
+      <!-- Information sur la validation -->
+      <div *ngIf="tableRows.length && filterOptions" class="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+        <div class="flex items-start gap-2">
+          <span class="material-icons text-base mt-0.5">info</span>
+          <div>
+            <p class="font-medium mb-1">Validation automatique activée</p>
+            <p>Les colonnes marquées avec ⚡ sont validées automatiquement. Les valeurs incorrectes seront surlignées en rouge avec des suggestions disponibles.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- État de validation -->
+      <div *ngIf="tableRows.length" class="rounded-lg border px-4 py-3 text-sm"
+           [class.border-red-200]="hasInvalidCells()"
+           [class.bg-red-50]="hasInvalidCells()"
+           [class.text-red-700]="hasInvalidCells()"
+           [class.border-green-200]="!hasInvalidCells()"
+           [class.bg-green-50]="!hasInvalidCells()"
+           [class.text-green-700]="!hasInvalidCells()">
+        <div class="flex items-center gap-2">
+          <span class="material-icons text-base" *ngIf="hasInvalidCells()">warning</span>
+          <span class="material-icons text-base" *ngIf="!hasInvalidCells()">check_circle</span>
+          <div>
+            <p class="font-medium" *ngIf="hasInvalidCells()">
+              {{ getInvalidCellsCount() }} erreur(s) détectée(s) - Corrigez les erreurs avant l'importation
+            </p>
+            <p class="font-medium" *ngIf="!hasInvalidCells()">
+              ✅ Toutes les données sont valides - Prêt pour l'importation
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Debug temporaire -->
+      <div *ngIf="tableRows.length" class="rounded-lg border border-gray-300 bg-gray-100 px-4 py-3 text-xs text-gray-600">
+        <p><strong>Debug:</strong> hasInvalidCells() = {{ hasInvalidCells() }}, Invalid count = {{ getInvalidCellsCount() }}</p>
+        <p><strong>Invalid cells:</strong> {{ getInvalidCellsDebug() }}</p>
+      </div>
+
+      <!-- Résultat de l'importation -->
+      <div *ngIf="importResult" class="rounded-lg border px-4 py-3 text-sm"
+           [class.border-green-200]="importResult.success"
+           [class.bg-green-50]="importResult.success"
+           [class.text-green-700]="importResult.success"
+           [class.border-red-200]="!importResult.success"
+           [class.bg-red-50]="!importResult.success"
+           [class.text-red-700]="!importResult.success">
+        <div class="flex items-start gap-2">
+          <span class="material-icons text-base" *ngIf="importResult.success">check_circle</span>
+          <span class="material-icons text-base" *ngIf="!importResult.success">error</span>
+          <div>
+            <p class="font-medium mb-1">{{ importResult.message }}</p>
+            <div *ngIf="importResult.details" class="text-xs mt-2">
+              <p *ngIf="importResult.details.total">Total: {{ importResult.details.total }}</p>
+              <p *ngIf="importResult.details.created">Créés: {{ importResult.details.created }}</p>
+              <p *ngIf="importResult.details.updated">Mis à jour: {{ importResult.details.updated }}</p>
+              <p *ngIf="importResult.details.errors">Erreurs: {{ importResult.details.errors }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div *ngIf="tableRows.length" class="overflow-x-auto border border-gray-200 rounded-xl bg-white">
         <table class="min-w-full divide-y divide-gray-200 text-sm">
           <thead class="bg-gray-100">
             <tr>
               <th class="px-4 py-3 text-left font-medium text-gray-600">#</th>
               <th *ngFor="let header of tableHeaders; trackBy: trackByHeader"
-                  class="px-4 py-3 text-left font-medium text-gray-600">
-                {{ header }}
+                  class="px-4 py-3 text-left font-medium text-gray-600 min-w-32">
+                <div class="flex items-center gap-2">
+                  <span>{{ getHeaderDisplayName(header) }}</span>
+                  <span *ngIf="relationHeaders.includes(header)" 
+                        class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full"
+                        title="Cette colonne nécessite une validation">
+                    ⚡
+                  </span>
+                </div>
               </th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200">
             <tr *ngFor="let row of tableRows; index as i; trackBy: trackByRow" class="hover:bg-gray-50">
               <td class="px-4 py-3 text-gray-500">{{ i + 1 }}</td>
-              <td *ngFor="let header of tableHeaders; trackBy: trackByHeader" class="px-4 py-3 align-top">
+              <td *ngFor="let header of tableHeaders; trackBy: trackByHeader" class="px-4 py-3 align-top min-w-32">
                 <div class="flex flex-col gap-2">
                   <input [(ngModel)]="tableRows[i][header]"
                          (ngModelChange)="updateCell(i, header, $event)"
-                         class="w-full rounded-md border px-2 py-1 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                         class="w-full rounded-md border px-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 min-w-40"
                          [class.border-red-400]="isCellInvalid(i, header)"
                          [class.border-gray-300]="!isCellInvalid(i, header)"
+                         [class.bg-red-50]="isCellInvalid(i, header)"
+                         [placeholder]="getPlaceholder(header)"
+                         [title]="tableRows[i][header] || ''"
                          type="text" />
 
+                  <!-- Aperçu plein texte pour longue valeur -->
+                  <div *ngIf="showFullValue(tableRows[i][header])"
+                       class="text-[11px] text-gray-600 bg-gray-50 border border-gray-200 rounded px-2 py-1 break-words">
+                    {{ tableRows[i][header] }}
+                  </div>
+
+                  <!-- Suggestions pour les cellules invalides -->
                   <div *ngIf="isCellInvalid(i, header) && getSuggestions(i, header).length"
                        class="rounded-md border border-blue-200 bg-blue-50 text-xs text-blue-700">
-                    <div class="px-2 py-1 font-medium">Suggestions</div>
+                    <div class="px-3 py-2 font-medium border-b border-blue-200">💡 Suggestions disponibles</div>
                     <div class="divide-y divide-blue-100">
                       <button type="button"
                               *ngFor="let suggestion of getSuggestions(i, header)"
                               (click)="applySuggestion(i, header, suggestion)"
-                              class="w-full text-left px-2 py-1 hover:bg-blue-100 focus:outline-none">
+                              class="w-full text-left px-3 py-2 hover:bg-blue-100 focus:outline-none focus:bg-blue-100 transition-colors">
                         {{ suggestion.label }}
                       </button>
                     </div>
                   </div>
 
+                  <!-- Message d'erreur pour les cellules sans suggestions -->
                   <div *ngIf="isCellInvalid(i, header) && !getSuggestions(i, header).length"
-                       class="text-xs text-red-500">
-                    Valeur inconnue, veuillez corriger manuellement.
+                       class="text-xs text-red-600 bg-red-50 px-2 py-1 rounded border border-red-200">
+                    ⚠️ Valeur inconnue, veuillez corriger manuellement.
+                  </div>
+
+                  <!-- Indicateur de validation pour les cellules valides -->
+                  <div *ngIf="!isCellInvalid(i, header) && relationHeaders.includes(header) && tableRows[i][header]?.trim()"
+                       class="text-xs text-green-600 bg-green-50 px-2 py-1 rounded border border-green-200">
+                    ✅ Valeur valide
                   </div>
                 </div>
               </td>

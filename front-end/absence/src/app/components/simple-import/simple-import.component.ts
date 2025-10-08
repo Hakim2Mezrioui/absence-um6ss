@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { read, utils, WorkBook, writeFile } from 'xlsx';
+import { read, utils, WorkBook, writeFile, write } from 'xlsx';
 import { EtudiantsService, FilterOptions } from '../../services/etudiants.service';
 
 interface StudentRow {
@@ -17,6 +17,17 @@ interface ReferenceEntry {
   label: string;
   normalized: string;
   id?: number;
+}
+
+interface ImportResult {
+  success: boolean;
+  message: string;
+  details?: {
+    total?: number;
+    created?: number;
+    updated?: number;
+    errors?: number;
+  };
 }
 
 @Component({
@@ -51,9 +62,11 @@ export class SimpleStudentImportComponent implements OnInit {
   errorMessage = '';
   successMessage = '';
   isProcessing = false;
+  isImporting = false;
 
   referenceError = '';
   filterOptions: FilterOptions | null = null;
+  importResult: ImportResult | null = null;
 
   tableHeaders: string[] = [];
   tableRows: StudentRow[] = [];
@@ -166,6 +179,7 @@ export class SimpleStudentImportComponent implements OnInit {
     this.tableRows = [];
     this.errorMessage = '';
     this.successMessage = '';
+    this.importResult = null;
     this.suggestionsByCell = {};
     this.invalidCells = {};
   }
@@ -181,6 +195,150 @@ export class SimpleStudentImportComponent implements OnInit {
   applySuggestion(rowIndex: number, header: string, suggestion: Suggestion): void {
     const value = suggestion.label;
     this.updateCell(rowIndex, header, value);
+  }
+
+  getPlaceholder(header: string): string {
+    const placeholders: Record<string, string> = {
+      'matricule': 'Ex: ETU2025001',
+      'first_name': 'Ex: Imane',
+      'last_name': 'Ex: Benali',
+      'email': 'Ex: imane.benali@email.com',
+      'promotion_name': 'Ex: Promotion 1',
+      'etablissement_name': 'Ex: Université A',
+      'ville_name': 'Ex: Casablanca',
+      'group_title': 'Ex: Groupe A',
+      'option_name': 'Ex: Option 1'
+    };
+    return placeholders[header] || 'Saisir une valeur';
+  }
+
+  getHeaderDisplayName(header: string): string {
+    const displayNames: Record<string, string> = {
+      'matricule': 'Matricule',
+      'first_name': 'Prénom',
+      'last_name': 'Nom',
+      'email': 'Email',
+      'promotion_name': 'Promotion',
+      'etablissement_name': 'Établissement',
+      'ville_name': 'Ville',
+      'group_title': 'Groupe',
+      'option_name': 'Option'
+    };
+    return displayNames[header] || header;
+  }
+
+  showFullValue(value: string | undefined): boolean {
+    const text = (value ?? '').trim();
+    // Afficher l'aperçu si la valeur dépasse 12 caractères
+    return text.length > 12;
+  }
+
+  hasInvalidCells(): boolean {
+    return Object.keys(this.invalidCells).some(rowIndex => 
+      Object.values(this.invalidCells[parseInt(rowIndex)]).some(isInvalid => isInvalid)
+    );
+  }
+
+  getInvalidCellsCount(): number {
+    let count = 0;
+    Object.keys(this.invalidCells).forEach(rowIndex => {
+      Object.values(this.invalidCells[parseInt(rowIndex)]).forEach(isInvalid => {
+        if (isInvalid) count++;
+      });
+    });
+    return count;
+  }
+
+  getInvalidCellsDebug(): string {
+    const invalidList: string[] = [];
+    Object.keys(this.invalidCells).forEach(rowIndex => {
+      Object.keys(this.invalidCells[parseInt(rowIndex)]).forEach(header => {
+        if (this.invalidCells[parseInt(rowIndex)][header]) {
+          invalidList.push(`Ligne ${parseInt(rowIndex) + 1}, ${header}`);
+        }
+      });
+    });
+    return invalidList.join(', ') || 'Aucune';
+  }
+
+  importStudents(): void {
+    if (this.hasInvalidCells()) {
+      this.errorMessage = 'Veuillez corriger toutes les erreurs avant de procéder à l\'importation.';
+      return;
+    }
+
+    this.isImporting = true;
+    this.importResult = null;
+    this.errorMessage = '';
+
+    // Préparer les données pour l'importation
+    const studentsData = this.tableRows.map(row => {
+      const student: any = {
+        matricule: row['matricule'] || '',
+        first_name: row['first_name'] || '',
+        last_name: row['last_name'] || '',
+        email: row['email'] || '',
+        promotion_name: row['promotion_name'] || '',
+        etablissement_name: row['etablissement_name'] || '',
+        ville_name: row['ville_name'] || '',
+        group_title: row['group_title'] || '',
+        option_name: row['option_name'] || ''
+      };
+
+      // Convertir les noms en IDs si possible
+      if (this.filterOptions) {
+        const promotion = this.filterOptions.promotions?.find(p => p.name === student.promotion_name);
+        const etablissement = this.filterOptions.etablissements?.find(e => e.name === student.etablissement_name);
+        const ville = this.filterOptions.villes?.find(v => v.name === student.ville_name);
+        const group = this.filterOptions.groups?.find(g => g.title === student.group_title);
+        const option = this.filterOptions.options?.find(o => o.name === student.option_name);
+
+        if (promotion) student.promotion_id = promotion.id;
+        if (etablissement) student.etablissement_id = etablissement.id;
+        if (ville) student.ville_id = ville.id;
+        if (group) student.group_id = group.id;
+        if (option) student.option_id = option.id;
+      }
+
+      return student;
+    });
+
+    // Créer un fichier Excel temporaire pour l'importation
+    const worksheet = utils.json_to_sheet(studentsData);
+    const workbook = utils.book_new();
+    utils.book_append_sheet(workbook, worksheet, 'Etudiants');
+    
+    const excelBuffer = write(workbook, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    
+    const formData = new FormData();
+    formData.append('file', blob, 'students_import.xlsx');
+
+    this.etudiantsService.importEtudiants(formData).subscribe({
+      next: (response) => {
+        this.isImporting = false;
+        this.importResult = {
+          success: true,
+          message: response.message || 'Importation réussie !',
+          details: {
+            total: response.total,
+            created: response.created,
+            updated: response.updated,
+            errors: response.errors
+          }
+        };
+        this.successMessage = 'Importation terminée avec succès.';
+      },
+      error: (error) => {
+        this.isImporting = false;
+        console.error('Erreur lors de l\'importation:', error);
+        this.importResult = {
+          success: false,
+          message: error.error?.message || 'Erreur lors de l\'importation des étudiants.'
+        };
+        this.errorMessage = 'Erreur lors de l\'importation.';
+      }
+    });
   }
 
   private loadReferenceData(): void {
