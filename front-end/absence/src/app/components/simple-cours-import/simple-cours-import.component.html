@@ -1,0 +1,271 @@
+<div class="min-h-screen bg-slate-50 py-8">
+  <div class="max-w-7xl mx-auto px-6 space-y-8">
+    <!-- Header Section -->
+    <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-8">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+        <div class="space-y-2">
+          <h1 class="text-3xl font-semibold text-slate-900">Importation des cours</h1>
+          <p class="text-slate-600 leading-relaxed">Importez vos données de cours via un fichier Excel. Le système valide automatiquement les informations et propose des corrections.</p>
+        </div>
+        <div class="flex flex-wrap gap-3">
+          <button type="button"
+                  (click)="downloadTemplate()"
+                  class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-slate-300 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-400 transition-colors">
+            <span class="material-icons text-lg">download</span>
+            Modèle Excel
+          </button>
+          <label class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-medium cursor-pointer hover:bg-blue-700 transition-colors">
+            <span class="material-icons text-lg">upload_file</span>
+            Importer fichier
+            <input type="file"
+                   accept=".xlsx,.xls"
+                   class="hidden"
+                   (change)="onFileSelected($event)" />
+          </label>
+          <button *ngIf="tableRows.length"
+                  type="button"
+                  (click)="clearTable()"
+                  class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-slate-300 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-400 transition-colors">
+            <span class="material-icons text-lg">refresh</span>
+            Réinitialiser
+          </button>
+          <button *ngIf="tableRows.length"
+                  type="button"
+                  (click)="importCours()"
+                  [disabled]="isImporting || hasInvalidCells()"
+                  class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  [class.bg-blue-600]="!hasInvalidCells()"
+                  [class.hover:bg-blue-700]="!hasInvalidCells()"
+                  [class.bg-slate-400]="hasInvalidCells()">
+            <span class="material-icons text-lg" *ngIf="!isImporting">cloud_upload</span>
+            <span class="material-icons text-lg animate-spin" *ngIf="isImporting">refresh</span>
+            {{ isImporting ? 'Importation...' : (hasInvalidCells() ? 'Corrigez les erreurs' : 'Importer') }}
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="fileName" class="mt-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
+        <div class="flex items-center gap-2 text-sm text-slate-600">
+          <span class="material-icons text-lg">description</span>
+          <span class="font-medium">{{ fileName }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Messages Section -->
+    <div class="space-y-4">
+      <div *ngIf="errorMessage" class="bg-white border border-slate-200 rounded-lg p-4">
+        <div class="flex items-start gap-3">
+          <span class="material-icons text-slate-500 mt-0.5">error_outline</span>
+          <div class="text-sm text-slate-700">
+            <p class="font-medium">Erreur</p>
+            <p>{{ errorMessage }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="successMessage" class="bg-white border border-slate-200 rounded-lg p-4">
+        <div class="flex items-start gap-3">
+          <span class="material-icons text-slate-500 mt-0.5">check_circle_outline</span>
+          <div class="text-sm text-slate-700">
+            <p class="font-medium">Succès</p>
+            <p>{{ successMessage }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="isProcessing" class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div class="flex items-center gap-3">
+          <span class="material-icons text-blue-600 animate-spin">refresh</span>
+          <div class="text-sm text-blue-700">
+            <p class="font-medium">Traitement en cours...</p>
+            <p>Lecture du fichier Excel</p>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="referenceError" class="bg-white border border-slate-200 rounded-lg p-4">
+        <div class="flex items-start gap-3">
+          <span class="material-icons text-slate-500 mt-0.5">warning_amber</span>
+          <div class="text-sm text-slate-700">
+            <p class="font-medium">Avertissement</p>
+            <p>{{ referenceError }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- État de validation -->
+      <div *ngIf="tableRows.length" class="rounded-lg p-4 border"
+           [class.bg-white]="hasInvalidCells()"
+           [class.border-slate-200]="hasInvalidCells()"
+           [class.bg-blue-50]="!hasInvalidCells()"
+           [class.border-blue-200]="!hasInvalidCells()">
+        <div class="flex items-center gap-3">
+          <span class="material-icons text-lg" 
+                [class.text-slate-500]="hasInvalidCells()"
+                [class.text-blue-600]="!hasInvalidCells()">
+            {{ hasInvalidCells() ? 'warning_amber' : 'check_circle' }}
+          </span>
+          <div class="text-sm">
+            <p class="font-medium" 
+               [class.text-slate-900]="hasInvalidCells()"
+               [class.text-blue-900]="!hasInvalidCells()"
+               *ngIf="hasInvalidCells()">
+              {{ getInvalidCellsCount() }} erreur(s) détectée(s)
+            </p>
+            <p class="font-medium" 
+               [class.text-slate-900]="hasInvalidCells()"
+               [class.text-blue-900]="!hasInvalidCells()"
+               *ngIf="!hasInvalidCells()">
+              Données validées avec succès
+            </p>
+            <p class="mt-1"
+               [class.text-slate-600]="hasInvalidCells()"
+               [class.text-blue-700]="!hasInvalidCells()">
+              {{ hasInvalidCells() ? 'Corrigez les erreurs avant l\'importation' : 'Prêt pour l\'importation' }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Résultat de l'importation -->
+      <div *ngIf="importResult" class="bg-white border border-slate-200 rounded-lg p-4">
+        <div class="flex items-start gap-3">
+          <span class="material-icons text-lg" 
+                [class.text-slate-500]="!importResult.success"
+                [class.text-slate-600]="importResult.success">
+            {{ importResult.success ? 'check_circle' : 'error_outline' }}
+          </span>
+          <div class="text-sm">
+            <p class="font-medium text-slate-900 mb-2">{{ importResult.message }}</p>
+            <div *ngIf="importResult.details" class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
+              <div *ngIf="importResult.details.total" class="text-center p-2 bg-slate-50 rounded">
+                <p class="text-xs text-slate-500">Total</p>
+                <p class="font-semibold text-slate-900">{{ importResult.details.total }}</p>
+              </div>
+              <div *ngIf="importResult.details.created" class="text-center p-2 bg-slate-50 rounded">
+                <p class="text-xs text-slate-500">Créés</p>
+                <p class="font-semibold text-slate-900">{{ importResult.details.created }}</p>
+              </div>
+              <div *ngIf="importResult.details.updated" class="text-center p-2 bg-slate-50 rounded">
+                <p class="text-xs text-slate-500">Mis à jour</p>
+                <p class="font-semibold text-slate-900">{{ importResult.details.updated }}</p>
+              </div>
+              <div *ngIf="importResult.details.errors" class="text-center p-2 bg-slate-50 rounded">
+                <p class="text-xs text-slate-500">Erreurs</p>
+                <p class="font-semibold text-slate-900">{{ importResult.details.errors }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Data Table Section -->
+    <div *ngIf="tableRows.length" class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-200 bg-slate-50">
+        <h2 class="text-lg font-semibold text-slate-900">Données importées</h2>
+        <p class="text-sm text-slate-600 mt-1">{{ tableRows.length }} ligne(s) de données</p>
+      </div>
+      
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-200">
+          <thead class="bg-slate-50">
+            <tr>
+              <th class="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">#</th>
+              <th *ngFor="let header of tableHeaders; trackBy: trackByHeader"
+                  class="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider min-w-40">
+                <div class="flex items-center gap-2">
+                  <span>{{ getHeaderDisplayName(header) }}</span>
+                  <span *ngIf="relationHeaders.includes(header)" 
+                        class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700"
+                        title="Validation automatique">
+                    <span class="material-icons text-sm mr-1">verified</span>
+                    Auto
+                  </span>
+                </div>
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-slate-200">
+            <tr *ngFor="let row of tableRows; index as i; trackBy: trackByRow" class="hover:bg-slate-50 transition-colors">
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-500">{{ i + 1 }}</td>
+              <td *ngFor="let header of tableHeaders; trackBy: trackByHeader" class="px-6 py-4 align-top min-w-40">
+                <div class="space-y-2">
+                  <input [(ngModel)]="tableRows[i][header]"
+                         (ngModelChange)="updateCell(i, header, $event)"
+                         class="w-full rounded-lg border px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-colors"
+                         [class.border-slate-300]="!isCellInvalid(i, header)"
+                         [class.border-slate-400]="isCellInvalid(i, header)"
+                         [class.bg-slate-50]="isCellInvalid(i, header)"
+                         [placeholder]="getPlaceholder(header)"
+                         [title]="tableRows[i][header] || ''"
+                         type="text" />
+
+                  <!-- Aperçu plein texte pour longue valeur -->
+                  <div *ngIf="showFullValue(tableRows[i][header])"
+                       class="text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 break-words">
+                    {{ tableRows[i][header] }}
+                  </div>
+
+                  <!-- Suggestions pour les cellules invalides -->
+                  <div *ngIf="isCellInvalid(i, header) && getSuggestions(i, header).length"
+                       class="rounded-lg border border-blue-200 bg-blue-50 text-xs">
+                    <div class="px-3 py-2 font-medium text-blue-700 border-b border-blue-200 flex items-center gap-2">
+                      <span class="material-icons text-sm">lightbulb_outline</span>
+                      Suggestions
+                    </div>
+                    <div class="divide-y divide-blue-200">
+                      <button type="button"
+                              *ngFor="let suggestion of getSuggestions(i, header)"
+                              (click)="applySuggestion(i, header, suggestion)"
+                              class="w-full text-left px-3 py-2 hover:bg-blue-100 focus:outline-none focus:bg-blue-100 transition-colors text-blue-700">
+                        {{ suggestion.label }}
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Message d'erreur pour les cellules sans suggestions -->
+                  <div *ngIf="isCellInvalid(i, header) && !getSuggestions(i, header).length"
+                       class="text-xs text-slate-600 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 flex items-center gap-2">
+                    <span class="material-icons text-sm">warning_amber</span>
+                    Valeur inconnue, corrigez manuellement
+                  </div>
+
+                  <!-- Indicateur de validation pour les cellules valides -->
+                  <div *ngIf="!isCellInvalid(i, header) && relationHeaders.includes(header) && tableRows[i][header]?.trim()"
+                       class="text-xs text-blue-600 bg-blue-50 px-3 py-2 rounded-lg border border-blue-200 flex items-center gap-2">
+                    <span class="material-icons text-sm">check_circle</span>
+                    Validé
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!tableRows.length" class="bg-white border border-slate-200 rounded-xl shadow-sm">
+      <div class="px-8 py-16 text-center">
+        <div class="flex flex-col items-center gap-4">
+          <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+            <span class="material-icons text-2xl text-blue-500">upload_file</span>
+          </div>
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-slate-900">Aucune donnée importée</h3>
+            <p class="text-slate-600 max-w-md">
+              Sélectionnez un fichier Excel pour commencer l'importation. 
+              Le système validera automatiquement vos données et proposera des corrections.
+            </p>
+          </div>
+          <div *ngIf="!filterOptions" class="flex items-center gap-2 text-sm text-slate-500">
+            <span class="material-icons text-sm animate-spin">refresh</span>
+            Chargement des données de référence...
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

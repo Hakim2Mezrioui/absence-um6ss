@@ -8,13 +8,15 @@
           <p class="mt-2 text-gray-600">Consultez et gérez tous les cours de votre établissement</p>
         </div>
         <div class="flex gap-3">
-          <button 
-            (click)="importCours()"
-            class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center gap-2"
-          >
-            <span class="material-icons">upload_file</span>
-            Importer des cours
-          </button>
+          <div>
+            <button 
+              class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center gap-2"
+              (click)="importCoursSimple()"
+            >
+              <span class="material-icons">upload_file</span>
+              Importer des cours
+            </button>
+          </div>
           <button 
             (click)="addCours()"
             class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center gap-2"

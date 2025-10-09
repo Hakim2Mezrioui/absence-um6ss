@@ -113,16 +113,18 @@ export class ExamensComponent implements OnInit, OnDestroy {
     if (examen.promotion_id) queryParams.promotion_id = examen.promotion_id;
     if (examen.etablissement_id) queryParams.etablissement_id = examen.etablissement_id;
     if (examen.option?.id) queryParams.option_id = examen.option.id;
+    if (examen.group_id) queryParams.group_id = examen.group_id;
+    if (examen.ville_id) queryParams.ville_id = examen.ville_id;
     
     console.log('📋 Paramètres de navigation:', queryParams);
-    console.log('🔄 Navigation vers /dashboard/attendance');
+    console.log('🔄 Navigation vers /attendance');
     
     // Naviguer vers la page d'attendance avec les paramètres
-    this.router.navigate(['/dashboard/attendance'], { queryParams });
+    this.router.navigate(['/attendance'], { queryParams });
   }
 
   openImportModal(): void {
-    this.router.navigate(['/dashboard/import-examens']);
+    this.router.navigate(['/import-examens-simple']);
   }
 
   // Charger des données de test pour vérifier la navigation

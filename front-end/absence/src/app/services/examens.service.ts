@@ -130,4 +130,11 @@ export class ExamensService {
   getFilterOptions(): Observable<any> {
     return this.http.get(`${this.apiUrl}/filter-options`);
   }
+
+  /**
+   * Importer des examens (format Excel généré par l'import simple)
+   */
+  importExamens(formData: FormData): Observable<any> {
+    return this.http.post(`${this.apiUrl}/import-examens-modern`, formData);
+  }
 }

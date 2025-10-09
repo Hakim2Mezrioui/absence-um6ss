@@ -15,6 +15,7 @@ export class CoursComponent implements OnInit {
   cours: Cours[] = [];
   loading = false;
   error = '';
+  showImportMenu = false;
   currentPage = 1;
   totalPages = 1;
   totalItems = 0;
@@ -162,7 +163,11 @@ export class CoursComponent implements OnInit {
   }
 
   importCours() {
-    this.router.navigate(['/dashboard/import-cours']);
+    this.router.navigate(['/import-cours']);
+  }
+
+  importCoursSimple() {
+    this.router.navigate(['/import-cours-simple']);
   }
 
   editCours(cours: Cours) {

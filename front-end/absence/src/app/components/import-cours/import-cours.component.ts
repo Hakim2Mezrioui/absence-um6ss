@@ -116,6 +116,7 @@ export class ImportCoursComponent implements OnInit, OnDestroy {
     }
     
     // Définir l'année actuelle comme valeur par défaut
+    
     const currentAcademicYear = `${currentYear}-${currentYear + 1}`;
     this.importForm.patchValue({
       annee_universitaire: currentAcademicYear

@@ -1,0 +1,604 @@
+<div class="min-h-screen bg-gray-50" style="margin: 0; padding: 0;">
+  <!-- Header Optimisé -->
+  <header class="relative bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white shadow-2xl overflow-hidden header-filters-container">
+    <!-- Background Pattern -->
+    <div class="absolute inset-0 bg-black/10">
+      <div class="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-transparent to-blue-600/20"></div>
+      <div class="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-48 translate-x-48"></div>
+      <div class="absolute bottom-0 left-0 w-80 h-80 bg-white/5 rounded-full translate-y-40 -translate-x-40"></div>
+    </div>
+    
+    <div class="relative max-w-7xl mx-auto px-4 py-8">
+      <div class="flex flex-col lg:flex-row justify-between items-center gap-8">
+        <!-- Titre Principal -->
+        <div class="text-center lg:text-left flex-1">
+          <div class="flex items-center justify-center lg:justify-start gap-4 mb-3">
+            <div class="relative">
+              <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg">
+                <span class="material-icons text-white text-3xl">groups</span>
+              </div>
+              <div class="absolute -top-1 -right-1 w-6 h-6 bg-green-400 rounded-full flex items-center justify-center">
+                <span class="material-icons text-white text-sm">check</span>
+              </div>
+            </div>
+            <div>
+              <h1 class="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
+                Gestion des Groupes
+              </h1>
+              <div class="flex items-center gap-2 mt-2">
+                <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                <p class="text-lg text-blue-100 font-medium">Système de gestion des groupes d'étudiants</p>
+              </div>
+            </div>
+          </div>
+          <p class="text-xl text-blue-100/90 max-w-2xl leading-relaxed">
+            Gérez efficacement vos groupes d'étudiants, organisez les classes et optimisez la répartition académique
+          </p>
+        </div>
+
+        <!-- Actions Principales -->
+        <div class="flex flex-col sm:flex-row items-center gap-4">
+          <!-- Statistiques Rapides -->
+          <div class="hidden lg:flex items-center gap-6 mr-6">
+            <div class="text-center">
+              <div class="text-2xl font-bold text-white">{{ totalGroups }}</div>
+              <div class="text-sm text-blue-200">Groupes</div>
+            </div>
+            <div class="w-px h-12 bg-white/30"></div>
+            <div class="text-center">
+              <div class="text-2xl font-bold text-white">{{ uniqueEtablissements }}</div>
+              <div class="text-sm text-blue-200">Établissements</div>
+            </div>
+            <div class="w-px h-12 bg-white/30"></div>
+            <div class="text-center">
+              <div class="text-2xl font-bold text-white">{{ groups.length }}</div>
+              <div class="text-sm text-blue-200">Affichés</div>
+            </div>
+          </div>
+
+          <!-- Boutons d'Action -->
+          <div class="flex flex-col sm:flex-row gap-3">
+            <button class="group relative bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 text-white px-6 py-3 rounded-xl transition-all duration-300 flex items-center gap-3 disabled:opacity-50 hover:scale-105 hover:shadow-lg"
+                    (click)="openAddDialog()"
+                    [disabled]="loading">
+              <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                <span class="material-icons text-sm">add</span>
+              </div>
+              <span class="font-semibold">Nouveau Groupe</span>
+            </button>
+            
+            <button class="group relative bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 text-white px-6 py-3 rounded-xl transition-all duration-300 flex items-center gap-3 disabled:opacity-50 hover:scale-105 hover:shadow-lg"
+                    (click)="loadGroups()"
+                    [disabled]="loading">
+              <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                <span class="material-icons text-sm" [class.animate-spin]="loading">refresh</span>
+              </div>
+              <span class="font-semibold">Actualiser</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barre de Progression (si chargement) -->
+      <div class="mt-6" *ngIf="loading">
+        <div class="w-full bg-white/20 rounded-full h-2 overflow-hidden">
+          <div class="h-full bg-gradient-to-r from-blue-400 to-blue-500 rounded-full animate-pulse"></div>
+        </div>
+        <p class="text-center text-blue-200 mt-2 text-sm">Chargement en cours...</p>
+      </div>
+    </div>
+  </header>  <!-- Filtres -->
+  <div class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm filters-section" style="margin-top: 0;">
+    <div class="max-w-7xl mx-auto px-4 py-4 filters-container">
+      <div class="flex flex-col lg:flex-row gap-4 lg:gap-6 items-end">
+        <div class="flex-1">
+          <label for="search" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+            <span class="material-icons text-blue-600 text-lg">search</span>
+            Recherche
+          </label>
+          <div class="relative">
+            <input type="text" 
+                   id="search"
+                   [(ngModel)]="searchValue"
+                   (input)="onSearchChange($event)"
+                   placeholder="Rechercher un groupe..."
+                   class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 pr-10"
+                   [disabled]="loading">
+            <button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    *ngIf="searchValue"
+                    (click)="clearSearch()"
+                    title="Effacer la recherche">
+              <span class="material-icons text-sm">close</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="flex-1">
+          <label for="etablissement-filter" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+            <span class="material-icons text-blue-600 text-lg">business</span>
+            Établissement
+          </label>
+          <select id="etablissement-filter"
+                  [(ngModel)]="selectedEtablissement"
+                  (change)="applyFilters()"
+                  class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+            <option value="">Tous les établissements</option>
+            <option *ngFor="let etablissement of etablissements" [value]="etablissement.id">
+              {{ etablissement.name }} ({{ getGroupsCountByEtablissement(etablissement.id) }})
+            </option>
+          </select>
+        </div>
+
+        <div class="flex-1">
+          <label for="promotion-filter" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+            <span class="material-icons text-green-600 text-lg">school</span>
+            Promotion
+          </label>
+          <select id="promotion-filter"
+                  [(ngModel)]="selectedPromotion"
+                  (change)="applyFilters()"
+                  class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+            <option value="">Toutes les promotions</option>
+            <option *ngFor="let promotion of promotions" [value]="promotion.id">
+              {{ promotion.name }} ({{ getGroupsCountByPromotion(promotion.id) }})
+            </option>
+          </select>
+        </div>
+
+        <div class="flex-1">
+          <label for="ville-filter" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+            <span class="material-icons text-orange-600 text-lg">location_on</span>
+            Ville
+          </label>
+          <select id="ville-filter"
+                  [(ngModel)]="selectedVille"
+                  (change)="applyFilters()"
+                  class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+            <option value="">Toutes les villes</option>
+            <option *ngFor="let ville of villes" [value]="ville.id">
+              {{ ville.name }} ({{ getGroupsCountByVille(ville.id) }})
+            </option>
+          </select>
+        </div>
+
+        <button class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition-all duration-300 flex items-center gap-2"
+                (click)="clearFilters()"
+                [disabled]="!hasActiveFilters() || loading">
+          <span class="material-icons">restart_alt</span>
+          Réinitialiser
+        </button>
+      </div>
+
+      <!-- Indicateur de filtres actifs -->
+      <div class="mt-4" *ngIf="hasActiveFilters()">
+        <div class="flex items-center gap-3 text-sm text-gray-600">
+          <span class="material-icons text-blue-600">filter_list</span>
+          <span class="font-medium">Filtres actifs :</span>
+          <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold"
+                *ngIf="searchValue">Recherche: "{{ searchValue }}"</span>
+          <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold"
+                *ngIf="selectedEtablissement">{{ getSelectedEtablissementName() }}</span>
+          <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold"
+                *ngIf="selectedPromotion">{{ getSelectedPromotionName() }}</span>
+          <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold"
+                *ngIf="selectedVille">{{ getSelectedVilleName() }}</span>
+        </div>
+      </div>
+
+      <!-- Indicateur de résultats -->
+      <div class="mt-4" *ngIf="searchValue">
+        <div class="flex items-center gap-2 text-sm text-gray-600">
+          <span class="material-icons text-green-600">info</span>
+          <span>{{ searchResults }} résultat(s) trouvé(s)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vue d'ensemble -->
+  <section class="mb-12" *ngIf="!loading">
+    <div class="max-w-7xl mx-auto px-4 py-8">
+      <h2 class="text-2xl font-bold text-gray-800 mb-6 pb-2 border-b-2 border-blue-600 inline-block flex items-center gap-3">
+        <span class="material-icons text-blue-600 text-3xl">insights</span>
+        Vue d'ensemble
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500 hover:shadow-xl transition-all duration-300 group">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <span class="material-icons text-white text-2xl">groups</span>
+            </div>
+            <div>
+              <h3 class="text-2xl font-bold text-gray-800">{{ totalGroups }}</h3>
+              <p class="text-gray-600 text-sm uppercase tracking-wide">Groupes</p>
+            </div>
+          </div>
+          <div class="mt-4 pt-4 border-t border-gray-100">
+            <div class="flex items-center gap-2 text-blue-600 text-sm">
+              <span class="material-icons text-sm">trending_up</span>
+              <span>Total général</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-indigo-500 hover:shadow-xl transition-all duration-300 group">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <span class="material-icons text-white text-2xl">business</span>
+            </div>
+            <div>
+              <h3 class="text-2xl font-bold text-gray-800">{{ uniqueEtablissements }}</h3>
+              <p class="text-gray-600 text-sm uppercase tracking-wide">Établissements</p>
+            </div>
+          </div>
+          <div class="mt-4 pt-4 border-t border-gray-100">
+            <div class="flex items-center gap-2 text-indigo-600 text-sm">
+              <span class="material-icons text-sm">location_on</span>
+              <span>Répartis géographiquement</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-cyan-500 hover:shadow-xl transition-all duration-300 group">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <span class="material-icons text-white text-2xl">verified</span>
+            </div>
+            <div>
+              <h3 class="text-2xl font-bold text-gray-800">{{ groups.length }}</h3>
+              <p class="text-gray-600 text-sm uppercase tracking-wide">Affichés</p>
+            </div>
+          </div>
+          <div class="mt-4 pt-4 border-t border-gray-100">
+            <div class="flex items-center gap-2 text-cyan-600 text-sm">
+              <span class="material-icons text-sm">visibility</span>
+              <span>Actuellement visibles</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Loading State -->
+  <div class="flex justify-center items-center min-h-96" *ngIf="loading">
+    <div class="text-center text-gray-600">
+      <span class="material-icons animate-spin text-6xl mb-4 block">refresh</span>
+      <p class="text-lg">Chargement des groupes...</p>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div class="flex justify-center items-center min-h-96" *ngIf="error && !loading">
+    <div class="text-center bg-red-50 border border-red-200 rounded-xl p-8 max-w-md">
+      <span class="material-icons text-red-500 text-6xl mb-4 block">error</span>
+      <p class="text-red-700 mb-4">{{ error }}</p>
+      <button class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg transition-all duration-300"
+              (click)="loadGroups()">Réessayer</button>
+    </div>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div class="max-w-7xl mx-auto px-4 py-8" *ngIf="!loading && !error">
+    <!-- Liste des groupes -->
+    <div *ngIf="groups.length > 0">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div *ngFor="let group of groups; trackBy: trackByGroup" 
+             class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500 hover:shadow-xl transition-all duration-300 group">
+          <div class="flex items-center gap-4 mb-4">
+            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <span class="material-icons text-white text-2xl">groups</span>
+            </div>
+            <div class="flex-1">
+              <h3 class="text-lg font-bold text-gray-800">{{ group.title }}</h3>
+              <p class="text-sm text-gray-600">{{ group.etablissement?.name || 'Établissement non défini' }}</p>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            <div class="flex items-center gap-3 text-sm text-gray-600">
+              <span class="material-icons text-blue-600 text-lg">business</span>
+              <span class="font-medium">Établissement: {{ group.etablissement?.name || 'N/A' }}</span>
+            </div>
+            <div class="flex items-center gap-3 text-sm text-gray-600">
+              <span class="material-icons text-green-600 text-lg">school</span>
+              <span class="font-medium">Promotion: {{ group.promotion?.name || 'N/A' }}</span>
+            </div>
+            <div class="flex items-center gap-3 text-sm text-gray-600">
+              <span class="material-icons text-orange-600 text-lg">location_on</span>
+              <span class="font-medium">Ville: {{ group.ville?.name || 'N/A' }}</span>
+            </div>
+            <div class="flex items-center gap-3 text-sm text-gray-600">
+              <span class="material-icons text-purple-600 text-lg">people</span>
+              <span class="font-medium">Étudiants: {{ group.etudiants?.length || 0 }}</span>
+            </div>
+            <div class="flex items-center gap-3 text-sm text-gray-600">
+              <span class="material-icons text-cyan-600 text-lg">schedule</span>
+              <span class="font-medium">Créé le {{ formatDate(group.created_at) }}</span>
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-2 mt-6 pt-4 border-t border-gray-100">
+            <button class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg transition-all duration-300 flex items-center gap-2"
+                    (click)="openEditDialog(group)"
+                    title="Modifier">
+              <span class="material-icons text-sm">edit</span>
+            </button>
+            <button class="bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg transition-all duration-300 flex items-center gap-2"
+                    (click)="openDeleteDialog(group)"
+                    title="Supprimer">
+              <span class="material-icons text-sm">delete</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Message aucun résultat -->
+    <div class="flex justify-center items-center min-h-96" *ngIf="groups.length === 0">
+      <div class="text-center bg-white border border-gray-200 rounded-xl p-8 max-w-md">
+        <span class="material-icons text-gray-400 text-6xl mb-4 block">groups</span>
+        <h3 class="text-xl font-semibold text-gray-800 mb-2">Aucun groupe trouvé</h3>
+        <p class="text-gray-600 mb-6" *ngIf="hasActiveFilters()">Essayez de modifier vos critères de recherche</p>
+        <p class="text-gray-600 mb-6" *ngIf="!hasActiveFilters()">Commencez par ajouter votre premier groupe</p>
+        <button class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 mx-auto"
+                (click)="openAddDialog()" 
+                *ngIf="!hasActiveFilters()">
+          <span class="material-icons">add</span>
+          Ajouter le premier groupe
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="max-w-7xl mx-auto px-4 py-8" *ngIf="!loading && groups.length > 0">
+    <div class="bg-white rounded-xl shadow-lg p-6">
+      <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div class="text-sm text-gray-700">
+          Page {{ currentPage }} sur {{ totalPages }} ({{ totalGroups }} groupes)
+        </div>
+        
+        <div class="flex items-center gap-2">
+          <button 
+            type="button"
+            (click)="goToPage(1)"
+            class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            [disabled]="currentPage === 1 || loading"
+            title="Première page">
+            <span class="material-icons text-sm">first_page</span>
+          </button>
+          
+          <button 
+            type="button"
+            (click)="goToPage(currentPage - 1)"
+            class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            [disabled]="currentPage === 1 || loading"
+            title="Page précédente">
+            <span class="material-icons text-sm">chevron_left</span>
+          </button>
+          
+          <div class="flex items-center gap-1">
+            <button 
+              *ngFor="let page of getQuickNavPages()"
+              type="button"
+              (click)="page !== '...' && goToPage(+page)"
+              class="px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200"
+              [class]="page === currentPage ? 'bg-blue-600 text-white' : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'"
+              [disabled]="loading || page === '...'">
+              {{ page }}
+            </button>
+          </div>
+          
+          <button 
+            type="button"
+            (click)="goToPage(currentPage + 1)"
+            class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            [disabled]="currentPage === totalPages || loading"
+            title="Page suivante">
+            <span class="material-icons text-sm">chevron_right</span>
+          </button>
+          
+          <button 
+            type="button"
+            (click)="goToPage(totalPages)"
+            class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            [disabled]="currentPage === totalPages || loading"
+            title="Dernière page">
+            <span class="material-icons text-sm">last_page</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal pour ajouter/modifier un groupe -->
+<div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" *ngIf="showDialog" (click)="closeDialogOnOverlay($event)">
+  <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-2xl">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+            <span class="material-icons text-white text-lg">{{ isEditMode ? 'edit' : 'add' }}</span>
+          </div>
+          <div>
+            <h2 class="text-xl font-semibold">{{ isEditMode ? 'Modifier le groupe' : 'Ajouter un groupe' }}</h2>
+            <p class="text-blue-100 text-sm">Gérez les informations du groupe</p>
+          </div>
+        </div>
+        <button type="button" 
+                (click)="closeDialog()" 
+                class="w-8 h-8 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-center transition-colors duration-200">
+          <span class="material-icons text-white text-sm">close</span>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Body -->
+    <form [formGroup]="groupForm" (ngSubmit)="saveGroup()">
+      <div class="p-6">
+        <div class="grid grid-cols-1 gap-6">
+          <div>
+            <label for="title" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <span class="material-icons text-blue-600 text-lg">groups</span>
+              Titre du groupe *
+            </label>
+            <input 
+              id="title"
+              type="text" 
+              formControlName="title"
+              placeholder="Ex: Groupe A - Médecine 1ère année"
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+              [class.border-red-500]="groupForm.get('title')?.invalid && groupForm.get('title')?.touched">
+            <div class="text-red-500 text-sm mt-1" *ngIf="groupForm.get('title')?.hasError('required') && groupForm.get('title')?.touched">
+              Le titre est obligatoire
+            </div>
+            <div class="text-red-500 text-sm mt-1" *ngIf="groupForm.get('title')?.hasError('minlength') && groupForm.get('title')?.touched">
+              Le titre doit contenir au moins 2 caractères
+            </div>
+          </div>
+          
+          <div>
+            <label for="etablissement_id" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <span class="material-icons text-blue-600 text-lg">business</span>
+              Établissement *
+            </label>
+            <select 
+              id="etablissement_id"
+              formControlName="etablissement_id"
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+              [class.border-red-500]="groupForm.get('etablissement_id')?.invalid && groupForm.get('etablissement_id')?.touched">
+              <option value="">Sélectionner un établissement</option>
+              <option *ngFor="let etablissement of etablissements" [value]="etablissement.id">{{ etablissement.name }}</option>
+            </select>
+            <div class="text-red-500 text-sm mt-1" *ngIf="groupForm.get('etablissement_id')?.hasError('required') && groupForm.get('etablissement_id')?.touched">
+              L'établissement est obligatoire
+            </div>
+          </div>
+
+          <div>
+            <label for="promotion_id" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <span class="material-icons text-green-600 text-lg">school</span>
+              Promotion *
+            </label>
+            <select 
+              id="promotion_id"
+              formControlName="promotion_id"
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+              [class.border-red-500]="groupForm.get('promotion_id')?.invalid && groupForm.get('promotion_id')?.touched">
+              <option value="">Sélectionner une promotion</option>
+              <option *ngFor="let promotion of promotions" [value]="promotion.id">{{ promotion.name }}</option>
+            </select>
+            <div class="text-red-500 text-sm mt-1" *ngIf="groupForm.get('promotion_id')?.hasError('required') && groupForm.get('promotion_id')?.touched">
+              La promotion est obligatoire
+            </div>
+          </div>
+
+          <div>
+            <label for="ville_id" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <span class="material-icons text-orange-600 text-lg">location_on</span>
+              Ville *
+            </label>
+            <select 
+              id="ville_id"
+              formControlName="ville_id"
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+              [class.border-red-500]="groupForm.get('ville_id')?.invalid && groupForm.get('ville_id')?.touched">
+              <option value="">Sélectionner une ville</option>
+              <option *ngFor="let ville of villes" [value]="ville.id">{{ ville.name }}</option>
+            </select>
+            <div class="text-red-500 text-sm mt-1" *ngIf="groupForm.get('ville_id')?.hasError('required') && groupForm.get('ville_id')?.touched">
+              La ville est obligatoire
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Footer -->
+      <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
+        <div class="flex justify-end gap-3">
+          <button 
+            type="button" 
+            (click)="closeDialog()" 
+            class="px-6 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-300 flex items-center gap-2 disabled:opacity-50"
+            [disabled]="dialogLoading">
+            <span class="material-icons text-sm">close</span>
+            Annuler
+          </button>
+          
+          <button 
+            type="submit" 
+            class="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-all duration-300 flex items-center gap-2 disabled:opacity-50 hover:scale-105"
+            [disabled]="groupForm.invalid || dialogLoading">
+            <span class="material-icons text-sm" [class.animate-spin]="dialogLoading">{{ isEditMode ? 'save' : 'add' }}</span>
+            <span *ngIf="dialogLoading">Enregistrement...</span>
+            <span *ngIf="!dialogLoading">{{ isEditMode ? 'Modifier' : 'Ajouter' }}</span>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal de confirmation de suppression -->
+<div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" *ngIf="showDeleteDialog" (click)="closeDeleteDialog()">
+  <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full" (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-t-2xl">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+          <span class="material-icons text-white text-lg">warning</span>
+        </div>
+        <div>
+          <h2 class="text-xl font-semibold">Confirmer la suppression</h2>
+          <p class="text-red-100 text-sm">Cette action est irréversible</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Body -->
+    <div class="p-6">
+      <div class="flex items-start gap-4">
+        <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+          <span class="material-icons text-red-600 text-xl">delete</span>
+        </div>
+        <div>
+          <p class="text-gray-800 mb-2">
+            Êtes-vous sûr de vouloir supprimer le groupe 
+            <strong class="text-red-600">{{ groupToDelete?.title }}</strong> ?
+          </p>
+          <p class="text-sm text-gray-600 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+            <span class="material-icons text-yellow-600 text-sm mr-2">info</span>
+            Cette action est irréversible et peut affecter les données liées (étudiants, cours, etc.).
+          </p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Footer -->
+    <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
+      <div class="flex justify-end gap-3">
+        <button 
+          type="button" 
+          (click)="closeDeleteDialog()" 
+          class="px-6 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-300 flex items-center gap-2 disabled:opacity-50"
+          [disabled]="deleteLoading">
+          <span class="material-icons text-sm">close</span>
+          Annuler
+        </button>
+        
+        <button 
+          type="button" 
+          (click)="confirmDelete()" 
+          class="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all duration-300 flex items-center gap-2 disabled:opacity-50 hover:scale-105"
+          [disabled]="deleteLoading">
+          <span class="material-icons text-sm" [class.animate-spin]="deleteLoading">delete</span>
+          <span *ngIf="deleteLoading">Suppression...</span>
+          <span *ngIf="!deleteLoading">Supprimer</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

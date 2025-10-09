@@ -22,9 +22,44 @@ class GroupController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $groups = $this->groupService->getAllGroups();
+        // Récupérer les paramètres de filtrage
+        $filters = $request->only(['searchValue', 'etablissement_id', 'promotion_id', 'ville_id']);
+        
+        \Log::info('🔍 Filtres reçus:', $filters);
+        
+        // Filtrer les groupes selon les critères
+        $query = Group::with(['etablissement', 'promotion', 'ville', 'etudiants']);
+        
+        // Filtre par recherche (titre du groupe)
+        if (!empty($filters['searchValue'])) {
+            $query->where('title', 'like', '%' . $filters['searchValue'] . '%');
+            \Log::info('🔍 Filtre recherche appliqué:', ['searchValue' => $filters['searchValue']]);
+        }
+        
+        // Filtre par établissement
+        if (!empty($filters['etablissement_id'])) {
+            $query->where('etablissement_id', $filters['etablissement_id']);
+            \Log::info('🔍 Filtre établissement appliqué:', ['etablissement_id' => $filters['etablissement_id']]);
+        }
+        
+        // Filtre par promotion
+        if (!empty($filters['promotion_id'])) {
+            $query->where('promotion_id', $filters['promotion_id']);
+            \Log::info('🔍 Filtre promotion appliqué:', ['promotion_id' => $filters['promotion_id']]);
+        }
+        
+        // Filtre par ville
+        if (!empty($filters['ville_id'])) {
+            $query->where('ville_id', $filters['ville_id']);
+            \Log::info('🔍 Filtre ville appliqué:', ['ville_id' => $filters['ville_id']]);
+        }
+        
+        $groups = $query->get();
+        
+        \Log::info('📊 Nombre de groupes trouvés:', ['count' => $groups->count()]);
+        
         return response()->json($groups);
     }
 

@@ -348,6 +348,13 @@ export class SidebarComponent implements OnInit {
       roles: ['super-admin', 'admin', 'scolarite']
     },
     {
+      label: 'Groupes',
+      icon: 'groups',
+      route: '/groups',
+      tooltip: 'Gestion des groupes d\'étudiants',
+      roles: ['super-admin', 'admin', 'scolarite']
+    },
+    {
       label: 'Absences',
       icon: 'event_busy',
       route: '/absences',

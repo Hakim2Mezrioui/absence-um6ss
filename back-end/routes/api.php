@@ -86,12 +86,14 @@ Route::apiResource('etudiants', EtudiantController::class);
 
 // Group routes - API Resource (remplace les 6 routes individuelles)
 Route::apiResource('groups', GroupController::class);
+Route::get("groups/create", [GroupController::class, "create"]);
+Route::get("groups/{id}/edit", [GroupController::class, "edit"]);
 Route::get("groups/{id}/students", [GroupController::class, "getStudentsByGroup"]);
-Route::post("groups/{id}/add-students", [GroupController::class, "addStudentsToGroup"]);
-Route::post("groups/{id}/remove-students", [GroupController::class, "removeStudentsFromGroup"]);
-Route::get("groups/etablissement/{etablissementId}", [GroupController::class, "getGroupsByEtablissement"]);
-Route::get("groups/promotion/{promotionId}", [GroupController::class, "getGroupsByPromotion"]);
-Route::get("groups/ville/{villeId}", [GroupController::class, "getGroupsByVille"]);
+Route::post("groups/{id}/students", [GroupController::class, "addStudentsToGroup"]);
+Route::delete("groups/{id}/students", [GroupController::class, "removeStudentsFromGroup"]);
+Route::get("groups/by-etablissement/{etablissementId}", [GroupController::class, "getGroupsByEtablissement"]);
+Route::get("groups/by-promotion/{promotionId}", [GroupController::class, "getGroupsByPromotion"]);
+Route::get("groups/by-ville/{villeId}", [GroupController::class, "getGroupsByVille"]);
 
 // Ville routes - API Resource
 Route::apiResource('villes', VilleController::class);

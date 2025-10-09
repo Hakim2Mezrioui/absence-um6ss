@@ -29,6 +29,9 @@ import { ConfigurationComponent } from './components/configuration/configuration
 import { EnseignantsComponent } from './components/enseignants/enseignants.component';
 import { ImportEnseignantsComponent } from './import-enseignants/import-enseignants.component';
 import { SimpleStudentImportComponent } from './components/simple-import/simple-import.component';
+import { SimpleCoursImportComponent } from './components/simple-cours-import/simple-cours-import.component';
+import { SimpleExamensImportComponent } from './components/simple-examens-import/simple-examens-import.component';
+import { GroupsComponent } from './components/groups/groups.component';
 
 export const routes: Routes = [
     {path: "", redirectTo: "login", pathMatch: "full"},
@@ -53,6 +56,7 @@ export const routes: Routes = [
             { path: "add-examen", component: AddExamenComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },
             { path: "edit-examen/:id", component: EditExamenComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },
             { path: "import-examens", component: ImportExamensComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },
+            { path: "import-examens-simple", component: SimpleExamensImportComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },
 
             { path: "attendance", component: AttendanceComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'enseignant'] } },
 
@@ -60,6 +64,8 @@ export const routes: Routes = [
             { path: "add-student", component: AddStudentComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },
             { path: "import-students", component: ImportStudentsComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },
             { path: "import-students-simple", component: SimpleStudentImportComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },
+
+            { path: "groups", component: GroupsComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },
 
             { path: "absences", component: AbsencesComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },
             { path: "promotions", component: PromotionsComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },
@@ -74,6 +80,7 @@ export const routes: Routes = [
             { path: "add-cours", component: AddCoursComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },
             { path: "edit-cours/:id", component: EditCoursComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },
             { path: "import-cours", component: ImportCoursComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },
+            { path: "import-cours-simple", component: SimpleCoursImportComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },
             { path: "cours/:id/attendance", component: AttendanceCoursComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'enseignant'] } },
 
             // Configuration: super-admin only

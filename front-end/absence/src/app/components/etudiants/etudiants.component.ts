@@ -421,10 +421,10 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   /**
-   * Naviguer vers la page d'import d'étudiants
+   * Naviguer vers la page d'import simple d'étudiants
    */
   navigateToImport(): void {
-    this.router.navigate(['/import-students']);
+    this.router.navigate(['/import-students-simple']);
   }
 
   /**

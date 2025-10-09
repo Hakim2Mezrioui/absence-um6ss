@@ -198,11 +198,8 @@ export class CoursService {
   /**
    * Importe des cours depuis un fichier CSV
    */
-  importCours(file: File): Observable<any> {
-    const formData = new FormData();
-    formData.append('file', file);
-    
-    return this.http.post(`${this.apiUrl}/import-cours`, formData);
+  importCours(formData: FormData): Observable<any> {
+    return this.http.post(`${this.apiUrl}/import-cours-modern`, formData);
   }
 
 }
