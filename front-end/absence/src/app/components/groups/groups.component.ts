@@ -272,6 +272,12 @@ export class GroupsComponent implements OnInit, OnDestroy {
     this.loadGroups();
   }
 
+  applyFilters(): void {
+    console.log('🔍 Application des filtres');
+    this.currentPage = 1;
+    this.loadGroups();
+  }
+
   clearSearch(): void {
     this.searchValue = '';
     this.searchResults = null;

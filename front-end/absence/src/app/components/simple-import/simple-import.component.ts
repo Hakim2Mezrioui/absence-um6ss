@@ -28,6 +28,11 @@ interface ImportResult {
     updated?: number;
     errors?: number;
   };
+  error_details?: Array<{
+    line: number;
+    message: string;
+    suggestions?: any;
+  }>;
 }
 
 @Component({
@@ -74,6 +79,20 @@ export class SimpleStudentImportComponent implements OnInit {
   private referenceData: Record<string, ReferenceEntry[]> = {};
   private suggestionsByCell: Record<number, Record<string, Suggestion[]>> = {};
   private invalidCells: Record<number, Record<string, boolean>> = {};
+  
+  // Propriétés pour le débogage
+  fileInfo: {
+    name: string;
+    size: number;
+    type: string;
+    lastModified: Date;
+    sheetCount: number;
+    dataRange: string;
+    rowCount: number;
+  } | null = null;
+
+  // Propriété pour afficher les options disponibles
+  showAvailableOptions = false;
 
   constructor(private etudiantsService: EtudiantsService) {}
 
@@ -85,13 +104,46 @@ export class SimpleStudentImportComponent implements OnInit {
     const rows = [
       this.templateHeaders,
       ['ETU2025001', 'Imane', 'Benali', 'imane.benali@email.com', 'Promotion 1', 'Université A', 'Casablanca', 'Groupe A', 'Option 1'],
-      ['ETU2025002', 'Youssef', 'El Amrani', 'youssef.elamrani@email.com', 'Promotion 2', 'Université B', 'Rabat', 'Groupe B', 'Option 2']
+      ['ETU2025002', 'Youssef', 'El Amrani', 'youssef.elamrani@email.com', 'Promotion 2', 'Université B', 'Rabat', 'Groupe B', 'Option 2'],
+      ['ETU2025003', 'Fatima', 'Alaoui', 'fatima.alaoui@email.com', 'Promotion 1', 'Université A', 'Casablanca', 'Groupe B', 'Option 1']
     ];
 
     const worksheet = utils.aoa_to_sheet(rows);
+    
+    // Définir la largeur des colonnes pour une meilleure lisibilité
+    const colWidths = [
+      { wch: 12 }, // matricule
+      { wch: 15 }, // first_name
+      { wch: 15 }, // last_name
+      { wch: 25 }, // email
+      { wch: 15 }, // promotion_name
+      { wch: 20 }, // etablissement_name
+      { wch: 15 }, // ville_name
+      { wch: 12 }, // group_title
+      { wch: 15 }  // option_name
+    ];
+    worksheet['!cols'] = colWidths;
+    
+    // Définir la plage de données pour éviter les problèmes de lecture
+    const range = utils.encode_range({
+      s: { c: 0, r: 0 },
+      e: { c: this.templateHeaders.length - 1, r: rows.length - 1 }
+    });
+    worksheet['!ref'] = range;
+    
     const workbook = utils.book_new();
     utils.book_append_sheet(workbook, worksheet, 'Etudiants');
+    
+    // Ajouter des métadonnées pour identifier le fichier comme modèle
+    workbook.Props = {
+      Title: 'Modèle d\'importation des étudiants',
+      Subject: 'Template pour l\'importation des données d\'étudiants',
+      Author: 'Système de gestion des absences',
+      CreatedDate: new Date()
+    };
+    
     writeFile(workbook, 'modele_import_etudiants.xlsx');
+    console.log('Modèle téléchargé avec succès');
   }
 
   onFileSelected(event: Event): void {
@@ -106,39 +158,126 @@ export class SimpleStudentImportComponent implements OnInit {
     this.isProcessing = true;
     this.fileName = file.name;
 
+    console.log('Fichier sélectionné:', file.name, 'Taille:', file.size, 'Type:', file.type);
+
     const reader = new FileReader();
     reader.onload = () => {
       try {
         const data = new Uint8Array(reader.result as ArrayBuffer);
-        const workbook: WorkBook = read(data, { type: 'array' });
+        console.log('Données du fichier chargées, taille:', data.length);
+        
+        // Options améliorées pour la lecture Excel
+        const workbook: WorkBook = read(data, { 
+          type: 'array',
+          cellDates: true,
+          cellNF: false,
+          cellText: false,
+          raw: false,
+          dateNF: 'yyyy-mm-dd'
+        });
+        
+        console.log('Feuilles disponibles:', workbook.SheetNames);
+        
         const firstSheet = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[firstSheet];
-        const rows = utils.sheet_to_json<string[]>(worksheet, { header: 1, defval: '' });
+        
+        // Vérifier si la feuille existe et contient des données
+        if (!worksheet || !worksheet['!ref']) {
+          throw new Error('La feuille Excel est vide ou inaccessible.');
+        }
+        
+        console.log('Plage de données:', worksheet['!ref']);
+        
+        // Conversion améliorée avec gestion des types de données
+        const rows = utils.sheet_to_json<any[]>(worksheet, { 
+          header: 1, 
+          defval: '',
+          raw: false,
+          dateNF: 'yyyy-mm-dd',
+          blankrows: false
+        });
+        
+        // Capturer les informations du fichier pour le débogage
+        this.fileInfo = {
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          lastModified: new Date(file.lastModified),
+          sheetCount: workbook.SheetNames.length,
+          dataRange: worksheet['!ref'] || 'Aucune',
+          rowCount: rows.length
+        };
+        
+        console.log('Informations du fichier:', this.fileInfo);
+
+        console.log('Lignes parsées:', rows.length, 'Première ligne:', rows[0]);
 
         if (!rows.length) {
           throw new Error('Le fichier est vide.');
         }
 
         const [headerRow, ...dataRows] = rows;
-        this.tableHeaders = headerRow.map((header) => header.toString());
-        this.tableRows = dataRows.map((row) => {
+        
+        // Nettoyer et valider les en-têtes
+        this.tableHeaders = headerRow.map((header, index) => {
+          const cleanHeader = String(header || '').trim();
+          if (!cleanHeader) {
+            console.warn(`En-tête vide à la colonne ${index + 1}`);
+            return `colonne_${index + 1}`;
+          }
+          return cleanHeader;
+        });
+        
+        console.log('En-têtes détectés:', this.tableHeaders);
+
+        // Traiter les données avec une meilleure gestion des types
+        this.tableRows = dataRows.map((row, rowIndex) => {
           const rowObject: StudentRow = {};
           this.tableHeaders.forEach((header, index) => {
-            rowObject[header] = row[index] ?? '';
+            let cellValue = row[index];
+            
+            // Convertir les valeurs en string et nettoyer
+            if (cellValue === null || cellValue === undefined) {
+              cellValue = '';
+            } else if (typeof cellValue === 'number') {
+              // Préserver les nombres comme string pour éviter les problèmes de format
+              cellValue = cellValue.toString();
+            } else if (cellValue instanceof Date) {
+              // Convertir les dates en format ISO
+              cellValue = cellValue.toISOString().split('T')[0];
+            } else {
+              cellValue = String(cellValue).trim();
+            }
+            
+            rowObject[header] = cellValue;
           });
+          
+          // Log pour débogage
+          if (rowIndex < 3) {
+            console.log(`Ligne ${rowIndex + 1}:`, rowObject);
+          }
+          
           return rowObject;
         });
 
+        // Filtrer les lignes complètement vides
+        this.tableRows = this.tableRows.filter(row => {
+          return Object.values(row).some(value => value && value.trim() !== '');
+        });
+
+        console.log('Lignes de données finales:', this.tableRows.length);
+
         if (!this.tableRows.length) {
-          this.successMessage = 'Le fichier a été importé, mais aucune donnée n\'a été trouvée.';
+          this.successMessage = 'Le fichier a été importé, mais aucune donnée valide n\'a été trouvée.';
         } else {
           this.successMessage = `${this.tableRows.length} ligne(s) chargée(s) avec succès.`;
         }
 
         this.validateRows();
       } catch (error: any) {
-        console.error('Erreur lors de la lecture du fichier:', error);
-        this.errorMessage = error?.message || 'Impossible de lire le fichier. Assurez-vous qu\'il s\'agit d\'un fichier Excel valable.';
+        console.error('Erreur détaillée lors de la lecture du fichier:', error);
+        console.error('Stack trace:', error.stack);
+        this.errorMessage = error?.message || 'Impossible de lire le fichier. Assurez-vous qu\'il s\'agit d\'un fichier Excel valide et qu\'il contient des données.';
         this.tableHeaders = [];
         this.tableRows = [];
       } finally {
@@ -146,9 +285,10 @@ export class SimpleStudentImportComponent implements OnInit {
       }
     };
 
-    reader.onerror = () => {
+    reader.onerror = (error) => {
+      console.error('Erreur de lecture du fichier:', error);
       this.isProcessing = false;
-      this.errorMessage = 'Erreur lors de la lecture du fichier.';
+      this.errorMessage = 'Erreur lors de la lecture du fichier. Vérifiez que le fichier n\'est pas corrompu.';
     };
 
     reader.readAsArrayBuffer(file);
@@ -182,6 +322,23 @@ export class SimpleStudentImportComponent implements OnInit {
     this.importResult = null;
     this.suggestionsByCell = {};
     this.invalidCells = {};
+    this.fileInfo = null;
+  }
+
+  toggleAvailableOptions(): void {
+    this.showAvailableOptions = !this.showAvailableOptions;
+  }
+
+  getAvailableOptions(): any {
+    if (!this.filterOptions) return null;
+    
+    return {
+      promotions: this.filterOptions.promotions?.map(p => p.name) || [],
+      etablissements: this.filterOptions.etablissements?.map(e => e.name) || [],
+      villes: this.filterOptions.villes?.map(v => v.name) || [],
+      groups: this.filterOptions.groups?.map(g => g.title) || [],
+      options: this.filterOptions.options?.map(o => o.name) || []
+    };
   }
 
   getSuggestions(rowIndex: number, header: string): Suggestion[] {
@@ -276,11 +433,76 @@ export class SimpleStudentImportComponent implements OnInit {
 
       // Convertir les noms en IDs si possible
       if (this.filterOptions) {
-        const promotion = this.filterOptions.promotions?.find(p => p.name === student.promotion_name);
-        const etablissement = this.filterOptions.etablissements?.find(e => e.name === student.etablissement_name);
-        const ville = this.filterOptions.villes?.find(v => v.name === student.ville_name);
-        const group = this.filterOptions.groups?.find(g => g.title === student.group_title);
-        const option = this.filterOptions.options?.find(o => o.name === student.option_name);
+        // Fonction de correspondance flexible pour gérer les variations de noms
+        const findPromotion = (name: string) => {
+          if (!name) return null;
+          const normalizedName = this.normalize(name);
+          return this.filterOptions?.promotions?.find(p => 
+            this.normalize(p.name) === normalizedName ||
+            this.normalize(p.name).includes(normalizedName) ||
+            normalizedName.includes(this.normalize(p.name))
+          );
+        };
+
+        const findEtablissement = (name: string) => {
+          if (!name) return null;
+          const normalizedName = this.normalize(name);
+          return this.filterOptions?.etablissements?.find(e => 
+            this.normalize(e.name) === normalizedName ||
+            this.normalize(e.name).includes(normalizedName) ||
+            normalizedName.includes(this.normalize(e.name))
+          );
+        };
+
+        const findVille = (name: string) => {
+          if (!name) return null;
+          const normalizedName = this.normalize(name);
+          return this.filterOptions?.villes?.find(v => 
+            this.normalize(v.name) === normalizedName ||
+            this.normalize(v.name).includes(normalizedName) ||
+            normalizedName.includes(this.normalize(v.name))
+          );
+        };
+
+        const findGroup = (title: string) => {
+          if (!title) return null;
+          const normalizedTitle = this.normalize(title);
+          return this.filterOptions?.groups?.find(g => 
+            this.normalize(g.title) === normalizedTitle ||
+            this.normalize(g.title).includes(normalizedTitle) ||
+            normalizedTitle.includes(this.normalize(g.title))
+          );
+        };
+
+        const findOption = (name: string) => {
+          if (!name) return null;
+          const normalizedName = this.normalize(name);
+          return this.filterOptions?.options?.find(o => 
+            this.normalize(o.name) === normalizedName ||
+            this.normalize(o.name).includes(normalizedName) ||
+            normalizedName.includes(this.normalize(o.name))
+          );
+        };
+
+        const promotion = findPromotion(student.promotion_name);
+        const etablissement = findEtablissement(student.etablissement_name);
+        const ville = findVille(student.ville_name);
+        const group = findGroup(student.group_title);
+        const option = findOption(student.option_name);
+
+        // Log pour débogage
+        console.log(`Étudiant ${student.matricule}:`, {
+          promotion_name: student.promotion_name,
+          promotion_found: promotion ? `${promotion.name} (ID: ${promotion.id})` : 'Non trouvée',
+          etablissement_name: student.etablissement_name,
+          etablissement_found: etablissement ? `${etablissement.name} (ID: ${etablissement.id})` : 'Non trouvé',
+          ville_name: student.ville_name,
+          ville_found: ville ? `${ville.name} (ID: ${ville.id})` : 'Non trouvée',
+          group_title: student.group_title,
+          group_found: group ? `${group.title} (ID: ${group.id})` : 'Non trouvé',
+          option_name: student.option_name,
+          option_found: option ? `${option.name} (ID: ${option.id})` : 'Non trouvée'
+        });
 
         if (promotion) student.promotion_id = promotion.id;
         if (etablissement) student.etablissement_id = etablissement.id;
@@ -306,17 +528,28 @@ export class SimpleStudentImportComponent implements OnInit {
     this.etudiantsService.importEtudiants(formData).subscribe({
       next: (response) => {
         this.isImporting = false;
+        console.log('Réponse d\'importation:', response);
+        
+        // Déterminer si l'importation est réussie ou non
+        const hasErrors = response.summary?.errors > 0 || response.error_details?.length > 0;
+        
         this.importResult = {
-          success: true,
-          message: response.message || 'Importation réussie !',
+          success: !hasErrors,
+          message: response.message || (hasErrors ? 'Importation terminée avec des erreurs' : 'Importation réussie !'),
           details: {
-            total: response.total,
-            created: response.created,
-            updated: response.updated,
-            errors: response.errors
-          }
+            total: response.summary?.total_processed || response.total,
+            created: response.summary?.created || response.created,
+            updated: response.summary?.updated || response.updated,
+            errors: response.summary?.errors || response.errors
+          },
+          error_details: response.error_details
         };
-        this.successMessage = 'Importation terminée avec succès.';
+        
+        if (hasErrors) {
+          this.errorMessage = `Importation terminée avec ${response.summary?.errors || response.error_details?.length || 0} erreur(s).`;
+        } else {
+          this.successMessage = 'Importation terminée avec succès.';
+        }
       },
       error: (error) => {
         this.isImporting = false;

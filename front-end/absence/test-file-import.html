@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test d'importation de fichiers Excel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .file-input {
+            margin: 10px 0;
+        }
+        .results {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .error {
+            color: red;
+        }
+        .success {
+            color: green;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Test d'importation de fichiers Excel</h1>
+        <p>Cette page permet de tester la lecture de fichiers Excel modifiés pour identifier les problèmes d'importation.</p>
+
+        <div class="test-section">
+            <h3>1. Test de lecture de fichier Excel</h3>
+            <input type="file" id="fileInput" accept=".xlsx,.xls" class="file-input">
+            <button onclick="testFileReading()">Analyser le fichier</button>
+            <div id="fileResults" class="results" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>2. Test de création de modèle</h3>
+            <button onclick="createTestTemplate()">Créer un modèle de test</button>
+            <div id="templateResults" class="results" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>3. Instructions de test</h3>
+            <ol>
+                <li>Cliquez sur "Créer un modèle de test" pour télécharger un fichier Excel</li>
+                <li>Ouvrez le fichier téléchargé dans Excel ou LibreOffice</li>
+                <li>Modifiez quelques cellules (ajoutez des étudiants, modifiez des noms, etc.)</li>
+                <li>Sauvegardez le fichier modifié</li>
+                <li>Utilisez "Analyser le fichier" pour vérifier que les modifications sont détectées</li>
+                <li>Vérifiez que toutes les données modifiées sont correctement lues</li>
+            </ol>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        function testFileReading() {
+            const fileInput = document.getElementById('fileInput');
+            const resultsDiv = document.getElementById('fileResults');
+            
+            if (!fileInput.files[0]) {
+                showResults('fileResults', 'Veuillez sélectionner un fichier Excel.', 'error');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    
+                    // Options améliorées pour la lecture Excel
+                    const workbook = XLSX.read(data, { 
+                        type: 'array',
+                        cellDates: true,
+                        cellNF: false,
+                        cellText: false,
+                        raw: false,
+                        dateNF: 'yyyy-mm-dd'
+                    });
+                    
+                    let results = `=== ANALYSE DU FICHIER ===\n`;
+                    results += `Nom: ${file.name}\n`;
+                    results += `Taille: ${(file.size / 1024).toFixed(1)} KB\n`;
+                    results += `Type: ${file.type}\n`;
+                    results += `Dernière modification: ${new Date(file.lastModified).toLocaleString()}\n`;
+                    results += `Feuilles disponibles: ${workbook.SheetNames.join(', ')}\n\n`;
+                    
+                    const firstSheet = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheet];
+                    
+                    if (!worksheet || !worksheet['!ref']) {
+                        throw new Error('La feuille Excel est vide ou inaccessible.');
+                    }
+                    
+                    results += `Plage de données: ${worksheet['!ref']}\n`;
+                    
+                    // Conversion avec gestion des types de données
+                    const rows = XLSX.utils.sheet_to_json(worksheet, { 
+                        header: 1, 
+                        defval: '',
+                        raw: false,
+                        dateNF: 'yyyy-mm-dd',
+                        blankrows: false
+                    });
+                    
+                    results += `Nombre de lignes: ${rows.length}\n\n`;
+                    
+                    if (rows.length > 0) {
+                        const [headerRow, ...dataRows] = rows;
+                        
+                        // Nettoyer les en-têtes
+                        const cleanHeaders = headerRow.map((header, index) => {
+                            const cleanHeader = String(header || '').trim();
+                            if (!cleanHeader) {
+                                return `colonne_${index + 1}`;
+                            }
+                            return cleanHeader;
+                        });
+                        
+                        results += `En-têtes détectés: ${cleanHeaders.join(', ')}\n\n`;
+                        
+                        // Traiter les données
+                        const processedRows = dataRows.map((row, rowIndex) => {
+                            const rowObject = {};
+                            cleanHeaders.forEach((header, index) => {
+                                let cellValue = row[index];
+                                
+                                if (cellValue === null || cellValue === undefined) {
+                                    cellValue = '';
+                                } else if (typeof cellValue === 'number') {
+                                    cellValue = cellValue.toString();
+                                } else if (cellValue instanceof Date) {
+                                    cellValue = cellValue.toISOString().split('T')[0];
+                                } else {
+                                    cellValue = String(cellValue).trim();
+                                }
+                                
+                                rowObject[header] = cellValue;
+                            });
+                            
+                            return rowObject;
+                        });
+                        
+                        // Filtrer les lignes vides
+                        const validRows = processedRows.filter(row => {
+                            return Object.values(row).some(value => value && value.trim() !== '');
+                        });
+                        
+                        results += `Lignes de données valides: ${validRows.length}\n\n`;
+                        
+                        // Afficher les premières lignes
+                        results += `=== PREMIÈRES LIGNES DE DONNÉES ===\n`;
+                        validRows.slice(0, 5).forEach((row, index) => {
+                            results += `Ligne ${index + 1}:\n`;
+                            Object.entries(row).forEach(([key, value]) => {
+                                results += `  ${key}: "${value}"\n`;
+                            });
+                            results += `\n`;
+                        });
+                        
+                        if (validRows.length > 5) {
+                            results += `... et ${validRows.length - 5} autres lignes\n`;
+                        }
+                    }
+                    
+                    showResults('fileResults', results, 'success');
+                    
+                } catch (error) {
+                    console.error('Erreur lors de la lecture:', error);
+                    showResults('fileResults', `Erreur lors de la lecture du fichier:\n${error.message}`, 'error');
+                }
+            };
+            
+            reader.onerror = function() {
+                showResults('fileResults', 'Erreur lors de la lecture du fichier.', 'error');
+            };
+            
+            reader.readAsArrayBuffer(file);
+        }
+        
+        function createTestTemplate() {
+            const templateHeaders = [
+                'matricule',
+                'first_name', 
+                'last_name',
+                'email',
+                'promotion_name',
+                'etablissement_name',
+                'ville_name',
+                'group_title',
+                'option_name'
+            ];
+            
+            const rows = [
+                templateHeaders,
+                ['ETU2025001', 'Imane', 'Benali', 'imane.benali@email.com', 'Promotion 1', 'Université A', 'Casablanca', 'Groupe A', 'Option 1'],
+                ['ETU2025002', 'Youssef', 'El Amrani', 'youssef.elamrani@email.com', 'Promotion 2', 'Université B', 'Rabat', 'Groupe B', 'Option 2'],
+                ['ETU2025003', 'Fatima', 'Alaoui', 'fatima.alaoui@email.com', 'Promotion 1', 'Université A', 'Casablanca', 'Groupe B', 'Option 1'],
+                ['ETU2025004', 'Ahmed', 'Tazi', 'ahmed.tazi@email.com', 'Promotion 2', 'Université B', 'Rabat', 'Groupe A', 'Option 2']
+            ];
+            
+            const worksheet = XLSX.utils.aoa_to_sheet(rows);
+            
+            // Définir la largeur des colonnes
+            const colWidths = [
+                { wch: 12 }, { wch: 15 }, { wch: 15 }, { wch: 25 },
+                { wch: 15 }, { wch: 20 }, { wch: 15 }, { wch: 12 }, { wch: 15 }
+            ];
+            worksheet['!cols'] = colWidths;
+            
+            // Définir la plage de données
+            const range = XLSX.utils.encode_range({
+                s: { c: 0, r: 0 },
+                e: { c: templateHeaders.length - 1, r: rows.length - 1 }
+            });
+            worksheet['!ref'] = range;
+            
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Etudiants');
+            
+            // Ajouter des métadonnées
+            workbook.Props = {
+                Title: 'Modèle d\'importation des étudiants',
+                Subject: 'Template pour l\'importation des données d\'étudiants',
+                Author: 'Système de gestion des absences',
+                CreatedDate: new Date()
+            };
+            
+            XLSX.writeFile(workbook, 'modele_import_etudiants_test.xlsx');
+            
+            showResults('templateResults', 'Modèle de test créé et téléchargé avec succès!\n\nInstructions:\n1. Ouvrez le fichier dans Excel\n2. Modifiez quelques cellules\n3. Sauvegardez le fichier\n4. Utilisez l\'analyseur pour vérifier les modifications', 'success');
+        }
+        
+        function showResults(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `results ${type}`;
+            element.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
