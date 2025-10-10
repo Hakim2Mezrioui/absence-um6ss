@@ -21,7 +21,6 @@ class EnseignantSeeder extends Seeder
                 'email' => 'prof'.$i.'@example.com',
                 'password' => 'password',
                 'role_id' => 3,
-                'post_id' => 1,
                 'ville_id' => $ville->id,
             ]);
 

@@ -110,4 +110,4 @@ class UserSeeder extends Seeder
 
         $this->command->info('UserSeeder exécuté avec succès. ' . count($users) . ' utilisateurs créés.');
     }
-} 
+}
