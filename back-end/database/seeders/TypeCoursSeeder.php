@@ -14,16 +14,9 @@ class TypeCoursSeeder extends Seeder
     public function run(): void
     {
         $typesCours = [
-            'Mathématiques',
-            'Physique',
-            'Chimie',
-            'Biologie',
-            'Informatique',
-            'Langues',
-            'Géologie',
-            'Économie',
-            'Histoire',
-            'Philosophie',
+            'Cours Magistral',
+            'Cours Travaux Dirigés',
+            'Cours Travaux Pratiques',
         ];
 
         foreach ($typesCours as $typeCours) {

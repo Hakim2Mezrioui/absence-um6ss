@@ -14,8 +14,6 @@ class TypeExamenSeeder extends Seeder
     {
         \App\Models\TypeExamen::create(['name' => 'Contrôle Continu']);
         \App\Models\TypeExamen::create(['name' => 'Examen Partiel']);
-        \App\Models\TypeExamen::create(['name' => 'Examen Final']);
         \App\Models\TypeExamen::create(['name' => 'Rattrapage']);
-        \App\Models\TypeExamen::create(['name' => 'Oral']);
     }
 }

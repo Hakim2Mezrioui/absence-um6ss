@@ -14,69 +14,65 @@ class SalleSeeder extends Seeder
     {
         $salles = [
             [
-                'name' => 'Amphithéâtre A',
-                'etage' => 0,
-                'batiment' => 'Bâtiment Principal',
+                'name' => 'C501',
+                'capacity' => 50,
                 'etablissement_id' => 1,
-                'capacite' => 200,
-                'description' => 'Grand amphithéâtre équipé d\'un projecteur haute définition et d\'un système audio'
             ],
             [
-                'name' => 'Salle A101',
-                'etage' => 1,
-                'batiment' => 'Bâtiment A',
+                'name' => 'C506',
+                'capacity' => 50,
                 'etablissement_id' => 1,
-                'capacite' => 30,
-                'description' => 'Salle de cours avec tableau interactif'
             ],
             [
-                'name' => 'Salle A102',
-                'etage' => 1,
-                'batiment' => 'Bâtiment A',
+                'name' => 'C502',
+                'capacity' => 50,
                 'etablissement_id' => 1,
-                'capacite' => 25,
-                'description' => 'Salle équipée pour les travaux dirigés'
             ],
             [
-                'name' => 'Laboratoire Info B201',
-                'etage' => 2,
-                'batiment' => 'Bâtiment B',
+                'name' => 'C504',
+                'capacity' => 50,
                 'etablissement_id' => 1,
-                'capacite' => 20,
-                'description' => 'Laboratoire informatique avec 20 postes de travail modernes'
             ],
             [
-                'name' => 'Salle B202',
-                'etage' => 2,
-                'batiment' => 'Bâtiment B',
+                'name' => 'C03',
+                'capacity' => 50,
                 'etablissement_id' => 1,
-                'capacite' => 40,
-                'description' => 'Salle de conférence avec équipement de visioconférence'
             ],
             [
-                'name' => 'Salle C301',
-                'etage' => 3,
-                'batiment' => 'Bâtiment C',
+                'name' => 'C401',
+                'capacity' => 50,
                 'etablissement_id' => 1,
-                'capacite' => 15,
-                'description' => 'Petite salle pour séminaires et réunions'
             ],
             [
-                'name' => 'Amphithéâtre B',
-                'etage' => 0,
-                'batiment' => 'Bâtiment Sciences',
+                'name' => 'C402',
+                'capacity' => 50,
                 'etablissement_id' => 1,
-                'capacite' => 150,
-                'description' => 'Amphithéâtre avec équipement spécialisé pour les sciences'
             ],
             [
-                'name' => 'Salle D101',
-                'etage' => 1,
-                'batiment' => 'Bâtiment D',
+                'name' => 'C02',
+                'capacity' => 50,
                 'etablissement_id' => 1,
-                'capacite' => 35,
-                'description' => 'Salle polyvalente avec mobilier modulaire'
-            ]
+            ],
+            [
+                'name' => 'C01',
+                'capacity' => 50,
+                'etablissement_id' => 1,
+            ],
+            [
+                'name' => 'C603',
+                'capacity' => 50,
+                'etablissement_id' => 1,
+            ],
+            [
+                'name' => 'D601',
+                'capacity' => 50,
+                'etablissement_id' => 1,
+            ],
+            [
+                'name' => 'Amphi D6',
+                'capacity' => 200,
+                'etablissement_id' => 1,
+            ],
         ];
 
         foreach ($salles as $salle) {

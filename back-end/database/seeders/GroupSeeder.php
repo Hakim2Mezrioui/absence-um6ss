@@ -12,44 +12,41 @@ class GroupSeeder extends Seeder
      */
     public function run(): void
     {
-        // Groupe 1 - Médecine 1ère année
-        \App\Models\Group::create([
-            'title' => 'Groupe A - Médecine 1ère année',
-            'promotion_id' => 1, // Assurez-vous que cette promotion existe
-            'etablissement_id' => 1, // FACULTÉ MOHAMMED VI DE MÉDECINE UM6SS
-            'ville_id' => 1, // Casablanca
-        ]);
+        $groups = [];
+        
+        // Options disponibles
+        $options = [
+            'Générale', 'LPDN', 'LPIAR', 'LPIBO', 'LPINP', 'LPIP', 
+            'LPKN', 'LPOR', 'LPOT', 'LPPS', 'LPSG', 'LPTIM', 'LPTL'
+        ];
+        
+        // Établissements (4 facultés)
+        $etablissements = [
+            1 => 'MÉDECINE',
+            2 => 'DENTAIRE', 
+            3 => 'PHARMACIE',
+            4 => 'SCIENCES INFIRMIÈRES'
+        ];
+        
+        // Créer 20 groupes pour chaque faculté
+        foreach ($etablissements as $etablissementId => $etablissementName) {
+            for ($i = 1; $i <= 20; $i++) {
+                $optionIndex = ($i - 1) % count($options);
+                $option = $options[$optionIndex];
+                
+                $groups[] = [
+                    'title' => "Groupe {$i} - {$option}",
+                    'promotion_id' => 1,
+                    'etablissement_id' => $etablissementId,
+                    'ville_id' => 1, // Casablanca
+                ];
+            }
+        }
 
-        // Groupe 2 - Médecine 1ère année
-        \App\Models\Group::create([
-            'title' => 'Groupe B - Médecine 1ère année',
-            'promotion_id' => 1, // Assurez-vous que cette promotion existe
-            'etablissement_id' => 1, // FACULTÉ MOHAMMED VI DE MÉDECINE UM6SS
-            'ville_id' => 1, // Casablanca
-        ]);
+        foreach ($groups as $group) {
+            \App\Models\Group::create($group);
+        }
 
-        // Groupe 3 - Pharmacie 1ère année
-        \App\Models\Group::create([
-            'title' => 'Groupe A - Pharmacie 1ère année',
-            'promotion_id' => 1, // Assurez-vous que cette promotion existe
-            'etablissement_id' => 4, // FACULTÉ MOHAMMED VI DE PHARMACIE UM6SS
-            'ville_id' => 1, // Casablanca
-        ]);
-
-        // Groupe 4 - Médecine Dentaire 1ère année
-        \App\Models\Group::create([
-            'title' => 'Groupe A - Médecine Dentaire 1ère année',
-            'promotion_id' => 1, // Assurez-vous que cette promotion existe
-            'etablissement_id' => 3, // FACULTÉ MOHAMMED VI DE MÉDECINE DENTAIRE UM6SS
-            'ville_id' => 1, // Casablanca
-        ]);
-
-        // Groupe 5 - Médecine Vétérinaire 1ère année
-        \App\Models\Group::create([
-            'title' => 'Groupe A - Médecine Vétérinaire 1ère année',
-            'promotion_id' => 1, // Assurez-vous que cette promotion existe
-            'etablissement_id' => 5, // ECOLE MOHAMMED VI DE MÉDECINE VÉTÉRINAIRE UM6SS
-            'ville_id' => 1, // Casablanca
-        ]);
+        $this->command->info("✅ " . count($groups) . " groupes ont été créés avec succès !");
     }
 }

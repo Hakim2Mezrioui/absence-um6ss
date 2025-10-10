@@ -25,43 +25,68 @@ class OptionSeeder extends Seeder
 
         $options = [
             [
-                'name' => 'Pharmacie',
-                'description' => 'Formation en sciences pharmaceutiques',
+                'name' => 'Generale',
+                'description' => 'Formation générale',
                 'etablissement_id' => $etablissements[0],
             ],
             [
-                'name' => 'Médecine',
-                'description' => 'Formation en sciences médicales',
+                'name' => 'LPDN',
+                'description' => 'Licence Professionnelle en Diététique Nutrition',
                 'etablissement_id' => $etablissements[0],
             ],
             [
-                'name' => 'Dentaire',
-                'description' => 'Formation en chirurgie dentaire',
+                'name' => 'LPIAR',
+                'description' => 'Licence Professionnelle en Anesthésie et Réanimation',
                 'etablissement_id' => $etablissements[0],
             ],
             [
-                'name' => 'Biologie',
-                'description' => 'Formation en sciences biologiques',
+                'name' => 'LPIBO',
+                'description' => 'Licence Professionnelle en Infirmier du Bloc Opératoire',
                 'etablissement_id' => $etablissements[0],
             ],
             [
-                'name' => 'Chimie',
-                'description' => 'Formation en sciences chimiques',
+                'name' => 'LPINP',
+                'description' => 'Licence Professionnelle en Néonatologie et Pédiatrie',
                 'etablissement_id' => $etablissements[0],
             ],
             [
-                'name' => 'Physique',
-                'description' => 'Formation en sciences physiques',
+                'name' => 'LPIP',
+                'description' => 'Licence Professionnelle Infirmier Polyvalent',
                 'etablissement_id' => $etablissements[0],
             ],
             [
-                'name' => 'Mathématiques',
-                'description' => 'Formation en mathématiques',
+                'name' => 'LPKN',
+                'description' => 'Licence Professionnelle en Kinésithérapie',
                 'etablissement_id' => $etablissements[0],
             ],
             [
-                'name' => 'Informatique',
-                'description' => 'Formation en sciences informatiques',
+                'name' => 'LPOR',
+                'description' => 'Licence Professionnelle en Orthophonie',
+                'etablissement_id' => $etablissements[0],
+            ],
+            [
+                'name' => 'LPOT',
+                'description' => 'Licence Professionnelle en Orthoptie',
+                'etablissement_id' => $etablissements[0],
+            ],
+            [
+                'name' => 'LPPS',
+                'description' => 'Licence Professionnelle en Psychomotricité',
+                'etablissement_id' => $etablissements[0],
+            ],
+            [
+                'name' => 'LPSG',
+                'description' => 'Licence Professionnelle en Sage femme',
+                'etablissement_id' => $etablissements[0],
+            ],
+            [
+                'name' => 'LPTIM',
+                'description' => 'Licence Professionnelle Technicien Imagerie Médicale',
+                'etablissement_id' => $etablissements[0],
+            ],
+            [
+                'name' => 'LPTL',
+                'description' => 'Licence Professionnelle Technicien de Laboratoire',
                 'etablissement_id' => $etablissements[0],
             ]
         ];

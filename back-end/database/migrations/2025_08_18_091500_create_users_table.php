@@ -22,7 +22,6 @@ return new class extends Migration
             $table->string('email');
             $table->string('password');
             $table->foreignId('role_id')->constrained('roles')->onDelete('cascade');
-            $table->foreignId('post_id')->constrained('posts')->onDelete('cascade');
             $table->rememberToken();
             $table->timestamps();
         });

@@ -14,8 +14,8 @@ class VilleSeeder extends Seeder
     {
         \App\Models\Ville::create(['name' => 'Casablanca']);
         \App\Models\Ville::create(['name' => 'Rabat']);
-        \App\Models\Ville::create(['name' => 'Marrakech']);
         \App\Models\Ville::create(['name' => 'Agadir']);
         \App\Models\Ville::create(['name' => 'Dakhla']);
+        \App\Models\Ville::create(['name' => 'Marrakech']);
     }
 }
