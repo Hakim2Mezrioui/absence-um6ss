@@ -32,7 +32,7 @@ class DatabaseSeeder extends Seeder
             OptionSeeder::class,
             GroupSeeder::class,        // Déplacé avant ExamenSeeder
             ExamenSeeder::class,       // Maintenant après GroupSeeder
-            EtudiantSeeder::class,
+            // EtudiantSeeder::class,
             CoursSeeder::class,
             UserSeeder::class,
             EnseignantSeeder::class,

@@ -14,12 +14,6 @@ class GroupSeeder extends Seeder
     {
         $groups = [];
         
-        // Options disponibles
-        $options = [
-            'Générale', 'LPDN', 'LPIAR', 'LPIBO', 'LPINP', 'LPIP', 
-            'LPKN', 'LPOR', 'LPOT', 'LPPS', 'LPSG', 'LPTIM', 'LPTL'
-        ];
-        
         // Établissements (4 facultés)
         $etablissements = [
             1 => 'MÉDECINE',
@@ -31,11 +25,8 @@ class GroupSeeder extends Seeder
         // Créer 20 groupes pour chaque faculté
         foreach ($etablissements as $etablissementId => $etablissementName) {
             for ($i = 1; $i <= 20; $i++) {
-                $optionIndex = ($i - 1) % count($options);
-                $option = $options[$optionIndex];
-                
                 $groups[] = [
-                    'title' => "Groupe {$i} - {$option}",
+                    'title' => "Groupe {$i}",
                     'promotion_id' => 1,
                     'etablissement_id' => $etablissementId,
                     'ville_id' => 1, // Casablanca

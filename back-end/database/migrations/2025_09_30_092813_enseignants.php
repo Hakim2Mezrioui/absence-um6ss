@@ -13,9 +13,8 @@ return new class extends Migration
     {
         Schema::create('enseignants', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('ville_id')->constrained('villes')->onDelete('cascade');
+            $table->timestamps();
         });
 
         // Pivot table to assign cours to enseignants

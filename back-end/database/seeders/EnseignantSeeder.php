@@ -12,23 +12,21 @@ class EnseignantSeeder extends Seeder
 {
     public function run(): void
     {
-        $ville = Ville::first() ?? Ville::create(['nom' => 'Ville Test']);
+        // Créer l'enseignant Jamila Embarek
+        $user = User::create([
+            'first_name' => 'Jamila',
+            'last_name' => 'Embarek',
+            'email' => 'jembarek@um6ss.ma',
+            'password' => Hash::make('UM6SS@2025'),
+            'role_id' => 3, // Rôle enseignant
+            'ville_id' => 1, // Casablanca
+        ]);
 
-        for ($i = 1; $i <= 5; $i++) {
-            $user = User::create([
-                'first_name' => 'Prof'.$i,
-                'last_name' => 'Test',
-                'email' => 'prof'.$i.'@example.com',
-                'password' => 'password',
-                'role_id' => 3,
-                'ville_id' => $ville->id,
-            ]);
+        Enseignant::create([
+            'user_id' => $user->id,
+        ]);
 
-            Enseignant::create([
-                'user_id' => $user->id,
-                'ville_id' => $ville->id,
-            ]);
-        }
+        $this->command->info("✅ Enseignant Jamila Embarek créé avec succès !");
     }
 }
 

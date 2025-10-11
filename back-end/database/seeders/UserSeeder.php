@@ -5,8 +5,6 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\Role;
-use App\Models\Post;
-use App\Models\Etablissement;
 use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
@@ -18,12 +16,10 @@ class UserSeeder extends Seeder
     {
         // Récupérer les IDs des tables de référence
         $roles = Role::pluck('id')->toArray();
-        $posts = Post::pluck('id')->toArray();
-        $etablissements = Etablissement::pluck('id')->toArray();
 
         // Vérifier que les tables de référence ont des données
-        if (empty($roles) || empty($posts)) {
-            $this->command->warn('Certaines tables de référence sont vides. Veuillez exécuter leurs seeders d\'abord.');
+        if (empty($roles)) {
+            $this->command->warn('La table des rôles est vide. Veuillez exécuter RoleSeeder d\'abord.');
             return;
         }
 
@@ -35,7 +31,7 @@ class UserSeeder extends Seeder
                 'email' => 'hmezrioui@um6ss.ma',
                 'password' => Hash::make('casa012000'),
                 'role_id' => $roles[0], // Premier rôle (probablement Admin)
-                'ville_id' => 0,
+                'ville_id' => 1, // Casablanca
             ],
             [
                 'first_name' => 'Driss',
@@ -43,8 +39,7 @@ class UserSeeder extends Seeder
                 'email' => 'dcharai@um6ss.ma',
                 'password' => Hash::make('UM6SS@2025'),
                 'role_id' => $roles[1] ?? $roles[0], // Deuxième rôle ou premier si pas assez
-                'post_id' => $posts[1] ?? $posts[0], // Deuxième poste ou premier si pas assez
-                'ville_id' => 0,
+                'ville_id' => 1, // Casablanca
             ],
             [
                 'first_name' => 'Youssef',
@@ -52,7 +47,7 @@ class UserSeeder extends Seeder
                 'email' => 'yalkandry@um6ss.ma',
                 'password' => Hash::make('UM6SS@2025'),
                 'role_id' => $roles[2] ?? $roles[0],
-                'ville_id' => 0,
+                'ville_id' => 1, // Casablanca
             ],
             [
                 'first_name' => 'Mohamed Taoufik',
@@ -60,7 +55,7 @@ class UserSeeder extends Seeder
                 'email' => 'mtabdennacer@um6ss.ma',
                 'password' => Hash::make('UM6SS@2025'),
                 'role_id' => $roles[1] ?? $roles[0],
-                'ville_id' => 0,
+                'ville_id' => 1, // Casablanca
             ],
             [
                 'first_name' => 'Anas',
@@ -68,7 +63,7 @@ class UserSeeder extends Seeder
                 'email' => 'aoudadsse@um6ss.ma',
                 'password' => Hash::make('UM6SS@2025'),
                 'role_id' => $roles[0] ?? $roles[0],
-                'ville_id' => 0,
+                'ville_id' => 1, // Casablanca
             ],
             [
                 'first_name' => 'Salma',
@@ -76,15 +71,7 @@ class UserSeeder extends Seeder
                 'email' => 'slamsahel@um6ss.ma',
                 'password' => Hash::make('UM6SS@2025'),
                 'role_id' => $roles[1] ?? $roles[4],
-                'ville_id' => 0,
-            ],
-            [
-                'first_name' => 'Jamila',
-                'last_name' => 'Embarek',
-                'email' => 'jembarek@um6ss.ma',
-                'password' => Hash::make('UM6SS@2025'),
-                'role_id' => $roles[5] ?? $roles[0],
-                'ville_id' => 0,
+                'ville_id' => 1, // Casablanca
             ],
             [
                 'first_name' => 'Lhoussaine',
@@ -92,7 +79,7 @@ class UserSeeder extends Seeder
                 'email' => 'lbalaouch@um6ss.ma',
                 'password' => Hash::make('UM6SS@2025'),
                 'role_id' => $roles[3] ?? $roles[0],
-                'ville_id' => 0,
+                'ville_id' => 1, // Casablanca
             ],
             [
                 'first_name' => 'Hicham',
@@ -100,7 +87,7 @@ class UserSeeder extends Seeder
                 'email' => 'hbenyoussef@um6ss.ma',
                 'password' => Hash::make('UM6SS@2025'),
                 'role_id' => $roles[3] ?? $roles[0],
-                'ville_id' => 0,
+                'ville_id' => 1, // Casablanca
             ]
         ];
 
