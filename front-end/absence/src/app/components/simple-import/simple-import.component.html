@@ -216,7 +216,7 @@
                 [class.text-blue-600]="!hasInvalidCells()">
             {{ hasInvalidCells() ? 'warning_amber' : 'check_circle' }}
           </span>
-          <div class="text-sm">
+          <div class="text-sm flex-1">
             <p class="font-medium" 
                [class.text-slate-900]="hasInvalidCells()"
                [class.text-blue-900]="!hasInvalidCells()"
@@ -234,6 +234,59 @@
                [class.text-blue-700]="!hasInvalidCells()">
               {{ hasInvalidCells() ? 'Corrigez les erreurs avant l\'importation' : 'Prêt pour l\'importation' }}
             </p>
+          </div>
+          
+          <!-- Statistiques détaillées -->
+          <div class="text-xs space-y-1">
+            <div class="grid grid-cols-2 gap-4">
+              <div class="text-center p-2 rounded"
+                   [class.bg-red-50]="hasInvalidCells()"
+                   [class.bg-green-50]="!hasInvalidCells()">
+                <p class="font-semibold"
+                   [class.text-red-700]="hasInvalidCells()"
+                   [class.text-green-700]="!hasInvalidCells()">
+                  {{ getInvalidCellsCount() }}
+                </p>
+                <p class="text-xs"
+                   [class.text-red-600]="hasInvalidCells()"
+                   [class.text-green-600]="!hasInvalidCells()">
+                  Cellules avec erreurs
+                </p>
+              </div>
+              <div class="text-center p-2 rounded"
+                   [class.bg-red-50]="hasInvalidCells()"
+                   [class.bg-green-50]="!hasInvalidCells()">
+                <p class="font-semibold"
+                   [class.text-red-700]="hasInvalidCells()"
+                   [class.text-green-700]="!hasInvalidCells()">
+                  {{ getValidCellsCount() }}
+                </p>
+                <p class="text-xs"
+                   [class.text-red-600]="hasInvalidCells()"
+                   [class.text-green-600]="!hasInvalidCells()">
+                  Cellules correctes
+                </p>
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4 mt-2">
+              <div class="text-center p-2 rounded bg-slate-50">
+                <p class="font-semibold text-slate-700">
+                  {{ getInvalidColumnsCount() }}
+                </p>
+                <p class="text-xs text-slate-600">
+                  Colonnes avec erreurs
+                </p>
+              </div>
+              <div class="text-center p-2 rounded bg-slate-50">
+                <p class="font-semibold text-slate-700">
+                  {{ getValidColumnsCount() }}
+                </p>
+                <p class="text-xs text-slate-600">
+                  Colonnes correctes
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -302,7 +355,7 @@
         <p class="text-sm text-slate-600 mt-1">{{ tableRows.length }} ligne(s) de données</p>
       </div>
       
-      <div class="overflow-x-auto">
+      <div class="overflow-x-auto max-h-[60vh] overflow-y-auto">
         <table class="min-w-full divide-y divide-slate-200">
           <thead class="bg-slate-50">
             <tr>
@@ -322,7 +375,12 @@
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-slate-200">
-            <tr *ngFor="let row of tableRows; index as i; trackBy: trackByRow" class="hover:bg-slate-50 transition-colors">
+            <tr *ngFor="let row of tableRows; index as i; trackBy: trackByRow"
+                class="transition-colors"
+                [class.bg-red-50]="isRowInvalid(i)"
+                [class.bg-green-50]="isRowValid(i)"
+                [class.hover:bg-red-100]="isRowInvalid(i)"
+                [class.hover:bg-green-100]="isRowValid(i)">
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-500">{{ i + 1 }}</td>
               <td *ngFor="let header of tableHeaders; trackBy: trackByHeader" class="px-6 py-4 align-top min-w-40">
                 <div class="space-y-2">

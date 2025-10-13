@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use PDO;
 use PDOException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use App\Http\Controllers\GroupService;
 use App\Services\ConfigurationService;
 // Commenté temporairement en attendant l'activation de l'extension GD
@@ -1028,49 +1029,117 @@ class EtudiantController extends Controller
             // Détecter le type de fichier et le traiter
             $fileExtension = strtolower($file->getClientOriginalExtension());
             
+            // Traitement différent selon le type de fichier
             if (in_array($fileExtension, ['xlsx', 'xls'])) {
-                // Traitement des fichiers Excel
-                $data = $this->parseExcelFile($path);
-                if (empty($data)) {
-                    \Log::error('Échec du parsing Excel pour le fichier: ' . $file->getClientOriginalName());
+                // Pour les fichiers Excel, utiliser parseExcelFile directement
+                try {
+                    $data = $this->parseExcelFile($path);
+                    if (empty($data)) {
+                        return response()->json([
+                            'message' => 'Unable to parse Excel file. Please check the file format.',
+                            'debug_info' => [
+                                'file_name' => $file->getClientOriginalName(),
+                                'file_size' => $file->getSize(),
+                                'file_path' => $path,
+                                'extension' => $fileExtension
+                            ]
+                        ], 400);
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('Erreur parseExcelFile: ' . $e->getMessage());
                     return response()->json([
-                        'message' => 'Unable to parse Excel file. Please convert to CSV format.',
+                        'message' => 'Error parsing Excel file: ' . $e->getMessage(),
                         'debug_info' => [
                             'file_name' => $file->getClientOriginalName(),
                             'file_size' => $file->getSize(),
-                            'file_path' => $path,
                             'extension' => $fileExtension
                         ]
                     ], 400);
                 }
-                $headers = array_keys($data[0]);
             } else {
-                // Traitement des fichiers CSV/TXT
-                $handle = fopen($path, 'r');
-                if ($handle === false) {
-                    return response()->json(['message' => 'Unable to open file'], 400);
+                // Pour les fichiers CSV/TXT, utiliser parseCsvFile
+                try {
+                    $data = $this->parseCsvFile($file);
+                    if (empty($data)) {
+                        return response()->json([
+                            'message' => 'Unable to parse CSV file. Please check the file format.',
+                            'debug_info' => [
+                                'file_name' => $file->getClientOriginalName(),
+                                'file_size' => $file->getSize(),
+                                'extension' => $fileExtension
+                            ]
+                        ], 400);
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('Erreur parseCsvFile: ' . $e->getMessage());
+                    return response()->json([
+                        'message' => 'Error parsing CSV file: ' . $e->getMessage(),
+                        'debug_info' => [
+                            'file_name' => $file->getClientOriginalName(),
+                            'file_size' => $file->getSize(),
+                            'extension' => $fileExtension
+                        ]
+                    ], 400);
                 }
-
-                // Détecter le délimiteur
-                $firstLine = fgets($handle);
-                $delimiter = $this->detectDelimiter($firstLine);
-                rewind($handle);
-
-                // Parser le CSV
-                while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
-                    $data[] = $row;
-                }
-                fclose($handle);
             }
+            
+            // Les données sont maintenant des tableaux associatifs
+            $headers = array_keys($data[0]);
+
+            // Debug: Log des headers détectés
+            \Log::info('Headers détectés', [
+                'headers' => $headers,
+                'data_sample' => !empty($data) ? $data[0] : null,
+                'file_name' => $file->getClientOriginalName()
+            ]);
+
+            // Mapper les colonnes françaises vers les colonnes anglaises
+            $columnMapping = [
+                'prenom' => 'first_name',
+                'prénom' => 'first_name',
+                'nom' => 'last_name',
+                'email' => 'email',
+                'matricule' => 'matricule',
+                'promotion' => 'promotion_name',
+                'etablissement' => 'etablissement_name',
+                'ville' => 'ville_name',
+                'ville_name' => 'ville_name',
+                'groupe' => 'group_title',
+                'option' => 'option_name'
+            ];
+
+            // Appliquer le mapping aux headers et aux données
+            $mappedHeaders = [];
+            foreach ($headers as $header) {
+                $normalizedHeader = strtolower(trim($header));
+                $mappedHeaders[] = $columnMapping[$normalizedHeader] ?? $normalizedHeader;
+            }
+
+            // Mapper les données
+            $mappedData = [];
+            foreach ($data as $row) {
+                $mappedRow = [];
+                foreach ($headers as $index => $originalHeader) {
+                    $normalizedHeader = strtolower(trim($originalHeader));
+                    $mappedKey = $columnMapping[$normalizedHeader] ?? $normalizedHeader;
+                    $mappedRow[$mappedKey] = $row[$originalHeader] ?? '';
+                }
+                $mappedData[] = $mappedRow;
+            }
+
+            $data = $mappedData;
+            $headers = $mappedHeaders;
+
+            // Debug: Log des headers après mapping
+            \Log::info('Headers après mapping', [
+                'original_headers' => array_keys($data[0] ?? []),
+                'mapped_headers' => $headers,
+                'data_sample' => !empty($data) ? $data[0] : null
+            ]);
 
             if (empty($data)) {
                 return response()->json(['message' => 'File is empty'], 400);
             }
-
-            // En-têtes (première ligne)
-            $headers = array_shift($data);
-            $headers = array_map('trim', $headers);
-            $headers = array_map('strtolower', $headers);
             
             // Vérifier si c'est l'ancienne structure et la convertir
             if ($this->isLegacyFormat($headers)) {
@@ -1106,24 +1175,11 @@ class EtudiantController extends Controller
             $errors = 0;
             $errorDetails = [];
 
-            foreach ($data as $index => $row) {
-                $lineNumber = $index + 2; // +2 car on a supprimé l'en-tête et les index commencent à 0
+            foreach ($data as $index => $studentData) {
+                $lineNumber = $index + 2; // +2 car on compte l'en-tête et les index commencent à 0
                 
                 try {
-                    // Assurer que la ligne a le bon nombre de colonnes
-                    if (count($row) !== count($headers)) {
-                        $errorDetails[] = [
-                            'line' => $lineNumber,
-                            'message' => 'Number of columns does not match headers'
-                        ];
-                        $errors++;
-                        continue;
-                    }
-
-                    // Créer un tableau associatif
-                    $studentData = array_combine($headers, array_map('trim', $row));
-
-                    // Validation des données
+                    // Validation des données de base
                     if (empty($studentData['matricule']) || empty($studentData['email'])) {
                         $errorDetails[] = [
                             'line' => $lineNumber,
@@ -1179,6 +1235,7 @@ class EtudiantController extends Controller
                     }
 
                 } catch (\Exception $e) {
+                    \Log::error('Erreur lors du traitement de la ligne ' . $lineNumber . ': ' . $e->getMessage());
                     $errorDetails[] = [
                         'line' => $lineNumber,
                         'message' => $e->getMessage()
@@ -1186,6 +1243,15 @@ class EtudiantController extends Controller
                     $errors++;
                 }
             }
+
+            // Log des résultats pour débogage
+            \Log::info('Import terminé', [
+                'total_processed' => count($data),
+                'created' => $created,
+                'updated' => $updated,
+                'errors' => $errors,
+                'file_name' => $file->getClientOriginalName()
+            ]);
 
             // Réponse de succès
             return response()->json([
@@ -1201,9 +1267,21 @@ class EtudiantController extends Controller
             ], 200);
 
         } catch (\Exception $e) {
+            \Log::error('Erreur lors de l\'importation: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return response()->json([
                 'message' => 'Error processing file',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'error_type' => get_class($e),
+                'debug_info' => [
+                    'file_name' => $file->getClientOriginalName(),
+                    'file_size' => $file->getSize(),
+                    'extension' => $fileExtension
+                ]
             ], 500);
         }
     }
@@ -1643,12 +1721,20 @@ class EtudiantController extends Controller
             $highestRow = $worksheet->getHighestRow();
             $highestColumn = $worksheet->getHighestColumn();
             
-            // Lire toutes les données
-            for ($row = 1; $row <= $highestRow; $row++) {
+            // Lire la première ligne pour les en-têtes
+            $headers = [];
+            for ($col = 'A'; $col <= $highestColumn; $col++) {
+                $cellValue = $worksheet->getCell($col . '1')->getCalculatedValue();
+                $headers[] = $cellValue ?? '';
+            }
+            
+            // Lire les données en créant des tableaux associatifs
+            for ($row = 2; $row <= $highestRow; $row++) {
                 $rowData = [];
-                for ($col = 'A'; $col <= $highestColumn; $col++) {
+                for ($colIndex = 0; $colIndex < count($headers); $colIndex++) {
+                    $col = $this->numberToColumn($colIndex + 1);
                     $cellValue = $worksheet->getCell($col . $row)->getCalculatedValue();
-                    $rowData[] = $cellValue ?? '';
+                    $rowData[$headers[$colIndex]] = $cellValue ?? '';
                 }
                 $data[] = $rowData;
             }
@@ -1669,7 +1755,25 @@ class EtudiantController extends Controller
         try {
             $xlsx = new \SimpleXLSX($filePath);
             if ($xlsx->success()) {
-                return $xlsx->rows();
+                $rows = $xlsx->rows();
+                if (empty($rows)) {
+                    return [];
+                }
+                
+                // Première ligne = en-têtes
+                $headers = array_map('strtolower', array_map('trim', $rows[0]));
+                
+                // Convertir les données en tableaux associatifs
+                $data = [];
+                for ($i = 1; $i < count($rows); $i++) {
+                    $rowData = [];
+                    for ($j = 0; $j < count($headers); $j++) {
+                        $rowData[$headers[$j]] = $rows[$i][$j] ?? '';
+                    }
+                    $data[] = $rowData;
+                }
+                
+                return $data;
             }
             return [];
             
@@ -1756,15 +1860,26 @@ class EtudiantController extends Controller
             
             $zip->close();
             
-            // Convertir en tableau 2D
+            // Convertir en tableau associatif
             $data = [];
-            for ($row = 1; $row <= $maxRow; $row++) {
-                $rowData = [];
+            if (!empty($rows[1])) {
+                // Première ligne = en-têtes
+                $headers = [];
                 for ($colNum = 1; $colNum <= $maxCol; $colNum++) {
                     $col = $this->numberToColumn($colNum);
-                    $rowData[] = $rows[$row][$col] ?? '';
+                    $headers[] = strtolower(trim($rows[1][$col] ?? ''));
                 }
-                $data[] = $rowData;
+                
+                // Lire les données en créant des tableaux associatifs
+                for ($row = 2; $row <= $maxRow; $row++) {
+                    $rowData = [];
+                    for ($colIndex = 0; $colIndex < count($headers); $colIndex++) {
+                        $colNum = $colIndex + 1;
+                        $col = $this->numberToColumn($colNum);
+                        $rowData[$headers[$colIndex]] = $rows[$row][$col] ?? '';
+                    }
+                    $data[] = $rowData;
+                }
             }
             
             return $data;
@@ -1838,6 +1953,20 @@ class EtudiantController extends Controller
     {
         try {
             $path = is_string($uploadedFile) ? $uploadedFile : $uploadedFile->getRealPath();
+            
+            // Détecter l'encodage du fichier
+            $content = file_get_contents($path);
+            $encoding = mb_detect_encoding($content, ['UTF-8', 'ISO-8859-1', 'Windows-1252'], true);
+            
+            // Si ce n'est pas UTF-8, convertir
+            if ($encoding && $encoding !== 'UTF-8') {
+                $content = mb_convert_encoding($content, 'UTF-8', $encoding);
+                // Réécrire le fichier temporairement avec le bon encodage
+                $tempPath = tempnam(sys_get_temp_dir(), 'csv_utf8_');
+                file_put_contents($tempPath, $content);
+                $path = $tempPath;
+            }
+            
             $handle = fopen($path, 'r');
             if ($handle === false) {
                 return [];
@@ -1872,11 +2001,28 @@ class EtudiantController extends Controller
                 } elseif (count($row) > count($headers)) {
                     $row = array_slice($row, 0, count($headers));
                 }
-                $assoc = array_combine($headers, array_map('trim', $row));
-                $rows[] = $assoc;
+                
+                // Nettoyer chaque valeur pour éviter les problèmes d'encodage
+                $cleanRow = array_map(function($value) {
+                    if ($value === null) return null;
+                    // Supprimer les caractères de contrôle et normaliser
+                    $value = preg_replace('/[\x00-\x1F\x7F]/', '', $value);
+                    return trim($value);
+                }, $row);
+                
+                $assoc = array_combine($headers, $cleanRow);
+                if ($assoc !== false) {
+                    $rows[] = $assoc;
+                }
             }
 
             fclose($handle);
+            
+            // Nettoyer le fichier temporaire si créé
+            if (isset($tempPath) && file_exists($tempPath)) {
+                unlink($tempPath);
+            }
+            
             return $rows;
         } catch (\Exception $e) {
             \Log::error('Erreur parseCsvFile: ' . $e->getMessage());
@@ -1964,7 +2110,7 @@ class EtudiantController extends Controller
             $data['email'] = $studentData['email'];
         }
         
-        $data['password'] = bcrypt('password123');
+        $data['password'] = 'password123'; // Mot de passe en clair pour éviter les timeouts
         
         // Validation des relations avec suggestions
         $relations = ['promotion_id', 'etablissement_id', 'ville_id', 'group_id', 'option_id'];
@@ -2275,3 +2421,4 @@ class EtudiantController extends Controller
         }
     }
 }
+

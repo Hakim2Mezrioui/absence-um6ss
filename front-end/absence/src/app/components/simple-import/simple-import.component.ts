@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { read, utils, WorkBook, writeFile, write } from 'xlsx';
 import { EtudiantsService, FilterOptions } from '../../services/etudiants.service';
@@ -42,7 +42,7 @@ interface ImportResult {
   templateUrl: './simple-import.component.html',
   styleUrls: ['./simple-import.component.css']
 })
-export class SimpleStudentImportComponent implements OnInit {
+export class SimpleStudentImportComponent implements OnInit, OnDestroy {
   readonly templateHeaders = [
     'matricule',
     'first_name',
@@ -79,6 +79,11 @@ export class SimpleStudentImportComponent implements OnInit {
   private referenceData: Record<string, ReferenceEntry[]> = {};
   private suggestionsByCell: Record<number, Record<string, Suggestion[]>> = {};
   private invalidCells: Record<number, Record<string, boolean>> = {};
+  private validationTimers: Record<string, any> = {};
+  private readonly debounceMs = 200;
+  private worker: Worker | null = null;
+  private requestCounter = 0;
+  private lastRequestIdByCell: Record<string, number> = {};
   
   // Propriétés pour le débogage
   fileInfo: {
@@ -98,6 +103,33 @@ export class SimpleStudentImportComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadReferenceData();
+    // Initialize web worker if supported
+    try {
+      this.worker = new Worker(new URL('./simple-import.worker.ts', import.meta.url), { type: 'module' });
+      this.worker.onmessage = (e: MessageEvent<any>) => {
+        const { requestId, rowIndex, header, isValid, suggestions } = e.data || {};
+        const key = `${rowIndex}:${header}`;
+        // Ignore outdated responses
+        if (this.lastRequestIdByCell[key] !== requestId) return;
+        if (!this.suggestionsByCell[rowIndex]) this.suggestionsByCell[rowIndex] = {};
+        if (!this.invalidCells[rowIndex]) this.invalidCells[rowIndex] = {};
+        this.suggestionsByCell[rowIndex][header] = suggestions || [];
+        this.invalidCells[rowIndex][header] = !isValid;
+      };
+    } catch {
+      this.worker = null;
+    }
+  }
+
+  ngOnDestroy(): void {
+    // Clear any pending validation timers
+    Object.values(this.validationTimers).forEach((t) => clearTimeout(t));
+    this.validationTimers = {};
+    // Terminate worker
+    if (this.worker) {
+      this.worker.terminate();
+      this.worker = null;
+    }
   }
 
   downloadTemplate(): void {
@@ -230,6 +262,12 @@ export class SimpleStudentImportComponent implements OnInit {
         
         console.log('En-têtes détectés:', this.tableHeaders);
 
+        // Ajouter la colonne ville si elle n'existe pas
+        if (!this.tableHeaders.includes('ville_name')) {
+          this.tableHeaders.push('ville_name');
+          console.log('Colonne ville ajoutée automatiquement');
+        }
+
         // Traiter les données avec une meilleure gestion des types
         this.tableRows = dataRows.map((row, rowIndex) => {
           const rowObject: StudentRow = {};
@@ -251,6 +289,11 @@ export class SimpleStudentImportComponent implements OnInit {
             
             rowObject[header] = cellValue;
           });
+          
+          // S'assurer que la colonne ville existe avec une valeur vide si elle n'était pas dans le fichier
+          if (!rowObject.hasOwnProperty('ville_name')) {
+            rowObject['ville_name'] = '';
+          }
           
           // Log pour débogage
           if (rowIndex < 3) {
@@ -310,7 +353,15 @@ export class SimpleStudentImportComponent implements OnInit {
       ...this.tableRows[rowIndex],
       [header]: value
     };
-    this.validateCell(rowIndex, header);
+    const timerKey = `${rowIndex}:${header}`;
+    if (this.validationTimers[timerKey]) {
+      clearTimeout(this.validationTimers[timerKey]);
+    }
+    // Debounce validation to avoid blocking UI on every keystroke
+    this.validationTimers[timerKey] = setTimeout(() => {
+      this.validateCell(rowIndex, header);
+      delete this.validationTimers[timerKey];
+    }, this.debounceMs);
   }
 
   clearTable(): void {
@@ -404,6 +455,58 @@ export class SimpleStudentImportComponent implements OnInit {
       });
     });
     return count;
+  }
+
+  getValidCellsCount(): number {
+    let count = 0;
+    Object.keys(this.invalidCells).forEach(rowIndex => {
+      Object.values(this.invalidCells[parseInt(rowIndex)]).forEach(isInvalid => {
+        if (!isInvalid) count++;
+      });
+    });
+    return count;
+  }
+
+  getTotalCellsCount(): number {
+    let count = 0;
+    Object.keys(this.invalidCells).forEach(rowIndex => {
+      count += Object.keys(this.invalidCells[parseInt(rowIndex)]).length;
+    });
+    return count;
+  }
+
+  getInvalidColumnsCount(): number {
+    const invalidColumns = new Set<string>();
+    Object.keys(this.invalidCells).forEach(rowIndex => {
+      Object.keys(this.invalidCells[parseInt(rowIndex)]).forEach(header => {
+        if (this.invalidCells[parseInt(rowIndex)][header]) {
+          invalidColumns.add(header);
+        }
+      });
+    });
+    return invalidColumns.size;
+  }
+
+  getValidColumnsCount(): number {
+    const validColumns = new Set<string>();
+    Object.keys(this.invalidCells).forEach(rowIndex => {
+      Object.keys(this.invalidCells[parseInt(rowIndex)]).forEach(header => {
+        if (!this.invalidCells[parseInt(rowIndex)][header]) {
+          validColumns.add(header);
+        }
+      });
+    });
+    return validColumns.size;
+  }
+
+  isRowInvalid(rowIndex: number): boolean {
+    const rowInvalidMap = this.invalidCells[rowIndex];
+    if (!rowInvalidMap) return false;
+    return Object.values(rowInvalidMap).some(isInvalid => !!isInvalid);
+  }
+
+  isRowValid(rowIndex: number): boolean {
+    return !this.isRowInvalid(rowIndex);
   }
 
 
@@ -587,6 +690,13 @@ export class SimpleStudentImportComponent implements OnInit {
       group_title: (options.groups || []).map((g) => this.toReferenceEntry(g.title, g.id)),
       option_name: (options.options || []).map((o) => this.toReferenceEntry(o.name, o.id))
     };
+    // Send indexes to worker once prepared
+    if (this.worker) {
+      Object.keys(this.referenceData).forEach((header) => {
+        const reference = this.referenceData[header];
+        this.worker!.postMessage({ type: 'init', header, reference });
+      });
+    }
   }
 
   private validateRows(): void {
@@ -623,7 +733,21 @@ export class SimpleStudentImportComponent implements OnInit {
       this.invalidCells[rowIndex][header] = false;
       return;
     }
-
+    // If worker available, offload computation
+    if (this.worker) {
+      const requestId = ++this.requestCounter;
+      const key = `${rowIndex}:${header}`;
+      this.lastRequestIdByCell[key] = requestId;
+      this.worker.postMessage({
+        requestId,
+        rowIndex,
+        header,
+        rawValue: value,
+        reference: referenceEntries
+      });
+      return;
+    }
+    // Fallback to sync computation
     const { isValid, suggestions } = this.computeSuggestions(referenceEntries, value);
     this.suggestionsByCell[rowIndex][header] = suggestions;
     this.invalidCells[rowIndex][header] = !isValid;
@@ -640,12 +764,33 @@ export class SimpleStudentImportComponent implements OnInit {
       };
     }
 
+    // Fast path: for very short inputs, avoid expensive scoring
+    if (normalized.length < 3) {
+      const quick = reference
+        .filter((entry) => entry.normalized.startsWith(normalized) || entry.normalized.includes(normalized))
+        .slice(0, 5)
+        .map((entry) => this.toSuggestion(entry));
+      // If we have an exact match, it's valid; otherwise suggest without heavy work
+      const exact = reference.find((entry) => entry.normalized === normalized);
+      if (exact) {
+        return { isValid: true, suggestions: [] };
+      }
+      return { isValid: false, suggestions: quick.length ? quick : reference.slice(0, 5).map((e) => this.toSuggestion(e)) };
+    }
+
     const exactMatch = reference.find((entry) => entry.normalized === normalized);
     if (exactMatch) {
       return { isValid: true, suggestions: [] };
     }
 
-    const scored = reference.map((entry) => {
+    // Reduce work: try quick candidates first, then score a limited subset
+    const quickCandidates = reference.filter((entry) =>
+      entry.normalized.startsWith(normalized) || entry.normalized.includes(normalized) || normalized.includes(entry.normalized)
+    );
+
+    const pool = quickCandidates.length ? quickCandidates : reference.slice(0, Math.min(300, reference.length));
+
+    const scored = pool.map((entry) => {
       let score = 0;
       if (entry.normalized.includes(normalized) || normalized.includes(entry.normalized)) {
         score += 50;
