@@ -1,302 +1,402 @@
-<div class="min-h-screen bg-gray-50 py-8">
-  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
     <!-- Header -->
     <div class="mb-8">
-      <div class="flex items-center justify-between">
-        <div>
-          <h1 class="text-3xl font-bold text-gray-900">Modifier l'étudiant</h1>
-          <p class="mt-2 text-gray-600">Modifiez les informations de l'étudiant sélectionné</p>
-        </div>
-        <div class="flex gap-3">
+      <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-gradient-to-br from-green-600 to-emerald-700 rounded-xl flex items-center justify-center">
+              <span class="material-icons text-white text-2xl">edit</span>
+            </div>
+            <div>
+              <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                <span>Modifier l'Étudiant</span>
+                <span class="text-sm bg-green-100 text-green-800 px-3 py-1 rounded-full font-medium">Modification</span>
+              </h1>
+              <p class="mt-2 text-gray-600 flex items-center gap-2">
+                <span class="material-icons text-green-600 text-lg">info</span>
+                <span *ngIf="currentStudent">Modification du profil de {{ getFullName() }}</span>
+                <span *ngIf="!currentStudent">Modification du profil étudiant</span>
+              </p>
+            </div>
+          </div>
           <button 
             (click)="goBack()"
-            class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center gap-2"
+            [disabled]="loading"
+            class="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white px-6 py-3 rounded-xl transition-all duration-300 flex items-center gap-3 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
           >
             <span class="material-icons">arrow_back</span>
-            Retour
+            <span class="font-medium">Retour</span>
           </button>
         </div>
       </div>
     </div>
 
     <!-- Loading State -->
-    <div *ngIf="loading" class="flex justify-center items-center py-12">
-      <div class="loading-spinner rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    <div *ngIf="loading && !currentStudent" class="flex items-center justify-center py-20">
+      <div class="text-center">
+        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <span class="material-icons text-blue-600 text-2xl animate-spin">refresh</span>
+        </div>
+        <h3 class="text-xl font-semibold text-gray-700 mb-2">Chargement des données...</h3>
+        <p class="text-gray-500">Récupération des informations de l'étudiant</p>
+      </div>
     </div>
 
     <!-- Error State -->
-    <div *ngIf="error && !loading" class="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
-      <div class="flex">
+    <div *ngIf="error && !currentStudent" class="bg-gradient-to-r from-red-50 to-pink-50 border-l-4 border-red-500 p-6 rounded-lg">
+      <div class="flex items-start gap-4">
         <div class="flex-shrink-0">
-          <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-          </svg>
+          <div class="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center">
+            <span class="material-icons text-white text-lg">error</span>
+          </div>
         </div>
-        <div class="ml-3">
-          <p class="text-sm text-red-800">{{ error }}</p>
+        <div class="flex-1">
+          <h3 class="text-lg font-semibold text-red-800 mb-2">Erreur de chargement</h3>
+          <p class="text-red-700">{{ error }}</p>
+          <button 
+            (click)="goBack()"
+            class="mt-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center gap-2"
+          >
+            <span class="material-icons">arrow_back</span>
+            <span>Retour</span>
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- Main Form -->
-    <div *ngIf="!loading && !error" class="bg-white rounded-lg shadow-sm border border-gray-200">
-      <!-- Form Header -->
-      <div class="bg-gray-50 border-b border-gray-200 p-6">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span class="material-icons text-white">edit</span>
+    <!-- Formulaire -->
+    <div *ngIf="currentStudent" class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+      <form [formGroup]="studentForm" (ngSubmit)="onSubmit()" class="space-y-0">
+          
+        <!-- Section Informations Personnelles -->
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200 p-6">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center">
+              <span class="material-icons text-white text-lg">person</span>
+            </div>
+            <div>
+              <h2 class="text-xl font-semibold text-gray-800">Informations Personnelles</h2>
+              <p class="text-sm text-gray-600">Détails de base de l'étudiant</p>
+            </div>
           </div>
-          <div>
-            <h2 class="text-lg font-semibold text-gray-900">Informations de l'étudiant</h2>
-            <p class="text-sm text-gray-600">Modifiez les détails ci-dessous</p>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Prénom -->
+            <div>
+              <label for="first_name" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <span class="material-icons text-blue-600 text-lg">person</span>
+                Prénom <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                <input
+                  id="first_name"
+                  type="text"
+                  formControlName="first_name"
+                  placeholder="Saisissez le prénom"
+                  [class]="isFieldInvalid('first_name') 
+                    ? 'w-full px-4 py-3 pl-12 border-2 border-red-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50'
+                    : 'w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white hover:border-blue-400 transition-all duration-200'"
+                >
+                <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">edit</span>
+              </div>
+              <div *ngIf="isFieldInvalid('first_name')" class="mt-2 flex items-center gap-2 text-sm text-red-600">
+                <span class="material-icons text-sm">error</span>
+                {{ getErrorMessage('first_name') }}
+              </div>
+            </div>
+
+            <!-- Nom -->
+            <div>
+              <label for="last_name" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <span class="material-icons text-blue-600 text-lg">person</span>
+                Nom de famille <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                <input
+                  id="last_name"
+                  type="text"
+                  formControlName="last_name"
+                  placeholder="Saisissez le nom de famille"
+                  [class]="isFieldInvalid('last_name') 
+                    ? 'w-full px-4 py-3 pl-12 border-2 border-red-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50'
+                    : 'w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white hover:border-blue-400 transition-all duration-200'"
+                >
+                <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">edit</span>
+              </div>
+              <div *ngIf="isFieldInvalid('last_name')" class="mt-2 flex items-center gap-2 text-sm text-red-600">
+                <span class="material-icons text-sm">error</span>
+                {{ getErrorMessage('last_name') }}
+              </div>
+            </div>
+
+            <!-- Email -->
+            <div>
+              <label for="email" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <span class="material-icons text-blue-600 text-lg">email</span>
+                Adresse email <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                <input
+                  id="email"
+                  type="email"
+                  formControlName="email"
+                  placeholder="exemple@email.com"
+                  [class]="isFieldInvalid('email') 
+                    ? 'w-full px-4 py-3 pl-12 border-2 border-red-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50'
+                    : 'w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white hover:border-blue-400 transition-all duration-200'"
+                >
+                <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">email</span>
+              </div>
+              <div *ngIf="isFieldInvalid('email')" class="mt-2 flex items-center gap-2 text-sm text-red-600">
+                <span class="material-icons text-sm">error</span>
+                {{ getErrorMessage('email') }}
+              </div>
+            </div>
+
+            <!-- Matricule -->
+            <div>
+              <label for="matricule" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <span class="material-icons text-blue-600 text-lg">badge</span>
+                Matricule <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                <input
+                  id="matricule"
+                  type="text"
+                  formControlName="matricule"
+                  placeholder="Ex: ETU2024001"
+                  [class]="isFieldInvalid('matricule') 
+                    ? 'w-full px-4 py-3 pl-12 border-2 border-red-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50'
+                    : 'w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white hover:border-blue-400 transition-all duration-200'"
+                >
+                <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">badge</span>
+              </div>
+              <div *ngIf="isFieldInvalid('matricule')" class="mt-2 flex items-center gap-2 text-sm text-red-600">
+                <span class="material-icons text-sm">error</span>
+                {{ getErrorMessage('matricule') }}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Form Content -->
-      <form [formGroup]="etudiantForm" (ngSubmit)="onSubmit()" class="p-6">
-        <div class="space-y-8">
-          <!-- Informations personnelles -->
-          <div>
-            <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2 mb-4">
-              <span class="material-icons text-blue-600 text-lg">person</span>
-              Informations Personnelles
-            </h3>
-            
-            <div class="bg-gray-50 rounded-lg p-4 space-y-4">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Prénom -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Prénom *</label>
-                  <input 
-                    type="text"
-                    formControlName="first_name" 
-                    placeholder="Entrez le prénom"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    [class.border-red-500]="etudiantForm.get('first_name')?.invalid && etudiantForm.get('first_name')?.touched"
-                  >
-                  <div *ngIf="etudiantForm.get('first_name')?.invalid && etudiantForm.get('first_name')?.touched" class="mt-1 text-sm text-red-600">
-                    <div *ngIf="etudiantForm.get('first_name')?.hasError('required')">Le prénom est requis</div>
-                    <div *ngIf="etudiantForm.get('first_name')?.hasError('minlength')">Le prénom doit contenir au moins 2 caractères</div>
-                  </div>
-                </div>
-
-                <!-- Nom -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Nom *</label>
-                  <input 
-                    type="text"
-                    formControlName="last_name" 
-                    placeholder="Entrez le nom"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    [class.border-red-500]="etudiantForm.get('last_name')?.invalid && etudiantForm.get('last_name')?.touched"
-                  >
-                  <div *ngIf="etudiantForm.get('last_name')?.invalid && etudiantForm.get('last_name')?.touched" class="mt-1 text-sm text-red-600">
-                    <div *ngIf="etudiantForm.get('last_name')?.hasError('required')">Le nom est requis</div>
-                    <div *ngIf="etudiantForm.get('last_name')?.hasError('minlength')">Le nom doit contenir au moins 2 caractères</div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Matricule -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Matricule *</label>
-                  <input 
-                    type="text"
-                    formControlName="matricule" 
-                    placeholder="Entrez le matricule"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    [class.border-red-500]="etudiantForm.get('matricule')?.invalid && etudiantForm.get('matricule')?.touched"
-                  >
-                  <div *ngIf="etudiantForm.get('matricule')?.invalid && etudiantForm.get('matricule')?.touched" class="mt-1 text-sm text-red-600">
-                    <div *ngIf="etudiantForm.get('matricule')?.hasError('required')">Le matricule est requis</div>
-                    <div *ngIf="etudiantForm.get('matricule')?.hasError('minlength')">Le matricule doit contenir au moins 3 caractères</div>
-                  </div>
-                </div>
-
-                <!-- Email -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
-                  <input 
-                    type="email"
-                    formControlName="email" 
-                    placeholder="Entrez l'email"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    [class.border-red-500]="etudiantForm.get('email')?.invalid && etudiantForm.get('email')?.touched"
-                  >
-                  <div *ngIf="etudiantForm.get('email')?.invalid && etudiantForm.get('email')?.touched" class="mt-1 text-sm text-red-600">
-                    <div *ngIf="etudiantForm.get('email')?.hasError('required')">L'email est requis</div>
-                    <div *ngIf="etudiantForm.get('email')?.hasError('email')">Veuillez entrer un email valide</div>
-                  </div>
-                </div>
-              </div>
-
+        <!-- Section Affectation Académique -->
+        <div class="bg-gradient-to-r from-purple-50 to-violet-50 border-b border-gray-200 p-6">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-gradient-to-br from-purple-600 to-violet-700 rounded-lg flex items-center justify-center">
+              <span class="material-icons text-white text-lg">school</span>
+            </div>
+            <div>
+              <h2 class="text-xl font-semibold text-gray-800">Affectation Académique</h2>
+              <p class="text-sm text-gray-600">Promotion, groupe, ville et établissement</p>
             </div>
           </div>
 
-          <!-- Informations académiques -->
-          <div>
-            <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2 mb-4">
-              <span class="material-icons text-green-600 text-lg">school</span>
-              Informations Académiques
-            </h3>
-            
-            <div class="bg-gray-50 rounded-lg p-4 space-y-4">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Promotion -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Promotion *</label>
-                  <select
-                    formControlName="promotion_id"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    [class.border-red-500]="etudiantForm.get('promotion_id')?.invalid && etudiantForm.get('promotion_id')?.touched"
-                  >
-                    <option value="">Sélectionnez une promotion</option>
-                    <option *ngFor="let promotion of promotions" [value]="promotion.id">
-                      {{ promotion.name }}
-                    </option>
-                  </select>
-                  <div *ngIf="etudiantForm.get('promotion_id')?.invalid && etudiantForm.get('promotion_id')?.touched" class="mt-1 text-sm text-red-600">
-                    <div *ngIf="etudiantForm.get('promotion_id')?.hasError('required')">La promotion est requise</div>
-                  </div>
-                </div>
-
-                <!-- Établissement -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Établissement *</label>
-                  <select
-                    formControlName="etablissement_id"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    [class.border-red-500]="etudiantForm.get('etablissement_id')?.invalid && etudiantForm.get('etablissement_id')?.touched"
-                  >
-                    <option value="">Sélectionnez un établissement</option>
-                    <option *ngFor="let etablissement of etablissements" [value]="etablissement.id">
-                      {{ etablissement.name }}
-                    </option>
-                  </select>
-                  <div *ngIf="etudiantForm.get('etablissement_id')?.invalid && etudiantForm.get('etablissement_id')?.touched" class="mt-1 text-sm text-red-600">
-                    <div *ngIf="etudiantForm.get('etablissement_id')?.hasError('required')">L'établissement est requis</div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Ville -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Ville *</label>
-                  <select
-                    formControlName="ville_id"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    [class.border-red-500]="etudiantForm.get('ville_id')?.invalid && etudiantForm.get('ville_id')?.touched"
-                  >
-                    <option value="">Sélectionnez une ville</option>
-                    <option *ngFor="let ville of villes" [value]="ville.id">
-                      {{ ville.name }}
-                    </option>
-                  </select>
-                  <div *ngIf="etudiantForm.get('ville_id')?.invalid && etudiantForm.get('ville_id')?.touched" class="mt-1 text-sm text-red-600">
-                    <div *ngIf="etudiantForm.get('ville_id')?.hasError('required')">La ville est requise</div>
-                  </div>
-                </div>
-
-                <!-- Groupe -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Groupe *</label>
-                  <select
-                    formControlName="group_id"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    [class.border-red-500]="etudiantForm.get('group_id')?.invalid && etudiantForm.get('group_id')?.touched"
-                  >
-                    <option value="">Sélectionnez un groupe</option>
-                    <option *ngFor="let group of groups" [value]="group.id">
-                      {{ group.title }}
-                    </option>
-                  </select>
-                  <div *ngIf="etudiantForm.get('group_id')?.invalid && etudiantForm.get('group_id')?.touched" class="mt-1 text-sm text-red-600">
-                    <div *ngIf="etudiantForm.get('group_id')?.hasError('required')">Le groupe est requis</div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Option -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Option <span class="text-blue-500 text-sm">(optionnel)</span></label>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Ville -->
+            <div>
+              <label for="ville_id" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <span class="material-icons text-purple-600 text-lg">location_on</span>
+                Ville <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
                 <select
+                  id="ville_id"
+                  formControlName="ville_id"
+                  (change)="onVilleChange($event)"
+                  [disabled]="loading"
+                  [class]="isFieldInvalid('ville_id') 
+                    ? 'w-full px-4 py-3 pl-12 border-2 border-red-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50'
+                    : 'w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white hover:border-purple-400 transition-all duration-200'"
+                >
+                  <option value="">Sélectionner une ville</option>
+                  <option *ngFor="let ville of filterOptions.villes" [value]="ville.id">
+                    {{ ville.name }}
+                  </option>
+                </select>
+                <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">arrow_drop_down</span>
+              </div>
+              <div *ngIf="isFieldInvalid('ville_id')" class="mt-2 flex items-center gap-2 text-sm text-red-600">
+                <span class="material-icons text-sm">error</span>
+                {{ getErrorMessage('ville_id') }}
+              </div>
+            </div>
+
+            <!-- Établissement -->
+            <div>
+              <label for="etablissement_id" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <span class="material-icons text-purple-600 text-lg">business</span>
+                Établissement <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                <select
+                  id="etablissement_id"
+                  formControlName="etablissement_id"
+                  (change)="onEtablissementChange($event)"
+                  [disabled]="loading"
+                  [class]="isFieldInvalid('etablissement_id') 
+                    ? 'w-full px-4 py-3 pl-12 border-2 border-red-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50'
+                    : 'w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white hover:border-purple-400 transition-all duration-200'"
+                >
+                  <option value="">Sélectionner un établissement</option>
+                  <option *ngFor="let etablissement of filterOptions.etablissements" [value]="etablissement.id">
+                    {{ etablissement.name }}
+                  </option>
+                </select>
+                <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">arrow_drop_down</span>
+              </div>
+              <div *ngIf="isFieldInvalid('etablissement_id')" class="mt-2 flex items-center gap-2 text-sm text-red-600">
+                <span class="material-icons text-sm">error</span>
+                {{ getErrorMessage('etablissement_id') }}
+              </div>
+            </div>
+
+            <!-- Promotion -->
+            <div>
+              <label for="promotion_id" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <span class="material-icons text-purple-600 text-lg">school</span>
+                Promotion <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                <select
+                  id="promotion_id"
+                  formControlName="promotion_id"
+                  (change)="onPromotionChange($event)"
+                  [disabled]="loading"
+                  [class]="isFieldInvalid('promotion_id') 
+                    ? 'w-full px-4 py-3 pl-12 border-2 border-red-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50'
+                    : 'w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white hover:border-purple-400 transition-all duration-200'"
+                >
+                  <option value="">Sélectionner une promotion</option>
+                  <option *ngFor="let promotion of filterOptions.promotions" [value]="promotion.id">
+                    {{ promotion.name }}
+                  </option>
+                </select>
+                <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">arrow_drop_down</span>
+              </div>
+              <div *ngIf="isFieldInvalid('promotion_id')" class="mt-2 flex items-center gap-2 text-sm text-red-600">
+                <span class="material-icons text-sm">error</span>
+                {{ getErrorMessage('promotion_id') }}
+              </div>
+            </div>
+
+            <!-- Groupe -->
+            <div>
+              <label for="group_id" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <span class="material-icons text-purple-600 text-lg">groups</span>
+                Groupe <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                <select
+                  id="group_id"
+                  formControlName="group_id"
+                  [disabled]="loading"
+                  [class]="isFieldInvalid('group_id') 
+                    ? 'w-full px-4 py-3 pl-12 border-2 border-red-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50'
+                    : 'w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white hover:border-purple-400 transition-all duration-200'"
+                >
+                  <option value="">Sélectionner un groupe</option>
+                  <option *ngFor="let group of filterOptions.groups" [value]="group.id">
+                    {{ group.title }}
+                  </option>
+                </select>
+                <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">arrow_drop_down</span>
+              </div>
+              <div *ngIf="isFieldInvalid('group_id')" class="mt-2 flex items-center gap-2 text-sm text-red-600">
+                <span class="material-icons text-sm">error</span>
+                {{ getErrorMessage('group_id') }}
+              </div>
+            </div>
+
+            <!-- Option -->
+            <div>
+              <label for="option_id" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <span class="material-icons text-purple-600 text-lg">list</span>
+                Option <span class="text-blue-500 text-sm">(optionnel)</span>
+              </label>
+              <div class="relative">
+                <select
+                  id="option_id"
                   formControlName="option_id"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  [class.border-red-500]="etudiantForm.get('option_id')?.invalid && etudiantForm.get('option_id')?.touched"
+                  [disabled]="loading"
+                  [class]="isFieldInvalid('option_id') 
+                    ? 'w-full px-4 py-3 pl-12 border-2 border-red-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50'
+                    : 'w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white hover:border-purple-400 transition-all duration-200'"
                 >
                   <option value="">Aucune option (optionnel)</option>
-                  <option *ngFor="let option of options" [value]="option.id">
+                  <option *ngFor="let option of filterOptions.options" [value]="option.id">
                     {{ option.name }}
                   </option>
                 </select>
-                <div *ngIf="etudiantForm.get('option_id')?.invalid && etudiantForm.get('option_id')?.touched" class="mt-1 text-sm text-red-600">
-                  <div *ngIf="etudiantForm.get('option_id')?.hasError('required')">L'option est requise</div>
-                </div>
+                <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">arrow_drop_down</span>
               </div>
-            </div>
-          </div>
-
-          <!-- Photo de profil -->
-          <div>
-            <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2 mb-4">
-              <span class="material-icons text-purple-600 text-lg">photo_camera</span>
-              Photo de Profil
-            </h3>
-            
-            <div class="bg-gray-50 rounded-lg p-4">
-              <div class="flex items-center gap-4">
-                <!-- Photo actuelle -->
-                <div class="flex-shrink-0">
-                  <div class="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-                    <img 
-                      *ngIf="currentPhoto" 
-                      [src]="currentPhoto" 
-                      alt="Photo de profil"
-                      class="w-full h-full object-cover"
-                    >
-                    <span *ngIf="!currentPhoto" class="material-icons text-gray-400 text-3xl">person</span>
-                  </div>
-                </div>
-
-                <!-- Upload de nouvelle photo -->
-                <div class="flex-1">
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Nouvelle photo</label>
-                  <input 
-                    type="file"
-                    (change)="onPhotoChange($event)"
-                    accept="image/*"
-                    class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                  >
-                  <p class="mt-1 text-sm text-gray-500">Formats acceptés: JPG, PNG, GIF (max 2MB)</p>
-                </div>
+              <div *ngIf="isFieldInvalid('option_id')" class="mt-2 flex items-center gap-2 text-sm text-red-600">
+                <span class="material-icons text-sm">error</span>
+                {{ getErrorMessage('option_id') }}
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Form Actions -->
-        <div class="bg-gray-50 border-t border-gray-200 p-6 mt-8">
-          <div class="flex items-center justify-end gap-3">
-            <button 
-              type="button" 
-              (click)="goBack()"
-              [disabled]="submitting"
-              class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors duration-200 disabled:opacity-50"
-            >
-              Annuler
-            </button>
-            <button 
-              type="submit" 
-              [disabled]="etudiantForm.invalid || submitting"
-              class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors duration-200 disabled:opacity-50 flex items-center gap-2"
-            >
-              <div *ngIf="submitting" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span *ngIf="!submitting" class="material-icons text-sm">save</span>
-              {{ submitting ? 'Modification...' : 'Modifier l\'étudiant' }}
-            </button>
+        <!-- Messages d'erreur -->
+        <div *ngIf="error" class="bg-gradient-to-r from-red-50 to-pink-50 border-l-4 border-red-500 p-6 mx-6 mb-6">
+          <div class="flex items-start gap-4">
+            <div class="flex-shrink-0">
+              <div class="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center">
+                <span class="material-icons text-white text-lg">error</span>
+              </div>
+            </div>
+            <div class="flex-1">
+              <h3 class="text-lg font-semibold text-red-800 mb-2">Erreur lors de la modification</h3>
+              <p class="text-red-700">{{ error }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Messages de succès -->
+        <div *ngIf="success" class="bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-500 p-6 mx-6 mb-6">
+          <div class="flex items-start gap-4">
+            <div class="flex-shrink-0">
+              <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                <span class="material-icons text-white text-lg">check_circle</span>
+              </div>
+            </div>
+            <div class="flex-1">
+              <h3 class="text-lg font-semibold text-green-800 mb-2">Succès</h3>
+              <p class="text-green-700">{{ success }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Boutons d'action -->
+        <div class="bg-gray-50 border-t border-gray-200 p-6">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3 text-sm text-gray-600">
+              <span class="material-icons text-lg">info</span>
+              <span>Tous les champs marqués d'un <span class="text-red-500 font-semibold">*</span> sont obligatoires</span>
+            </div>
+            <div class="flex items-center gap-4">
+              <button
+                type="button"
+                (click)="resetForm()"
+                class="px-6 py-3 border-2 border-gray-300 text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 rounded-xl transition-all duration-300 flex items-center gap-3 shadow-sm hover:shadow-md transform hover:-translate-y-0.5"
+              >
+                <span class="material-icons">refresh</span>
+                <span class="font-medium">Réinitialiser</span>
+              </button>
+              <button
+                type="submit"
+                [disabled]="loading"
+                class="px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 disabled:from-gray-400 disabled:to-gray-500 text-white rounded-xl transition-all duration-300 flex items-center gap-3 shadow-lg hover:shadow-xl transform hover:-translate-y-1 disabled:transform-none disabled:shadow-sm"
+              >
+                <span *ngIf="loading" class="material-icons animate-spin">refresh</span>
+                <span *ngIf="!loading" class="material-icons">save</span>
+                <span class="font-medium">
+                  <span *ngIf="!loading">Sauvegarder les modifications</span>
+                  <span *ngIf="loading">Sauvegarde en cours...</span>
+                </span>
+              </button>
+            </div>
           </div>
         </div>
       </form>

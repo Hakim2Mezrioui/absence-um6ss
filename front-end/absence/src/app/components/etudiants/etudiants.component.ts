@@ -446,7 +446,7 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
    * Naviguer vers la page d'édition d'étudiant
    */
   navigateToEditStudent(etudiant: Etudiant): void {
-    this.router.navigate(['/dashboard/edit-etudiant', etudiant.id]);
+    this.router.navigate(['/edit-etudiant', etudiant.id]);
   }
 
   /**
