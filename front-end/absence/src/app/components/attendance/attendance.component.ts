@@ -278,6 +278,66 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   }
 
 
+  /**
+   * Libellé à afficher pour le groupe
+   * - Si l'examen concerne tous les groupes, afficher "Tous"
+   * - Sinon afficher le nom du groupe
+   */
+  getGroupDisplayName(): string {
+    // 1) Afficher le titre du groupe renvoyé avec l'examen si disponible
+    const examGroupTitle = this.examData?.group?.title;
+    if (examGroupTitle) {
+      return examGroupTitle;
+    }
+
+    // 2) Si tous les étudiants appartiennent au même groupe, afficher ce groupe
+    const singleGroupTitle = this.getSingleGroupTitleFromStudents();
+    if (singleGroupTitle) {
+      return singleGroupTitle;
+    }
+
+    // 3) Sinon, si un group_id explicite est présent dans les filtres (sans titre), on ne peut pas résoudre le nom ici
+    //    donc on affiche Tous (l'API d'attendance ne renvoie pas la méta du groupe)
+    const groupIdFromFilters = this.filtersForm.get('group_id')?.value;
+    if (groupIdFromFilters !== '' && groupIdFromFilters !== null && groupIdFromFilters !== undefined) {
+      return 'Tous';
+    }
+
+    // 4) Par défaut, Tous (examens tous groupes ou données mixtes)
+    return 'Tous';
+  }
+
+  /**
+   * Indique si plusieurs groupes différents existent dans la liste
+   */
+  private hasMultipleGroups(): boolean {
+    if (!this.students || this.students.length === 0) return false;
+    const titles = new Set(
+      this.students
+        .map(s => (s && s.group ? s.group.title : undefined))
+        .filter((t): t is string => !!t)
+    );
+    return titles.size > 1;
+  }
+
+  /**
+   * Retourne le titre unique du groupe si tous les étudiants partagent le même groupe,
+   * sinon retourne une chaîne vide.
+   */
+  private getSingleGroupTitleFromStudents(): string {
+    if (!this.students || this.students.length === 0) return '';
+    const titles = new Set(
+      this.students
+        .map(s => (s && s.group ? s.group.title : undefined))
+        .filter((t): t is string => !!t)
+    );
+    if (titles.size === 1) {
+      return Array.from(titles)[0];
+    }
+    return '';
+  }
+
+
   // Méthodes pour la recherche
   onSearchChange(): void {
     this.isSearchActive = this.searchTerm.trim().length > 0;

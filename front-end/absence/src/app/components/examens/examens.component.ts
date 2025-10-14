@@ -16,6 +16,7 @@ import { TypesExamenService, TypeExamen } from '../../services/types-examen.serv
   templateUrl: './examens.component.html',
   styleUrl: './examens.component.css'
 })
+
 export class ExamensComponent implements OnInit, OnDestroy {
   examens: Examen[] = [];
   loading = false;
@@ -90,12 +91,12 @@ export class ExamensComponent implements OnInit, OnDestroy {
 
   // Naviguer vers la page d'ajout d'examen
   openAddModal(): void {
-    this.router.navigate(['/dashboard/add-examen']);
+    this.router.navigate(['/add-examen']);
   }
 
   // Naviguer vers la page de modification d'examen
   openEditModal(examen: Examen): void {
-    this.router.navigate(['/dashboard/edit-examen', examen.id]);
+    this.router.navigate(['/edit-examen', examen.id]);
   }
 
   // Naviguer vers la page de suivi des présences
@@ -310,6 +311,15 @@ export class ExamensComponent implements OnInit, OnDestroy {
   // Méthode pour accéder à Math.min dans le template
   getMathMin(a: number, b: number): number {
     return Math.min(a, b);
+  }
+
+  // Libellé du groupe à afficher pour une card d'examen
+  getGroupLabel(examen: Examen): string {
+    // Certaines APIs renvoient group.title, d'autres group.name
+    const group: any = (examen as any).group;
+    const title = group?.title || group?.name;
+    // Si pas de groupe associé (examen pour tous les groupes)
+    return title ? title : 'Tous';
   }
 
   // Méthode pour calculer la durée de l'examen
