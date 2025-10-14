@@ -321,7 +321,7 @@ export class EditCoursComponent implements OnInit, OnDestroy {
         this.success = 'Cours modifié avec succès';
         this.loading = false;
         setTimeout(() => {
-          this.router.navigate(['/dashboard/cours']);
+          this.router.navigate(['/cours']);
         }, 1500);
       },
       error: (error) => {
@@ -407,7 +407,7 @@ export class EditCoursComponent implements OnInit, OnDestroy {
   }
 
   onCancel() {
-    this.router.navigate(['/dashboard/cours']);
+    this.router.navigate(['/cours']);
   }
 
   clearError() {

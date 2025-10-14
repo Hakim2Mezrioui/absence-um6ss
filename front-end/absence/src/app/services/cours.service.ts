@@ -202,4 +202,15 @@ export class CoursService {
     return this.http.post(`${this.apiUrl}/import-cours-modern`, formData);
   }
 
+  /**
+   * Récupère les groupes filtrés par ville et établissement
+   */
+  getGroupsByLocation(villeId: number, etablissementId: number): Observable<any[]> {
+    const params = new HttpParams()
+      .set('ville_id', villeId.toString())
+      .set('etablissement_id', etablissementId.toString());
+    
+    return this.http.get<any[]>(`http://127.0.0.1:8000/api/groups`, { params });
+  }
+
 }

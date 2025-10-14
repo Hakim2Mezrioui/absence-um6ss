@@ -118,7 +118,7 @@ export class AddCoursComponent implements OnInit, OnDestroy {
           this.typesCours = options.types_cours || [];
           this.options = options.options || [];
           this.groups = options.groups || [];
-          this.updateFilteredGroups();
+          this.filteredGroups = []; // Initialiser comme vide jusqu'à sélection ville/établissement
           this.villes = options.villes || [];
         },
         error: (error) => {
@@ -175,7 +175,7 @@ export class AddCoursComponent implements OnInit, OnDestroy {
         this.success = 'Cours créé avec succès';
         this.loading = false;
         setTimeout(() => {
-          this.router.navigate(['/dashboard/cours']);
+          this.router.navigate(['/cours']);
         }, 1500);
       },
       error: (error) => {
@@ -259,7 +259,7 @@ export class AddCoursComponent implements OnInit, OnDestroy {
   }
 
   onCancel() {
-    this.router.navigate(['/dashboard/cours']);
+    this.router.navigate(['/cours']);
   }
 
   clearError() {
@@ -331,6 +331,26 @@ export class AddCoursComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Gérer le changement de ville
+   */
+  onVilleChange() {
+    // Réinitialiser les groupes sélectionnés
+    this.selectedGroups = [];
+    // Mettre à jour la liste des groupes disponibles
+    this.updateFilteredGroups();
+  }
+
+  /**
+   * Gérer le changement d'établissement
+   */
+  onEtablissementChange() {
+    // Réinitialiser les groupes sélectionnés
+    this.selectedGroups = [];
+    // Mettre à jour la liste des groupes disponibles
+    this.updateFilteredGroups();
+  }
+
+  /**
    * Convertir la tolérance en minutes vers le format time (HH:MM)
    */
   formatToleranceToTime(minutes: number): string {
@@ -365,14 +385,46 @@ export class AddCoursComponent implements OnInit, OnDestroy {
   }
 
   updateFilteredGroups(): void {
-    const term = (this.groupSearchTerm || '').trim().toLowerCase();
-    if (!term) {
-      this.filteredGroups = [...(this.groups || [])];
+    // Filtrer d'abord par ville et établissement
+    let availableGroups = this.groups || [];
+    
+    if (this.cours.ville_id && this.cours.etablissement_id) {
+      // Charger les groupes filtrés par ville et établissement
+      this.loadGroupsByLocation(this.cours.ville_id, this.cours.etablissement_id);
+      return;
+    } else {
+      // Si ville ou établissement non sélectionnés, vider la liste
+      this.filteredGroups = [];
       return;
     }
-    this.filteredGroups = (this.groups || []).filter((g: any) => {
-      const name = (g?.name || '').toString().toLowerCase();
-      return name.includes(term);
+  }
+
+  // Nouvelle méthode pour charger les groupes par ville et établissement
+  loadGroupsByLocation(villeId: number, etablissementId: number): void {
+    console.log('🔍 Chargement des groupes pour ville:', villeId, 'établissement:', etablissementId);
+    
+    // Appel à l'API pour récupérer les groupes filtrés
+    this.coursService.getGroupsByLocation(villeId, etablissementId).subscribe({
+      next: (groups) => {
+        console.log('📊 Groupes reçus de l\'API:', groups);
+        
+        // Appliquer le filtre de recherche si nécessaire
+        const term = (this.groupSearchTerm || '').trim().toLowerCase();
+        if (!term) {
+          this.filteredGroups = groups || [];
+        } else {
+          this.filteredGroups = (groups || []).filter((g: any) => {
+            const name = (g?.name || '').toString().toLowerCase();
+            return name.includes(term);
+          });
+        }
+        
+        console.log('📊 Groupes filtrés finaux:', this.filteredGroups);
+      },
+      error: (error) => {
+        console.error('❌ Erreur lors du chargement des groupes:', error);
+        this.filteredGroups = [];
+      }
     });
   }
 
@@ -394,7 +446,11 @@ export class AddCoursComponent implements OnInit, OnDestroy {
   }
 
   getGroupName(groupId: number): string {
-    const group = this.groups.find(g => g.id === groupId);
+    // Chercher d'abord dans les groupes filtrés, puis dans tous les groupes
+    let group = this.filteredGroups.find(g => g.id === groupId);
+    if (!group) {
+      group = this.groups.find(g => g.id === groupId);
+    }
     return group ? group.name : 'Groupe inconnu';
   }
 

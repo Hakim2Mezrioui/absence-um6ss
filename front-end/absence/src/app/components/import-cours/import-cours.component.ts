@@ -398,7 +398,7 @@ export class ImportCoursComponent implements OnInit, OnDestroy {
       
       // Rediriger vers la liste des cours après 3 secondes
       setTimeout(() => {
-        this.router.navigate(['/dashboard/cours']);
+        this.router.navigate(['/cours']);
       }, 3000);
     }
     

@@ -56,7 +56,7 @@ class GroupController extends Controller
             \Log::info('🔍 Filtre ville appliqué:', ['ville_id' => $filters['ville_id']]);
         }
         
-        $groups = $query->get();
+        $groups = $query->select('id', \DB::raw('title as name'), 'etablissement_id', 'ville_id', 'promotion_id')->get();
         
         \Log::info('📊 Nombre de groupes trouvés:', ['count' => $groups->count()]);
         

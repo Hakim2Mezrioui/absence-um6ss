@@ -159,7 +159,7 @@ export class CoursComponent implements OnInit {
   }
 
   addCours() {
-    this.router.navigate(['/dashboard/add-cours']);
+    this.router.navigate(['/add-cours']);
   }
 
   importCours() {
@@ -171,11 +171,11 @@ export class CoursComponent implements OnInit {
   }
 
   editCours(cours: Cours) {
-    this.router.navigate(['/dashboard/edit-cours', cours.id]);
+    this.router.navigate(['/edit-cours', cours.id]);
   }
 
   viewCoursAttendance(cours: Cours) {
-    this.router.navigate(['/dashboard/cours', cours.id, 'attendance']);
+    this.router.navigate(['/cours', cours.id, 'attendance']);
   }
 
   deleteCours(cours: Cours) {

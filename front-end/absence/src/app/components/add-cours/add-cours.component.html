@@ -273,6 +273,7 @@
                   id="etablissement_id"
                   [(ngModel)]="cours.etablissement_id"
                   name="etablissement_id"
+                  (change)="onEtablissementChange()"
                   class="w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-orange-400 transition-all duration-200"
                   required
                 >
@@ -403,6 +404,7 @@
                   id="ville_id"
                   [(ngModel)]="cours.ville_id"
                   name="ville_id"
+                  (change)="onVilleChange()"
                   class="w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-orange-400 transition-all duration-200"
                   required
                 >
@@ -420,17 +422,31 @@
                 Groupes (optionnel)
               </label>
               <div class="relative">
-                <button type="button" (click)="toggleGroupsDropdown()" class="w-full px-4 py-3 pl-12 text-left border-2 border-gray-300 rounded-xl shadow-sm bg-white hover:border-cyan-400 transition-all duration-200">
-                  <span class="material-icons absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">groups</span>
-                  <span class="text-gray-700" *ngIf="selectedGroups.length === 0">Sélectionner des groupes</span>
-                  <span class="text-gray-900" *ngIf="selectedGroups.length > 0">
+                <button 
+                  type="button" 
+                  (click)="toggleGroupsDropdown()" 
+                  [disabled]="!cours.ville_id || !cours.etablissement_id"
+                  [class]="(!cours.ville_id || !cours.etablissement_id) 
+                    ? 'w-full px-4 py-3 pl-12 text-left border-2 border-gray-200 rounded-xl shadow-sm bg-gray-100 cursor-not-allowed opacity-60'
+                    : 'w-full px-4 py-3 pl-12 text-left border-2 border-gray-300 rounded-xl shadow-sm bg-white hover:border-cyan-400 transition-all duration-200'"
+                >
+                  <span class="material-icons absolute left-4 top-1/2 -translate-y-1/2" 
+                        [class]="(!cours.ville_id || !cours.etablissement_id) ? 'text-gray-300' : 'text-gray-400'">groups</span>
+                  <span *ngIf="!cours.ville_id || !cours.etablissement_id" class="text-gray-400">
+                    Sélectionnez d'abord la ville et l'établissement
+                  </span>
+                  <span *ngIf="cours.ville_id && cours.etablissement_id && selectedGroups.length === 0" class="text-gray-700">
+                    Sélectionner des groupes
+                  </span>
+                  <span *ngIf="cours.ville_id && cours.etablissement_id && selectedGroups.length > 0" class="text-gray-900">
                     {{ selectedGroups.length }} groupe(s) sélectionné(s)
                   </span>
-                  <span class="material-icons absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">arrow_drop_down</span>
+                  <span class="material-icons absolute right-4 top-1/2 -translate-y-1/2" 
+                        [class]="(!cours.ville_id || !cours.etablissement_id) ? 'text-gray-300' : 'text-gray-500'">arrow_drop_down</span>
                 </button>
 
                 <!-- Groups dropdown -->
-                <div *ngIf="groupsDropdownOpen" class="absolute z-50 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+                <div *ngIf="groupsDropdownOpen && cours.ville_id && cours.etablissement_id" class="absolute z-50 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
                   <!-- Search -->
                   <div class="px-3 py-2 border-b border-gray-100 bg-gray-50">
                     <div class="relative">
@@ -462,6 +478,10 @@
                     </div>
                   </div>
                 </div>
+              </div>
+              <div *ngIf="!cours.ville_id || !cours.etablissement_id" class="mt-2 text-xs text-gray-500 flex items-center gap-1">
+                <span class="material-icons text-xs">info</span>
+                <span>Veuillez d'abord sélectionner la ville et l'établissement pour voir les groupes disponibles</span>
               </div>
             </div>
 
