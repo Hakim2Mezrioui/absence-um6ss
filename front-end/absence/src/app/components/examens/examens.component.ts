@@ -167,20 +167,45 @@ export class ExamensComponent implements OnInit, OnDestroy {
 
   // Supprimer un examen
   deleteExamen(examen: Examen): void {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer l'examen "${examen.title}" ?`)) {
-      this.examensService.deleteExamen(examen.id)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: () => {
-            this.loadExamens();
-            this.notificationService.success('Succès', 'Examen supprimé avec succès');
-          },
-          error: (err) => {
-            this.notificationService.error('Erreur', 'Erreur lors de la suppression de l\'examen');
-            console.error('Error deleting examen:', err);
-          }
-        });
-    }
+    // Import dynamique pour compat SSR (évite document is not defined)
+    import('sweetalert2').then(({ default: Swal }) => {
+      Swal.fire({
+        title: 'Supprimer cet examen ?',
+        text: `"${examen.title}" sera définitivement supprimé.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Oui, supprimer',
+        cancelButtonText: 'Annuler',
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6b7280',
+        reverseButtons: true
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.examensService.deleteExamen(examen.id)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+              next: () => {
+                Swal.fire({
+                  title: 'Supprimé',
+                  text: 'Examen supprimé avec succès',
+                  icon: 'success',
+                  timer: 1500,
+                  showConfirmButton: false
+                });
+                this.loadExamens();
+              },
+              error: (err) => {
+                console.error('Error deleting examen:', err);
+                Swal.fire({
+                  title: 'Erreur',
+                  text: 'Erreur lors de la suppression de l\'examen',
+                  icon: 'error'
+                });
+              }
+            });
+        }
+      });
+    });
   }
 
   loadExamens(): void {
