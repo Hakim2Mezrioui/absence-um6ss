@@ -63,7 +63,7 @@ export class EditEtudiantComponent implements OnInit, OnDestroy {
       first_name: ['', [Validators.required]],
       last_name: ['', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
-      matricule: ['', [Validators.required]],
+      matricule: [{value: '', disabled: true}], // Désactivé car non modifiable
       ville_id: ['', [Validators.required]],
       etablissement_id: ['', [Validators.required]],
       promotion_id: ['', [Validators.required]],
@@ -173,7 +173,15 @@ export class EditEtudiantComponent implements OnInit, OnDestroy {
     this.success = '';
 
     const studentData: Partial<Etudiant> = {
-      ...this.studentForm.value
+      first_name: this.studentForm.get('first_name')?.value,
+      last_name: this.studentForm.get('last_name')?.value,
+      email: this.studentForm.get('email')?.value,
+      // matricule exclu car non modifiable
+      ville_id: this.studentForm.get('ville_id')?.value,
+      etablissement_id: this.studentForm.get('etablissement_id')?.value,
+      promotion_id: this.studentForm.get('promotion_id')?.value,
+      group_id: this.studentForm.get('group_id')?.value,
+      option_id: this.studentForm.get('option_id')?.value || null
     };
 
     this.etudiantsService.updateEtudiant(this.studentId, studentData)
@@ -225,7 +233,10 @@ export class EditEtudiantComponent implements OnInit, OnDestroy {
    */
   private markFormGroupTouched(): void {
     Object.keys(this.studentForm.controls).forEach(key => {
-      this.studentForm.get(key)?.markAsTouched();
+      // Ignorer le matricule car il est désactivé
+      if (key !== 'matricule') {
+        this.studentForm.get(key)?.markAsTouched();
+      }
     });
   }
 
@@ -233,6 +244,11 @@ export class EditEtudiantComponent implements OnInit, OnDestroy {
    * Vérifier si un champ est invalide
    */
   isFieldInvalid(fieldName: string): boolean {
+    // Ignorer la validation du matricule car il est désactivé
+    if (fieldName === 'matricule') {
+      return false;
+    }
+    
     const field = this.studentForm.get(fieldName);
     return !!(field && field.invalid && field.touched);
   }
