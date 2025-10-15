@@ -21,8 +21,9 @@ return new class extends Migration
             $table->string('last_name');
             $table->string('email');
             $table->string('password');
-            $table->foreignId('role_id')->constrained('roles')->onDelete('cascade');
+            $table->foreignId('role_id')->constrained('roles')->onDelete('set null');
             $table->foreignId('ville_id')->nullable()->constrained('villes')->onDelete('set null');
+            $table->foreignId('etablissement_id')->nullable()->constrained('etablissements')->onDelete('set null');
             $table->rememberToken();
             $table->timestamps();
         });
