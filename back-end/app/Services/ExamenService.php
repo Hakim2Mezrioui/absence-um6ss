@@ -10,12 +10,14 @@ use Carbon\Carbon;
 
 class ExamenService
 {
+    use FilterByUserContext;
     /**
-     * Get all exams with their relationships
+     * Get all exams with their relationships (filtered by user context)
      */
     public function getAllExamens(): Collection
     {
-        return Examen::with(['etablissement', 'promotion', 'salle', 'typeExamen', 'option', 'group', 'ville'])->get();
+        $query = Examen::with(['etablissement', 'promotion', 'salle', 'typeExamen', 'option', 'group', 'ville']);
+        return $this->applyUserContextFilters($query)->get();
     }
 
     /**
@@ -27,10 +29,20 @@ class ExamenService
     }
 
     /**
-     * Create a new exam
+     * Create a new exam (with user context)
      */
     public function createExamen(array $data): Examen
     {
+        $context = $this->getUserContextForFiltering();
+        
+        // Automatically set ville_id and etablissement_id from user context
+        if ($context['ville_id']) {
+            $data['ville_id'] = $context['ville_id'];
+        }
+        if ($context['etablissement_id']) {
+            $data['etablissement_id'] = $context['etablissement_id'];
+        }
+        
         return Examen::create($data);
     }
 

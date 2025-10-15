@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Collection;
 
 class SalleService
 {
+    use FilterByUserContext;
     protected $model;
 
     public function __construct()
@@ -15,11 +16,12 @@ class SalleService
     }
 
     /**
-     * Get all salles
+     * Get all salles (filtered by user context)
      */
     public function getAllSalles(): Collection
     {
-        return Salle::with('etablissement')->orderBy('name')->get();
+        $query = Salle::with('etablissement')->orderBy('name');
+        return $this->applyUserContextFilters($query)->get();
     }
 
     /**

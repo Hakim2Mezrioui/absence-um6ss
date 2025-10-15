@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use App\Scopes\UserContextScope;
 
 class Enseignant extends Model
 {
@@ -26,6 +27,11 @@ class Enseignant extends Model
     public function cours(): BelongsToMany
     {
         return $this->belongsToMany(Cours::class, 'cours_enseignant');
+    }
+
+    protected static function booted(): void
+    {
+        static::addGlobalScope(new UserContextScope);
     }
 }
 

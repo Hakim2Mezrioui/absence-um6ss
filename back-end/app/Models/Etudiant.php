@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Scopes\UserContextScope;
 
 class Etudiant extends Model
 {
@@ -74,5 +75,10 @@ class Etudiant extends Model
     public function getFullNameAttribute(): string
     {
         return $this->first_name . ' ' . $this->last_name;
+    }
+
+    protected static function booted(): void
+    {
+        static::addGlobalScope(new UserContextScope);
     }
 }

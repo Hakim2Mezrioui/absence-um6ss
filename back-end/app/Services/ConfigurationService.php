@@ -10,6 +10,7 @@ use PDOException;
 
 class ConfigurationService extends BaseService
 {
+    use FilterByUserContext;
     public function __construct()
     {
         parent::__construct(Configuration::class);
@@ -24,13 +25,22 @@ class ConfigurationService extends BaseService
         }
     }
 
-    public function getConfigurationByVille($villeId)
+    /**
+     * Get configuration for authenticated user's ville
+     */
+    public function getConfigurationForUserVille()
     {
         try {
+            $villeId = $this->getUserContextForFiltering()['ville_id'];
+            
+            if (!$villeId) {
+                return $this->errorResponse('User has no ville assigned', 400);
+            }
+            
             $configuration = Configuration::with('ville')->where('ville_id', $villeId)->first();
             
             if (!$configuration) {
-                return $this->errorResponse('Configuration not found for this ville', 404);
+                return $this->errorResponse('Configuration not found for user ville', 404);
             }
 
             return $this->successResponse($configuration, 'Configuration retrieved successfully');

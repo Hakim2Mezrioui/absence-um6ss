@@ -10,27 +10,40 @@ use Carbon\Carbon;
 
 class CoursService
 {
+    use FilterByUserContext;
     /**
-     * Get all courses with their relationships
+     * Get all courses with their relationships (filtered by user context)
      */
     public function getAllCours(): Collection
     {
-        return Cours::with(['etablissement', 'faculte', 'salle', 'typeCours'])->get();
+        $query = Cours::with(['etablissement', 'promotion', 'salle', 'type_cours', 'ville', 'groups']);
+        return $this->applyUserContextFilters($query)->get();
     }
 
     /**
-     * Get a specific course by ID
+     * Get a specific course by ID (filtered by user context)
      */
     public function getCoursById(int $id): ?Cours
     {
-        return Cours::with(['etablissement', 'promotion', 'salle', 'type_cours', 'option', 'ville', 'groups'])->find($id);
+        $query = Cours::with(['etablissement', 'promotion', 'salle', 'type_cours', 'option', 'ville', 'groups'])->where('id', $id);
+        return $this->applyUserContextFilters($query)->first();
     }
 
     /**
-     * Create a new course
+     * Create a new course (with user context)
      */
     public function createCours(array $data): Cours
     {
+        $context = $this->getUserContextForFiltering();
+        
+        // Automatically set ville_id and etablissement_id from user context
+        if ($context['ville_id']) {
+            $data['ville_id'] = $context['ville_id'];
+        }
+        if ($context['etablissement_id']) {
+            $data['etablissement_id'] = $context['etablissement_id'];
+        }
+        
         // Extract group_ids from data
         $groupIds = $data['group_ids'] ?? [];
         unset($data['group_ids']); // Remove from main data

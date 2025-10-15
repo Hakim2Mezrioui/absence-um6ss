@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Carbon\Carbon;
+use App\Scopes\UserContextScope;
 
 class Cours extends Model
 {
@@ -97,4 +98,8 @@ class Cours extends Model
         return $this->belongsTo(Ville::class);
     }
 
+    protected static function booted(): void
+    {
+        static::addGlobalScope(new UserContextScope);
+    }
 }

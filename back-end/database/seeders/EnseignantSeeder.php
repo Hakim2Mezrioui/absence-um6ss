@@ -20,6 +20,7 @@ class EnseignantSeeder extends Seeder
             'password' => Hash::make('UM6SS@2025'),
             'role_id' => 3, // Rôle enseignant
             'ville_id' => 1, // Casablanca
+            'etablissement_id' => 1, // FACULTÉ MOHAMMED VI DE MÉDECINE UM6SS
         ]);
 
         Enseignant::create([

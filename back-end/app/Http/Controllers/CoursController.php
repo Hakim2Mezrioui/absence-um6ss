@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Cours;
 use App\Services\AttendanceStateService;
+use App\Services\CoursService;
+use App\Services\UserContextService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use DateTime;   
@@ -14,10 +16,14 @@ use PDOException;
 class CoursController extends Controller
 {
     protected $attendanceStateService;
+    protected $coursService;
+    protected $userContextService;
 
-    public function __construct(AttendanceStateService $attendanceStateService)
+    public function __construct(AttendanceStateService $attendanceStateService, CoursService $coursService, UserContextService $userContextService)
     {
         $this->attendanceStateService = $attendanceStateService;
+        $this->coursService = $coursService;
+        $this->userContextService = $userContextService;
     }
     public function index(Request $request)
     {
@@ -33,6 +39,15 @@ class CoursController extends Controller
         $date = $request->query('date');
 
         $query = Cours::with(['etablissement', 'promotion', 'type_cours', 'salle', 'option', 'groups', 'ville']);
+
+        // Appliquer le filtrage par contexte utilisateur
+        $userContext = $this->userContextService->getUserContext();
+        if ($userContext['ville_id']) {
+            $query->where('ville_id', $userContext['ville_id']);
+        }
+        if ($userContext['etablissement_id']) {
+            $query->where('etablissement_id', $userContext['etablissement_id']);
+        }
 
         // Appliquer les filtres
         if (!empty($etablissement_id)) {

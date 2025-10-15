@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use App\Scopes\UserContextScope;
 
 class Group extends Model
 {
@@ -54,5 +55,10 @@ class Group extends Model
     public function cours(): BelongsToMany
     {
         return $this->belongsToMany(Cours::class, 'cours_groups');
+    }
+
+    protected static function booted(): void
+    {
+        static::addGlobalScope(new UserContextScope);
     }
 }

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Scopes\UserContextScope;
 
 class Promotion extends Model
 {
@@ -40,5 +41,10 @@ class Promotion extends Model
     public function faculte(): BelongsTo
     {
         return $this->belongsTo(Faculte::class);
+    }
+
+    protected static function booted(): void
+    {
+        static::addGlobalScope(new UserContextScope);
     }
 }

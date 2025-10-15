@@ -24,11 +24,11 @@ class ConfigurationController extends Controller
     }
 
     /**
-     * Get configuration by ville
+     * Get configuration for authenticated user's ville
      */
-    public function getByVille($villeId): JsonResponse
+    public function getForUserVille(): JsonResponse
     {
-        return $this->configurationService->getConfigurationByVille($villeId);
+        return $this->configurationService->getConfigurationForUserVille();
     }
 
     /**

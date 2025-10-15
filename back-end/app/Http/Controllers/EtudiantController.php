@@ -10,8 +10,8 @@ use PDO;
 use PDOException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use App\Http\Controllers\GroupService;
-use App\Services\ConfigurationService;
+use App\Services\EtudiantService;
+use App\Services\UserContextService;
 // Commenté temporairement en attendant l'activation de l'extension GD
 // use PhpOffice\PhpSpreadsheet\Spreadsheet;
 // use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -22,14 +22,18 @@ use App\Services\ConfigurationService;
 class EtudiantController extends Controller
 {
     protected $configurationService;
+    protected $etudiantService;
+    protected $userContextService;
 
-    public function __construct(ConfigurationService $configurationService)
+    public function __construct(ConfigurationService $configurationService, EtudiantService $etudiantService, UserContextService $userContextService)
     {
         $this->configurationService = $configurationService;
+        $this->etudiantService = $etudiantService;
+        $this->userContextService = $userContextService;
     }
 
     /**
-     * Display a listing of the resource.
+     * Display a listing of the resource (filtered by user context).
      */
     public function index(Request $request)
     {
@@ -37,8 +41,17 @@ class EtudiantController extends Controller
         $page = $request->get('page', 1);
         $perPage = $request->get('per_page', 10);
         
-        // Construire la requête avec les relations
+        // Construire la requête avec les relations et filtrage par contexte utilisateur
         $query = Etudiant::with(['ville', 'group', 'option', 'etablissement', 'promotion']);
+        
+        // Appliquer le filtrage par contexte utilisateur
+        $userContext = $this->userContextService->getUserContext();
+        if ($userContext['ville_id']) {
+            $query->where('ville_id', $userContext['ville_id']);
+        }
+        if ($userContext['etablissement_id']) {
+            $query->where('etablissement_id', $userContext['etablissement_id']);
+        }
         
         // Appliquer les filtres
         if ($request->has('searchValue') && !empty($request->get('searchValue'))) {

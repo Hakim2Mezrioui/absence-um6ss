@@ -5,6 +5,7 @@ import { of } from 'rxjs';
 import { CookieService } from './cookie.service';
 import { isPlatformBrowser } from '@angular/common';
 import { StartupService } from './startup.service';
+import { UserContextService } from './user-context.service';
 
 // Interfaces pour les types de données
 export interface LoginRequest {
@@ -26,6 +27,7 @@ export interface User {
   role_id: number;
   post_id: number;
   etablissement_id: number;
+  ville_id: number;
   created_at: string;
   updated_at: string;
 }
@@ -52,7 +54,8 @@ export class AuthService {
   constructor(
     private http: HttpClient,
     private cookieService: CookieService,
-    private startupService: StartupService
+    private startupService: StartupService,
+    private userContextService: UserContextService
   ) {
     // Vérifier l'état d'authentification seulement dans le navigateur
     if (isPlatformBrowser(this.platformId)) {
@@ -94,6 +97,11 @@ export class AuthService {
 
             this.currentUserSubject.next(response.user);
             this.isAuthenticatedSubject.next(true);
+            
+            // Initialize user context and load configuration
+            this.userContextService.initializeUserContext().subscribe(() => {
+              this.userContextService.loadConfigurationForUserVille().subscribe();
+            });
           }
         })
       );
@@ -119,6 +127,9 @@ export class AuthService {
           }
           this.currentUserSubject.next(null);
           this.isAuthenticatedSubject.next(false);
+          
+          // Clear user context
+          this.userContextService.clearUserContext();
         }),
         catchError(error => {
           console.error('Erreur lors de la déconnexion:', error);

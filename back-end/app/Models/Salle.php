@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Scopes\UserContextScope;
 
 class Salle extends Model
 {
@@ -11,5 +12,10 @@ class Salle extends Model
     public function etablissement()
     {
         return $this->belongsTo(Etablissement::class);
+    }
+
+    protected static function booted(): void
+    {
+        static::addGlobalScope(new UserContextScope);
     }
 }

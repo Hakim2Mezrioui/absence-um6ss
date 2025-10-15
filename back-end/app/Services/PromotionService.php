@@ -7,6 +7,7 @@ use Illuminate\Support\Collection;
 
 class PromotionService
 {
+    use FilterByUserContext;
     /**
      * Get all promotions
      */

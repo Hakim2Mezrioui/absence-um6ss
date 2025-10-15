@@ -10,36 +10,51 @@ use Carbon\Carbon;
 
 class EtudiantService
 {
+    use FilterByUserContext;
     /**
-     * Get all students with their relationships
+     * Get all students with their relationships (filtered by user context)
      */
     public function getAllEtudiants(): Collection
     {
-        return Etudiant::with(['group', 'etablissement', 'promotion', 'ville'])->get();
+        $query = Etudiant::with(['group', 'etablissement', 'promotion', 'ville']);
+        return $this->applyUserContextFilters($query)->get();
     }
 
     /**
-     * Get a specific student by matricule
+     * Get a specific student by matricule (filtered by user context)
      */
     public function getEtudiantByMatricule(string $matricule): ?Etudiant
     {
-        return Etudiant::with(['group', 'etablissement', 'promotion', 'ville'])->where('matricule', $matricule)->first();
+        $query = Etudiant::with(['group', 'etablissement', 'promotion', 'ville'])->where('matricule', $matricule);
+        return $this->applyUserContextFilters($query)->first();
     }
 
     /**
-     * Create a new student
+     * Create a new student (with user context)
      */
     public function createEtudiant(array $data): Etudiant
     {
+        $context = $this->getUserContextForFiltering();
+        
+        // Automatically set ville_id and etablissement_id from user context
+        if ($context['ville_id']) {
+            $data['ville_id'] = $context['ville_id'];
+        }
+        if ($context['etablissement_id']) {
+            $data['etablissement_id'] = $context['etablissement_id'];
+        }
+        
         return Etudiant::create($data);
     }
 
     /**
-     * Update an existing student
+     * Update an existing student (filtered by user context)
      */
     public function updateEtudiant(string $matricule, array $data): ?Etudiant
     {
-        $etudiant = Etudiant::where('matricule', $matricule)->first();
+        $query = Etudiant::where('matricule', $matricule);
+        $etudiant = $this->applyUserContextFilters($query)->first();
+        
         if ($etudiant) {
             $etudiant->update($data);
             return $etudiant->fresh();
@@ -48,11 +63,13 @@ class EtudiantService
     }
 
     /**
-     * Delete a student
+     * Delete a student (filtered by user context)
      */
     public function deleteEtudiant(string $matricule): bool
     {
-        $etudiant = Etudiant::where('matricule', $matricule)->first();
+        $query = Etudiant::where('matricule', $matricule);
+        $etudiant = $this->applyUserContextFilters($query)->first();
+        
         if ($etudiant) {
             return $etudiant->delete();
         }
@@ -110,19 +127,20 @@ class EtudiantService
     }
 
     /**
-     * Search students by name or matricule
+     * Search students by name or matricule (filtered by user context)
      */
     public function searchEtudiants(string $query): Collection
     {
-        return Etudiant::where('first_name', 'LIKE', "%{$query}%")
+        $queryBuilder = Etudiant::where('first_name', 'LIKE', "%{$query}%")
                       ->orWhere('last_name', 'LIKE', "%{$query}%")
                       ->orWhere('matricule', 'LIKE', "%{$query}%")
-                      ->with(['group', 'etablissement', 'promotion', 'ville'])
-                      ->get();
+                      ->with(['group', 'etablissement', 'promotion', 'ville']);
+        
+        return $this->applyUserContextFilters($queryBuilder)->get();
     }
 
     /**
-     * Get students with specific filters
+     * Get students with specific filters (filtered by user context)
      */
     public function getEtudiantsWithFilters(array $filters): Collection
     {
@@ -144,13 +162,8 @@ class EtudiantService
             $query->where('promotion', $filters['promotion']);
         }
 
-        if (isset($filters['etablissement_id'])) {
-            $query->where('etablissement_id', $filters['etablissement_id']);
-        }
-
-        if (isset($filters['ville_id'])) {
-            $query->where('ville_id', $filters['ville_id']);
-        }
+        // Apply user context filters
+        $this->applyUserContextFilters($query);
 
         return $query->with(['group', 'etablissement', 'promotion', 'ville'])->get();
     }

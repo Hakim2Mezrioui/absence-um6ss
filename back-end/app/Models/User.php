@@ -25,7 +25,7 @@ class User extends Authenticatable
         'password',
         'role_id',
         'post_id',
-        // 'etablissement_id',
+        'etablissement_id',
         'ville_id',
     ];
 

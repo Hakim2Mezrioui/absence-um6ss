@@ -50,6 +50,7 @@ Route::get('enseignants/filter-options', [EnseignantController::class, 'getFilte
 Route::middleware('auth:sanctum')->group(function () {
 // Configuration routes
 Route::get('configuration', [ConfigurationController::class, 'index']);
+Route::get('configuration/user-ville', [ConfigurationController::class, 'getForUserVille']);
 Route::get('configuration/ville/{villeId}', [ConfigurationController::class, 'getByVille']);
 Route::post('configuration', [ConfigurationController::class, 'store']);
 Route::put('configuration/{id}', [ConfigurationController::class, 'update']);

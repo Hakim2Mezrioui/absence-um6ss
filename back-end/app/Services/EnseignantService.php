@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 
 class EnseignantService extends BaseService
 {
+    use FilterByUserContext;
     public function __construct()
     {
         parent::__construct(Enseignant::class);

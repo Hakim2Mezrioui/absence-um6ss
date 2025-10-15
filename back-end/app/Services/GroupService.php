@@ -8,12 +8,14 @@ use Illuminate\Support\Collection;
 
 class GroupService
 {
+    use FilterByUserContext;
     /**
-     * Get all groups with their relationships
+     * Get all groups with their relationships (filtered by user context)
      */
     public function getAllGroups(): Collection
     {
-        return Group::with(['etablissement', 'promotion', 'ville', 'etudiants'])->get();
+        $query = Group::with(['etablissement', 'promotion', 'ville', 'etudiants']);
+        return $this->applyUserContextFilters($query)->get();
     }
 
     /**
@@ -25,10 +27,20 @@ class GroupService
     }
 
     /**
-     * Create a new group
+     * Create a new group (with user context)
      */
     public function createGroup(array $data): Group
     {
+        $context = $this->getUserContextForFiltering();
+        
+        // Automatically set ville_id and etablissement_id from user context
+        if ($context['ville_id']) {
+            $data['ville_id'] = $context['ville_id'];
+        }
+        if ($context['etablissement_id']) {
+            $data['etablissement_id'] = $context['etablissement_id'];
+        }
+        
         return Group::create($data);
     }
 

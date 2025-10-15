@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { BaseApiService } from './base-api.service';
+import { UserContextService } from './user-context.service';
 
 export interface Etudiant {
   id: number;
@@ -124,10 +126,10 @@ export interface ValidationResults {
 @Injectable({
   providedIn: 'root'
 })
-export class EtudiantsService {
-  private baseUrl = 'http://127.0.0.1:8000/api';
-
-  constructor(private http: HttpClient) { }
+export class EtudiantsService extends BaseApiService {
+  constructor(http: HttpClient, userContextService: UserContextService) {
+    super(http, userContextService);
+  }
 
   /**
    * Récupérer tous les étudiants avec pagination et filtres
@@ -161,42 +163,45 @@ export class EtudiantsService {
       params = params.set('option_id', filters.option_id.toString());
     }
 
-    return this.http.get<EtudiantResponse>(`${this.baseUrl}/etudiants`, { params });
+    // Add user context filters automatically
+    params = this.addUserContextFilters(params);
+
+    return this.http.get<EtudiantResponse>(`${this.API_URL}/etudiants`, { params });
   }
 
   /**
    * Récupérer un étudiant par ID
    */
   getEtudiant(id: number): Observable<Etudiant> {
-    return this.http.get<Etudiant>(`${this.baseUrl}/etudiants/${id}`);
+    return this.http.get<Etudiant>(`${this.API_URL}/etudiants/${id}`);
   }
 
   /**
    * Créer un nouvel étudiant
    */
   createEtudiant(etudiant: Partial<Etudiant>): Observable<{ response: Etudiant }> {
-    return this.http.post<{ response: Etudiant }>(`${this.baseUrl}/etudiants`, etudiant);
+    return this.postWithContext<{ response: Etudiant }>('etudiants', etudiant);
   }
 
   /**
    * Mettre à jour un étudiant
    */
   updateEtudiant(id: number, etudiant: Partial<Etudiant>): Observable<Etudiant> {
-    return this.http.put<Etudiant>(`${this.baseUrl}/etudiants/${id}`, etudiant);
+    return this.putWithContext<Etudiant>(`etudiants/${id}`, etudiant);
   }
 
   /**
    * Supprimer un étudiant
    */
   deleteEtudiant(id: number): Observable<{ message: string }> {
-    return this.http.delete<{ message: string }>(`${this.baseUrl}/etudiants/${id}`);
+    return this.http.delete<{ message: string }>(`${this.API_URL}/etudiants/${id}`);
   }
 
   /**
    * Supprimer plusieurs étudiants
    */
   deleteMultipleEtudiants(ids: number[]): Observable<{ message: string; deleted_count: number; total_requested: number; errors?: string[] }> {
-    return this.http.delete<{ message: string; deleted_count: number; total_requested: number; errors?: string[] }>(`${this.baseUrl}/etudiants/delete-multiple`, {
+    return this.http.delete<{ message: string; deleted_count: number; total_requested: number; errors?: string[] }>(`${this.API_URL}/etudiants/delete-multiple`, {
       body: { ids }
     });
   }
@@ -205,14 +210,14 @@ export class EtudiantsService {
    * Récupérer les options de filtre
    */
   getFilterOptions(): Observable<FilterOptions> {
-    return this.http.get<FilterOptions>(`${this.baseUrl}/etudiants/filter-options`);
+    return this.http.get<FilterOptions>(`${this.API_URL}/etudiants/filter-options`);
   }
 
   /**
    * Importer des étudiants depuis un fichier
    */
   importEtudiants(formData: FormData): Observable<any> {
-    return this.http.post(`${this.baseUrl}/import-students-modern`, formData);
+    return this.http.post(`${this.API_URL}/import-students-modern`, formData);
   }
 
   /**
@@ -231,7 +236,7 @@ export class EtudiantsService {
     // Export avec authentification
     console.log('Tentative d\'export avec filtres:', filters);
     
-    return this.http.get(`${this.baseUrl}/export-etudiants`, { 
+    return this.http.get(`${this.API_URL}/export-etudiants`, { 
       params, 
       responseType: 'blob',
       headers: {
@@ -245,20 +250,20 @@ export class EtudiantsService {
    * Rechercher des étudiants
    */
   searchEtudiants(query: string): Observable<Etudiant[]> {
-    return this.http.get<Etudiant[]>(`${this.baseUrl}/etudiants/search?q=${query}`);
+    return this.http.get<Etudiant[]>(`${this.API_URL}/etudiants/search?q=${query}`);
   }
 
   /**
    * Récupérer les statistiques des étudiants
    */
   getEtudiantsStats(): Observable<any> {
-    return this.http.get(`${this.baseUrl}/etudiants/stats`);
+    return this.http.get(`${this.API_URL}/etudiants/stats`);
   }
 
   /**
    * Valider un fichier avant l'importation
    */
   validateFile(formData: FormData): Observable<ValidationResults> {
-    return this.http.post<ValidationResults>(`${this.baseUrl}/validate-students-file`, formData);
+    return this.http.post<ValidationResults>(`${this.API_URL}/validate-students-file`, formData);
   }
 }

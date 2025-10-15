@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
+use App\Scopes\UserContextScope;
 
 class Examen extends Model
 {
@@ -163,5 +164,10 @@ class Examen extends Model
         
         $heureLimite = $this->getHeureLimiteAvecTolerance();
         return $heureArrivee->diffInMinutes($heureLimite);
+    }
+
+    protected static function booted(): void
+    {
+        static::addGlobalScope(new UserContextScope);
     }
 }

@@ -16,10 +16,16 @@ class UserSeeder extends Seeder
     {
         // Récupérer les IDs des tables de référence
         $roles = Role::pluck('id')->toArray();
+        $etablissements = \App\Models\Etablissement::pluck('id')->toArray();
 
         // Vérifier que les tables de référence ont des données
         if (empty($roles)) {
             $this->command->warn('La table des rôles est vide. Veuillez exécuter RoleSeeder d\'abord.');
+            return;
+        }
+
+        if (empty($etablissements)) {
+            $this->command->warn('La table des établissements est vide. Veuillez exécuter EtablissementSeeder d\'abord.');
             return;
         }
 
@@ -32,6 +38,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('casa012000'),
                 'role_id' => $roles[0], // Premier rôle (probablement Admin)
                 'ville_id' => 1, // Casablanca
+                'etablissement_id' => $etablissements[0] ?? null, // Premier établissement
             ],
             [
                 'first_name' => 'Driss',
@@ -40,6 +47,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('UM6SS@2025'),
                 'role_id' => $roles[1] ?? $roles[0], // Deuxième rôle ou premier si pas assez
                 'ville_id' => 1, // Casablanca
+                'etablissement_id' => $etablissements[1] ?? null, // Deuxième établissement
             ],
             [
                 'first_name' => 'Youssef',
@@ -48,6 +56,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('UM6SS@2025'),
                 'role_id' => $roles[2] ?? $roles[0],
                 'ville_id' => 1, // Casablanca
+                'etablissement_id' => $etablissements[2] ?? null, // Troisième établissement
             ],
             [
                 'first_name' => 'Mohamed Taoufik',
@@ -56,6 +65,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('UM6SS@2025'),
                 'role_id' => $roles[1] ?? $roles[0],
                 'ville_id' => 1, // Casablanca
+                'etablissement_id' => $etablissements[3] ?? null, // Quatrième établissement
             ],
             [
                 'first_name' => 'Anas',
@@ -64,6 +74,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('UM6SS@2025'),
                 'role_id' => $roles[0] ?? $roles[0],
                 'ville_id' => 1, // Casablanca
+                'etablissement_id' => $etablissements[0] ?? null, // Premier établissement
             ],
             [
                 'first_name' => 'Salma',
@@ -72,6 +83,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('UM6SS@2025'),
                 'role_id' => $roles[1] ?? $roles[4],
                 'ville_id' => 1, // Casablanca
+                'etablissement_id' => $etablissements[1] ?? null, // Deuxième établissement
             ],
             [
                 'first_name' => 'Lhoussaine',
@@ -80,6 +92,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('UM6SS@2025'),
                 'role_id' => $roles[3] ?? $roles[0],
                 'ville_id' => 1, // Casablanca
+                'etablissement_id' => $etablissements[2] ?? null, // Troisième établissement
             ],
             [
                 'first_name' => 'Hicham',
@@ -88,6 +101,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('UM6SS@2025'),
                 'role_id' => $roles[3] ?? $roles[0],
                 'ville_id' => 1, // Casablanca
+                'etablissement_id' => $etablissements[3] ?? null, // Quatrième établissement
             ]
         ];
 

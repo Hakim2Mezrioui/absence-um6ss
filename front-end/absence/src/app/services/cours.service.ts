@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { BaseApiService } from './base-api.service';
+import { UserContextService } from './user-context.service';
 
 export interface Cours {
   id: number;
@@ -80,11 +82,12 @@ export interface TypeCours {
 @Injectable({
   providedIn: 'root'
 })
-export class CoursService {
-  private apiUrl = 'http://127.0.0.1:8000/api/cours';
+export class CoursService extends BaseApiService {
   private typesCoursUrl = 'http://127.0.0.1:8000/api/types-cours';
 
-  constructor(private http: HttpClient) { }
+  constructor(http: HttpClient, userContextService: UserContextService) {
+    super(http, userContextService);
+  }
 
   getCours(filters: CoursFilters = {}): Observable<CoursResponse> {
     let params = new HttpParams();
@@ -96,25 +99,28 @@ export class CoursService {
       }
     });
 
-    console.log('Requête API cours:', this.apiUrl, 'avec params:', params.toString());
+    // Add user context filters automatically
+    params = this.addUserContextFilters(params);
+
+    console.log('Requête API cours:', `${this.API_URL}/cours`, 'avec params:', params.toString());
     
-    return this.http.get<CoursResponse>(this.apiUrl, { params });
+    return this.http.get<CoursResponse>(`${this.API_URL}/cours`, { params });
   }
 
   getCoursById(id: number): Observable<Cours> {
-    return this.http.get<Cours>(`${this.apiUrl}/${id}`);
+    return this.http.get<Cours>(`${this.API_URL}/cours/${id}`);
   }
 
   createCours(cours: Partial<Cours>): Observable<Cours> {
-    return this.http.post<Cours>(this.apiUrl, cours);
+    return this.postWithContext<Cours>('cours', cours);
   }
 
   updateCours(id: number, cours: Partial<Cours>): Observable<Cours> {
-    return this.http.put<Cours>(`${this.apiUrl}/${id}`, cours);
+    return this.putWithContext<Cours>(`cours/${id}`, cours);
   }
 
   deleteCours(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+    return this.http.delete<void>(`${this.API_URL}/cours/${id}`);
   }
 
   // Méthode pour récupérer tous les types de cours
@@ -133,7 +139,7 @@ export class CoursService {
 
   // Méthode unique pour récupérer toutes les options de filtre
   getFilterOptions(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/filter-options`);
+    return this.http.get(`${this.API_URL}/cours/filter-options`);
   }
 
   /**
@@ -199,7 +205,7 @@ export class CoursService {
    * Importe des cours depuis un fichier CSV
    */
   importCours(formData: FormData): Observable<any> {
-    return this.http.post(`${this.apiUrl}/import-cours-modern`, formData);
+    return this.http.post(`${this.API_URL}/import-cours-modern`, formData);
   }
 
   /**
