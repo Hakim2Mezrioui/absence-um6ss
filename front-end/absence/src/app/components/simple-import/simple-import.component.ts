@@ -210,24 +210,35 @@ export class SimpleStudentImportComponent implements OnInit, OnDestroy {
         
         console.log('Feuilles disponibles:', workbook.SheetNames);
         
-        const firstSheet = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[firstSheet];
-        
-        // Vérifier si la feuille existe et contient des données
+        // Choisir automatiquement la première feuille NON vide (au moins 1 ligne de données)
+        let targetSheetName = workbook.SheetNames[0];
+        let worksheet = workbook.Sheets[targetSheetName];
+        let rows: any[][] = [];
+        for (const name of workbook.SheetNames) {
+          const ws = workbook.Sheets[name];
+          if (!ws || !ws['!ref']) continue;
+          const probe = utils.sheet_to_json<any[]>(ws, { header: 1, defval: '', raw: false, blankrows: false });
+          // au moins 2 lignes: 1 header + 1 data
+          if (probe.length >= 2 && probe.some((r, idx) => idx > 0 && r.some((c: any) => (c ?? '').toString().trim() !== ''))) {
+            targetSheetName = name;
+            worksheet = ws;
+            rows = probe;
+            break;
+          }
+        }
+        // Si le scan n'a pas trouvé, utiliser la première feuille telle quelle
         if (!worksheet || !worksheet['!ref']) {
           throw new Error('La feuille Excel est vide ou inaccessible.');
         }
+        if (!rows.length) {
+          console.log('Scan auto: première feuille non vide non trouvée, utilisation de la première feuille');
+          rows = utils.sheet_to_json<any[]>(worksheet, { header: 1, defval: '', raw: false, blankrows: false });
+        }
         
+        console.log('Feuille choisie:', targetSheetName);
         console.log('Plage de données:', worksheet['!ref']);
         
-        // Conversion améliorée avec gestion des types de données
-        const rows = utils.sheet_to_json<any[]>(worksheet, { 
-          header: 1, 
-          defval: '',
-          raw: false,
-          dateNF: 'yyyy-mm-dd',
-          blankrows: false
-        });
+        // rows déjà prêt ci-dessus
         
         // Capturer les informations du fichier pour le débogage
         this.fileInfo = {
@@ -335,6 +346,158 @@ export class SimpleStudentImportComponent implements OnInit, OnDestroy {
     };
 
     reader.readAsArrayBuffer(file);
+  }
+
+  testSuggestions(): void {
+    console.log('🧪 TEST DES SUGGESTIONS - DIAGNOSTIC COMPLET');
+    console.log('==========================================');
+    
+    // Test 1: Vérifier les données chargées
+    console.log('1. Données chargées:', {
+      filterOptions: this.filterOptions,
+      referenceData: this.referenceData,
+      promotionsCount: this.filterOptions?.promotions?.length || 0,
+      promotionsDetails: this.filterOptions?.promotions?.map((p: any) => ({ id: p.id, name: p.name })) || []
+    });
+    
+    // Test 2: Tester la recherche avec différents termes
+    const testTerms = ['1ère', '2ème', '3ème', '4ème', '5ème', '6ème', 'LIC'];
+    testTerms.forEach(term => {
+      const results = this.computeSuggestions(this.referenceData['promotion_name'] || [], term);
+      console.log(`2. Recherche "${term}":`, {
+        found: results.suggestions.length,
+        isValid: results.isValid,
+        results: results.suggestions.map((r: any) => ({ id: r.id, label: r.label }))
+      });
+    });
+    
+    // Test 3: Vérifier si les suggestions sont correctement mappées
+    console.log('3. Mapping des suggestions:', {
+      promotion_name: this.referenceData['promotion_name']?.length || 0,
+      promotion_name_details: this.referenceData['promotion_name']?.map((p: any) => ({ id: p.id, label: p.label, normalized: p.normalized })) || []
+    });
+    
+    console.log('==========================================');
+  }
+
+  testImportMapping(): void {
+    console.log('🧪 TEST DU MAPPING D\'IMPORT - DIAGNOSTIC COMPLET');
+    console.log('===============================================');
+    
+    if (!this.tableRows.length) {
+      console.log('❌ Aucune donnée de table à tester');
+      return;
+    }
+    
+    // Test avec les premières lignes de données
+    const testRows = this.tableRows.slice(0, 3);
+    
+    testRows.forEach((row, index) => {
+      console.log(`\n📊 Test ligne ${index + 1}:`, {
+        matricule: row['matricule'],
+        promotion_name: row['promotion_name'],
+        etablissement_name: row['etablissement_name'],
+        ville_name: row['ville_name'],
+        group_title: row['group_title'],
+        option_name: row['option_name']
+      });
+      
+      // Tester le mapping des promotions
+      if (row['promotion_name']) {
+        const promotion = this.findPromotionForTest(row['promotion_name']);
+        console.log(`  🔍 Promotion "${row['promotion_name']}" -> ${promotion ? `ID ${promotion.id} (${promotion.name})` : 'NON TROUVÉE'}`);
+      }
+      
+      // Tester le mapping des établissements
+      if (row['etablissement_name']) {
+        const etablissement = this.findEtablissementForTest(row['etablissement_name']);
+        console.log(`  🏢 Établissement "${row['etablissement_name']}" -> ${etablissement ? `ID ${etablissement.id} (${etablissement.name})` : 'NON TROUVÉ'}`);
+      }
+      
+      // Tester le mapping des villes
+      if (row['ville_name']) {
+        const ville = this.findVilleForTest(row['ville_name']);
+        console.log(`  🏙️ Ville "${row['ville_name']}" -> ${ville ? `ID ${ville.id} (${ville.name})` : 'NON TROUVÉE'}`);
+      }
+      
+      // Tester le mapping des groupes
+      if (row['group_title']) {
+        const group = this.findGroupForTest(row['group_title']);
+        console.log(`  👥 Groupe "${row['group_title']}" -> ${group ? `ID ${group.id} (${group.title})` : 'NON TROUVÉ'}`);
+      }
+      
+      // Tester le mapping des options
+      if (row['option_name']) {
+        const option = this.findOptionForTest(row['option_name']);
+        console.log(`  📚 Option "${row['option_name']}" -> ${option ? `ID ${option.id} (${option.name})` : 'NON TROUVÉE'}`);
+      }
+    });
+    
+    console.log('\n===============================================');
+  }
+
+  private findPromotionForTest(name: string): any {
+    if (!name || !this.filterOptions?.promotions) return null;
+    const normalizedName = this.normalize(name);
+    
+    // Recherche exacte d'abord
+    let found = this.filterOptions.promotions.find(p => 
+      this.normalize(p.name) === normalizedName
+    );
+    
+    // Si pas trouvé, recherche partielle
+    if (!found) {
+      found = this.filterOptions.promotions.find(p => {
+        const normalizedPromotion = this.normalize(p.name);
+        return normalizedPromotion.includes(normalizedName) || 
+               normalizedName.includes(normalizedPromotion) ||
+               // Recherche par chiffre initial (ex: "4ème" -> "4ème année")
+               (normalizedName.match(/^\d+/) && normalizedPromotion.match(/^\d+/) && 
+                normalizedName.match(/^\d+/)?.[0] === normalizedPromotion.match(/^\d+/)?.[0]);
+      });
+    }
+    
+    return found;
+  }
+
+  private findEtablissementForTest(name: string): any {
+    if (!name || !this.filterOptions?.etablissements) return null;
+    const normalizedName = this.normalize(name);
+    return this.filterOptions.etablissements.find(e => 
+      this.normalize(e.name) === normalizedName ||
+      this.normalize(e.name).includes(normalizedName) ||
+      normalizedName.includes(this.normalize(e.name))
+    );
+  }
+
+  private findVilleForTest(name: string): any {
+    if (!name || !this.filterOptions?.villes) return null;
+    const normalizedName = this.normalize(name);
+    return this.filterOptions.villes.find(v => 
+      this.normalize(v.name) === normalizedName ||
+      this.normalize(v.name).includes(normalizedName) ||
+      normalizedName.includes(this.normalize(v.name))
+    );
+  }
+
+  private findGroupForTest(title: string): any {
+    if (!title || !this.filterOptions?.groups) return null;
+    const normalizedTitle = this.normalize(title);
+    return this.filterOptions.groups.find(g => 
+      this.normalize(g.title) === normalizedTitle ||
+      this.normalize(g.title).includes(normalizedTitle) ||
+      normalizedTitle.includes(this.normalize(g.title))
+    );
+  }
+
+  private findOptionForTest(name: string): any {
+    if (!name || !this.filterOptions?.options) return null;
+    const normalizedName = this.normalize(name);
+    return this.filterOptions.options.find(o => 
+      this.normalize(o.name) === normalizedName ||
+      this.normalize(o.name).includes(normalizedName) ||
+      normalizedName.includes(this.normalize(o.name))
+    );
   }
 
   trackByHeader(_: number, header: string): string {
@@ -540,11 +703,25 @@ export class SimpleStudentImportComponent implements OnInit, OnDestroy {
         const findPromotion = (name: string) => {
           if (!name) return null;
           const normalizedName = this.normalize(name);
-          return this.filterOptions?.promotions?.find(p => 
-            this.normalize(p.name) === normalizedName ||
-            this.normalize(p.name).includes(normalizedName) ||
-            normalizedName.includes(this.normalize(p.name))
+          
+          // Recherche exacte d'abord
+          let found = this.filterOptions?.promotions?.find(p => 
+            this.normalize(p.name) === normalizedName
           );
+          
+          // Si pas trouvé, recherche partielle
+          if (!found) {
+            found = this.filterOptions?.promotions?.find(p => {
+              const normalizedPromotion = this.normalize(p.name);
+              return normalizedPromotion.includes(normalizedName) || 
+                     normalizedName.includes(normalizedPromotion) ||
+                     // Recherche par chiffre initial (ex: "4ème" -> "4ème année")
+                     (normalizedName.match(/^\d+/) && normalizedPromotion.match(/^\d+/) && 
+                      normalizedName.match(/^\d+/)?.[0] === normalizedPromotion.match(/^\d+/)?.[0]);
+            });
+          }
+          
+          return found;
         };
 
         const findEtablissement = (name: string) => {
@@ -607,15 +784,70 @@ export class SimpleStudentImportComponent implements OnInit, OnDestroy {
           option_found: option ? `${option.name} (ID: ${option.id})` : 'Non trouvée'
         });
 
-        if (promotion) student.promotion_id = promotion.id;
-        if (etablissement) student.etablissement_id = etablissement.id;
-        if (ville) student.ville_id = ville.id;
-        if (group) student.group_id = group.id;
-        if (option) student.option_id = option.id;
+        // Log détaillé pour les promotions
+        if (!promotion && student.promotion_name) {
+          console.log(`❌ Promotion non trouvée pour "${student.promotion_name}"`, {
+            availablePromotions: this.filterOptions?.promotions?.map(p => p.name) || [],
+            normalizedInput: this.normalize(student.promotion_name),
+            normalizedAvailable: this.filterOptions?.promotions?.map(p => this.normalize(p.name)) || []
+          });
+        }
+
+        // Assigner les IDs avec logging détaillé
+        if (promotion) {
+          student.promotion_id = promotion.id;
+          console.log(`✅ Promotion assignée: "${student.promotion_name}" -> ID ${promotion.id}`);
+        } else {
+          console.log(`❌ Promotion NON assignée pour "${student.promotion_name}"`);
+        }
+        
+        if (etablissement) {
+          student.etablissement_id = etablissement.id;
+          console.log(`✅ Établissement assigné: "${student.etablissement_name}" -> ID ${etablissement.id}`);
+        }
+        
+        if (ville) {
+          student.ville_id = ville.id;
+          console.log(`✅ Ville assignée: "${student.ville_name}" -> ID ${ville.id}`);
+        }
+        
+        if (group) {
+          student.group_id = group.id;
+          console.log(`✅ Groupe assigné: "${student.group_title}" -> ID ${group.id}`);
+        }
+        
+        if (option) {
+          student.option_id = option.id;
+          console.log(`✅ Option assignée: "${student.option_name}" -> ID ${option.id}`);
+        }
+
+        // Log final de l'étudiant avant envoi
+        console.log(`📤 Étudiant final avant envoi ${student.matricule}:`, {
+          promotion_id: student.promotion_id,
+          etablissement_id: student.etablissement_id,
+          ville_id: student.ville_id,
+          group_id: student.group_id,
+          option_id: student.option_id
+        });
       }
 
       return student;
     });
+
+    // Log des données finales avant envoi
+    console.log('📊 Données finales à envoyer au backend:', studentsData.map(s => ({
+      matricule: s.matricule,
+      promotion_name: s.promotion_name,
+      promotion_id: s.promotion_id,
+      etablissement_name: s.etablissement_name,
+      etablissement_id: s.etablissement_id,
+      ville_name: s.ville_name,
+      ville_id: s.ville_id,
+      group_title: s.group_title,
+      group_id: s.group_id,
+      option_name: s.option_name,
+      option_id: s.option_id
+    })));
 
     // Créer un fichier Excel temporaire pour l'importation
     const worksheet = utils.json_to_sheet(studentsData);
@@ -670,6 +902,14 @@ export class SimpleStudentImportComponent implements OnInit, OnDestroy {
     this.etudiantsService.getFilterOptions().subscribe({
       next: (options) => {
         this.filterOptions = options;
+        console.log('🔍 DIAGNOSTIC - Données chargées depuis l\'API:', {
+          promotions: options.promotions?.length || 0,
+          promotionsDetails: options.promotions?.map((p: any) => ({ id: p.id, name: p.name })) || [],
+          etablissements: options.etablissements?.length || 0,
+          villes: options.villes?.length || 0,
+          groups: options.groups?.length || 0,
+          options: options.options?.length || 0
+        });
         this.prepareReferenceData(options);
         if (this.tableRows.length) {
           this.validateRows();
@@ -690,6 +930,17 @@ export class SimpleStudentImportComponent implements OnInit, OnDestroy {
       group_title: (options.groups || []).map((g) => this.toReferenceEntry(g.title, g.id)),
       option_name: (options.options || []).map((o) => this.toReferenceEntry(o.name, o.id))
     };
+    
+    console.log('🔍 DIAGNOSTIC - Données préparées pour les suggestions:', {
+      promotion_name: this.referenceData['promotion_name'].length,
+      promotion_name_details: this.referenceData['promotion_name'].map((p: any) => ({ id: p.id, label: p.label, normalized: p.normalized })),
+      etablissement_name: this.referenceData['etablissement_name'].length,
+      ville_name: this.referenceData['ville_name'].length,
+      group_title: this.referenceData['group_title'].length,
+      option_name: this.referenceData['option_name'].length
+    });
+    
+    // Purge & réinitialisation du cache côté worker pour tenir compte des nouvelles listes
     // Send indexes to worker once prepared
     if (this.worker) {
       Object.keys(this.referenceData).forEach((header) => {
@@ -790,6 +1041,11 @@ export class SimpleStudentImportComponent implements OnInit, OnDestroy {
 
     const pool = quickCandidates.length ? quickCandidates : reference.slice(0, Math.min(300, reference.length));
 
+    const numMatch = (s: string): string | null => {
+      const m = s.match(/^(\d+)/);
+      return m ? m[1] : null;
+    };
+    const termNum = numMatch(normalized);
     const scored = pool.map((entry) => {
       let score = 0;
       if (entry.normalized.includes(normalized) || normalized.includes(entry.normalized)) {
@@ -800,10 +1056,20 @@ export class SimpleStudentImportComponent implements OnInit, OnDestroy {
       }
       const distance = this.levenshteinDistance(normalized, entry.normalized);
       score += Math.max(0, 40 - distance * 10);
+       // Bonus fort si chiffre initial identique (ex: 2 vs 2eme annee)
+       const entryNum = numMatch(entry.normalized);
+       if (termNum && entryNum && termNum === entryNum) {
+         score += 60;
+       }
       return { entry, score };
     }).filter((item) => item.score > 0);
 
     scored.sort((a, b) => b.score - a.score);
+    // High-confidence acceptance: if best score is high, mark cell valid
+    const top = scored[0];
+    if (top && top.score >= 80) {
+      return { isValid: true, suggestions: [] };
+    }
 
     const baseCandidates = scored.length ? scored : reference.slice(0, 3);
 

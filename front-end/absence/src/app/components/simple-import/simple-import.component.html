@@ -35,6 +35,19 @@
             <span class="material-icons text-lg">info</span>
             {{ showAvailableOptions ? 'Masquer' : 'Voir' }} les options
           </button>
+              <button type="button"
+                      (click)="testSuggestions()"
+                      class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-yellow-300 bg-yellow-100 text-sm font-medium text-yellow-800 hover:bg-yellow-200 transition-colors">
+                <span class="material-icons text-lg">bug_report</span>
+                Tester les suggestions
+              </button>
+              
+              <button type="button"
+                      (click)="testImportMapping()"
+                      class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-blue-300 bg-blue-100 text-sm font-medium text-blue-800 hover:bg-blue-200 transition-colors">
+                <span class="material-icons text-lg">science</span>
+                Tester le mapping d'import
+              </button>
           <button *ngIf="tableRows.length"
                   type="button"
                   (click)="importStudents()"

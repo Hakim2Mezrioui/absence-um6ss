@@ -139,6 +139,7 @@ Route::apiResource('enseignants', EnseignantController::class);
 // Public routes for students
 Route::get("test-etudiants", [EtudiantController::class, "index"]);
 Route::get("test-etudiants-count", [EtudiantController::class, "testStudentsCount"]);
+Route::get("diagnostic-etudiants", [EtudiantController::class, "diagnosticStudents"])->middleware('auth:sanctum');
 
 // Routes d'export publiques pour test (sans authentification)
 Route::get('/export-simple-public', [EtudiantController::class, 'exportSimple']);

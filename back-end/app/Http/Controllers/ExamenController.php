@@ -388,7 +388,7 @@ class ExamenController extends Controller
      */
     public function getPromotions()
     {
-        $promotions = \App\Models\Promotion::select('id', 'name')->get();
+        $promotions = \App\Models\Promotion::withoutGlobalScope(\App\Scopes\UserContextScope::class)->select('id', 'name')->get();
         return response()->json(['promotions' => $promotions]);
     }
 
@@ -407,7 +407,7 @@ class ExamenController extends Controller
     public function getFilterOptions()
     {
         $etablissements = \App\Models\Etablissement::select('id', 'name')->get();
-        $promotions = \App\Models\Promotion::select('id', 'name')->get();
+        $promotions = \App\Models\Promotion::withoutGlobalScope(\App\Scopes\UserContextScope::class)->select('id', 'name')->get();
         $salles = \App\Models\Salle::select('id', 'name', 'etage', 'batiment')->get();
         $options = \App\Models\Option::select('id', 'name')->get();
         $groups = \App\Models\Group::select('id', 'title')->get();

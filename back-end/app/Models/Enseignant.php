@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use App\Scopes\UserContextScope;
+use App\Scopes\EnseignantUserContextScope;
 
 class Enseignant extends Model
 {
@@ -31,7 +31,7 @@ class Enseignant extends Model
 
     protected static function booted(): void
     {
-        static::addGlobalScope(new UserContextScope);
+        static::addGlobalScope(new EnseignantUserContextScope);
     }
 }
 

@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Services\EtudiantService;
 use App\Services\UserContextService;
+use App\Services\ConfigurationService;
 // Commenté temporairement en attendant l'activation de l'extension GD
 // use PhpOffice\PhpSpreadsheet\Spreadsheet;
 // use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -41,17 +42,9 @@ class EtudiantController extends Controller
         $page = $request->get('page', 1);
         $perPage = $request->get('per_page', 10);
         
-        // Construire la requête avec les relations et filtrage par contexte utilisateur
+        // Construire la requête avec les relations
+        // Le filtrage par contexte utilisateur est déjà appliqué par le global scope UserContextScope
         $query = Etudiant::with(['ville', 'group', 'option', 'etablissement', 'promotion']);
-        
-        // Appliquer le filtrage par contexte utilisateur
-        $userContext = $this->userContextService->getUserContext();
-        if ($userContext['ville_id']) {
-            $query->where('ville_id', $userContext['ville_id']);
-        }
-        if ($userContext['etablissement_id']) {
-            $query->where('etablissement_id', $userContext['etablissement_id']);
-        }
         
         // Appliquer les filtres
         if ($request->has('searchValue') && !empty($request->get('searchValue'))) {
@@ -406,6 +399,62 @@ class EtudiantController extends Controller
             'message' => 'Test des étudiants dans la base de données',
             'total_etudiants' => $totalStudents,
             'echantillon_etudiants' => $sampleStudents,
+            'status' => 200
+        ]);
+    }
+
+    /**
+     * Diagnostic endpoint to debug empty students list
+     */
+    public function diagnosticStudents()
+    {
+        $user = Auth::user();
+        $userContext = $this->userContextService->getUserContext();
+        
+        // Count without any filters
+        $totalWithoutFilters = Etudiant::withoutGlobalScope(\App\Scopes\UserContextScope::class)->count();
+        
+        // Count with global scope only
+        $totalWithGlobalScope = Etudiant::count();
+        
+        // Count with user context filters manually applied
+        $query = Etudiant::withoutGlobalScope(\App\Scopes\UserContextScope::class);
+        if ($userContext['ville_id']) {
+            $query->where('ville_id', $userContext['ville_id']);
+        }
+        if ($userContext['etablissement_id']) {
+            $query->where('etablissement_id', $userContext['etablissement_id']);
+        }
+        $totalWithManualFilters = $query->count();
+        
+        // Sample students without filters
+        $sampleWithoutFilters = Etudiant::withoutGlobalScope(\App\Scopes\UserContextScope::class)
+            ->with(['ville', 'group', 'option', 'etablissement', 'promotion'])
+            ->take(3)
+            ->get();
+        
+        // Sample students with filters
+        $sampleWithFilters = Etudiant::with(['ville', 'group', 'option', 'etablissement', 'promotion'])
+            ->take(3)
+            ->get();
+
+        return response()->json([
+            'message' => 'Diagnostic des étudiants',
+            'user_context' => [
+                'user_id' => $user ? $user->id : null,
+                'user_email' => $user ? $user->email : null,
+                'ville_id' => $userContext['ville_id'],
+                'etablissement_id' => $userContext['etablissement_id']
+            ],
+            'counts' => [
+                'total_without_filters' => $totalWithoutFilters,
+                'total_with_global_scope' => $totalWithGlobalScope,
+                'total_with_manual_filters' => $totalWithManualFilters
+            ],
+            'samples' => [
+                'without_filters' => $sampleWithoutFilters,
+                'with_filters' => $sampleWithFilters
+            ],
             'status' => 200
         ]);
     }
@@ -806,7 +855,7 @@ class EtudiantController extends Controller
     {
         try {
             $filterOptions = [
-                'promotions' => \App\Models\Promotion::select('id', 'name')->get(),
+                'promotions' => \App\Models\Promotion::withoutGlobalScope(\App\Scopes\UserContextScope::class)->select('id', 'name')->get(),
                 'groups' => \App\Models\Group::select('id', 'title')->get(),
                 'villes' => \App\Models\Ville::select('id', 'name')->get(),
                 'etablissements' => \App\Models\Etablissement::select('id', 'name')->get(),
@@ -2125,6 +2174,15 @@ class EtudiantController extends Controller
         
         $data['password'] = 'password123'; // Mot de passe en clair pour éviter les timeouts
         
+        // Mapping des noms vers les IDs pour les relations
+        $relationMapping = [
+            'promotion_name' => 'promotion_id',
+            'etablissement_name' => 'etablissement_id',
+            'ville_name' => 'ville_id',
+            'group_title' => 'group_id',
+            'option_name' => 'option_id'
+        ];
+        
         // Validation des relations avec suggestions
         $relations = ['promotion_id', 'etablissement_id', 'ville_id', 'group_id', 'option_id'];
         
@@ -2132,19 +2190,29 @@ class EtudiantController extends Controller
             $value = null;
             $suggestion = null;
             
-            if ($useDefaultValues && isset($defaultValues[$relation])) {
-                // Utiliser la valeur par défaut
+            if ($useDefaultValues && isset($defaultValues[$relation]) && !empty($defaultValues[$relation])) {
+                // Utiliser la valeur par défaut quand useDefaultValues est true
                 $value = (int) $defaultValues[$relation];
-            } elseif (in_array($relation, $headers) && !empty($studentData[$relation])) {
-                // Utiliser la valeur du fichier
-                $value = $this->validateRelationValue($relation, $studentData[$relation], $suggestion);
-            } elseif ($relation === 'option_id') {
-                // Option est toujours optionnelle
-                $value = null;
             } else {
-                // Champ manquant
-                $errors[] = "Le champ {$relation} est manquant";
-                $suggestion = $this->getRelationSuggestions($relation);
+                // Chercher d'abord l'ID direct dans les données
+                if (in_array($relation, $headers) && !empty($studentData[$relation])) {
+                    $value = $this->validateRelationValue($relation, $studentData[$relation], $suggestion);
+                } else {
+                    // Chercher le nom correspondant et le convertir en ID
+                    $nameField = array_search($relation, $relationMapping);
+                    if ($nameField && in_array($nameField, $headers) && !empty($studentData[$nameField])) {
+                        $value = $this->validateRelationValue($relation, $studentData[$nameField], $suggestion);
+                    } elseif ($relation === 'option_id') {
+                        // Option est toujours optionnelle
+                        $value = null;
+                    } else {
+                        // Champ manquant seulement si pas de valeur par défaut
+                        if (!$useDefaultValues || !isset($defaultValues[$relation]) || empty($defaultValues[$relation])) {
+                            $errors[] = "Le champ {$relation} est manquant";
+                            $suggestion = $this->getRelationSuggestions($relation);
+                        }
+                    }
+                }
             }
             
             if ($suggestion) {
@@ -2172,16 +2240,26 @@ class EtudiantController extends Controller
         switch ($relation) {
             case 'promotion_id':
                 if (is_numeric($value)) {
-                    $promotion = \App\Models\Promotion::find($value);
+                    $promotion = \App\Models\Promotion::withoutGlobalScope(\App\Scopes\UserContextScope::class)->find($value);
                     if ($promotion) {
                         return (int) $value;
                     }
                 }
-                // Chercher par nom
-                $promotion = \App\Models\Promotion::where('name', 'like', '%' . $value . '%')->first();
-                if ($promotion) {
-                    $suggestion = "Utiliser l'ID {$promotion->id} pour '{$promotion->name}'";
-                    return $promotion->id;
+                // Chercher par nom avec normalisation (même logique que le frontend)
+                $normalizedValue = $this->normalizeString($value);
+                $promotions = \App\Models\Promotion::withoutGlobalScope(\App\Scopes\UserContextScope::class)->get();
+                
+                foreach ($promotions as $promotion) {
+                    $normalizedPromotionName = $this->normalizeString($promotion->name);
+                    if ($normalizedPromotionName === $normalizedValue || 
+                        strpos($normalizedPromotionName, $normalizedValue) !== false || 
+                        strpos($normalizedValue, $normalizedPromotionName) !== false ||
+                        // Recherche par chiffre initial (ex: "4ème" -> "4ème année")
+                        (preg_match('/^\d+/', $normalizedValue, $valueMatches) && 
+                         preg_match('/^\d+/', $normalizedPromotionName, $promotionMatches) && 
+                         $valueMatches[0] === $promotionMatches[0])) {
+                        return $promotion->id;
+                    }
                 }
                 $suggestion = $this->getPromotionSuggestions($value);
                 return null;
@@ -2195,7 +2273,6 @@ class EtudiantController extends Controller
                 }
                 $etablissement = \App\Models\Etablissement::where('name', 'like', '%' . $value . '%')->first();
                 if ($etablissement) {
-                    $suggestion = "Utiliser l'ID {$etablissement->id} pour '{$etablissement->name}'";
                     return $etablissement->id;
                 }
                 $suggestion = $this->getEtablissementSuggestions($value);
@@ -2210,7 +2287,6 @@ class EtudiantController extends Controller
                 }
                 $ville = \App\Models\Ville::where('name', 'like', '%' . $value . '%')->first();
                 if ($ville) {
-                    $suggestion = "Utiliser l'ID {$ville->id} pour '{$ville->name}'";
                     return $ville->id;
                 }
                 $suggestion = $this->getVilleSuggestions($value);
@@ -2225,7 +2301,6 @@ class EtudiantController extends Controller
                 }
                 $group = \App\Models\Group::where('title', 'like', '%' . $value . '%')->first();
                 if ($group) {
-                    $suggestion = "Utiliser l'ID {$group->id} pour '{$group->title}'";
                     return $group->id;
                 }
                 $suggestion = $this->getGroupSuggestions($value);
@@ -2243,7 +2318,6 @@ class EtudiantController extends Controller
                 }
                 $option = \App\Models\Option::where('name', 'like', '%' . $value . '%')->first();
                 if ($option) {
-                    $suggestion = "Utiliser l'ID {$option->id} pour '{$option->name}'";
                     return $option->id;
                 }
                 $suggestion = $this->getOptionSuggestions($value);
@@ -2258,7 +2332,7 @@ class EtudiantController extends Controller
      */
     private function getPromotionSuggestions($value)
     {
-        $promotions = \App\Models\Promotion::all();
+        $promotions = \App\Models\Promotion::withoutGlobalScope(\App\Scopes\UserContextScope::class)->get();
         $suggestions = [];
         
         foreach ($promotions as $promotion) {
@@ -2344,13 +2418,29 @@ class EtudiantController extends Controller
     }
     
     /**
+     * Normaliser une chaîne de caractères (même logique que le frontend)
+     */
+    private function normalizeString($value)
+    {
+        if (empty($value)) {
+            return '';
+        }
+        
+        return mb_strtolower(
+            preg_replace('/\p{Diacritic}/u', '', 
+                Normalizer::normalize($value, Normalizer::FORM_D)
+            )
+        );
+    }
+
+    /**
      * Obtenir des suggestions générales pour une relation
      */
     private function getRelationSuggestions($relation)
     {
         switch ($relation) {
             case 'promotion_id':
-                $promotions = \App\Models\Promotion::all();
+                $promotions = \App\Models\Promotion::withoutGlobalScope(\App\Scopes\UserContextScope::class)->get();
                 return 'Promotions disponibles: ' . $promotions->pluck('name')->implode(', ');
             case 'etablissement_id':
                 $etablissements = \App\Models\Etablissement::all();

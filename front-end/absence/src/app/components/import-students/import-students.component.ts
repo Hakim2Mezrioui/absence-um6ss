@@ -162,6 +162,16 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (options) => {
           this.filterOptions = options;
+          console.log('📊 Options de filtre chargées:', {
+            promotions: options.promotions?.length || 0,
+            promotionsDetails: options.promotions?.map((p: any) => ({ id: p.id, name: p.name })) || [],
+            etablissements: options.etablissements?.length || 0,
+            villes: options.villes?.length || 0,
+            groups: options.groups?.length || 0,
+            options: options.options?.length || 0
+          });
+          // Recharger les suggestions après avoir chargé les options
+          this.loadSuggestions();
         },
         error: (err) => {
           console.error('Erreur lors du chargement des options:', err);
@@ -854,6 +864,10 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
     this.loadSuggestions();
     
     console.log('📝 Éditeur de fichier ouvert avec', this.editableData.length, 'lignes');
+    
+    // Diagnostic immédiat des suggestions
+    console.log('📝 Éditeur ouvert - Diagnostic des suggestions:');
+    this.testSuggestions();
   }
 
   /**
@@ -912,12 +926,21 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
    */
   loadSuggestions(): void {
     this.suggestions = {
-      promotion_id: this.filterOptions.promotions,
-      etablissement_id: this.filterOptions.etablissements,
-      ville_id: this.filterOptions.villes,
-      group_id: this.filterOptions.groups,
-      option_id: this.filterOptions.options
+      promotion_id: this.filterOptions.promotions || [],
+      etablissement_id: this.filterOptions.etablissements || [],
+      ville_id: this.filterOptions.villes || [],
+      group_id: this.filterOptions.groups || [],
+      option_id: this.filterOptions.options || []
     };
+    
+    console.log('📚 Suggestions chargées:', {
+      promotions: this.suggestions['promotion_id'].length,
+      etablissements: this.suggestions['etablissement_id'].length,
+      villes: this.suggestions['ville_id'].length,
+      groups: this.suggestions['group_id'].length,
+      options: this.suggestions['option_id'].length,
+      promotionDetails: this.suggestions['promotion_id'].map((p: any) => ({ id: p.id, name: p.name }))
+    });
   }
 
   /**
@@ -926,13 +949,31 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
   startEditingCell(row: number, col: number): void {
     this.editingCell = { row, col };
     const columnName = this.editableHeaders[col];
+    const currentValue = this.editableData[row][col];
     
     // Charger les suggestions pour cette colonne
     if (this.suggestions[columnName]) {
-      this.cellSuggestions = this.suggestions[columnName];
+      // Si la cellule a déjà une valeur, rechercher des suggestions basées sur cette valeur
+      if (currentValue) {
+        this.cellSuggestions = this.searchSuggestions(columnName, currentValue.toString());
+        // Si aucune suggestion trouvée, afficher toutes les suggestions disponibles
+        if (this.cellSuggestions.length === 0) {
+          this.cellSuggestions = this.suggestions[columnName].slice(0, 8);
+        }
+      } else {
+        // Sinon, afficher les premières suggestions disponibles
+        this.cellSuggestions = this.suggestions[columnName].slice(0, 8);
+      }
     } else {
       this.cellSuggestions = [];
     }
+    
+    console.log(`🔍 Édition cellule [${row}, ${col}] - ${columnName}:`, {
+      currentValue,
+      suggestionsCount: this.cellSuggestions.length,
+      availableSuggestions: this.suggestions[columnName]?.length || 0,
+      allSuggestions: this.suggestions[columnName]?.map((s: any) => s.name || s.title) || []
+    });
   }
 
   /**
@@ -941,6 +982,67 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
   finishEditingCell(): void {
     this.editingCell = null;
     this.cellSuggestions = [];
+  }
+
+  /**
+   * Terminer l'édition et auto-mapper les valeurs textuelles vers des IDs si nécessaire
+   */
+  finishEditingCellWithAutoMap(row: number, col: number): void {
+    const columnName = this.editableHeaders[col];
+    const raw = (this.editableData[row]?.[col] ?? '').toString();
+    if (!columnName || !raw) {
+      this.finishEditingCell();
+      return;
+    }
+
+    if (columnName.includes('_id') && this.suggestions[columnName] && this.suggestions[columnName].length > 0) {
+      const term = this.normalize(raw);
+      const candidates: any[] = this.suggestions[columnName];
+
+      // Score simple: exact id, exact name, startsWith, includes
+      let best: any | null = null;
+      let bestScore = -1;
+      for (const c of candidates) {
+        const name = this.normalize(c.name || c.title || '');
+        const idStr = (c.id ?? '').toString();
+
+        let score = 0;
+        if (raw === idStr) score = 100;
+        else if (name === term) score = 95;
+        else if (name.startsWith(term)) score = 85;
+        else if (name.includes(term)) score = 75;
+
+        if (score > bestScore) {
+          bestScore = score;
+          best = c;
+        }
+      }
+
+      if (best && bestScore >= 75) {
+        // Remplacer la valeur par l'ID numérique
+        this.updateCellValue(row, col, best.id.toString());
+      }
+    }
+
+    this.finishEditingCell();
+  }
+
+  /**
+   * Gérer les touches du clavier dans l'éditeur
+   */
+  onKeyDown(event: KeyboardEvent, row: number, col: number): void {
+    if (event.key === 'Escape') {
+      this.finishEditingCell();
+    } else if (event.key === 'Enter') {
+      event.preventDefault();
+      this.finishEditingCell();
+    } else if (event.key === 'ArrowDown' && this.cellSuggestions.length > 0) {
+      event.preventDefault();
+      // Logique pour naviguer dans les suggestions (à implémenter si nécessaire)
+    } else if (event.key === 'ArrowUp' && this.cellSuggestions.length > 0) {
+      event.preventDefault();
+      // Logique pour naviguer dans les suggestions (à implémenter si nécessaire)
+    }
   }
 
   /**
@@ -958,8 +1060,17 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
   onEditInput(row: number, col: number, value: string): void {
     this.updateCellValue(row, col, value);
     const columnName = this.editableHeaders[col];
+    
     if (this.suggestions[columnName]) {
+      // Rechercher des suggestions basées sur la valeur tapée
       this.cellSuggestions = this.searchSuggestions(columnName, value);
+      
+      console.log(`🔍 Recherche suggestions pour "${value}" dans ${columnName}:`, {
+        suggestionsFound: this.cellSuggestions.length,
+        suggestions: this.cellSuggestions.map(s => s.name || s.title)
+      });
+    } else {
+      this.cellSuggestions = [];
     }
   }
 
@@ -968,32 +1079,132 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
    */
   applySuggestion(row: number, col: number, suggestion: any): void {
     const columnName = this.editableHeaders[col];
+    let valueToSet = '';
     
     if (columnName.includes('_id')) {
-      // Pour les colonnes ID, utiliser l'ID
-      this.updateCellValue(row, col, suggestion.id);
+      // Pour les colonnes ID, utiliser l'ID numérique
+      valueToSet = suggestion.id.toString();
     } else {
-      // Pour les autres colonnes, utiliser le nom
-      this.updateCellValue(row, col, suggestion.name || suggestion.title);
+      // Pour les autres colonnes, utiliser le nom ou titre
+      valueToSet = suggestion.name || suggestion.title || suggestion.id.toString();
     }
     
+    this.updateCellValue(row, col, valueToSet);
     this.finishEditingCell();
+    
+    console.log(`✅ Suggestion appliquée:`, {
+      column: columnName,
+      suggestion: suggestion,
+      valueSet: valueToSet
+    });
   }
 
   /**
    * Rechercher des suggestions pour une valeur
    */
   searchSuggestions(columnName: string, searchTerm: string): any[] {
-    if (!this.suggestions[columnName]) return [];
+    if (!this.suggestions[columnName] || !searchTerm) return this.suggestions[columnName]?.slice(0, 10) || [];
     
     const suggestions = this.suggestions[columnName];
-    const term = searchTerm.toLowerCase();
+    const term = searchTerm.toLowerCase().trim();
     
-    return suggestions.filter((item: any) => 
-      (item.name && item.name.toLowerCase().includes(term)) ||
-      (item.title && item.title.toLowerCase().includes(term)) ||
-      (item.id && item.id.toString().includes(term))
-    );
+    if (!term) return suggestions.slice(0, 10);
+    
+    console.log(`🔍 Recherche "${searchTerm}" dans ${columnName}:`, {
+      term,
+      totalSuggestions: suggestions.length,
+      allSuggestions: suggestions.map((s: any) => ({ id: s.id, name: s.name, title: s.title }))
+    });
+    
+    // Recherche intelligente avec scoring amélioré
+    const scoredSuggestions = suggestions.map((item: any) => {
+      let score = 0;
+      const name = item.name?.toLowerCase() || '';
+      const title = item.title?.toLowerCase() || '';
+      const id = item.id?.toString() || '';
+      
+      // Correspondance exacte (score le plus élevé)
+      if (name === term || title === term || id === term) {
+        score = 100;
+      }
+      // Commence par le terme
+      else if (name.startsWith(term) || title.startsWith(term)) {
+        score = 90;
+      }
+      // Contient le terme (score élevé pour les promotions)
+      else if (name.includes(term) || title.includes(term)) {
+        score = 80;
+      }
+      // Correspondance partielle dans les mots composés
+      else if (name.split(' ').some((word: string) => word.startsWith(term)) || 
+               title.split(' ').some((word: string) => word.startsWith(term))) {
+        score = 70;
+      }
+      // Correspondance partielle dans les mots composés (contient)
+      else if (name.split(' ').some((word: string) => word.includes(term)) || 
+               title.split(' ').some((word: string) => word.includes(term))) {
+        score = 60;
+      }
+      // Correspondance avec l'ID
+      else if (id.includes(term)) {
+        score = 50;
+      }
+      
+      return { item, score };
+    });
+    
+    // Filtrer et trier par score
+    const filteredSuggestions = scoredSuggestions
+      .filter((s: {item: any, score: number}) => s.score > 0)
+      .sort((a: {item: any, score: number}, b: {item: any, score: number}) => b.score - a.score)
+      .slice(0, 8)
+      .map((s: {item: any, score: number}) => s.item);
+    
+    console.log(`🔍 Résultats pour "${searchTerm}" dans ${columnName}:`, {
+      suggestionsFound: filteredSuggestions.length,
+      suggestions: filteredSuggestions.map((s: any) => ({ id: s.id, name: s.name, title: s.title })),
+      scoredSuggestions: scoredSuggestions.map((s: {item: any, score: number}) => ({ 
+        name: s.item.name, 
+        title: s.item.title, 
+        score: s.score 
+      }))
+    });
+    
+    return filteredSuggestions;
+  }
+
+  /**
+   * Méthode de test pour diagnostiquer les suggestions
+   */
+  testSuggestions(): void {
+    console.log('🧪 TEST DES SUGGESTIONS - DIAGNOSTIC COMPLET');
+    console.log('==========================================');
+    
+    // Test 1: Vérifier les données chargées
+    console.log('1. Données chargées:', {
+      filterOptions: this.filterOptions,
+      suggestions: this.suggestions,
+      promotionsCount: this.filterOptions.promotions?.length || 0,
+      promotionsDetails: this.filterOptions.promotions?.map((p: any) => ({ id: p.id, name: p.name })) || []
+    });
+    
+    // Test 2: Tester la recherche avec différents termes
+    const testTerms = ['1ère', '2ème', '3ème', '4ème', '5ème', '6ème', 'LIC'];
+    testTerms.forEach(term => {
+      const results = this.searchSuggestions('promotion_id', term);
+      console.log(`2. Recherche "${term}":`, {
+        found: results.length,
+        results: results.map((r: any) => ({ id: r.id, name: r.name }))
+      });
+    });
+    
+    // Test 3: Vérifier si les suggestions sont correctement mappées
+    console.log('3. Mapping des suggestions:', {
+      promotion_id: this.suggestions['promotion_id']?.length || 0,
+      promotion_id_details: this.suggestions['promotion_id']?.map((p: any) => ({ id: p.id, name: p.name })) || []
+    });
+    
+    console.log('==========================================');
   }
 
   trackSuggestion = (_: number, item: any) => item.id;
@@ -1016,23 +1227,35 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
       }
     }
     
-    // Validation des relations (vérifier contre les données de la base chargées côté client)
+    // Validation des relations avec tolérance: accepter texte proche et proposer ID
     if (columnName.includes('_id')) {
-      const suggestions = this.suggestions[columnName] || [];
-      const found = suggestions.find((item: any) => 
-        item.id.toString() === value.toString() ||
-        (item.name && item.name.toLowerCase() === value.toString().toLowerCase()) ||
-        (item.title && item.title.toLowerCase() === value.toString().toLowerCase())
+      const list = this.suggestions[columnName] || [];
+      const text = (value ?? '').toString().trim();
+      if (!text) {
+        return { valid: false, message: `${columnName} est obligatoire`, suggestions: [] };
+      }
+
+      const found = list.find((item: any) => 
+        item.id.toString() === text ||
+        (item.name && this.normalize(item.name) === this.normalize(text)) ||
+        (item.title && this.normalize(item.title) === this.normalize(text)) ||
+        (item.name && this.normalize(item.name).startsWith(this.normalize(text))) ||
+        (item.title && this.normalize(item.title).startsWith(this.normalize(text))) ||
+        (item.name && this.normalize(item.name).includes(this.normalize(text))) ||
+        (item.title && this.normalize(item.title).includes(this.normalize(text)))
       );
-      
+
       if (!found) {
         return {
           valid: false,
           message: `${columnName} introuvable`,
           // Suggestions intelligentes (proches dans la base)
-          suggestions: this.getSuggestionCandidates(columnName, value?.toString() || '')
+          suggestions: this.getSuggestionCandidates(columnName, text)
         };
       }
+
+      // Si trouvé par texte, considérer valide même si l'utilisateur n'a pas encore cliqué une suggestion
+      return { valid: true, message: '', suggestions: [] };
     }
     
     return { valid: true, message: '', suggestions: [] };

@@ -12,8 +12,9 @@ class UserContextScope implements Scope
 {
     public function apply(Builder $builder, Model $model): void
     {
-        // Skip in console (migrations/seeders) or when no authenticated user
-        if (app()->runningInConsole() || !Auth::check()) {
+        // Block access when no authenticated user
+        if (!Auth::check()) {
+            $builder->whereRaw('1 = 0'); // This will return no results
             return;
         }
 
@@ -24,7 +25,12 @@ class UserContextScope implements Scope
 
         $table = $model->getTable();
 
-        // Always enforce ville filter if user has a ville
+        // Skip filtering for super-admin users (role_id = 1 or role = 'super-admin')
+        if ($user->role_id == 1 || $user->role === 'super-admin') {
+            return;
+        }
+
+        // Apply ville filter if user has a ville
         if (!is_null($user->ville_id)) {
             if (Schema::hasColumn($table, 'ville_id')) {
                 $builder->where($table . '.ville_id', $user->ville_id);
@@ -38,7 +44,7 @@ class UserContextScope implements Scope
             }
         }
 
-        // Enforce etablissement filter only if user has one
+        // Apply etablissement filter if user has one
         if (!is_null($user->etablissement_id)) {
             // Skip explicit etablissement filtering for models without such column and without groups relation (e.g. promotions)
             if (Schema::hasColumn($table, 'etablissement_id')) {

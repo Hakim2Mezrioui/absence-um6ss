@@ -41,8 +41,17 @@ const normalizedSetByHeader: Record<string, Set<string>> = {};
 const prefixIndexByHeader: Record<string, Map<string, ReferenceEntry[]>> = {};
 const resultCache: Map<string, { isValid: boolean; suggestions: Suggestion[] }> = new Map();
 
+function clearHeaderCache(header: string) {
+  // Purge cache entries for a given header
+  const keys = Array.from(resultCache.keys());
+  keys.forEach((k) => {
+    if (k.startsWith(header + '|')) resultCache.delete(k);
+  });
+}
+
 function buildIndexes(header: string, reference: ReferenceEntry[]) {
   referenceByHeader[header] = reference;
+  clearHeaderCache(header);
   const normalizedSet = new Set<string>();
   const prefixIndex = new Map<string, ReferenceEntry[]>();
   for (const entry of reference) {
@@ -82,6 +91,11 @@ function levenshteinDistance(a: string, b: string): number {
     }
   }
   return matrix[m][n];
+}
+
+function leadingNumber(normalized: string): string | null {
+  const m = normalized.match(/^(\d+)/);
+  return m ? m[1] : null;
 }
 
 function compute(header: string, reference: ReferenceEntry[], rawValue: string): { isValid: boolean; suggestions: Suggestion[] } {
@@ -139,16 +153,28 @@ function compute(header: string, reference: ReferenceEntry[], rawValue: string):
   }
 
   const limited = pool.slice(0, 50); // strict cap for distance
+  const termNum = leadingNumber(normalized);
   const scored = limited.map((entry) => {
     let score = 0;
     if (entry.normalized.includes(normalized) || normalized.includes(entry.normalized)) score += 50;
     if (entry.normalized.startsWith(normalized)) score += 20;
     const distance = levenshteinDistance(normalized, entry.normalized);
     score += Math.max(0, 40 - distance * 10);
+    // Bonus fort si le chiffre initial correspond (ex: 4eme vs 4eme annee)
+    const entryNum = leadingNumber(entry.normalized);
+    if (termNum && entryNum && termNum === entryNum) score += 60;
     return { entry, score };
   }).filter((item) => item.score > 0);
 
   scored.sort((a, b) => b.score - a.score);
+  const top = scored[0];
+  // High-confidence acceptance: if best score is high, consider it valid
+  if (top && top.score >= 80) {
+    const res = { isValid: true, suggestions: [] as Suggestion[] };
+    resultCache.set(cacheKey, res);
+    return res;
+  }
+
   const suggestions = (scored.length ? scored : limited.slice(0, 3))
     .slice(0, 5)
     .map((item: any) => ('entry' in item ? item.entry : item))
