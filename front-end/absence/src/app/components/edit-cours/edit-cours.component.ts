@@ -5,6 +5,8 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { CoursService, Cours } from '../../services/cours.service';
 import { SallesService, CreateSalleRequest, Salle } from '../../services/salles.service';
 import { NotificationService } from '../../services/notification.service';
+import { AuthService, User } from '../../services/auth.service';
+import { UserContextService, UserContext } from '../../services/user-context.service';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
@@ -63,6 +65,14 @@ export class EditCoursComponent implements OnInit, OnDestroy {
   // Années universitaires
   anneesUniversitaires: string[] = [];
 
+  // User context and role management
+  currentUser: User | null = null;
+  userContext: UserContext | null = null;
+  isSuperAdmin = false;
+  isAdminEtablissement = false;
+  villeFieldDisabled = false;
+  etablissementFieldDisabled = false;
+
   constructor(
     private coursService: CoursService,
     private router: Router,
@@ -70,7 +80,9 @@ export class EditCoursComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private sallesService: SallesService,
     private notificationService: NotificationService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private authService: AuthService,
+    private userContextService: UserContextService
   ) {
     this.newSalleForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(2)]],
@@ -83,9 +95,10 @@ export class EditCoursComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.initializeUserContext();
     this.coursId = Number(this.route.snapshot.paramMap.get('id'));
-    this.loadFilterOptions();
     this.generateAnneesUniversitaires();
+    this.loadFilterOptions();
     this.loadCours();
     // Fermer dropdown au clic extérieur
     document.addEventListener('click', this.handleDocumentClick, true);
@@ -102,6 +115,67 @@ export class EditCoursComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  /**
+   * Initialiser le contexte utilisateur et déterminer les permissions
+   */
+  initializeUserContext() {
+    // Récupérer l'utilisateur actuel
+    this.currentUser = this.authService.getCurrentUser();
+    
+    // Récupérer le contexte utilisateur
+    this.userContext = this.userContextService.getCurrentUserContext();
+    
+    if (this.currentUser) {
+      // Déterminer le rôle utilisateur
+      this.isSuperAdmin = this.currentUser.role_id === 1; // Super Admin
+      // Les rôles qui doivent avoir les champs pré-remplis et non modifiables
+      // role_id 2 = Admin, role_id 3 = Scolarité, role_id 4 = Doyen, role_id 6 = Enseignant
+      this.isAdminEtablissement = [2, 3, 4, 6].includes(this.currentUser.role_id);
+      
+      // Déterminer si les champs doivent être désactivés
+      this.villeFieldDisabled = this.isAdminEtablissement;
+      this.etablissementFieldDisabled = this.isAdminEtablissement;
+      
+      console.log('🔐 Contexte utilisateur initialisé (edit-cours):', {
+        user: this.currentUser,
+        context: this.userContext,
+        isSuperAdmin: this.isSuperAdmin,
+        isAdminEtablissement: this.isAdminEtablissement,
+        villeFieldDisabled: this.villeFieldDisabled,
+        etablissementFieldDisabled: this.etablissementFieldDisabled
+      });
+    }
+  }
+
+  /**
+   * Obtenir le nom d'affichage du rôle utilisateur
+   */
+  getRoleDisplayName(): string {
+    if (!this.currentUser) return '';
+    const roleNames: { [key: number]: string } = {
+      1: 'Super Admin', 2: 'Admin', 3: 'Scolarité', 4: 'Doyen', 5: 'Technicien SI', 6: 'Enseignant'
+    };
+    return roleNames[this.currentUser.role_id] || 'Utilisateur';
+  }
+
+  /**
+   * Obtenir le nom de la ville sélectionnée
+   */
+  getSelectedVilleName(): string {
+    if (!this.cours.ville_id) return '';
+    const ville = this.villes.find(v => v.id === this.cours.ville_id);
+    return ville ? ville.name : '';
+  }
+
+  /**
+   * Obtenir le nom de l'établissement sélectionné
+   */
+  getSelectedEtablissementName(): string {
+    if (!this.cours.etablissement_id) return '';
+    const etablissement = this.etablissements.find(e => e.id === this.cours.etablissement_id);
+    return etablissement ? etablissement.name : '';
+  }
+
   loadCours() {
     this.loadingData = true;
     this.coursService.getCoursById(this.coursId).subscribe({
@@ -111,6 +185,24 @@ export class EditCoursComponent implements OnInit, OnDestroy {
           date: cours.date ? cours.date.split('T')[0] : '', // Format pour input date
           option_id: cours.option_id || undefined
         };
+        
+        // Appliquer la logique de permissions pour les utilisateurs non-super-admin
+        if (this.isAdminEtablissement && this.currentUser) {
+          // Vérifier si l'utilisateur peut modifier ce cours
+          const userVilleId = this.userContext?.ville_id || this.currentUser.ville_id;
+          const userEtablissementId = this.userContext?.etablissement_id || this.currentUser.etablissement_id;
+          
+          // Si le cours n'appartient pas à l'établissement de l'utilisateur, forcer les valeurs
+          if (this.cours.ville_id !== userVilleId || this.cours.etablissement_id !== userEtablissementId) {
+            console.log('🔒 Cours modifié pour correspondre au contexte utilisateur:', {
+              coursOriginal: { ville_id: this.cours.ville_id, etablissement_id: this.cours.etablissement_id },
+              userContext: { ville_id: userVilleId, etablissement_id: userEtablissementId }
+            });
+            
+            this.cours.ville_id = userVilleId;
+            this.cours.etablissement_id = userEtablissementId;
+          }
+        }
         
         // Charger les groupes sélectionnés
         if (cours.groups && Array.isArray(cours.groups)) {
@@ -524,6 +616,8 @@ export class EditCoursComponent implements OnInit, OnDestroy {
       ville_id: Number(this.cours.ville_id),
       group_ids: this.selectedGroups // Envoyer les groupes sélectionnés nettoyés
     };
+
+    console.log('📤 Données cours modifiées:', coursData);
 
     this.coursService.updateCours(this.coursId, coursData).subscribe({
       next: (response) => {

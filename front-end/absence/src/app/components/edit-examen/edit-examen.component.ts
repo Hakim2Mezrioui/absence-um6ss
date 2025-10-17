@@ -8,6 +8,8 @@ import { NotificationService } from '../../services/notification.service';
 import { TypesExamenService, TypeExamen } from '../../services/types-examen.service';
 import { Subject, takeUntil, switchMap } from 'rxjs';
 import { SallesService, CreateSalleRequest, Salle } from '../../services/salles.service';
+import { AuthService, User } from '../../services/auth.service';
+import { UserContextService, UserContext } from '../../services/user-context.service';
 
 @Component({
   selector: 'app-edit-examen',
@@ -40,6 +42,14 @@ export class EditExamenComponent implements OnInit, OnDestroy {
   newSalleForm: FormGroup;
   salleDropdownOpen = false;
   
+  // User context and role management
+  currentUser: User | null = null;
+  userContext: UserContext | null = null;
+  isSuperAdmin = false;
+  isAdminEtablissement = false;
+  villeFieldDisabled = false;
+  etablissementFieldDisabled = false;
+  
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -49,7 +59,9 @@ export class EditExamenComponent implements OnInit, OnDestroy {
     private typesExamenService: TypesExamenService,
     private route: ActivatedRoute,
     private router: Router,
-    private sallesService: SallesService
+    private sallesService: SallesService,
+    private authService: AuthService,
+    private userContextService: UserContextService
   ) {
     this.examenForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(3)]],
@@ -82,6 +94,7 @@ export class EditExamenComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     console.log('🎯 EditExamenComponent initialisé');
     
+    this.initializeUserContext();
     this.generateAnneesUniversitaires();
     
     // Charger d'abord les options de filtre, puis l'examen
@@ -147,6 +160,30 @@ export class EditExamenComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  initializeUserContext() {
+    this.currentUser = this.authService.getCurrentUser();
+    this.userContext = this.userContextService.getCurrentUserContext();
+    
+    if (this.currentUser) {
+      this.isSuperAdmin = this.currentUser.role_id === 1;
+      this.isAdminEtablissement = [2, 3, 4, 6].includes(this.currentUser.role_id);
+      
+      this.villeFieldDisabled = this.isAdminEtablissement;
+      this.etablissementFieldDisabled = this.isAdminEtablissement;
+      
+      console.log('🔐 Contexte utilisateur initialisé (edit-examen):', {
+        user: this.currentUser.email,
+        role_id: this.currentUser.role_id,
+        isSuperAdmin: this.isSuperAdmin,
+        isAdminEtablissement: this.isAdminEtablissement,
+        villeFieldDisabled: this.villeFieldDisabled,
+        etablissementFieldDisabled: this.etablissementFieldDisabled,
+        ville_id: this.currentUser.ville_id,
+        etablissement_id: this.currentUser.etablissement_id
+      });
+    }
   }
 
   generateAnneesUniversitaires(): void {
@@ -219,7 +256,33 @@ export class EditExamenComponent implements OnInit, OnDestroy {
       
       console.log('📋 Valeurs formatées pour le formulaire:', formValues);
       
+      // Appliquer la logique de permissions avant le patchValue
+      if (this.isAdminEtablissement && this.currentUser) {
+        const userVilleId = this.userContext?.ville_id || this.currentUser.ville_id;
+        const userEtablissementId = this.userContext?.etablissement_id || this.currentUser.etablissement_id;
+        
+        // Si l'examen n'appartient pas à l'établissement de l'utilisateur, forcer les valeurs
+        if (this.examen.ville_id !== userVilleId || this.examen.etablissement_id !== userEtablissementId) {
+          console.log('🔒 Examen modifié pour correspondre au contexte utilisateur:', {
+            examenOriginal: { ville_id: this.examen.ville_id, etablissement_id: this.examen.etablissement_id },
+            userContext: { ville_id: userVilleId, etablissement_id: userEtablissementId }
+          });
+          
+          this.examen.ville_id = userVilleId;
+          this.examen.etablissement_id = userEtablissementId;
+          
+          // Mettre à jour les valeurs du formulaire
+          formValues.ville_id = userVilleId ? userVilleId.toString() : '';
+          formValues.etablissement_id = userEtablissementId ? userEtablissementId.toString() : '';
+        }
+      }
+
       this.examenForm.patchValue(formValues);
+      
+      // S'assurer que les contrôles sont désactivés après le patchValue
+      if (this.isAdminEtablissement) {
+        this.disableFormControls();
+      }
       
       console.log('✅ Formulaire rempli avec succès');
       console.log('📊 État du formulaire après remplissage:', this.examenForm.value);
@@ -254,6 +317,14 @@ export class EditExamenComponent implements OnInit, OnDestroy {
           this.groups = response.groups || [];
           this.villes = response.villes || [];
           
+          // S'assurer que les champs sont bien pré-sélectionnés
+          this.ensureFieldsArePreSelected();
+          
+          // S'assurer que les contrôles sont désactivés après le chargement
+          if (this.isAdminEtablissement) {
+            this.disableFormControls();
+          }
+          
           console.log('📊 Options chargées:', {
             etablissements: this.etablissements.length,
             promotions: this.promotions.length,
@@ -282,12 +353,68 @@ export class EditExamenComponent implements OnInit, OnDestroy {
       });
   }
 
+  /**
+   * S'assurer que les champs ville et établissement sont bien pré-sélectionnés
+   */
+  ensureFieldsArePreSelected() {
+    if (this.isAdminEtablissement && this.currentUser) {
+      // Vérifier si les champs ne sont pas encore définis
+      if (!this.examenForm.value.ville_id && this.currentUser.ville_id) {
+        this.examenForm.patchValue({ ville_id: this.currentUser.ville_id });
+        console.log('🏙️ Ville pré-sélectionnée:', this.examenForm.value.ville_id);
+      }
+      
+      if (!this.examenForm.value.etablissement_id && this.currentUser.etablissement_id) {
+        this.examenForm.patchValue({ etablissement_id: this.currentUser.etablissement_id });
+        console.log('🏢 Établissement pré-sélectionné:', this.examenForm.value.etablissement_id);
+      }
+      
+      // Désactiver programmatiquement les contrôles après pré-sélection
+      this.disableFormControls();
+    }
+  }
+
+  /**
+   * Désactiver programmatiquement les contrôles du formulaire
+   */
+  disableFormControls() {
+    if (this.villeFieldDisabled) {
+      this.examenForm.get('ville_id')?.disable();
+      console.log('🔒 Contrôle ville_id désactivé programmatiquement');
+    }
+    
+    if (this.etablissementFieldDisabled) {
+      this.examenForm.get('etablissement_id')?.disable();
+      console.log('🔒 Contrôle etablissement_id désactivé programmatiquement');
+    }
+    
+    // Vérifier que les contrôles sont bien désactivés
+    console.log('🔍 État des contrôles:', {
+      ville_id_disabled: this.examenForm.get('ville_id')?.disabled,
+      etablissement_id_disabled: this.examenForm.get('etablissement_id')?.disabled,
+      villeFieldDisabled: this.villeFieldDisabled,
+      etablissementFieldDisabled: this.etablissementFieldDisabled
+    });
+  }
+
   onSubmit(): void {
     if (this.examenForm.valid && this.examen) {
       this.loading = true;
       this.error = '';
 
       const formData = { ...this.examenForm.value };
+      
+      // S'assurer que les champs désactivés sont inclus dans les données soumises
+      if (this.villeFieldDisabled && this.examenForm.get('ville_id')?.disabled) {
+        formData.ville_id = this.examenForm.get('ville_id')?.value;
+        console.log('🔒 Ville ID inclus depuis le champ désactivé:', formData.ville_id);
+      }
+      
+      if (this.etablissementFieldDisabled && this.examenForm.get('etablissement_id')?.disabled) {
+        formData.etablissement_id = this.examenForm.get('etablissement_id')?.value;
+        console.log('🔒 Établissement ID inclus depuis le champ désactivé:', formData.etablissement_id);
+      }
+      
       if (formData.group_id === 'ALL') {
         formData.all_groups = true;
         formData.group_id = null;
@@ -299,6 +426,8 @@ export class EditExamenComponent implements OnInit, OnDestroy {
         this.loading = false;
         return;
       }
+
+      console.log('📤 Données soumises pour modification:', formData);
 
       this.examensService.updateExamen(this.examen.id, formData)
         .pipe(takeUntil(this.destroy$))
@@ -451,5 +580,45 @@ export class EditExamenComponent implements OnInit, OnDestroy {
   isFieldInvalid(controlName: string): boolean {
     const control = this.examenForm.get(controlName);
     return !!(control?.invalid && control.touched);
+  }
+
+  /**
+   * Obtenir le nom d'affichage du rôle
+   */
+  getRoleDisplayName(): string {
+    if (!this.currentUser) return '';
+    
+    const roleNames: { [key: number]: string } = {
+      1: 'Super Admin',
+      2: 'Admin',
+      3: 'Scolarité',
+      4: 'Doyen',
+      5: 'Technicien SI',
+      6: 'Enseignant'
+    };
+    
+    return roleNames[this.currentUser.role_id] || 'Utilisateur';
+  }
+
+  /**
+   * Obtenir le nom de la ville sélectionnée
+   */
+  getSelectedVilleName(): string {
+    const villeId = this.examenForm.get('ville_id')?.value;
+    if (!villeId) return '';
+    
+    const ville = this.villes.find(v => v.id == villeId);
+    return ville ? ville.name : '';
+  }
+
+  /**
+   * Obtenir le nom de l'établissement sélectionné
+   */
+  getSelectedEtablissementName(): string {
+    const etablissementId = this.examenForm.get('etablissement_id')?.value;
+    if (!etablissementId) return '';
+    
+    const etablissement = this.etablissements.find(e => e.id == etablissementId);
+    return etablissement ? etablissement.name : '';
   }
 }

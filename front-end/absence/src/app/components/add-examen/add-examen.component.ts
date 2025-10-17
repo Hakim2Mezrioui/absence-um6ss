@@ -8,6 +8,8 @@ import { NotificationService } from '../../services/notification.service';
 import { TypesExamenService, TypeExamen } from '../../services/types-examen.service';
 import { Subject, takeUntil } from 'rxjs';
 import { SallesService, CreateSalleRequest, Salle } from '../../services/salles.service';
+import { AuthService, User } from '../../services/auth.service';
+import { UserContextService, UserContext } from '../../services/user-context.service';
 
 @Component({
   selector: 'app-add-examen',
@@ -38,6 +40,14 @@ export class AddExamenComponent implements OnInit, OnDestroy {
   newSalleForm: FormGroup;
   salleDropdownOpen = false;
   
+  // User context and role management
+  currentUser: User | null = null;
+  userContext: UserContext | null = null;
+  isSuperAdmin = false;
+  isAdminEtablissement = false;
+  villeFieldDisabled = false;
+  etablissementFieldDisabled = false;
+  
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -46,7 +56,9 @@ export class AddExamenComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private typesExamenService: TypesExamenService,
     private router: Router,
-    private sallesService: SallesService
+    private sallesService: SallesService,
+    private authService: AuthService,
+    private userContextService: UserContextService
   ) {
     this.examenForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(3)]],
@@ -77,7 +89,9 @@ export class AddExamenComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.initializeUserContext();
     this.generateAnneesUniversitaires();
+    // Charger les options après l'initialisation du contexte utilisateur
     this.loadFilterOptions();
     this.loadTypesExamen();
   }
@@ -85,6 +99,139 @@ export class AddExamenComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  /**
+   * Initialiser le contexte utilisateur et déterminer les permissions
+   */
+  initializeUserContext() {
+    // Récupérer l'utilisateur actuel
+    this.currentUser = this.authService.getCurrentUser();
+    
+    // Récupérer le contexte utilisateur
+    this.userContext = this.userContextService.getCurrentUserContext();
+    
+    if (this.currentUser) {
+      // Déterminer le rôle utilisateur
+      this.isSuperAdmin = this.currentUser.role_id === 1; // Super Admin
+      // Les rôles qui doivent avoir les champs pré-remplis et non modifiables
+      // role_id 2 = Admin, role_id 3 = Scolarité, role_id 4 = Doyen, role_id 6 = Enseignant
+      this.isAdminEtablissement = [2, 3, 4, 6].includes(this.currentUser.role_id);
+      
+      // Déterminer si les champs doivent être désactivés
+      this.villeFieldDisabled = this.isAdminEtablissement;
+      this.etablissementFieldDisabled = this.isAdminEtablissement;
+      
+      // Pré-remplir les champs pour les utilisateurs non-super-admin
+      if (this.isAdminEtablissement) {
+        // Utiliser directement les données de l'utilisateur si le contexte n'est pas encore disponible
+        const villeId = this.userContext?.ville_id || this.currentUser.ville_id;
+        const etablissementId = this.userContext?.etablissement_id || this.currentUser.etablissement_id;
+        
+        if (villeId) {
+          this.examenForm.patchValue({ ville_id: villeId });
+        }
+        if (etablissementId) {
+          this.examenForm.patchValue({ etablissement_id: etablissementId });
+        }
+        
+        // Désactiver programmatiquement les contrôles du formulaire
+        this.disableFormControls();
+      }
+      
+      console.log('🔐 Contexte utilisateur initialisé:', {
+        user: this.currentUser,
+        context: this.userContext,
+        isSuperAdmin: this.isSuperAdmin,
+        isAdminEtablissement: this.isAdminEtablissement,
+        villeFieldDisabled: this.villeFieldDisabled,
+        etablissementFieldDisabled: this.etablissementFieldDisabled,
+        examenVilleId: this.examenForm.value.ville_id,
+        examenEtablissementId: this.examenForm.value.etablissement_id
+      });
+    }
+  }
+
+  /**
+   * Obtenir le nom d'affichage du rôle utilisateur
+   */
+  getRoleDisplayName(): string {
+    if (!this.currentUser) return '';
+    
+    const roleNames: { [key: number]: string } = {
+      1: 'Super Admin',
+      2: 'Admin',
+      3: 'Scolarité',
+      4: 'Doyen',
+      5: 'Technicien SI',
+      6: 'Enseignant'
+    };
+    
+    return roleNames[this.currentUser.role_id] || 'Utilisateur';
+  }
+
+  /**
+   * Obtenir le nom de la ville sélectionnée
+   */
+  getSelectedVilleName(): string {
+    const villeId = this.examenForm.value.ville_id;
+    if (!villeId) return '';
+    const ville = this.villes.find(v => v.id === villeId);
+    return ville ? ville.name : '';
+  }
+
+  /**
+   * Obtenir le nom de l'établissement sélectionné
+   */
+  getSelectedEtablissementName(): string {
+    const etablissementId = this.examenForm.value.etablissement_id;
+    if (!etablissementId) return '';
+    const etablissement = this.etablissements.find(e => e.id === etablissementId);
+    return etablissement ? etablissement.name : '';
+  }
+
+  /**
+   * S'assurer que les champs ville et établissement sont bien pré-sélectionnés
+   */
+  ensureFieldsArePreSelected() {
+    if (this.isAdminEtablissement && this.currentUser) {
+      // Vérifier si les champs ne sont pas encore définis
+      if (!this.examenForm.value.ville_id && this.currentUser.ville_id) {
+        this.examenForm.patchValue({ ville_id: this.currentUser.ville_id });
+        console.log('🏙️ Ville pré-sélectionnée:', this.examenForm.value.ville_id);
+      }
+      
+      if (!this.examenForm.value.etablissement_id && this.currentUser.etablissement_id) {
+        this.examenForm.patchValue({ etablissement_id: this.currentUser.etablissement_id });
+        console.log('🏢 Établissement pré-sélectionné:', this.examenForm.value.etablissement_id);
+      }
+      
+      // Désactiver programmatiquement les contrôles après pré-sélection
+      this.disableFormControls();
+    }
+  }
+
+  /**
+   * Désactiver programmatiquement les contrôles du formulaire
+   */
+  disableFormControls() {
+    if (this.villeFieldDisabled) {
+      this.examenForm.get('ville_id')?.disable();
+      console.log('🔒 Contrôle ville_id désactivé programmatiquement');
+    }
+    
+    if (this.etablissementFieldDisabled) {
+      this.examenForm.get('etablissement_id')?.disable();
+      console.log('🔒 Contrôle etablissement_id désactivé programmatiquement');
+    }
+    
+    // Vérifier que les contrôles sont bien désactivés
+    console.log('🔍 État des contrôles:', {
+      ville_id_disabled: this.examenForm.get('ville_id')?.disabled,
+      etablissement_id_disabled: this.examenForm.get('etablissement_id')?.disabled,
+      villeFieldDisabled: this.villeFieldDisabled,
+      etablissementFieldDisabled: this.etablissementFieldDisabled
+    });
   }
 
   generateAnneesUniversitaires(): void {
@@ -116,6 +263,14 @@ export class AddExamenComponent implements OnInit, OnDestroy {
           this.options = response.options || [];
           this.groups = response.groups || [];
           this.villes = response.villes || [];
+          
+          // Après le chargement des options, s'assurer que les champs sont bien pré-sélectionnés
+          this.ensureFieldsArePreSelected();
+          
+          // S'assurer que les contrôles sont désactivés après le chargement
+          if (this.isAdminEtablissement) {
+            this.disableFormControls();
+          }
         },
         error: (err) => {
           console.error('Error loading filter options:', err);
@@ -237,6 +392,18 @@ export class AddExamenComponent implements OnInit, OnDestroy {
       this.error = '';
 
       const formData = { ...this.examenForm.value };
+      
+      // S'assurer que les champs désactivés sont inclus dans les données soumises
+      if (this.villeFieldDisabled && this.examenForm.get('ville_id')?.disabled) {
+        formData.ville_id = this.examenForm.get('ville_id')?.value;
+        console.log('🔒 Ville ID inclus depuis le champ désactivé:', formData.ville_id);
+      }
+      
+      if (this.etablissementFieldDisabled && this.examenForm.get('etablissement_id')?.disabled) {
+        formData.etablissement_id = this.examenForm.get('etablissement_id')?.value;
+        console.log('🔒 Établissement ID inclus depuis le champ désactivé:', formData.etablissement_id);
+      }
+      
       if (formData.group_id === 'ALL') {
         formData.all_groups = true;
         formData.group_id = null;
@@ -248,6 +415,8 @@ export class AddExamenComponent implements OnInit, OnDestroy {
         this.loading = false;
         return;
       }
+
+      console.log('📤 Données soumises:', formData);
 
       this.examensService.createExamen(formData)
         .pipe(takeUntil(this.destroy$))

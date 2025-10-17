@@ -138,6 +138,8 @@ export class AddCoursComponent implements OnInit, OnDestroy {
         if (etablissementId) {
           this.cours.etablissement_id = etablissementId;
         }
+        
+        console.log('🔒 Champs pré-remplis et désactivés pour utilisateur non-super-admin');
       }
       
       console.log('🔐 Contexte utilisateur initialisé:', {
@@ -249,6 +251,8 @@ export class AddCoursComponent implements OnInit, OnDestroy {
       if (this.cours.ville_id && this.cours.etablissement_id) {
         this.updateFilteredGroups();
       }
+      
+      console.log('🔒 Champs pré-sélectionnés et désactivés pour utilisateur non-super-admin');
     }
   }
 
@@ -293,6 +297,8 @@ export class AddCoursComponent implements OnInit, OnDestroy {
       tolerance: this.formatToleranceToTime(this.toleranceMinutes),
       group_ids: this.selectedGroups // Envoyer les groupes sélectionnés
     };
+
+    console.log('📤 Données cours soumises:', coursData);
 
     this.coursService.createCours(coursData).subscribe({
       next: (response) => {

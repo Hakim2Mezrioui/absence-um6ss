@@ -12,6 +12,12 @@
               <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
                 <span>Modifier le Cours</span>
                 <span class="text-sm bg-orange-100 text-orange-800 px-3 py-1 rounded-full font-medium">Édition</span>
+                <span *ngIf="isSuperAdmin" class="text-sm bg-purple-100 text-purple-800 px-3 py-1 rounded-full font-medium">
+                  Super Admin
+                </span>
+                <span *ngIf="isAdminEtablissement && !isSuperAdmin" class="text-sm bg-green-100 text-green-800 px-3 py-1 rounded-full font-medium">
+                  {{ getRoleDisplayName() }}
+                </span>
               </h1>
               <p class="mt-2 text-gray-600 flex items-center gap-2">
                 <span class="material-icons text-blue-600 text-lg">info</span>
@@ -266,6 +272,9 @@
               <label for="etablissement_id" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
                 <span class="material-icons text-orange-600 text-lg">business</span>
                 Établissement <span class="text-red-500">*</span>
+                <span *ngIf="etablissementFieldDisabled" class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium">
+                  Pré-défini
+                </span>
               </label>
               <div class="relative">
                 <select
@@ -273,7 +282,10 @@
                   [(ngModel)]="cours.etablissement_id"
                   name="etablissement_id"
                   (change)="onEtablissementChange()"
-                  class="w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-orange-400 transition-all duration-200"
+                  [disabled]="etablissementFieldDisabled"
+                  [class]="etablissementFieldDisabled 
+                    ? 'w-full px-4 py-3 pl-12 border-2 border-gray-200 rounded-xl shadow-sm bg-gray-100 cursor-not-allowed opacity-60'
+                    : 'w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-orange-400 transition-all duration-200'"
                   required
                 >
                   <option value="">Sélectionner un établissement</option>
@@ -281,7 +293,15 @@
                     {{ etablissement.name }}
                   </option>
                 </select>
-                <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">arrow_drop_down</span>
+                <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2" 
+                      [class]="etablissementFieldDisabled ? 'text-gray-300' : 'text-gray-400'">arrow_drop_down</span>
+              </div>
+              <div *ngIf="etablissementFieldDisabled" class="mt-2 text-xs text-blue-600 flex items-center gap-1">
+                <span class="material-icons text-xs">info</span>
+                <span>Établissement pré-défini selon votre profil</span>
+              </div>
+              <div *ngIf="etablissementFieldDisabled && getSelectedEtablissementName()" class="mt-1 text-sm text-gray-700 font-medium">
+                🏢 {{ getSelectedEtablissementName() }}
               </div>
             </div>
 
@@ -398,6 +418,9 @@
               <label for="ville_id" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
                 <span class="material-icons text-orange-600 text-lg">location_city</span>
                 Ville <span class="text-red-500">*</span>
+                <span *ngIf="villeFieldDisabled" class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium">
+                  Pré-défini
+                </span>
               </label>
               <div class="relative">
                 <select
@@ -405,7 +428,10 @@
                   [(ngModel)]="cours.ville_id"
                   name="ville_id"
                   (change)="onVilleChange()"
-                  class="w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-orange-400 transition-all duration-200"
+                  [disabled]="villeFieldDisabled"
+                  [class]="villeFieldDisabled 
+                    ? 'w-full px-4 py-3 pl-12 border-2 border-gray-200 rounded-xl shadow-sm bg-gray-100 cursor-not-allowed opacity-60'
+                    : 'w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white hover:border-orange-400 transition-all duration-200'"
                   required
                 >
                   <option value="">Sélectionner une ville</option>
@@ -413,7 +439,15 @@
                     {{ ville.name }}
                   </option>
                 </select>
-                <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">arrow_drop_down</span>
+                <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2" 
+                      [class]="villeFieldDisabled ? 'text-gray-300' : 'text-gray-400'">arrow_drop_down</span>
+              </div>
+              <div *ngIf="villeFieldDisabled" class="mt-2 text-xs text-blue-600 flex items-center gap-1">
+                <span class="material-icons text-xs">info</span>
+                <span>Ville pré-définie selon votre profil d'établissement</span>
+              </div>
+              <div *ngIf="villeFieldDisabled && getSelectedVilleName()" class="mt-1 text-sm text-gray-700 font-medium">
+                📍 {{ getSelectedVilleName() }}
               </div>
             </div>
             <div>
