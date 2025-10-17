@@ -478,6 +478,8 @@ export class AddCoursComponent implements OnInit, OnDestroy {
     this.selectedGroups = [];
     // Mettre à jour la liste des groupes disponibles
     this.updateFilteredGroups();
+    // Mettre à jour la liste des salles disponibles
+    this.updateFilteredSalles();
   }
 
   /**
@@ -497,11 +499,28 @@ export class AddCoursComponent implements OnInit, OnDestroy {
 
   updateFilteredSalles(): void {
     const term = this.salleSearchTerm.trim().toLowerCase();
+    const etablissementId = this.cours?.etablissement_id;
+    
+    // Filtrer d'abord par établissement
+    let filteredByEtablissement = [...this.salles];
+    if (etablissementId) {
+      filteredByEtablissement = (this.salles || []).filter((s: any) => {
+        return s?.etablissement_id == etablissementId;
+      });
+      console.log('🏢 Salles filtrées par établissement (add-cours):', {
+        etablissementId: etablissementId,
+        totalSalles: this.salles.length,
+        sallesFiltrees: filteredByEtablissement.length
+      });
+    }
+    
+    // Ensuite filtrer par terme de recherche
     if (!term) {
-      this.filteredSalles = [...this.salles];
+      this.filteredSalles = filteredByEtablissement;
       return;
     }
-    this.filteredSalles = (this.salles || []).filter((s: any) => {
+    
+    this.filteredSalles = filteredByEtablissement.filter((s: any) => {
       const name = (s?.name || '').toString().toLowerCase();
       const batiment = (s?.batiment || '').toString().toLowerCase();
       return name.includes(term) || batiment.includes(term);

@@ -220,6 +220,9 @@ export class EditCoursComponent implements OnInit, OnDestroy {
           this.loadGroupsByLocationInitial(this.cours.ville_id, this.cours.etablissement_id);
         }
         
+        // Mettre à jour les salles disponibles selon l'établissement
+        this.updateFilteredSalles();
+        
         this.loadingData = false;
       },
       error: (error) => {
@@ -258,11 +261,23 @@ export class EditCoursComponent implements OnInit, OnDestroy {
 
   updateFilteredSalles(): void {
     const term = (this.salleSearchTerm || '').trim().toLowerCase();
+    const etablissementId = this.cours?.etablissement_id;
+    
+    // Filtrer d'abord par établissement
+    let filteredByEtablissement = [...(this.salles || [])];
+    if (etablissementId) {
+      filteredByEtablissement = (this.salles || []).filter((s: any) => {
+        return s?.etablissement_id == etablissementId;
+      });
+    }
+    
+    // Ensuite filtrer par terme de recherche
     if (!term) {
-      this.filteredSalles = [...(this.salles || [])];
+      this.filteredSalles = filteredByEtablissement;
       return;
     }
-    this.filteredSalles = (this.salles || []).filter((s: any) => {
+    
+    this.filteredSalles = filteredByEtablissement.filter((s: any) => {
       const name = (s?.name || '').toString().toLowerCase();
       const batiment = (s?.batiment || '').toString().toLowerCase();
       return name.includes(term) || batiment.includes(term);
@@ -511,6 +526,8 @@ export class EditCoursComponent implements OnInit, OnDestroy {
     this.selectedGroups = [];
     // Mettre à jour la liste des groupes disponibles
     this.updateFilteredGroups();
+    // Mettre à jour la liste des salles disponibles
+    this.updateFilteredSalles();
   }
 
   /**

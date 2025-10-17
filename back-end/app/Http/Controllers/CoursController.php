@@ -361,8 +361,8 @@ class CoursController extends Controller
                 ->orderBy('name')
                 ->get();
 
-            // Récupérer les salles
-            $salles = \App\Models\Salle::select('id', 'name')
+            // Récupérer les salles avec toutes les informations nécessaires
+            $salles = \App\Models\Salle::select('id', 'name', 'etablissement_id', 'batiment', 'etage', 'capacite', 'description')
                 ->orderBy('name')
                 ->get();
 
