@@ -12,6 +12,9 @@ class CoursSeeder extends Seeder
      */
     public function run(): void
     {
+        // Désactiver temporairement le scope pour les seeders
+        Cours::withoutGlobalScope(\App\Scopes\UserContextScope::class);
+        
         // Créer quelques cours de test
         $cours1 = Cours::create([
             'name' => 'Mathématiques - Analyse 1',

@@ -13,6 +13,9 @@ class EtudiantSeeder extends Seeder
      */
     public function run(): void
     {
+        // Désactiver temporairement le scope pour les seeders
+        Etudiant::withoutGlobalScope(\App\Scopes\UserContextScope::class);
+        
         $csvFile = base_path("database/csv/etudiants.csv");
         
         if (!file_exists($csvFile)) {
@@ -48,7 +51,7 @@ class EtudiantSeeder extends Seeder
                         'etablissement_id' => (int)$data['etablissement_id'],
                         'ville_id' => (int)$data['ville_id'],
                         'group_id' => $data['group_id'] ? (int)$data['group_id'] : null,
-                        'option_id' => isset($data['option_id']) && !empty($data['option_id']) ? (int)$data['option_id'] : null, // Optionnel
+                        'option_id' => isset($data['option_id']) && !empty($data['option_id']) ? (int)$data['option_id'] : 1, // Défaut à l'option 1
                     ]);
                     $count++;
                 } catch (\Exception $e) {

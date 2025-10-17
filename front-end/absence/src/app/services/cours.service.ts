@@ -212,11 +212,10 @@ export class CoursService extends BaseApiService {
    * Récupère les groupes filtrés par ville et établissement
    */
   getGroupsByLocation(villeId: number, etablissementId: number): Observable<any[]> {
-    const params = new HttpParams()
-      .set('ville_id', villeId.toString())
-      .set('etablissement_id', etablissementId.toString());
-    
-    return this.http.get<any[]>(`http://127.0.0.1:8000/api/groups`, { params });
+    return this.getFiltered<any[]>('groups', {
+      ville_id: villeId,
+      etablissement_id: etablissementId
+    });
   }
 
 }
