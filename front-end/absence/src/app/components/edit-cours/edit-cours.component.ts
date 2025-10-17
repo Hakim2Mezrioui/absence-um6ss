@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -69,7 +69,8 @@ export class EditCoursComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private fb: FormBuilder,
     private sallesService: SallesService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private cdr: ChangeDetectorRef
   ) {
     this.newSalleForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(2)]],
@@ -88,6 +89,11 @@ export class EditCoursComponent implements OnInit, OnDestroy {
     this.loadCours();
     // Fermer dropdown au clic extérieur
     document.addEventListener('click', this.handleDocumentClick, true);
+    
+    // Debug après un délai pour voir l'état final
+    setTimeout(() => {
+      this.debugGroupsState();
+    }, 2000);
   }
 
   ngOnDestroy() {
@@ -108,8 +114,20 @@ export class EditCoursComponent implements OnInit, OnDestroy {
         
         // Charger les groupes sélectionnés
         if (cours.groups && Array.isArray(cours.groups)) {
-          this.selectedGroups = cours.groups.map((group: any) => group.id);
+          this.selectedGroups = cours.groups.map((group: any) => Number(group.id));
+          console.log('📊 Groupes sélectionnés chargés:', this.selectedGroups);
+          console.log('📊 Détails des groupes du cours:', cours.groups);
+          
+          // Forcer la détection des changements pour mettre à jour l'interface
+          this.cdr.detectChanges();
         }
+        
+        // Mettre à jour les groupes disponibles si ville et établissement sont définis
+        // Mais ne pas filtrer les groupes sélectionnés lors du chargement initial
+        if (this.cours.ville_id && this.cours.etablissement_id) {
+          this.loadGroupsByLocationInitial(this.cours.ville_id, this.cours.etablissement_id);
+        }
+        
         this.loadingData = false;
       },
       error: (error) => {
@@ -202,14 +220,89 @@ export class EditCoursComponent implements OnInit, OnDestroy {
   }
 
   updateFilteredGroups(): void {
-    const term = (this.groupSearchTerm || '').trim().toLowerCase();
-    if (!term) {
-      this.filteredGroups = [...(this.groups || [])];
+    // Filtrer d'abord par ville et établissement
+    let availableGroups = this.groups || [];
+    
+    if (this.cours.ville_id && this.cours.etablissement_id) {
+      // Charger les groupes filtrés par ville et établissement
+      this.loadGroupsByLocation(this.cours.ville_id, this.cours.etablissement_id);
+      return;
+    } else {
+      // Si ville ou établissement non sélectionnés, vider la liste
+      this.filteredGroups = [];
       return;
     }
-    this.filteredGroups = (this.groups || []).filter((g: any) => {
-      const name = (g?.name || '').toString().toLowerCase();
-      return name.includes(term);
+  }
+
+  // Méthode pour le chargement initial des groupes (sans filtrer les groupes sélectionnés)
+  loadGroupsByLocationInitial(villeId: number, etablissementId: number): void {
+    console.log('🔍 Chargement initial des groupes pour ville:', villeId, 'établissement:', etablissementId);
+    
+    // Appel à l'API pour récupérer les groupes filtrés
+    this.coursService.getGroupsByLocation(villeId, etablissementId).subscribe({
+      next: (groups) => {
+        console.log('📊 Groupes reçus de l\'API (chargement initial):', groups);
+        
+        // NE PAS filtrer les groupes sélectionnés lors du chargement initial
+        // Les groupes sélectionnés restent tels quels
+        
+        // Appliquer le filtre de recherche si nécessaire
+        const term = (this.groupSearchTerm || '').trim().toLowerCase();
+        if (!term) {
+          this.filteredGroups = groups || [];
+        } else {
+          this.filteredGroups = (groups || []).filter((g: any) => {
+            const name = (g?.name || '').toString().toLowerCase();
+            return name.includes(term);
+          });
+        }
+        
+        console.log('📊 Groupes filtrés finaux (chargement initial):', this.filteredGroups);
+        console.log('📊 Groupes sélectionnés conservés:', this.selectedGroups);
+        
+        // Forcer la détection des changements pour mettre à jour l'interface
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('❌ Erreur lors du chargement initial des groupes:', error);
+        this.filteredGroups = [];
+      }
+    });
+  }
+
+  // Nouvelle méthode pour charger les groupes par ville et établissement
+  loadGroupsByLocation(villeId: number, etablissementId: number): void {
+    console.log('🔍 Chargement des groupes pour ville:', villeId, 'établissement:', etablissementId);
+    
+    // Appel à l'API pour récupérer les groupes filtrés
+    this.coursService.getGroupsByLocation(villeId, etablissementId).subscribe({
+      next: (groups) => {
+        console.log('📊 Groupes reçus de l\'API:', groups);
+        
+        // Filtrer les groupes sélectionnés pour ne garder que ceux qui sont valides
+        const validGroupIds = groups.map((g: any) => g.id);
+        this.selectedGroups = this.selectedGroups.filter(groupId => validGroupIds.includes(groupId));
+        
+        // Appliquer le filtre de recherche si nécessaire
+        const term = (this.groupSearchTerm || '').trim().toLowerCase();
+        if (!term) {
+          this.filteredGroups = groups || [];
+        } else {
+          this.filteredGroups = (groups || []).filter((g: any) => {
+            const name = (g?.name || '').toString().toLowerCase();
+            return name.includes(term);
+          });
+        }
+        
+        console.log('📊 Groupes filtrés finaux:', this.filteredGroups);
+        console.log('📊 Groupes sélectionnés après filtrage:', this.selectedGroups);
+      },
+      error: (error) => {
+        console.error('❌ Erreur lors du chargement des groupes:', error);
+        this.filteredGroups = [];
+        // Réinitialiser les groupes sélectionnés en cas d'erreur
+        this.selectedGroups = [];
+      }
     });
   }
 
@@ -218,21 +311,124 @@ export class EditCoursComponent implements OnInit, OnDestroy {
   }
 
   isGroupSelected(groupId: number): boolean {
-    return this.selectedGroups.includes(groupId);
+    const numericGroupId = Number(groupId);
+    const isSelected = this.selectedGroups.includes(numericGroupId);
+    console.log(`🔍 Vérification sélection groupe ${numericGroupId}:`, {
+      groupId: numericGroupId,
+      selectedGroups: this.selectedGroups,
+      isSelected: isSelected
+    });
+    return isSelected;
   }
 
   toggleGroupSelection(groupId: number): void {
-    const index = this.selectedGroups.indexOf(groupId);
+    const numericGroupId = Number(groupId);
+    const index = this.selectedGroups.indexOf(numericGroupId);
     if (index > -1) {
       this.selectedGroups.splice(index, 1);
+      console.log(`❌ Groupe ${numericGroupId} désélectionné`);
     } else {
-      this.selectedGroups.push(groupId);
+      this.selectedGroups.push(numericGroupId);
+      console.log(`✅ Groupe ${numericGroupId} sélectionné`);
     }
+    console.log('📊 Groupes sélectionnés après toggle:', this.selectedGroups);
   }
 
   getGroupName(groupId: number): string {
+    // Chercher d'abord dans les groupes filtrés
+    const filteredGroup = this.filteredGroups.find(g => g.id === groupId);
+    if (filteredGroup) {
+      return filteredGroup.name || filteredGroup.title || 'Groupe inconnu';
+    }
+    
+    // Si pas trouvé, chercher dans tous les groupes
     const group = this.groups.find(g => g.id === groupId);
-    return group ? group.name : 'Groupe inconnu';
+    if (group) {
+      return group.name || group.title || 'Groupe inconnu';
+    }
+    
+    // Si toujours pas trouvé, essayer de récupérer depuis les groupes du cours
+    if (this.cours.groups && Array.isArray(this.cours.groups)) {
+      const coursGroup = this.cours.groups.find((g: any) => g.id === groupId);
+      if (coursGroup) {
+        return coursGroup.name || coursGroup.title || 'Groupe inconnu';
+      }
+    }
+    
+    return 'Groupe inconnu';
+  }
+
+  /**
+   * Vérifier si un groupe est valide selon les critères actuels
+   */
+  isGroupValid(groupId: number): boolean {
+    // Si le groupe est dans la liste filtrée, il est valide
+    if (this.filteredGroups.some(g => g.id === groupId)) {
+      return true;
+    }
+    
+    // Si c'est un groupe du cours original et qu'on est en cours de chargement initial,
+    // considérer comme valide temporairement
+    if (this.cours.groups && Array.isArray(this.cours.groups)) {
+      const coursGroup = this.cours.groups.find((g: any) => g.id === groupId);
+      if (coursGroup) {
+        return true; // Temporairement valide pendant le chargement
+      }
+    }
+    
+    return false;
+  }
+
+  /**
+   * Méthode de debug pour vérifier l'état des groupes
+   */
+  debugGroupsState(): void {
+    console.log('🔍 État des groupes - Debug:');
+    console.log('- Groupes sélectionnés:', this.selectedGroups);
+    console.log('- Groupes filtrés:', this.filteredGroups);
+    console.log('- Tous les groupes:', this.groups);
+    console.log('- Groupes du cours:', this.cours.groups);
+    
+    if (this.filteredGroups.length > 0) {
+      console.log('🔍 Vérification des checkboxes:');
+      this.filteredGroups.forEach(group => {
+        const isSelected = this.isGroupSelected(group.id);
+        console.log(`  - Groupe ${group.id} (${group.name}): ${isSelected ? '✅ Sélectionné' : '❌ Non sélectionné'}`);
+      });
+    }
+  }
+  hasInvalidSelectedGroups(): boolean {
+    return this.selectedGroups.some(id => !this.isGroupValid(id));
+  }
+
+  /**
+   * Gérer le changement de ville
+   */
+  onVilleChange() {
+    // Réinitialiser les groupes sélectionnés
+    this.selectedGroups = [];
+    // Mettre à jour la liste des groupes disponibles
+    this.updateFilteredGroups();
+  }
+
+  /**
+   * Gérer le changement d'établissement
+   */
+  onEtablissementChange() {
+    // Réinitialiser les groupes sélectionnés
+    this.selectedGroups = [];
+    // Mettre à jour la liste des groupes disponibles
+    this.updateFilteredGroups();
+  }
+
+  /**
+   * Gérer le changement de promotion
+   */
+  onPromotionChange() {
+    // Réinitialiser les groupes sélectionnés
+    this.selectedGroups = [];
+    // Mettre à jour la liste des groupes disponibles
+    this.updateFilteredGroups();
   }
 
   openAddSalleModal(): void {
@@ -304,6 +500,19 @@ export class EditCoursComponent implements OnInit, OnDestroy {
     this.error = '';
     this.success = '';
 
+    // Nettoyer les groupes sélectionnés pour ne garder que ceux qui sont valides
+    const validGroupIds = this.filteredGroups.map(g => g.id);
+    const cleanedSelectedGroups = this.selectedGroups.filter(groupId => validGroupIds.includes(groupId));
+    
+    if (this.selectedGroups.length !== cleanedSelectedGroups.length) {
+      console.log('🧹 Groupes nettoyés:', {
+        avant: this.selectedGroups,
+        après: cleanedSelectedGroups,
+        supprimés: this.selectedGroups.filter(id => !cleanedSelectedGroups.includes(id))
+      });
+      this.selectedGroups = cleanedSelectedGroups;
+    }
+
     // Conversion des IDs en nombres
     const coursData = {
       ...this.cours,
@@ -313,7 +522,7 @@ export class EditCoursComponent implements OnInit, OnDestroy {
       salle_id: Number(this.cours.salle_id),
       option_id: this.cours.option_id ? Number(this.cours.option_id) : undefined,
       ville_id: Number(this.cours.ville_id),
-      group_ids: this.selectedGroups // Envoyer les groupes sélectionnés
+      group_ids: this.selectedGroups // Envoyer les groupes sélectionnés nettoyés
     };
 
     this.coursService.updateCours(this.coursId, coursData).subscribe({
