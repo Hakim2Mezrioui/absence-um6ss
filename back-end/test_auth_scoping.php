@@ -51,3 +51,4 @@ if ($countWithoutAuth > 0) {
 } else {
     echo "✅ Aucun étudiant visible sans authentification\n";
 }
+

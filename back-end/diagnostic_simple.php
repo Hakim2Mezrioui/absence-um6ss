@@ -94,3 +94,4 @@ echo "\nPour tester l'API:\n";
 echo "1. Connectez-vous avec un utilisateur\n";
 echo "2. Appelez GET /api/diagnostic-etudiants\n";
 echo "3. Appelez GET /api/etudiants\n";
+

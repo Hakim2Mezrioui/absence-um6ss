@@ -48,3 +48,4 @@ echo "   Colonnes: " . implode(', ', $columns) . "\n";
 echo "\n=== SOLUTION PROPOSÉE ===\n";
 echo "Le problème semble être que le scope ne bloque pas l'accès sans authentification.\n";
 echo "Modifions le scope pour être plus strict.\n";
+

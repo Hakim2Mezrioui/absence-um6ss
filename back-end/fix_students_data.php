@@ -148,3 +148,4 @@ echo "Pour tester l'API après correction:\n";
 echo "1. Connectez-vous avec un utilisateur\n";
 echo "2. Appelez GET /api/diagnostic-etudiants pour vérifier\n";
 echo "3. Appelez GET /api/etudiants pour voir la liste\n";
+

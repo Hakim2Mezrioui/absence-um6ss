@@ -70,3 +70,4 @@ echo "\nPour tester l'API:\n";
 echo "1. Connectez-vous: POST /api/login\n";
 echo "2. Diagnostic: GET /api/diagnostic-etudiants\n";
 echo "3. Liste: GET /api/etudiants\n";
+

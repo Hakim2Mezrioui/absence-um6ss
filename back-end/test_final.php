@@ -55,3 +55,4 @@ echo "\nPour tester l'API:\n";
 echo "1. Connectez-vous avec un utilisateur non-super-admin\n";
 echo "2. Appelez GET /api/etudiants\n";
 echo "3. Vous devriez voir seulement les étudiants de votre établissement\n";
+

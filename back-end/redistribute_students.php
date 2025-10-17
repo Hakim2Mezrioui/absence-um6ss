@@ -51,3 +51,4 @@ foreach ($etablissements as $etablissement) {
 
 echo "\n✅ Répartition terminée !\n";
 echo "Maintenant chaque utilisateur devrait voir des étudiants selon son établissement.\n";
+

@@ -46,3 +46,4 @@ class EnseignantUserContextScope implements Scope
     }
 }
 
+
