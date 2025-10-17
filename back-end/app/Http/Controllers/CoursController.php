@@ -42,11 +42,15 @@ class CoursController extends Controller
 
         // Appliquer le filtrage par contexte utilisateur
         $userContext = $this->userContextService->getUserContext();
-        if ($userContext['ville_id']) {
-            $query->where('ville_id', $userContext['ville_id']);
-        }
-        if ($userContext['etablissement_id']) {
-            $query->where('etablissement_id', $userContext['etablissement_id']);
+        
+        // Si l'utilisateur n'est pas super-admin, appliquer les filtres de contexte
+        if (!$this->userContextService->isSuperAdmin()) {
+            if ($userContext['ville_id']) {
+                $query->where('ville_id', $userContext['ville_id']);
+            }
+            if ($userContext['etablissement_id']) {
+                $query->where('etablissement_id', $userContext['etablissement_id']);
+            }
         }
 
         // Appliquer les filtres

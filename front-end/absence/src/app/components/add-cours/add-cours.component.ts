@@ -6,6 +6,8 @@ import { RouterModule, Router } from '@angular/router';
 import { CoursService, Cours } from '../../services/cours.service';
 import { NotificationService } from '../../services/notification.service';
 import { SallesService, CreateSalleRequest, Salle } from '../../services/salles.service';
+import { AuthService, User } from '../../services/auth.service';
+import { UserContextService, UserContext } from '../../services/user-context.service';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
@@ -62,6 +64,14 @@ export class AddCoursComponent implements OnInit, OnDestroy {
   newSalleForm: FormGroup;
   salleDropdownOpen = false;
   
+  // User context and role management
+  currentUser: User | null = null;
+  userContext: UserContext | null = null;
+  isSuperAdmin = false;
+  isAdminEtablissement = false;
+  villeFieldDisabled = false;
+  etablissementFieldDisabled = false;
+  
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -69,7 +79,9 @@ export class AddCoursComponent implements OnInit, OnDestroy {
     private notificationService: NotificationService,
     private fb: FormBuilder,
     private router: Router,
-    private sallesService: SallesService
+    private sallesService: SallesService,
+    private authService: AuthService,
+    private userContextService: UserContextService
   ) {
     this.newSalleForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(2)]],
@@ -82,13 +94,99 @@ export class AddCoursComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.loadFilterOptions();
+    this.initializeUserContext();
     this.generateAnneesUniversitaires();
+    // Charger les options après l'initialisation du contexte utilisateur
+    this.loadFilterOptions();
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  /**
+   * Initialiser le contexte utilisateur et déterminer les permissions
+   */
+  initializeUserContext() {
+    // Récupérer l'utilisateur actuel
+    this.currentUser = this.authService.getCurrentUser();
+    
+    // Récupérer le contexte utilisateur
+    this.userContext = this.userContextService.getCurrentUserContext();
+    
+    if (this.currentUser) {
+      // Déterminer le rôle utilisateur
+      this.isSuperAdmin = this.currentUser.role_id === 1; // Super Admin
+      // Les rôles qui doivent avoir les champs pré-remplis et non modifiables
+      // role_id 2 = Admin, role_id 3 = Scolarité, role_id 4 = Doyen, role_id 6 = Enseignant
+      this.isAdminEtablissement = [2, 3, 4, 6].includes(this.currentUser.role_id);
+      
+      // Déterminer si les champs doivent être désactivés
+      this.villeFieldDisabled = this.isAdminEtablissement;
+      this.etablissementFieldDisabled = this.isAdminEtablissement;
+      
+      // Pré-remplir les champs pour les utilisateurs non-super-admin
+      if (this.isAdminEtablissement) {
+        // Utiliser directement les données de l'utilisateur si le contexte n'est pas encore disponible
+        const villeId = this.userContext?.ville_id || this.currentUser.ville_id;
+        const etablissementId = this.userContext?.etablissement_id || this.currentUser.etablissement_id;
+        
+        if (villeId) {
+          this.cours.ville_id = villeId;
+        }
+        if (etablissementId) {
+          this.cours.etablissement_id = etablissementId;
+        }
+      }
+      
+      console.log('🔐 Contexte utilisateur initialisé:', {
+        user: this.currentUser,
+        context: this.userContext,
+        isSuperAdmin: this.isSuperAdmin,
+        isAdminEtablissement: this.isAdminEtablissement,
+        villeFieldDisabled: this.villeFieldDisabled,
+        etablissementFieldDisabled: this.etablissementFieldDisabled,
+        coursVilleId: this.cours.ville_id,
+        coursEtablissementId: this.cours.etablissement_id
+      });
+    }
+  }
+
+  /**
+   * Obtenir le nom d'affichage du rôle utilisateur
+   */
+  getRoleDisplayName(): string {
+    if (!this.currentUser) return '';
+    
+    const roleNames: { [key: number]: string } = {
+      1: 'Super Admin',
+      2: 'Admin',
+      3: 'Scolarité',
+      4: 'Doyen',
+      5: 'Technicien SI',
+      6: 'Enseignant'
+    };
+    
+    return roleNames[this.currentUser.role_id] || 'Utilisateur';
+  }
+
+  /**
+   * Obtenir le nom de la ville sélectionnée
+   */
+  getSelectedVilleName(): string {
+    if (!this.cours.ville_id) return '';
+    const ville = this.villes.find(v => v.id === this.cours.ville_id);
+    return ville ? ville.name : '';
+  }
+
+  /**
+   * Obtenir le nom de l'établissement sélectionné
+   */
+  getSelectedEtablissementName(): string {
+    if (!this.cours.etablissement_id) return '';
+    const etablissement = this.etablissements.find(e => e.id === this.cours.etablissement_id);
+    return etablissement ? etablissement.name : '';
   }
 
   @HostListener('document:click', ['$event'])
@@ -120,12 +218,38 @@ export class AddCoursComponent implements OnInit, OnDestroy {
           this.groups = options.groups || [];
           this.filteredGroups = []; // Initialiser comme vide jusqu'à sélection ville/établissement
           this.villes = options.villes || [];
+          
+          // Après le chargement des options, s'assurer que les champs sont bien pré-sélectionnés
+          this.ensureFieldsArePreSelected();
         },
         error: (error) => {
           this.error = 'Erreur lors du chargement des options';
           console.error('Erreur:', error);
         }
       });
+  }
+
+  /**
+   * S'assurer que les champs ville et établissement sont bien pré-sélectionnés
+   */
+  ensureFieldsArePreSelected() {
+    if (this.isAdminEtablissement && this.currentUser) {
+      // Vérifier si les champs ne sont pas encore définis
+      if (!this.cours.ville_id && this.currentUser.ville_id) {
+        this.cours.ville_id = this.currentUser.ville_id;
+        console.log('🏙️ Ville pré-sélectionnée:', this.cours.ville_id);
+      }
+      
+      if (!this.cours.etablissement_id && this.currentUser.etablissement_id) {
+        this.cours.etablissement_id = this.currentUser.etablissement_id;
+        console.log('🏢 Établissement pré-sélectionné:', this.cours.etablissement_id);
+      }
+      
+      // Mettre à jour les groupes disponibles si ville et établissement sont définis
+      if (this.cours.ville_id && this.cours.etablissement_id) {
+        this.updateFilteredGroups();
+      }
+    }
   }
 
   generateAnneesUniversitaires() {

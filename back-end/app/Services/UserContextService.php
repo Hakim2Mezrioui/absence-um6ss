@@ -72,6 +72,15 @@ class UserContextService
     }
 
     /**
+     * Check if the authenticated user is a super-admin
+     */
+    public function isSuperAdmin(): bool
+    {
+        $user = Auth::user();
+        return $user && ($user->role_id == 1 || $user->role === 'super-admin');
+    }
+
+    /**
      * Get user context for API responses
      */
     public function getUserContextForApi(): array
@@ -82,7 +91,8 @@ class UserContextService
             'ville_id' => $context['ville_id'],
             'etablissement_id' => $context['etablissement_id'],
             'user_id' => $context['user'] ? $context['user']->id : null,
-            'user_role' => $context['user'] ? $context['user']->role_id : null
+            'user_role' => $context['user'] ? $context['user']->role_id : null,
+            'is_super_admin' => $this->isSuperAdmin()
         ];
     }
 }
