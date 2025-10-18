@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { read, utils, WorkBook, write, writeFile } from 'xlsx';
 import { ExamensService } from '../../services/examens.service';
 import { AuthService, User } from '../../services/auth.service';
@@ -72,7 +73,8 @@ export class SimpleExamensImportComponent implements OnInit {
   constructor(
     private examensService: ExamensService,
     private authService: AuthService,
-    private userContextService: UserContextService
+    private userContextService: UserContextService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -251,6 +253,13 @@ export class SimpleExamensImportComponent implements OnInit {
         this.isImporting = false;
         this.importResult = { success: true, message: response.message || 'Importation réussie !', details: { total: response.total, created: response.created, updated: response.updated, errors: response.errors } };
         this.successMessage = 'Importation terminée avec succès.';
+        
+        // Rediriger vers la liste des examens après un délai si l'import est entièrement réussi
+        if (response.errors === 0) {
+          setTimeout(() => {
+            this.router.navigate(['/examens']);
+          }, 2000);
+        }
       },
       error: (error) => {
         this.isImporting = false;

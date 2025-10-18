@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { ExamensService, Examen } from '../../services/examens.service';
 import { NotificationService } from '../../services/notification.service';
 import { TypesExamenService, TypeExamen } from '../../services/types-examen.service';
@@ -69,7 +69,8 @@ export class ImportExamensComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private typesExamenService: TypesExamenService,
     private authService: AuthService,
-    private userContextService: UserContextService
+    private userContextService: UserContextService,
+    private router: Router
   ) {
     this.importForm = this.fb.group({
       etablissement_id: ['', Validators.required],
@@ -484,6 +485,13 @@ export class ImportExamensComponent implements OnInit, OnDestroy {
     if (this.importResults.success > 0) {
       this.success = `${this.importResults.success} examen(s) importé(s) avec succès`;
       this.notificationService.success('Import réussi', this.success);
+      
+      // Rediriger vers la liste des examens après un délai si l'import est entièrement réussi
+      if (this.importResults.errors === 0) {
+        setTimeout(() => {
+          this.router.navigate(['/examens']);
+        }, 2000);
+      }
     }
     
     if (this.importResults.errors > 0) {

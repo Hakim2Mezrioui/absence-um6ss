@@ -155,7 +155,7 @@ export class EditExamenComponent implements OnInit, OnDestroy {
         
         // Rediriger vers la liste des examens après un délai
         setTimeout(() => {
-          this.router.navigate(['/dashboard/examens']);
+          this.router.navigate(['/examens']);
         }, 3000);
       }
     });
@@ -288,6 +288,9 @@ export class EditExamenComponent implements OnInit, OnDestroy {
         this.disableFormControls();
       }
       
+      // Re-filtrer les salles après le remplissage du formulaire
+      this.refilterSallesAfterFormPopulation();
+      
       console.log('✅ Formulaire rempli avec succès');
       console.log('📊 État du formulaire après remplissage:', this.examenForm.value);
       
@@ -404,6 +407,40 @@ export class EditExamenComponent implements OnInit, OnDestroy {
       villeFieldDisabled: this.villeFieldDisabled,
       etablissementFieldDisabled: this.etablissementFieldDisabled
     });
+  }
+
+  /**
+   * Re-filtrer les salles après le remplissage du formulaire
+   */
+  refilterSallesAfterFormPopulation(): void {
+    console.log('🔄 Re-filtrage des salles après remplissage du formulaire');
+    
+    // Recharger toutes les salles depuis l'API
+    this.examensService.getFilterOptions()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          const allSalles = response.salles || [];
+          console.log('📊 Toutes les salles rechargées:', allSalles.length);
+          
+          // Appliquer le filtrage selon le rôle et les valeurs du formulaire
+          this.salles = [...allSalles]; // Réinitialiser avec toutes les salles
+          this.filterSallesByRoleAndEtablissement();
+          
+          // Mettre à jour les salles filtrées
+          this.updateFilteredSalles();
+          
+          console.log('✅ Salles re-filtrées avec succès:', {
+            sallesDisponibles: this.salles.length,
+            sallesFiltrees: this.filteredSalles.length,
+            etablissementId: this.examenForm.get('etablissement_id')?.value,
+            villeId: this.examenForm.get('ville_id')?.value
+          });
+        },
+        error: (err) => {
+          console.error('❌ Erreur lors du rechargement des salles:', err);
+        }
+      });
   }
 
   /**
@@ -526,7 +563,7 @@ export class EditExamenComponent implements OnInit, OnDestroy {
             this.notificationService.success('Succès', 'Examen modifié avec succès');
             this.loading = false;
             // Rediriger vers la liste des examens
-            this.router.navigate(['/dashboard/examens']);
+            this.router.navigate(['/examens']);
           },
           error: (err) => {
             this.error = 'Erreur lors de la modification de l\'examen';
@@ -549,6 +586,7 @@ export class EditExamenComponent implements OnInit, OnDestroy {
    */
   filterSallesByRoleAndEtablissement(): void {
     if (!this.salles || this.salles.length === 0) {
+      console.log('⚠️ Aucune salle disponible pour le filtrage');
       return;
     }
 
@@ -560,7 +598,7 @@ export class EditExamenComponent implements OnInit, OnDestroy {
       if (etablissementId && villeId) {
         const originalSalles = [...this.salles];
         this.salles = this.salles.filter((salle: any) => {
-          return salle.etablissement_id === etablissementId && salle.ville_id === villeId;
+          return salle.etablissement_id == etablissementId && salle.ville_id == villeId;
         });
         
         console.log('🔓 Super Admin: Filtrage par établissement et ville:', {
@@ -576,23 +614,46 @@ export class EditExamenComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Les autres rôles voient seulement les salles de leur établissement et ville (pré-définis)
-    if (this.currentUser && this.currentUser.etablissement_id && this.currentUser.ville_id) {
+    // Les autres rôles voient seulement les salles de leur établissement et ville
+    // Utiliser les valeurs du formulaire si disponibles, sinon les valeurs de l'utilisateur
+    let etablissementId: number | null = null;
+    let villeId: number | null = null;
+    
+    // Essayer d'abord les valeurs du formulaire
+    const formEtablissementId = this.examenForm.get('etablissement_id')?.value;
+    const formVilleId = this.examenForm.get('ville_id')?.value;
+    
+    if (formEtablissementId && formVilleId) {
+      etablissementId = parseInt(formEtablissementId);
+      villeId = parseInt(formVilleId);
+      console.log('📋 Utilisation des valeurs du formulaire pour le filtrage:', { etablissementId, villeId });
+    } else if (this.currentUser && this.currentUser.etablissement_id && this.currentUser.ville_id) {
+      etablissementId = this.currentUser.etablissement_id;
+      villeId = this.currentUser.ville_id;
+      console.log('👤 Utilisation des valeurs de l\'utilisateur pour le filtrage:', { etablissementId, villeId });
+    }
+    
+    if (etablissementId && villeId) {
       const originalSalles = [...this.salles];
       this.salles = this.salles.filter((salle: any) => {
-        return salle.etablissement_id === this.currentUser!.etablissement_id && 
-               salle.ville_id === this.currentUser!.ville_id;
+        return salle.etablissement_id == etablissementId && salle.ville_id == villeId;
       });
       
-      console.log('🔒 Filtrage des salles par établissement et ville (pré-définis):', {
-        etablissementId: this.currentUser.etablissement_id,
-        villeId: this.currentUser.ville_id,
+      console.log('🔒 Filtrage des salles par établissement et ville:', {
+        etablissementId,
+        villeId,
         sallesOriginales: originalSalles.length,
         sallesFiltrees: this.salles.length,
         sallesDetails: this.salles.map(s => ({ id: s.id, name: s.name, etablissement_id: s.etablissement_id, ville_id: s.ville_id }))
       });
     } else {
-      console.log('⚠️ Utilisateur sans établissement ou ville défini pour le filtrage des salles');
+      console.log('⚠️ Aucun établissement ou ville défini pour le filtrage des salles');
+      console.log('📊 Valeurs disponibles:', {
+        formEtablissementId,
+        formVilleId,
+        userEtablissementId: this.currentUser?.etablissement_id,
+        userVilleId: this.currentUser?.ville_id
+      });
     }
   }
 

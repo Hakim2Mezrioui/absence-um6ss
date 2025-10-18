@@ -145,6 +145,10 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
           }
           this.coursData = data;
           this.students = data.students || [];
+          
+          // Appliquer la logique de calcul automatique des statuts côté frontend
+          this.applyToleranceLogic();
+          
           this.filteredStudents = [...this.students];
           this.updateStatistics(data.statistics);
           this.updatePromotionOptions();
@@ -276,6 +280,259 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     this.absents = stats.absents;
     this.lates = stats.lates;
     this.excused = stats.excused;
+  }
+
+  /**
+   * Applique la logique de tolérance aux étudiants
+   */
+  private applyToleranceLogic(): void {
+    if (!this.coursData?.cours) {
+      console.log('❌ Pas de données de cours pour appliquer la logique de tolérance');
+      return;
+    }
+
+    console.log('🔄 Application de la logique de tolérance pour', this.students.length, 'étudiants');
+
+    let presentCount = 0;
+    let lateCount = 0;
+    let absentCount = 0;
+    let studentsWithPunchTime = 0;
+
+    this.students.forEach((student, index) => {
+      if (student.punch_time && student.punch_time.time) {
+        studentsWithPunchTime++;
+        const punchTime = this.parseStudentPunchTime(student.punch_time.time);
+        
+        if (isNaN(punchTime.getTime())) {
+          console.log(`❌ Étudiant ${index + 1}: Date invalide - ${student.punch_time.time}`);
+          student.status = 'absent';
+          absentCount++;
+        } else {
+          const oldStatus = student.status;
+          const newStatus = this.calculateStudentStatus(punchTime);
+          
+          console.log(`👤 ${student.first_name} ${student.last_name}: ${oldStatus} → ${newStatus}`);
+          console.log(`   📅 Pointage: ${student.punch_time.time} → ${punchTime.toLocaleString()}`);
+          
+          student.status = newStatus;
+          
+          if (newStatus === 'present') presentCount++;
+          else if (newStatus === 'late') lateCount++;
+          else absentCount++;
+        }
+      } else {
+        student.status = 'absent';
+        absentCount++;
+      }
+    });
+
+    // Recalculer les statistiques
+    this.presents = this.students.filter(s => s.status === 'present').length;
+    this.absents = this.students.filter(s => s.status === 'absent').length;
+    this.lates = this.students.filter(s => s.status === 'late').length;
+    this.excused = this.students.filter(s => s.status === 'excused').length;
+    this.totalStudents = this.students.length;
+    
+    console.log(`\n📊 RÉSULTAT FINAL:`);
+    console.log(`   Étudiants avec pointage: ${studentsWithPunchTime}/${this.students.length}`);
+    console.log(`   Présents: ${this.presents}`);
+    console.log(`   En retard: ${this.lates}`);
+    console.log(`   Absents: ${this.absents}`);
+    
+    // Mettre à jour les étudiants filtrés
+    this.filteredStudents = [...this.students];
+  }
+
+  /**
+   * Parse l'heure de pointage d'un étudiant (gère le format français DD/MM/YYYY HH:MM:SS)
+   */
+  private parseStudentPunchTime(punchTimeString: string): Date {
+    console.log('🎯 Parsing student punch time:', punchTimeString);
+    
+    // Si c'est un timestamp ISO complet
+    if (punchTimeString.includes('T') && (punchTimeString.includes('Z') || punchTimeString.includes('+'))) {
+      const date = new Date(punchTimeString);
+      console.log('📅 Parsed ISO punch time:', date.toLocaleString());
+      return date;
+    }
+    
+    // Si c'est au format DD/MM/YYYY HH:MM:SS (format français)
+    if (punchTimeString.includes('/') && punchTimeString.includes(' ')) {
+      // Format: "18/10/2025 15:39:08"
+      const [datePart, timePart] = punchTimeString.split(' ');
+      const [day, month, year] = datePart.split('/').map(Number);
+      const [hours, minutes, seconds] = timePart.split(':').map(Number);
+      
+      const date = new Date(year, month - 1, day, hours, minutes, seconds || 0, 0);
+      console.log('📅 Parsed French date/time:', date.toLocaleString());
+      return date;
+    }
+    
+    // Si c'est au format YYYY-MM-DD HH:MM:SS.microseconds (format SQL Server)
+    if (punchTimeString.match(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+$/)) {
+      // Format: "2025-10-18 15:39:08.0000000"
+      const [datePart, timePart] = punchTimeString.split(' ');
+      const [year, month, day] = datePart.split('-').map(Number);
+      const [timeOnly] = timePart.split('.');
+      const [hours, minutes, seconds] = timeOnly.split(':').map(Number);
+      
+      const date = new Date(year, month - 1, day, hours, minutes, seconds, 0);
+      console.log('📅 Parsed SQL Server date/time:', date.toLocaleString());
+      return date;
+    }
+    
+    // Si c'est juste une heure HH:MM ou HH:MM:SS
+    if (punchTimeString.includes(':') && !punchTimeString.includes('/')) {
+      const [hours, minutes, seconds] = punchTimeString.split(':').map(Number);
+      const date = new Date();
+      date.setHours(hours, minutes, seconds || 0, 0);
+      console.log('⏰ Parsed time only:', date.toLocaleString());
+      return date;
+    }
+    
+    // Fallback: essayer de parser comme date générique
+    const date = new Date(punchTimeString);
+    if (!isNaN(date.getTime())) {
+      console.log('📅 Parsed fallback punch time:', date.toLocaleString());
+      return date;
+    }
+    
+    console.error('❌ Impossible de parser l\'heure de pointage:', punchTimeString);
+    return new Date();
+  }
+
+  /**
+   * Calcule le statut de l'étudiant basé sur l'heure de pointage et la tolérance
+   */
+  private calculateStudentStatus(punchTime: Date): string {
+    if (!this.coursData?.cours) {
+      console.log('❌ Pas de données de cours pour calculer le statut');
+      return 'absent';
+    }
+
+    const cours = this.coursData.cours;
+    
+    // Vérifier si la date de pointage est valide
+    if (isNaN(punchTime.getTime())) {
+      console.log('❌ Date de pointage invalide:', punchTime);
+      return 'absent';
+    }
+
+    console.log('🔍 DÉTAILS DU CALCUL:');
+    console.log('   📅 Date du cours:', cours.date);
+    console.log('   ⏰ Heure de début:', cours.heure_debut);
+    console.log('   🎯 Heure de pointage:', cours.pointage_start_hour);
+    console.log('   ⏱️ Tolérance:', cours.tolerance);
+    console.log('   📍 Pointage étudiant:', punchTime.toLocaleString());
+
+    // Créer les dates de référence - utiliser la même date que le cours
+    const coursDate = new Date(cours.date);
+    console.log('   📆 Date cours parsée:', coursDate.toLocaleString());
+    
+    // Parser les heures simplement
+    const heureDebut = this.parseTimeStringSimple(cours.heure_debut);
+    const heurePointage = cours.pointage_start_hour ? this.parseTimeStringSimple(cours.pointage_start_hour) : null;
+    const toleranceMinutes = this.parseToleranceToMinutes(cours.tolerance);
+
+    console.log('   🕐 Heure début parsée:', heureDebut.toLocaleString());
+    console.log('   🎯 Heure pointage parsée:', heurePointage?.toLocaleString() || 'N/A');
+    console.log('   ⏱️ Tolérance en minutes:', toleranceMinutes);
+
+    // Créer les dates complètes
+    const coursStartDateTime = new Date(coursDate);
+    coursStartDateTime.setHours(heureDebut.getHours(), heureDebut.getMinutes(), heureDebut.getSeconds(), 0);
+
+    const coursPunchStartDateTime = heurePointage ? new Date(coursDate) : null;
+    if (coursPunchStartDateTime && heurePointage) {
+      coursPunchStartDateTime.setHours(heurePointage.getHours(), heurePointage.getMinutes(), heurePointage.getSeconds(), 0);
+    }
+
+    const toleranceDateTime = new Date(coursStartDateTime);
+    toleranceDateTime.setMinutes(toleranceDateTime.getMinutes() + toleranceMinutes);
+
+    console.log('🕐 CALCUL FINAL:');
+    console.log('   📍 Pointage étudiant:', punchTime.toLocaleString());
+    console.log('   🎯 Début pointage:', coursPunchStartDateTime?.toLocaleString() || 'N/A');
+    console.log('   ⏰ Début cours:', coursStartDateTime.toLocaleString());
+    console.log('   ⏱️ Limite tolérance:', toleranceDateTime.toLocaleString());
+
+    // Logique simplifiée - si l'étudiant a pointé, il est au minimum "en retard"
+    if (coursPunchStartDateTime && punchTime >= coursPunchStartDateTime && punchTime < coursStartDateTime) {
+      console.log('✅ Présent (pointage avant début)');
+      return 'present';
+    } else if (punchTime >= coursStartDateTime && punchTime <= toleranceDateTime) {
+      console.log('⏰ En retard (dans la tolérance)');
+      return 'late';
+    } else if (punchTime > toleranceDateTime) {
+      console.log('❌ Absent (au-delà de la tolérance)');
+      return 'absent';
+    } else {
+      console.log('❌ Absent (avant début de pointage)');
+      return 'absent';
+    }
+  }
+
+  /**
+   * Parse une chaîne de temps de manière simple (comme les examens)
+   */
+  private parseTimeStringSimple(timeString: string): Date {
+    // Si c'est un timestamp ISO, l'utiliser directement
+    if (timeString.includes('T') && timeString.includes('Z')) {
+      return new Date(timeString);
+    }
+    
+    // Si c'est juste HH:MM ou HH:MM:SS
+    const parts = timeString.split(':');
+    const hours = parseInt(parts[0]) || 0;
+    const minutes = parseInt(parts[1]) || 0;
+    const seconds = parseInt(parts[2]) || 0;
+    
+    const date = new Date();
+    date.setHours(hours, minutes, seconds, 0);
+    return date;
+  }
+
+  /**
+   * Parse la tolérance en minutes
+   */
+  private parseToleranceToMinutes(tolerance: string): number {
+    try {
+      const toleranceStr = tolerance.toString().trim();
+      
+      // Si c'est un timestamp ISO (contient 'T' et 'Z')
+      if (toleranceStr.includes('T') && toleranceStr.includes('Z')) {
+        const toleranceDate = new Date(toleranceStr);
+        const hours = toleranceDate.getUTCHours();
+        const minutes = toleranceDate.getUTCMinutes();
+        return hours * 60 + minutes;
+      }
+      
+      // Si c'est juste un nombre, le retourner tel quel
+      if (/^\d+$/.test(toleranceStr)) {
+        return parseInt(toleranceStr);
+      }
+      
+      // Si c'est au format HH:MM ou HH:MM:SS
+      if (toleranceStr.includes(':')) {
+        const parts = toleranceStr.split(':');
+        const hours = parseInt(parts[0]) || 0;
+        const minutes = parseInt(parts[1]) || 0;
+        return hours * 60 + minutes;
+      }
+      
+      // Si c'est au format "XX minutes" ou "XXmin"
+      const match = toleranceStr.match(/(\d+)\s*(?:minutes?|min)/i);
+      if (match) {
+        return parseInt(match[1]);
+      }
+      
+      // Par défaut, essayer de parser comme nombre
+      const parsed = parseInt(toleranceStr);
+      return isNaN(parsed) ? 15 : parsed;
+    } catch (error) {
+      console.error('Erreur lors du parsing de la tolérance:', error);
+      return 15; // Tolérance par défaut
+    }
   }
 
   /**
@@ -637,6 +894,90 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
    */
   refreshData(): void {
     this.loadAttendanceData();
+  }
+
+  /**
+   * Forcer le recalcul de tous les statuts avec logs détaillés
+   */
+  forceRecalculateAllStatuses(): void {
+    console.log('\n🔄 FORÇAGE DU RECALCUL DES STATUTS');
+    console.log('=====================================');
+    
+    if (!this.coursData?.cours) {
+      console.log('❌ Pas de données de cours disponibles');
+      return;
+    }
+    
+    console.log('📊 Données du cours:');
+    console.log('   📅 Date:', this.coursData.cours.date);
+    console.log('   ⏰ Heure début:', this.coursData.cours.heure_debut);
+    console.log('   🎯 Heure pointage:', this.coursData.cours.pointage_start_hour);
+    console.log('   ⏱️ Tolérance:', this.coursData.cours.tolerance);
+    
+    // Appliquer la logique de tolérance avec logs détaillés
+    this.applyToleranceLogic();
+    
+    // Afficher le résumé final
+    this.showAttendanceSummary();
+  }
+
+  /**
+   * Afficher un résumé détaillé des statuts d'attendance
+   */
+  showAttendanceSummary(): void {
+    if (!this.students.length) {
+      console.log('❌ Aucun étudiant à analyser');
+      return;
+    }
+
+    console.log('\n📊 RÉSUMÉ DÉTAILLÉ DE L\'ATTENDANCE');
+    console.log('=====================================');
+    
+    const presents = this.students.filter(s => s.status === 'present');
+    const lates = this.students.filter(s => s.status === 'late');
+    const absents = this.students.filter(s => s.status === 'absent');
+    const excused = this.students.filter(s => s.status === 'excused');
+
+    console.log(`\n✅ PRÉSENTS (${presents.length}):`);
+    presents.forEach((student, index) => {
+      const punchInfo = student.punch_time ? 
+        `${student.punch_time.time} (${student.punch_time.device})` : 
+        'Pas de pointage';
+      console.log(`   ${index + 1}. ${student.first_name} ${student.last_name} (${student.matricule}) - ${punchInfo}`);
+    });
+
+    console.log(`\n⏰ EN RETARD (${lates.length}):`);
+    lates.forEach((student, index) => {
+      const punchInfo = student.punch_time ? 
+        `${student.punch_time.time} (${student.punch_time.device})` : 
+        'Pas de pointage';
+      console.log(`   ${index + 1}. ${student.first_name} ${student.last_name} (${student.matricule}) - ${punchInfo}`);
+    });
+
+    console.log(`\n❌ ABSENTS (${absents.length}):`);
+    absents.forEach((student, index) => {
+      const punchInfo = student.punch_time ? 
+        `${student.punch_time.time} (${student.punch_time.device})` : 
+        'Pas de pointage';
+      console.log(`   ${index + 1}. ${student.first_name} ${student.last_name} (${student.matricule}) - ${punchInfo}`);
+    });
+
+    if (excused.length > 0) {
+      console.log(`\nℹ️ EXCUSÉS (${excused.length}):`);
+      excused.forEach((student, index) => {
+        const punchInfo = student.punch_time ? 
+          `${student.punch_time.time} (${student.punch_time.device})` : 
+          'Pas de pointage';
+        console.log(`   ${index + 1}. ${student.first_name} ${student.last_name} (${student.matricule}) - ${punchInfo}`);
+      });
+    }
+
+    console.log('\n📈 STATISTIQUES FINALES:');
+    console.log(`   Total: ${this.totalStudents}`);
+    console.log(`   Présents: ${this.presents} (${((this.presents / this.totalStudents) * 100).toFixed(1)}%)`);
+    console.log(`   En retard: ${this.lates} (${((this.lates / this.totalStudents) * 100).toFixed(1)}%)`);
+    console.log(`   Absents: ${this.absents} (${((this.absents / this.totalStudents) * 100).toFixed(1)}%)`);
+    console.log(`   Excusés: ${this.excused} (${((this.excused / this.totalStudents) * 100).toFixed(1)}%)`);
   }
 
   /**

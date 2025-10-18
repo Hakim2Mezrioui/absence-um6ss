@@ -741,10 +741,10 @@ export class AddExamenComponent implements OnInit, OnDestroy {
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: () => {
-            this.notificationService.success('Examen ajouté avec succès', 'L\'examen a été créé avec succès');
+            this.notificationService.success('Succès', 'Examen créé avec succès');
             this.loading = false;
             // Rediriger vers la liste des examens
-            this.router.navigate(['/dashboard/examens']);
+            this.router.navigate(['/examens']);
           },
           error: (err) => {
             this.error = 'Erreur lors de l\'ajout de l\'examen';
