@@ -3,6 +3,8 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { read, utils, WorkBook, writeFile, write } from 'xlsx';
 import { CoursService, Cours } from '../../services/cours.service';
+import { AuthService, User } from '../../services/auth.service';
+import { UserContextService, UserContext } from '../../services/user-context.service';
 
 interface CoursRow {
   [key: string]: string;
@@ -80,6 +82,12 @@ export class SimpleCoursImportComponent implements OnInit {
   isProcessing = false;
   isImporting = false;
 
+  // User context and role management
+  currentUser: User | null = null;
+  userContext: UserContext | null = null;
+  isSuperAdmin = false;
+  isAdminEtablissement = false;
+
   referenceError = '';
   filterOptions: FilterOptions | null = null;
   importResult: ImportResult | null = null;
@@ -91,10 +99,34 @@ export class SimpleCoursImportComponent implements OnInit {
   private suggestionsByCell: Record<number, Record<string, Suggestion[]>> = {};
   private invalidCells: Record<number, Record<string, boolean>> = {};
 
-  constructor(private coursService: CoursService) {}
+  constructor(
+    private coursService: CoursService,
+    private authService: AuthService,
+    private userContextService: UserContextService
+  ) {}
 
   ngOnInit(): void {
+    this.initializeUserContext();
     this.loadReferenceData();
+  }
+
+  initializeUserContext() {
+    this.currentUser = this.authService.getCurrentUser();
+    this.userContext = this.userContextService.getCurrentUserContext();
+    
+    if (this.currentUser) {
+      this.isSuperAdmin = this.currentUser.role_id === 1;
+      this.isAdminEtablissement = [2, 3, 4, 6].includes(this.currentUser.role_id);
+      
+      console.log('🔐 Contexte utilisateur initialisé (simple-cours-import):', {
+        user: this.currentUser.email,
+        role_id: this.currentUser.role_id,
+        isSuperAdmin: this.isSuperAdmin,
+        isAdminEtablissement: this.isAdminEtablissement,
+        ville_id: this.currentUser.ville_id,
+        etablissement_id: this.currentUser.etablissement_id
+      });
+    }
   }
 
   downloadTemplate(): void {
@@ -379,11 +411,27 @@ export class SimpleCoursImportComponent implements OnInit {
   }
 
   private prepareReferenceData(options: FilterOptions): void {
+    // Filtrer les salles selon le rôle et l'établissement
+    let filteredSalles = options.salles || [];
+    if (!this.isSuperAdmin && this.currentUser) {
+      filteredSalles = filteredSalles.filter((salle: any) => {
+        return salle.etablissement_id === this.currentUser!.etablissement_id && 
+               salle.ville_id === this.currentUser!.ville_id;
+      });
+      
+      console.log('🔒 Filtrage des salles pour l\'import cours:', {
+        etablissementId: this.currentUser.etablissement_id,
+        villeId: this.currentUser.ville_id,
+        sallesOriginales: (options.salles || []).length,
+        sallesFiltrees: filteredSalles.length
+      });
+    }
+
     this.referenceData = {
       etablissement_name: (options.etablissements || []).map((e) => this.toReferenceEntry(e.name, e.id)),
       promotion_name: (options.promotions || []).map((p) => this.toReferenceEntry(p.name, p.id)),
       type_cours_name: (options.types_cours || []).map((t) => this.toReferenceEntry(t.name, t.id)),
-      salle_name: (options.salles || []).map((s) => this.toReferenceEntry(s.name, s.id)),
+      salle_name: filteredSalles.map((s) => this.toReferenceEntry(s.name, s.id)),
       group_title: (options.groups || []).map((g) => this.toReferenceEntry(g.title, g.id)),
       ville_name: (options.villes || []).map((v) => this.toReferenceEntry(v.name, v.id)),
       option_name: (options.options || []).map((o) => this.toReferenceEntry(o.name, o.id))

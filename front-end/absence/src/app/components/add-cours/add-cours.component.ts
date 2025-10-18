@@ -215,6 +215,10 @@ export class AddCoursComponent implements OnInit, OnDestroy {
           this.etablissements = options.etablissements || [];
           this.promotions = options.promotions || [];
           this.salles = options.salles || [];
+          
+          // Filtrer les salles selon le rôle et l'établissement
+          this.filterSallesByRoleAndEtablissement();
+          
           this.updateFilteredSalles();
           this.typesCours = options.types_cours || [];
           this.options = options.options || [];
@@ -254,6 +258,57 @@ export class AddCoursComponent implements OnInit, OnDestroy {
       }
       
       console.log('🔒 Champs pré-sélectionnés et désactivés pour utilisateur non-super-admin');
+    }
+  }
+
+  /**
+   * Filtrer les salles selon le rôle de l'utilisateur, l'établissement et la ville sélectionnés
+   */
+  filterSallesByRoleAndEtablissement(): void {
+    if (!this.salles || this.salles.length === 0) {
+      return;
+    }
+
+    const etablissementId = this.cours.etablissement_id;
+    const villeId = this.cours.ville_id;
+
+    // Super Admin voit toutes les salles, mais peut filtrer par établissement et ville sélectionnés
+    if (this.isSuperAdmin) {
+      if (etablissementId && villeId) {
+        const originalSalles = [...this.salles];
+        this.salles = this.salles.filter((salle: any) => {
+          return salle.etablissement_id === etablissementId && salle.ville_id === villeId;
+        });
+        
+        console.log('🔓 Super Admin: Filtrage par établissement et ville:', {
+          etablissementId,
+          villeId,
+          sallesOriginales: originalSalles.length,
+          sallesFiltrees: this.salles.length,
+          sallesDetails: this.salles.map(s => ({ id: s.id, name: s.name, etablissement_id: s.etablissement_id, ville_id: s.ville_id }))
+        });
+      } else {
+        console.log('🔓 Super Admin: Affichage de toutes les salles (aucun filtre)');
+      }
+      return;
+    }
+
+    // Les autres rôles voient seulement les salles de leur établissement et ville
+    if (etablissementId && villeId) {
+      const originalSalles = [...this.salles];
+      this.salles = this.salles.filter((salle: any) => {
+        return salle.etablissement_id === etablissementId && salle.ville_id === villeId;
+      });
+      
+      console.log('🔒 Filtrage des salles par établissement et ville:', {
+        etablissementId,
+        villeId,
+        sallesOriginales: originalSalles.length,
+        sallesFiltrees: this.salles.length,
+        sallesDetails: this.salles.map(s => ({ id: s.id, name: s.name, etablissement_id: s.etablissement_id, ville_id: s.ville_id }))
+      });
+    } else {
+      console.log('⚠️ Établissement ou ville non sélectionné pour le filtrage des salles');
     }
   }
 

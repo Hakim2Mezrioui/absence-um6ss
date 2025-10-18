@@ -6,6 +6,8 @@ import { RouterModule } from '@angular/router';
 import { ExamensService, Examen } from '../../services/examens.service';
 import { NotificationService } from '../../services/notification.service';
 import { TypesExamenService, TypeExamen } from '../../services/types-examen.service';
+import { AuthService, User } from '../../services/auth.service';
+import { UserContextService, UserContext } from '../../services/user-context.service';
 import { Subject, takeUntil } from 'rxjs';
 
 interface FilePreviewItem {
@@ -40,6 +42,12 @@ export class ImportExamensComponent implements OnInit, OnDestroy {
   villes: any[] = [];
   typesExamen: TypeExamen[] = [];
   
+  // User context and role management
+  currentUser: User | null = null;
+  userContext: UserContext | null = null;
+  isSuperAdmin = false;
+  isAdminEtablissement = false;
+  
   // Résultats de l'import
   importResults: {
     total: number;
@@ -59,7 +67,9 @@ export class ImportExamensComponent implements OnInit, OnDestroy {
     private examensService: ExamensService,
     private notificationService: NotificationService,
     private fb: FormBuilder,
-    private typesExamenService: TypesExamenService
+    private typesExamenService: TypesExamenService,
+    private authService: AuthService,
+    private userContextService: UserContextService
   ) {
     this.importForm = this.fb.group({
       etablissement_id: ['', Validators.required],
@@ -74,6 +84,7 @@ export class ImportExamensComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.initializeUserContext();
     this.loadFilterOptions();
     this.loadTypesExamen();
   }
@@ -81,6 +92,25 @@ export class ImportExamensComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  initializeUserContext() {
+    this.currentUser = this.authService.getCurrentUser();
+    this.userContext = this.userContextService.getCurrentUserContext();
+    
+    if (this.currentUser) {
+      this.isSuperAdmin = this.currentUser.role_id === 1;
+      this.isAdminEtablissement = [2, 3, 4, 6].includes(this.currentUser.role_id);
+      
+      console.log('🔐 Contexte utilisateur initialisé (import-examens):', {
+        user: this.currentUser.email,
+        role_id: this.currentUser.role_id,
+        isSuperAdmin: this.isSuperAdmin,
+        isAdminEtablissement: this.isAdminEtablissement,
+        ville_id: this.currentUser.ville_id,
+        etablissement_id: this.currentUser.etablissement_id
+      });
+    }
   }
 
   // Charger les options de filtre
@@ -95,12 +125,66 @@ export class ImportExamensComponent implements OnInit, OnDestroy {
           this.options = response.options || [];
           this.groups = response.groups || [];
           this.villes = response.villes || [];
+          
+          // Filtrer les salles selon le rôle et l'établissement
+          this.filterSallesByRoleAndEtablissement();
         },
         error: (err) => {
           console.error('Erreur lors du chargement des options:', err);
           this.error = 'Erreur lors du chargement des options';
         }
       });
+  }
+
+  /**
+   * Filtrer les salles selon le rôle de l'utilisateur, l'établissement et la ville sélectionnés
+   */
+  filterSallesByRoleAndEtablissement(): void {
+    if (!this.salles || this.salles.length === 0) {
+      return;
+    }
+
+    const etablissementId = this.importForm.get('etablissement_id')?.value;
+    const villeId = this.importForm.get('ville_id')?.value;
+
+    // Super Admin voit toutes les salles, mais peut filtrer par établissement et ville sélectionnés
+    if (this.isSuperAdmin) {
+      if (etablissementId && villeId) {
+        const originalSalles = [...this.salles];
+        this.salles = this.salles.filter((salle: any) => {
+          return salle.etablissement_id === etablissementId && salle.ville_id === villeId;
+        });
+        
+        console.log('🔓 Super Admin: Filtrage par établissement et ville:', {
+          etablissementId,
+          villeId,
+          sallesOriginales: originalSalles.length,
+          sallesFiltrees: this.salles.length,
+          sallesDetails: this.salles.map(s => ({ id: s.id, name: s.name, etablissement_id: s.etablissement_id, ville_id: s.ville_id }))
+        });
+      } else {
+        console.log('🔓 Super Admin: Affichage de toutes les salles (aucun filtre)');
+      }
+      return;
+    }
+
+    // Les autres rôles voient seulement les salles de leur établissement et ville
+    if (etablissementId && villeId) {
+      const originalSalles = [...this.salles];
+      this.salles = this.salles.filter((salle: any) => {
+        return salle.etablissement_id === etablissementId && salle.ville_id === villeId;
+      });
+      
+      console.log('🔒 Filtrage des salles par établissement et ville:', {
+        etablissementId,
+        villeId,
+        sallesOriginales: originalSalles.length,
+        sallesFiltrees: this.salles.length,
+        sallesDetails: this.salles.map(s => ({ id: s.id, name: s.name, etablissement_id: s.etablissement_id, ville_id: s.ville_id }))
+      });
+    } else {
+      console.log('⚠️ Établissement ou ville non sélectionné pour le filtrage des salles');
+    }
   }
 
   // Charger les types d'examen

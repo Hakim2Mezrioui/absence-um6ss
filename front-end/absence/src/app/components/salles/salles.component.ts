@@ -16,6 +16,8 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { SallesService, Salle, CreateSalleRequest } from '../../services/salles.service';
 import { SalleDialogComponent } from './salle-dialog/salle-dialog.component';
+import { AuthService, User } from '../../services/auth.service';
+import { UserContextService, UserContext } from '../../services/user-context.service';
 
 @Component({
   selector: 'app-salles',
@@ -44,6 +46,12 @@ export class SallesComponent implements OnInit {
   salles: Salle[] = [];
   filteredSalles: Salle[] = [];
   etablissements: any[] = [];
+  
+  // User context and role management
+  currentUser: User | null = null;
+  userContext: UserContext | null = null;
+  isSuperAdmin = false;
+  isAdminEtablissement = false;
   
   // États
   loading = false;
@@ -88,12 +96,34 @@ export class SallesComponent implements OnInit {
   constructor(
     private sallesService: SallesService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private authService: AuthService,
+    private userContextService: UserContextService
   ) {}
 
   ngOnInit(): void {
+    this.initializeUserContext();
     this.loadSalles();
     this.loadEtablissements();
+  }
+
+  initializeUserContext() {
+    this.currentUser = this.authService.getCurrentUser();
+    this.userContext = this.userContextService.getCurrentUserContext();
+    
+    if (this.currentUser) {
+      this.isSuperAdmin = this.currentUser.role_id === 1;
+      this.isAdminEtablissement = [2, 3, 4, 6].includes(this.currentUser.role_id);
+      
+      console.log('🔐 Contexte utilisateur initialisé (salles):', {
+        user: this.currentUser.email,
+        role_id: this.currentUser.role_id,
+        isSuperAdmin: this.isSuperAdmin,
+        isAdminEtablissement: this.isAdminEtablissement,
+        ville_id: this.currentUser.ville_id,
+        etablissement_id: this.currentUser.etablissement_id
+      });
+    }
   }
 
   /**
@@ -106,6 +136,10 @@ export class SallesComponent implements OnInit {
     this.sallesService.getSalles().subscribe({
       next: (response) => {
         this.salles = response.salles || [];
+        
+        // Filtrer les salles selon le rôle et l'établissement
+        this.filterSallesByRoleAndEtablissement();
+        
         this.applyFilters();
         this.loading = false;
       },
@@ -115,6 +149,40 @@ export class SallesComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  /**
+   * Filtrer les salles selon le rôle de l'utilisateur, l'établissement et la ville
+   */
+  filterSallesByRoleAndEtablissement(): void {
+    if (!this.salles || this.salles.length === 0) {
+      return;
+    }
+
+    // Super Admin voit toutes les salles
+    if (this.isSuperAdmin) {
+      console.log('🔓 Super Admin: Affichage de toutes les salles');
+      return;
+    }
+
+    // Les autres rôles voient seulement les salles de leur établissement et ville
+    if (this.currentUser && this.currentUser.etablissement_id && this.currentUser.ville_id) {
+      const originalSalles = [...this.salles];
+      this.salles = this.salles.filter((salle: any) => {
+        return salle.etablissement_id === this.currentUser!.etablissement_id && 
+               salle.ville_id === this.currentUser!.ville_id;
+      });
+      
+      console.log('🔒 Filtrage des salles par établissement et ville:', {
+        etablissementId: this.currentUser.etablissement_id,
+        villeId: this.currentUser.ville_id,
+        sallesOriginales: originalSalles.length,
+        sallesFiltrees: this.salles.length,
+        sallesDetails: this.salles.map(s => ({ id: s.id, name: s.name, etablissement_id: s.etablissement_id, ville_id: s.ville_id }))
+      });
+    } else {
+      console.log('⚠️ Utilisateur sans établissement ou ville défini');
+    }
   }
 
   /**
