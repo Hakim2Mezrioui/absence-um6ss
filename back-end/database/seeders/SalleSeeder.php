@@ -19,6 +19,7 @@ class SalleSeeder extends Seeder
                 'etage' => 5,
                 'batiment' => 'C',
                 'etablissement_id' => 1,
+                'ville_id' => 1,
             ],
             [
                 'name' => 'C506',
@@ -26,6 +27,7 @@ class SalleSeeder extends Seeder
                 'etage' => 5,
                 'batiment' => 'C',
                 'etablissement_id' => 1,
+                'ville_id' => 1,
             ],
             [
                 'name' => 'C502',
@@ -33,6 +35,7 @@ class SalleSeeder extends Seeder
                 'etage' => 5,
                 'batiment' => 'C',
                 'etablissement_id' => 1,
+                'ville_id' => 1,
             ],
             [
                 'name' => 'C504',
@@ -40,6 +43,7 @@ class SalleSeeder extends Seeder
                 'etage' => 5,
                 'batiment' => 'C',
                 'etablissement_id' => 1,
+                'ville_id' => 1,
             ],
             [
                 'name' => 'C03',
@@ -47,6 +51,7 @@ class SalleSeeder extends Seeder
                 'etage' => 0,
                 'batiment' => 'C',
                 'etablissement_id' => 1,
+                'ville_id' => 1,
             ],
             [
                 'name' => 'C401',
@@ -54,6 +59,7 @@ class SalleSeeder extends Seeder
                 'etage' => 4,
                 'batiment' => 'C',
                 'etablissement_id' => 1,
+                'ville_id' => 1,
             ],
             [
                 'name' => 'C402',
@@ -61,6 +67,7 @@ class SalleSeeder extends Seeder
                 'etage' => 4,
                 'batiment' => 'C',
                 'etablissement_id' => 1,
+                'ville_id' => 1,
             ],
             [
                 'name' => 'C02',
@@ -68,6 +75,7 @@ class SalleSeeder extends Seeder
                 'etage' => 0,
                 'batiment' => 'C',
                 'etablissement_id' => 1,
+                'ville_id' => 1,
             ],
             [
                 'name' => 'C01',
@@ -75,6 +83,7 @@ class SalleSeeder extends Seeder
                 'etage' => 0,
                 'batiment' => 'C',
                 'etablissement_id' => 1,
+                'ville_id' => 1,
             ],
             [
                 'name' => 'C603',
@@ -82,6 +91,7 @@ class SalleSeeder extends Seeder
                 'etage' => 6,
                 'batiment' => 'C',
                 'etablissement_id' => 1,
+                'ville_id' => 1,
             ],
             [
                 'name' => 'D601',
@@ -89,6 +99,7 @@ class SalleSeeder extends Seeder
                 'etage' => 6,
                 'batiment' => 'D',
                 'etablissement_id' => 1,
+                'ville_id' => 1,
             ],
             [
                 'name' => 'Amphi D6',
@@ -96,6 +107,7 @@ class SalleSeeder extends Seeder
                 'etage' => 6,
                 'batiment' => 'D',
                 'etablissement_id' => 1,
+                'ville_id' => 1,
             ],
         ];
 
