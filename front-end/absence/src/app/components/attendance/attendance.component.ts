@@ -169,8 +169,39 @@ export class AttendanceComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           console.error('❌ Erreur lors du chargement de l\'attendance:', err);
-          this.error = 'Erreur lors du chargement des données d\'attendance';
-          this.loading = false;
+          
+          // Vérifier si c'est le cas "aucun étudiant trouvé" (status 404)
+          if (err.status === 404 && err.error && err.error.message) {
+            // Cas spécial : aucun étudiant trouvé - ce n'est pas une vraie erreur
+            this.error = '';
+            this.students = [];
+            this.totalStudents = 0;
+            this.presents = 0;
+            this.absents = 0;
+            
+            // Extraire les informations de l'examen si disponibles
+            if (err.error.examen) {
+              this.examData = err.error.examen;
+              this.examDate = err.error.examen.date || '';
+              this.examPunchStartTime = err.error.examen.heure_debut_poigntage || '';
+              this.examStartTime = err.error.examen.heure_debut || '';
+              this.examEndTime = err.error.examen.heure_fin || '';
+              this.examSalle = err.error.examen.salle?.name || 'N/A';
+              this.examTolerance = err.error.examen.tolerance || 15;
+              this.examId = err.error.examen.id || null;
+            }
+            
+            // Initialiser le filtrage avec une liste vide
+            this.filterStudents();
+            this.loading = false;
+            
+            // Afficher le message spécifique de l'API
+            this.notificationService.info('Information', err.error.message);
+          } else {
+            // Vraie erreur de chargement
+            this.error = 'Erreur lors du chargement des données d\'attendance';
+            this.loading = false;
+          }
         }
       });
   }
