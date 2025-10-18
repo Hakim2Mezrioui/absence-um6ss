@@ -552,11 +552,11 @@ export class EditExamenComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const etablissementId = this.examenForm.get('etablissement_id')?.value;
-    const villeId = this.examenForm.get('ville_id')?.value;
-
     // Super Admin voit toutes les salles, mais peut filtrer par établissement et ville sélectionnés
     if (this.isSuperAdmin) {
+      const etablissementId = this.examenForm.get('etablissement_id')?.value;
+      const villeId = this.examenForm.get('ville_id')?.value;
+      
       if (etablissementId && villeId) {
         const originalSalles = [...this.salles];
         this.salles = this.salles.filter((salle: any) => {
@@ -576,22 +576,23 @@ export class EditExamenComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Les autres rôles voient seulement les salles de leur établissement et ville
-    if (etablissementId && villeId) {
+    // Les autres rôles voient seulement les salles de leur établissement et ville (pré-définis)
+    if (this.currentUser && this.currentUser.etablissement_id && this.currentUser.ville_id) {
       const originalSalles = [...this.salles];
       this.salles = this.salles.filter((salle: any) => {
-        return salle.etablissement_id === etablissementId && salle.ville_id === villeId;
+        return salle.etablissement_id === this.currentUser!.etablissement_id && 
+               salle.ville_id === this.currentUser!.ville_id;
       });
       
-      console.log('🔒 Filtrage des salles par établissement et ville:', {
-        etablissementId,
-        villeId,
+      console.log('🔒 Filtrage des salles par établissement et ville (pré-définis):', {
+        etablissementId: this.currentUser.etablissement_id,
+        villeId: this.currentUser.ville_id,
         sallesOriginales: originalSalles.length,
         sallesFiltrees: this.salles.length,
         sallesDetails: this.salles.map(s => ({ id: s.id, name: s.name, etablissement_id: s.etablissement_id, ville_id: s.ville_id }))
       });
     } else {
-      console.log('⚠️ Établissement ou ville non sélectionné pour le filtrage des salles');
+      console.log('⚠️ Utilisateur sans établissement ou ville défini pour le filtrage des salles');
     }
   }
 
