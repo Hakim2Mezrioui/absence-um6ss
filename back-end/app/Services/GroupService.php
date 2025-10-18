@@ -10,12 +10,11 @@ class GroupService
 {
     use FilterByUserContext;
     /**
-     * Get all groups with their relationships (filtered by user context)
+     * Get all groups with their relationships (groupes maintenant globaux)
      */
     public function getAllGroups(): Collection
     {
-        $query = Group::with(['etablissement', 'promotion', 'ville', 'etudiants']);
-        return $this->applyUserContextFilters($query)->get();
+        return Group::with(['etudiants'])->get();
     }
 
     /**
@@ -23,24 +22,14 @@ class GroupService
      */
     public function getGroupById(int $id): Group
     {
-        return Group::with(['etablissement', 'promotion', 'ville', 'etudiants'])->findOrFail($id);
+        return Group::with(['etudiants'])->findOrFail($id);
     }
 
     /**
-     * Create a new group (with user context)
+     * Create a new group (groupes maintenant globaux)
      */
     public function createGroup(array $data): Group
     {
-        $context = $this->getUserContextForFiltering();
-        
-        // Automatically set ville_id and etablissement_id from user context
-        if ($context['ville_id']) {
-            $data['ville_id'] = $context['ville_id'];
-        }
-        if ($context['etablissement_id']) {
-            $data['etablissement_id'] = $context['etablissement_id'];
-        }
-        
         return Group::create($data);
     }
 
@@ -109,32 +98,29 @@ class GroupService
     }
 
     /**
-     * Get groups by etablissement
+     * Get groups by etablissement (deprecated - groupes maintenant globaux)
      */
     public function getGroupsByEtablissement(int $etablissementId): Collection
     {
-        return Group::where('etablissement_id', $etablissementId)
-                   ->with(['promotion', 'ville', 'etudiants'])
-                   ->get();
+        // Les groupes sont maintenant globaux, retourner tous les groupes
+        return Group::with(['etudiants'])->get();
     }
 
     /**
-     * Get groups by promotion
+     * Get groups by promotion (deprecated - groupes maintenant globaux)
      */
     public function getGroupsByPromotion(int $promotionId): Collection
     {
-        return Group::where('promotion_id', $promotionId)
-                   ->with(['etablissement', 'ville', 'etudiants'])
-                   ->get();
+        // Les groupes sont maintenant globaux, retourner tous les groupes
+        return Group::with(['etudiants'])->get();
     }
 
     /**
-     * Get groups by ville
+     * Get groups by ville (deprecated - groupes maintenant globaux)
      */
     public function getGroupsByVille(int $villeId): Collection
     {
-        return Group::where('ville_id', $villeId)
-                   ->with(['etablissement', 'promotion', 'etudiants'])
-                   ->get();
+        // Les groupes sont maintenant globaux, retourner tous les groupes
+        return Group::with(['etudiants'])->get();
     }
 } 

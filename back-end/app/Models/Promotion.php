@@ -20,14 +20,6 @@ class Promotion extends Model
     }
 
     /**
-     * Get the groups that belong to this promotion.
-     */
-    public function groups(): HasMany
-    {
-        return $this->hasMany(Group::class);
-    }
-
-    /**
      * Get the etablissement that owns this promotion.
      */
     public function etablissement(): BelongsTo

@@ -11,35 +11,8 @@ use App\Scopes\UserContextScope;
 class Group extends Model
 {
     protected $fillable = [
-        'title',
-        'promotion_id',
-        'etablissement_id',
-        'ville_id'
+        'title'
     ];
-
-    /**
-     * Get the promotion that owns the group.
-     */
-    public function promotion(): BelongsTo
-    {
-        return $this->belongsTo(Promotion::class);
-    }
-
-    /**
-     * Get the etablissement that owns the group.
-     */
-    public function etablissement(): BelongsTo
-    {
-        return $this->belongsTo(Etablissement::class);
-    }
-
-    /**
-     * Get the ville that owns the group.
-     */
-    public function ville(): BelongsTo
-    {
-        return $this->belongsTo(Ville::class);
-    }
 
     /**
      * Get the etudiants for the group.

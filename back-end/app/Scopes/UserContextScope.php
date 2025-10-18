@@ -30,30 +30,25 @@ class UserContextScope implements Scope
             return;
         }
 
+        // Skip filtering for groups table since groups are now global
+        if ($table === 'groups') {
+            return;
+        }
+
         // Apply ville filter if user has a ville
         if (!is_null($user->ville_id)) {
             if (Schema::hasColumn($table, 'ville_id')) {
                 $builder->where($table . '.ville_id', $user->ville_id);
-            } else {
-                // If model has no ville_id, try via groups relation (common on many models)
-                if (method_exists($model, 'groups')) {
-                    $builder->whereHas('groups', function (Builder $q) use ($user) {
-                        $q->where('ville_id', $user->ville_id);
-                    });
-                }
             }
+            // Note: Groups are now global, so we don't filter by ville_id through groups anymore
         }
 
         // Apply etablissement filter if user has one
         if (!is_null($user->etablissement_id)) {
-            // Skip explicit etablissement filtering for models without such column and without groups relation (e.g. promotions)
             if (Schema::hasColumn($table, 'etablissement_id')) {
                 $builder->where($table . '.etablissement_id', $user->etablissement_id);
-            } else if (method_exists($model, 'groups')) {
-                $builder->whereHas('groups', function (Builder $q) use ($user) {
-                    $q->where('etablissement_id', $user->etablissement_id);
-                });
             }
+            // Note: Groups are now global, so we don't filter by etablissement_id through groups anymore
         }
     }
 }

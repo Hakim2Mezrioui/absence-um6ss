@@ -14,15 +14,7 @@ return new class extends Migration
         Schema::create('groups', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->unsignedBigInteger('promotion_id');
-            $table->unsignedBigInteger('etablissement_id');
-            $table->unsignedBigInteger('ville_id');
             $table->timestamps();
-            
-            // Foreign key constraints
-            $table->foreign('promotion_id')->references('id')->on('promotions')->onDelete('cascade');
-            $table->foreign('etablissement_id')->references('id')->on('etablissements')->onDelete('cascade');
-            $table->foreign('ville_id')->references('id')->on('villes')->onDelete('cascade');
         });
     }
 

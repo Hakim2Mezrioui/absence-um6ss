@@ -25,12 +25,12 @@ class GroupController extends Controller
     public function index(Request $request): JsonResponse
     {
         // Récupérer les paramètres de filtrage
-        $filters = $request->only(['searchValue', 'etablissement_id', 'promotion_id', 'ville_id']);
+        $filters = $request->only(['searchValue']);
         
         \Log::info('🔍 Filtres reçus:', $filters);
         
-        // Filtrer les groupes selon les critères
-        $query = Group::with(['etablissement', 'promotion', 'ville', 'etudiants']);
+        // Filtrer les groupes selon les critères (groupes maintenant globaux)
+        $query = Group::with(['etudiants']);
         
         // Filtre par recherche (titre du groupe)
         if (!empty($filters['searchValue'])) {
@@ -38,25 +38,7 @@ class GroupController extends Controller
             \Log::info('🔍 Filtre recherche appliqué:', ['searchValue' => $filters['searchValue']]);
         }
         
-        // Filtre par établissement
-        if (!empty($filters['etablissement_id'])) {
-            $query->where('etablissement_id', $filters['etablissement_id']);
-            \Log::info('🔍 Filtre établissement appliqué:', ['etablissement_id' => $filters['etablissement_id']]);
-        }
-        
-        // Filtre par promotion
-        if (!empty($filters['promotion_id'])) {
-            $query->where('promotion_id', $filters['promotion_id']);
-            \Log::info('🔍 Filtre promotion appliqué:', ['promotion_id' => $filters['promotion_id']]);
-        }
-        
-        // Filtre par ville
-        if (!empty($filters['ville_id'])) {
-            $query->where('ville_id', $filters['ville_id']);
-            \Log::info('🔍 Filtre ville appliqué:', ['ville_id' => $filters['ville_id']]);
-        }
-        
-        $groups = $query->select('id', \DB::raw('title as name'), 'etablissement_id', 'ville_id', 'promotion_id')->get();
+        $groups = $query->select('id', \DB::raw('title as name'))->get();
         
         \Log::info('📊 Nombre de groupes trouvés:', ['count' => $groups->count()]);
         
@@ -68,14 +50,9 @@ class GroupController extends Controller
      */
     public function create(): JsonResponse
     {
-        $etablissements = Etablissement::all();
-        $promotions = Promotion::all();
-        $villes = Ville::all();
-        
+        // Les groupes sont maintenant globaux, pas besoin de données supplémentaires
         return response()->json([
-            'etablissements' => $etablissements,
-            'promotions' => $promotions,
-            'villes' => $villes
+            'message' => 'Groupes globaux disponibles'
         ]);
     }
 
@@ -86,16 +63,13 @@ class GroupController extends Controller
     {
         $request->validate([
             'title' => 'required|string|max:255',
-            'promotion_id' => 'required|exists:promotions,id',
-            'etablissement_id' => 'required|exists:etablissements,id',
-            'ville_id' => 'required|exists:villes,id',
         ]);
 
         $group = $this->groupService->createGroup($request->all());
         
         return response()->json([
             'message' => 'Groupe créé avec succès',
-            'group' => $group->load(['etablissement', 'promotion', 'ville'])
+            'group' => $group
         ], 201);
     }
 
@@ -114,15 +88,9 @@ class GroupController extends Controller
     public function edit(string $id): JsonResponse
     {
         $group = $this->groupService->getGroupById($id);
-        $etablissements = Etablissement::all();
-        $promotions = Promotion::all();
-        $villes = Ville::all();
         
         return response()->json([
-            'group' => $group,
-            'etablissements' => $etablissements,
-            'promotions' => $promotions,
-            'villes' => $villes
+            'group' => $group
         ]);
     }
 
@@ -133,16 +101,13 @@ class GroupController extends Controller
     {
         $request->validate([
             'title' => 'required|string|max:255',
-            'promotion_id' => 'required|exists:promotions,id',
-            'etablissement_id' => 'required|exists:etablissements,id',
-            'ville_id' => 'required|exists:villes,id',
         ]);
 
         $group = $this->groupService->updateGroup($id, $request->all());
         
         return response()->json([
             'message' => 'Groupe mis à jour avec succès',
-            'group' => $group->load(['etablissement', 'promotion', 'ville'])
+            'group' => $group
         ]);
     }
 
@@ -220,29 +185,32 @@ class GroupController extends Controller
     }
 
     /**
-     * Get groups by etablissement
+     * Get groups by etablissement (deprecated - groupes maintenant globaux)
      */
     public function getGroupsByEtablissement(string $etablissementId): JsonResponse
     {
-        $groups = $this->groupService->getGroupsByEtablissement($etablissementId);
+        // Les groupes sont maintenant globaux, retourner tous les groupes
+        $groups = Group::select('id', \DB::raw('title as name'))->get();
         return response()->json($groups);
     }
 
     /**
-     * Get groups by promotion
+     * Get groups by promotion (deprecated - groupes maintenant globaux)
      */
     public function getGroupsByPromotion(string $promotionId): JsonResponse
     {
-        $groups = $this->groupService->getGroupsByPromotion($promotionId);
+        // Les groupes sont maintenant globaux, retourner tous les groupes
+        $groups = Group::select('id', \DB::raw('title as name'))->get();
         return response()->json($groups);
     }
 
     /**
-     * Get groups by ville
+     * Get groups by ville (deprecated - groupes maintenant globaux)
      */
     public function getGroupsByVille(string $villeId): JsonResponse
     {
-        $groups = $this->groupService->getGroupsByVille($villeId);
+        // Les groupes sont maintenant globaux, retourner tous les groupes
+        $groups = Group::select('id', \DB::raw('title as name'))->get();
         return response()->json($groups);
     }
 }
