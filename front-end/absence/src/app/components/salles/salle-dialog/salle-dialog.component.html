@@ -40,6 +40,20 @@
         </mat-error>
       </mat-form-field>
 
+      <!-- Ville -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-select formControlName="ville_id" placeholder="Ville">
+          <mat-option value="">Sélectionner une ville</mat-option>
+          <mat-option *ngFor="let ville of data.villes" [value]="ville.id">
+            {{ ville.name }}
+          </mat-option>
+        </mat-select>
+        <mat-icon matSuffix>location_city</mat-icon>
+        <mat-error *ngIf="villeControl?.hasError('required')">
+          La ville est obligatoire
+        </mat-error>
+      </mat-form-field>
+
       <!-- Bâtiment et Étage -->
       <div class="form-row">
         <mat-form-field appearance="outline">

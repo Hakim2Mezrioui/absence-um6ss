@@ -19,6 +19,7 @@ return new class extends Migration
             $table->foreignId('etablissement_id')->constrained('etablissements')->onDelete('cascade');
             $table->integer('capacite')->nullable();
             $table->text('description')->nullable();
+            // $table->foreignId('ville_id')->constrained('villes')->onDelete('cascade');
             $table->timestamps();
         });
     }

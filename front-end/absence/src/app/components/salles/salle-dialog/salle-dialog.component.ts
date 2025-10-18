@@ -13,6 +13,7 @@ import { Salle, CreateSalleRequest } from '../../../services/salles.service';
 export interface SalleDialogData {
   salle: Salle | null;
   etablissements: any[];
+  villes: any[];
   mode: 'create' | 'edit';
 }
 
@@ -57,6 +58,7 @@ export class SalleDialogComponent implements OnInit {
       etage: [0, [Validators.required, Validators.min(0)]],
       batiment: ['', [Validators.required, Validators.maxLength(100)]],
       etablissement_id: ['', [Validators.required]],
+      ville_id: ['', [Validators.required]],
       capacite: [null, [Validators.min(1)]],
       description: ['', [Validators.maxLength(500)]]
     });
@@ -68,6 +70,7 @@ export class SalleDialogComponent implements OnInit {
       etage: salle.etage,
       batiment: salle.batiment,
       etablissement_id: salle.etablissement_id,
+      ville_id: salle.ville_id,
       capacite: salle.capacite,
       description: salle.description
     });
@@ -81,6 +84,7 @@ export class SalleDialogComponent implements OnInit {
         etage: parseInt(formValue.etage),
         batiment: formValue.batiment.trim(),
         etablissement_id: parseInt(formValue.etablissement_id),
+        ville_id: parseInt(formValue.ville_id),
         capacite: formValue.capacite ? parseInt(formValue.capacite) : undefined,
         description: formValue.description ? formValue.description.trim() : undefined
       };
@@ -106,6 +110,7 @@ export class SalleDialogComponent implements OnInit {
   get etageControl() { return this.salleForm.get('etage'); }
   get batimentControl() { return this.salleForm.get('batiment'); }
   get etablissementControl() { return this.salleForm.get('etablissement_id'); }
+  get villeControl() { return this.salleForm.get('ville_id'); }
   get capaciteControl() { return this.salleForm.get('capacite'); }
   get descriptionControl() { return this.salleForm.get('description'); }
 }

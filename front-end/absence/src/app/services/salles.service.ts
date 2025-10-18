@@ -9,6 +9,7 @@ export interface Salle {
   etage: number;
   batiment: string;
   etablissement_id: number;
+  ville_id: number;
   capacite?: number;
   description?: string;
   created_at?: string;
@@ -17,6 +18,10 @@ export interface Salle {
     id: number;
     name: string;
     ville_id: number;
+  };
+  ville?: {
+    id: number;
+    name: string;
   };
 }
 
@@ -33,6 +38,7 @@ export interface CreateSalleRequest {
   etage: number;
   batiment: string;
   etablissement_id: number;
+  ville_id: number;
   capacite?: number;
   description?: string;
 }

@@ -362,7 +362,10 @@ class CoursController extends Controller
                 ->get();
 
             // Récupérer les salles avec toutes les informations nécessaires
-            $salles = \App\Models\Salle::select('id', 'name', 'etablissement_id', 'batiment', 'etage', 'capacite', 'description')
+            // Utiliser withoutGlobalScope pour éviter les restrictions du UserContextScope
+            $salles = \App\Models\Salle::withoutGlobalScope(\App\Scopes\UserContextScope::class)
+                ->select('id', 'name', 'etablissement_id', 'ville_id', 'batiment', 'etage', 'capacite', 'description')
+                ->with(['etablissement:id,name', 'ville:id,name'])
                 ->orderBy('name')
                 ->get();
 
@@ -410,8 +413,19 @@ class CoursController extends Controller
     {
         try {
             // Récupérer le cours avec ses relations
-            $cours = Cours::with(['etablissement', 'promotion', 'type_cours', 'salle', 'option', 'groups', 'ville'])
-            ->find($coursId);
+            // Contourner le UserContextScope pour le cours et les groupes afin de récupérer tous les groupes associés au cours
+            $cours = Cours::withoutGlobalScope(\App\Scopes\UserContextScope::class)
+                ->with([
+                    'etablissement', 
+                    'promotion', 
+                    'type_cours', 
+                    'salle', 
+                    'option', 
+                    'groups' => function($query) {
+                        $query->withoutGlobalScope(\App\Scopes\UserContextScope::class);
+                    }, 
+                    'ville'
+                ])->find($coursId);
             
             if (!$cours) {
                 return response()->json([

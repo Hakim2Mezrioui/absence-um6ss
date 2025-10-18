@@ -89,7 +89,8 @@ export class AddCoursComponent implements OnInit, OnDestroy {
       etage: [0],
       capacite: [null],
       description: [''],
-      etablissement_id: [null, Validators.required]
+      etablissement_id: [null, Validators.required],
+      ville_id: [null, Validators.required]
     });
   }
 
@@ -277,10 +278,15 @@ export class AddCoursComponent implements OnInit, OnDestroy {
   }
 
   onSubmit() {
+    console.log('🚀 onSubmit() appelé');
+    console.log('📋 État du formulaire:', this.cours);
+    
     if (!this.validateForm()) {
+      console.log('❌ Validation échouée, arrêt du processus');
       return;
     }
 
+    console.log('✅ Validation réussie, démarrage de la soumission');
     this.loading = true;
     this.error = '';
     this.success = '';
@@ -299,9 +305,11 @@ export class AddCoursComponent implements OnInit, OnDestroy {
     };
 
     console.log('📤 Données cours soumises:', coursData);
+    console.log('🌐 Appel API en cours...');
 
     this.coursService.createCours(coursData).subscribe({
       next: (response) => {
+        console.log('✅ Cours créé avec succès:', response);
         this.success = 'Cours créé avec succès';
         this.loading = false;
         setTimeout(() => {
@@ -309,6 +317,7 @@ export class AddCoursComponent implements OnInit, OnDestroy {
         }, 1500);
       },
       error: (error) => {
+        console.log('❌ Erreur lors de la création du cours:', error);
         this.error = 'Erreur lors de la création du cours';
         this.loading = false;
         console.error('Erreur:', error);
@@ -317,62 +326,76 @@ export class AddCoursComponent implements OnInit, OnDestroy {
   }
 
   validateForm(): boolean {
+    console.log('🔍 Début de la validation du formulaire');
+    
     if (!this.cours.name?.trim()) {
+      console.log('❌ Validation échouée: nom du cours manquant');
       this.error = 'Le nom du cours est requis';
       return false;
     }
 
     if (!this.cours.date) {
+      console.log('❌ Validation échouée: date manquante');
       this.error = 'La date est requise';
       return false;
     }
 
     if (!this.cours.pointage_start_hour) {
+      console.log('❌ Validation échouée: heure de début de pointage manquante');
       this.error = 'L\'heure de début de pointage est requise';
       return false;
     }
 
     if (!this.cours.heure_debut) {
+      console.log('❌ Validation échouée: heure de début manquante');
       this.error = 'L\'heure de début est requise';
       return false;
     }
 
     if (!this.cours.heure_fin) {
+      console.log('❌ Validation échouée: heure de fin manquante');
       this.error = 'L\'heure de fin est requise';
       return false;
     }
 
     if (!this.toleranceMinutes || this.toleranceMinutes <= 0) {
+      console.log('❌ Validation échouée: tolérance invalide');
       this.error = 'La tolérance en minutes est requise (minimum 1 minute)';
       return false;
     }
 
     if (!this.cours.etablissement_id || this.cours.etablissement_id === 0) {
+      console.log('❌ Validation échouée: établissement manquant');
       this.error = 'L\'établissement est requis';
       return false;
     }
 
     if (!this.cours.promotion_id || this.cours.promotion_id === 0) {
+      console.log('❌ Validation échouée: promotion manquante');
       this.error = 'La promotion est requise';
       return false;
     }
 
     if (!this.cours.type_cours_id || this.cours.type_cours_id === 0) {
+      console.log('❌ Validation échouée: type de cours manquant');
       this.error = 'Le type de cours est requis';
       return false;
     }
 
     if (!this.cours.salle_id || this.cours.salle_id === 0) {
+      console.log('❌ Validation échouée: salle manquante');
       this.error = 'La salle est requise';
       return false;
     }
 
     if (!this.cours.ville_id || this.cours.ville_id === 0) {
+      console.log('❌ Validation échouée: ville manquante');
       this.error = 'La ville est requise';
       return false;
     }
 
     if (!this.cours.annee_universitaire) {
+      console.log('❌ Validation échouée: année universitaire manquante');
       this.error = 'L\'année universitaire est requise';
       return false;
     }
@@ -380,11 +403,13 @@ export class AddCoursComponent implements OnInit, OnDestroy {
     // Validation des heures
     if (this.cours.heure_debut && this.cours.heure_fin) {
       if (this.cours.heure_debut >= this.cours.heure_fin) {
+        console.log('❌ Validation échouée: heure de fin doit être postérieure à l\'heure de début');
         this.error = 'L\'heure de fin doit être postérieure à l\'heure de début';
         return false;
       }
     }
 
+    console.log('✅ Toutes les validations sont passées');
     return true;
   }
 
@@ -468,6 +493,8 @@ export class AddCoursComponent implements OnInit, OnDestroy {
     this.selectedGroups = [];
     // Mettre à jour la liste des groupes disponibles
     this.updateFilteredGroups();
+    // Mettre à jour la liste des salles disponibles
+    this.updateFilteredSalles();
   }
 
   /**
@@ -500,27 +527,39 @@ export class AddCoursComponent implements OnInit, OnDestroy {
   updateFilteredSalles(): void {
     const term = this.salleSearchTerm.trim().toLowerCase();
     const etablissementId = this.cours?.etablissement_id;
+    const villeId = this.cours?.ville_id;
     
-    // Filtrer d'abord par établissement
-    let filteredByEtablissement = [...this.salles];
-    if (etablissementId) {
-      filteredByEtablissement = (this.salles || []).filter((s: any) => {
+    // Filtrer d'abord par établissement et ville
+    let filteredByLocation = [...this.salles];
+    if (etablissementId && villeId) {
+      filteredByLocation = (this.salles || []).filter((s: any) => {
+        return s?.etablissement_id == etablissementId && s?.ville_id == villeId;
+      });
+      console.log('🏢 Salles filtrées par établissement et ville (add-cours):', {
+        etablissementId: etablissementId,
+        villeId: villeId,
+        totalSalles: this.salles.length,
+        sallesFiltrees: filteredByLocation.length
+      });
+    } else if (etablissementId) {
+      // Si seulement l'établissement est sélectionné
+      filteredByLocation = (this.salles || []).filter((s: any) => {
         return s?.etablissement_id == etablissementId;
       });
-      console.log('🏢 Salles filtrées par établissement (add-cours):', {
+      console.log('🏢 Salles filtrées par établissement seulement (add-cours):', {
         etablissementId: etablissementId,
         totalSalles: this.salles.length,
-        sallesFiltrees: filteredByEtablissement.length
+        sallesFiltrees: filteredByLocation.length
       });
     }
     
     // Ensuite filtrer par terme de recherche
     if (!term) {
-      this.filteredSalles = filteredByEtablissement;
+      this.filteredSalles = filteredByLocation;
       return;
     }
     
-    this.filteredSalles = filteredByEtablissement.filter((s: any) => {
+    this.filteredSalles = filteredByLocation.filter((s: any) => {
       const name = (s?.name || '').toString().toLowerCase();
       const batiment = (s?.batiment || '').toString().toLowerCase();
       return name.includes(term) || batiment.includes(term);
@@ -605,13 +644,15 @@ export class AddCoursComponent implements OnInit, OnDestroy {
 
   openAddSalleModal(): void {
     const etabId = this.cours.etablissement_id || null;
+    const villeId = this.cours.ville_id || null;
     this.newSalleForm.reset({
       name: '',
       batiment: '',
       etage: 0,
       capacite: null,
       description: '',
-      etablissement_id: etabId
+      etablissement_id: etabId,
+      ville_id: villeId
     });
     this.showAddSalleModal = true;
   }
@@ -657,6 +698,7 @@ export class AddCoursComponent implements OnInit, OnDestroy {
       batiment: this.newSalleForm.value.batiment || '',
       etage: Number(this.newSalleForm.value.etage) || 0,
       etablissement_id: Number(this.newSalleForm.value.etablissement_id),
+      ville_id: Number(this.newSalleForm.value.ville_id),
       capacite: this.newSalleForm.value.capacite ? Number(this.newSalleForm.value.capacite) : undefined,
       description: this.newSalleForm.value.description || undefined
     };

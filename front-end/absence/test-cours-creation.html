@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Cours Creation</title>
+</head>
+<body>
+    <h1>Test de création de cours</h1>
+    <button onclick="testCoursCreation()">Tester la création de cours</button>
+    <div id="result"></div>
+
+    <script>
+        async function testCoursCreation() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Test en cours...';
+            
+            try {
+                // Test avec des données minimales
+                const coursData = {
+                    name: 'Test Cours',
+                    date: '2025-10-20',
+                    pointage_start_hour: '08:00',
+                    heure_debut: '08:30',
+                    heure_fin: '10:30',
+                    tolerance: '00:15',
+                    etablissement_id: 2,
+                    promotion_id: 2,
+                    type_cours_id: 1,
+                    salle_id: 1,
+                    ville_id: 1,
+                    annee_universitaire: '2025-2026',
+                    group_ids: []
+                };
+
+                console.log('Données à envoyer:', coursData);
+
+                const response = await fetch('http://127.0.0.1:8000/api/cours', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Authorization': 'Bearer YOUR_TOKEN_HERE' // Remplacez par un token valide
+                    },
+                    body: JSON.stringify(coursData)
+                });
+
+                console.log('Réponse reçue:', response);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.innerHTML = '<p style="color: green;">✅ Cours créé avec succès!</p><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                } else {
+                    const errorData = await response.text();
+                    resultDiv.innerHTML = '<p style="color: red;">❌ Erreur: ' + response.status + ' ' + response.statusText + '</p><pre>' + errorData + '</pre>';
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                resultDiv.innerHTML = '<p style="color: red;">❌ Erreur de connexion: ' + error.message + '</p>';
+            }
+        }
+    </script>
+</body>
+</html>

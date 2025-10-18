@@ -90,7 +90,8 @@ export class EditCoursComponent implements OnInit, OnDestroy {
       etage: [0],
       capacite: [null],
       description: [''],
-      etablissement_id: [null, Validators.required]
+      etablissement_id: [null, Validators.required],
+      ville_id: [null, Validators.required]
     });
   }
 
@@ -542,13 +543,15 @@ export class EditCoursComponent implements OnInit, OnDestroy {
 
   openAddSalleModal(): void {
     const etabId = this.cours.etablissement_id || null;
+    const villeId = this.cours.ville_id || null;
     this.newSalleForm.reset({
       name: '',
       batiment: '',
       etage: 0,
       capacite: null,
       description: '',
-      etablissement_id: etabId
+      etablissement_id: etabId,
+      ville_id: villeId
     });
     this.showAddSalleModal = true;
   }
@@ -567,6 +570,7 @@ export class EditCoursComponent implements OnInit, OnDestroy {
       batiment: this.newSalleForm.value.batiment || '',
       etage: Number(this.newSalleForm.value.etage) || 0,
       etablissement_id: Number(this.newSalleForm.value.etablissement_id),
+      ville_id: Number(this.newSalleForm.value.ville_id),
       capacite: this.newSalleForm.value.capacite ? Number(this.newSalleForm.value.capacite) : undefined,
       description: this.newSalleForm.value.description || undefined
     };
