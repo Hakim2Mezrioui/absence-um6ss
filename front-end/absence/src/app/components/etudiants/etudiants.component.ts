@@ -52,7 +52,9 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild(MatSort) sort!: MatSort;
 
   // Données
-  etudiants: Etudiant[] = [];
+  allEtudiants: Etudiant[] = []; // Tous les étudiants chargés
+  filteredEtudiants: Etudiant[] = []; // Étudiants après filtrage
+  etudiants: Etudiant[] = []; // Étudiants affichés (après pagination)
   filterOptions: FilterOptions = {
     promotions: [],
     groups: [],
@@ -61,7 +63,7 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
     options: []
   };
 
-  // Pagination
+  // Pagination côté front-end
   currentPage = 1;
   perPage = 10;
   total = 0;
@@ -122,7 +124,7 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnInit(): void {
     this.loadFilterOptions();
-    this.loadEtudiants();
+    this.loadAllEtudiants();
     this.setupFiltersListener();
     this.setupGlobalSearchListener();
     this.loadViewMode();
@@ -146,7 +148,8 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.sort) {
       this.sort.sortChange.pipe(takeUntil(this.destroy$)).subscribe(() => {
         this.currentPage = 1;
-        this.loadEtudiants();
+        this.applySorting();
+        this.applyFiltersAndPagination();
       });
     }
 
@@ -165,9 +168,56 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
         // Faire remonter la page en haut lors du changement
         this.scrollToTop();
         
-        this.loadEtudiants();
+        // Appliquer la pagination côté front-end
+        this.applyPagination();
       });
     }
+  }
+
+  /**
+   * Appliquer le tri côté front-end
+   */
+  private applySorting(): void {
+    if (!this.sort || !this.sort.active) return;
+    
+    const sortField = this.sort.active;
+    const sortDirection = this.sort.direction;
+    
+    this.filteredEtudiants.sort((a, b) => {
+      let valueA: any;
+      let valueB: any;
+      
+      // Mapper les champs de tri
+      switch (sortField) {
+        case 'etudiant':
+          valueA = `${a.first_name} ${a.last_name}`.toLowerCase();
+          valueB = `${b.first_name} ${b.last_name}`.toLowerCase();
+          break;
+        case 'promotion':
+          valueA = a.promotion?.name?.toLowerCase() || '';
+          valueB = b.promotion?.name?.toLowerCase() || '';
+          break;
+        case 'etablissement':
+          valueA = a.etablissement?.name?.toLowerCase() || '';
+          valueB = b.etablissement?.name?.toLowerCase() || '';
+          break;
+        case 'ville':
+          valueA = a.ville?.name?.toLowerCase() || '';
+          valueB = b.ville?.name?.toLowerCase() || '';
+          break;
+        default:
+          valueA = a[sortField as keyof Etudiant] || '';
+          valueB = b[sortField as keyof Etudiant] || '';
+      }
+      
+      if (valueA < valueB) {
+        return sortDirection === 'asc' ? -1 : 1;
+      }
+      if (valueA > valueB) {
+        return sortDirection === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
   }
 
   /**
@@ -188,53 +238,19 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   /**
-   * Charger les étudiants
+   * Charger tous les étudiants une seule fois
    */
-  loadEtudiants(): void {
+  loadAllEtudiants(): void {
     this.loading = true;
     this.error = '';
 
-    const filters: EtudiantFilters = {
-      searchValue: this.globalFilterValue,
-      ...this.filtersForm.value
-    };
-
-    // Nettoyer les valeurs vides
-    Object.keys(filters).forEach(key => {
-      if (!filters[key as keyof EtudiantFilters]) {
-        delete filters[key as keyof EtudiantFilters];
-      }
-    });
-    this.etudiantsService.getEtudiants(this.currentPage, this.perPage, filters)
+    this.etudiantsService.getAllEtudiants()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (response) => {
-          this.etudiants = response.data || [];
-          this.currentPage = response.current_page || 1;
-          this.perPage = response.per_page || 10;
-          this.total = response.total || 0;
-          this.lastPage = response.last_page || 1;
+        next: (etudiants) => {
+          this.allEtudiants = etudiants;
           this.loading = false;
-          this.syncSelectionAfterLoad();
-          
-          // Mettre à jour le paginator seulement si nécessaire
-          if (this.paginator) {
-            // Éviter la boucle infinie en vérifiant si la valeur a changé
-            if (this.paginator.length !== this.total) {
-              this.paginator.length = this.total;
-            }
-            if (this.paginator.pageIndex !== this.currentPage - 1) {
-              this.paginator.pageIndex = this.currentPage - 1;
-            }
-            if (this.paginator.pageSize !== this.perPage) {
-              this.paginator.pageSize = this.perPage;
-            }
-          } else {
-            // Essayer de configurer la pagination après un délai
-            setTimeout(() => {
-              this.setupPagination();
-            }, 100);
-          }
+          this.applyFiltersAndPagination();
         },
         error: (err) => {
           console.error('Erreur lors du chargement des étudiants:', err);
@@ -254,6 +270,112 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
       });
   }
 
+  /**
+   * Appliquer les filtres et la pagination côté front-end
+   */
+  applyFiltersAndPagination(): void {
+    // Appliquer les filtres
+    this.filteredEtudiants = this.filterStudents(this.allEtudiants);
+    
+    // Mettre à jour les totaux
+    this.total = this.filteredEtudiants.length;
+    this.lastPage = Math.ceil(this.total / this.perPage);
+    
+    // S'assurer que la page actuelle est valide
+    if (this.currentPage > this.lastPage && this.lastPage > 0) {
+      this.currentPage = this.lastPage;
+    }
+    
+    // Appliquer la pagination
+    this.applyPagination();
+    
+    // Synchroniser la sélection
+    this.syncSelectionAfterLoad();
+    
+    // Mettre à jour le paginator
+    this.updatePaginator();
+  }
+
+  /**
+   * Filtrer les étudiants selon les critères
+   */
+  private filterStudents(students: Etudiant[]): Etudiant[] {
+    let filtered = [...students];
+    
+    // Filtre de recherche globale
+    if (this.globalFilterValue.trim()) {
+      const searchTerm = this.globalFilterValue.toLowerCase().trim();
+      filtered = filtered.filter(student => 
+        student.first_name.toLowerCase().includes(searchTerm) ||
+        student.last_name.toLowerCase().includes(searchTerm) ||
+        student.email.toLowerCase().includes(searchTerm) ||
+        student.matricule.toLowerCase().includes(searchTerm) ||
+        student.promotion?.name.toLowerCase().includes(searchTerm) ||
+        student.etablissement?.name.toLowerCase().includes(searchTerm) ||
+        student.ville?.name.toLowerCase().includes(searchTerm) ||
+        student.group?.title.toLowerCase().includes(searchTerm) ||
+        student.option?.name.toLowerCase().includes(searchTerm)
+      );
+    }
+    
+    // Filtres spécifiques
+    const formValue = this.filtersForm.value;
+    
+    if (formValue.promotion_id) {
+      filtered = filtered.filter(student => student.promotion_id === formValue.promotion_id);
+    }
+    
+    if (formValue.group_id) {
+      filtered = filtered.filter(student => student.group_id === formValue.group_id);
+    }
+    
+    if (formValue.ville_id) {
+      filtered = filtered.filter(student => student.ville_id === formValue.ville_id);
+    }
+    
+    if (formValue.etablissement_id) {
+      filtered = filtered.filter(student => student.etablissement_id === formValue.etablissement_id);
+    }
+    
+    if (formValue.option_id) {
+      filtered = filtered.filter(student => student.option_id === formValue.option_id);
+    }
+    
+    return filtered;
+  }
+
+  /**
+   * Appliquer la pagination côté front-end
+   */
+  private applyPagination(): void {
+    const startIndex = (this.currentPage - 1) * this.perPage;
+    const endIndex = startIndex + this.perPage;
+    this.etudiants = this.filteredEtudiants.slice(startIndex, endIndex);
+  }
+
+  /**
+   * Mettre à jour le paginator Material
+   */
+  private updatePaginator(): void {
+    if (this.paginator) {
+      // Éviter la boucle infinie en vérifiant si la valeur a changé
+      if (this.paginator.length !== this.total) {
+        this.paginator.length = this.total;
+      }
+      if (this.paginator.pageIndex !== this.currentPage - 1) {
+        this.paginator.pageIndex = this.currentPage - 1;
+      }
+      if (this.paginator.pageSize !== this.perPage) {
+        this.paginator.pageSize = this.perPage;
+      }
+    } else {
+      // Essayer de configurer la pagination après un délai
+      setTimeout(() => {
+        this.setupPagination();
+      }, 100);
+    }
+  }
+
 
 
   /**
@@ -268,6 +390,7 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
       )
       .subscribe(() => {
         this.resetToFirstPage();
+        this.applyFiltersAndPagination();
       });
   }
 
@@ -278,12 +401,13 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
     this.globalSearchSubject$
       .pipe(
         takeUntil(this.destroy$),
-        debounceTime(500), // Attendre 500ms après la dernière saisie
+        debounceTime(300), // Réduire le délai pour une meilleure réactivité
         distinctUntilChanged() // Éviter les doublons
       )
       .subscribe((searchValue: string) => {
-        // Déclencher la recherche uniquement après le délai
+        // Appliquer les filtres immédiatement côté front-end
         this.resetToFirstPage();
+        this.applyFiltersAndPagination();
       });
   }
 
@@ -301,14 +425,13 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   /**
-   * Réinitialiser à la première page et recharger
+   * Réinitialiser à la première page
    */
   private resetToFirstPage(): void {
     this.currentPage = 1;
     if (this.paginator) {
       this.paginator.pageIndex = 0;
     }
-    this.loadEtudiants();
   }
 
   /**
@@ -497,7 +620,7 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
         next: (response) => {
           this.success = response.message;
           this.closeModals();
-          this.loadEtudiants();
+          this.loadAllEtudiants(); // Recharger tous les étudiants
           this.loading = false;
         },
         error: (err) => {
@@ -527,7 +650,7 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
           next: (response) => {
             this.success = `${response.deleted_count} étudiant(s) supprimé(s) avec succès`;
             this.resetSelection();
-            this.loadEtudiants(); // Recharger la liste
+            this.loadAllEtudiants(); // Recharger tous les étudiants
             this.loading = false;
             
             // Afficher les erreurs s'il y en a
@@ -545,7 +668,7 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   /**
-   * Exporter les étudiants
+   * Exporter les étudiants (utilise les données filtrées côté front-end)
    */
   exportEtudiants(): void {
     // Nettoyer les messages précédents
@@ -555,95 +678,83 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
     // Afficher l'état de chargement
     this.loading = true;
 
-    const filters: EtudiantFilters = {
-      searchValue: this.globalFilterValue,
-      ...this.filtersForm.value
-    };
+    // Utiliser les étudiants filtrés côté front-end
+    const studentsToExport = this.filteredEtudiants;
+    
+    if (studentsToExport.length === 0) {
+      this.error = 'Aucun étudiant à exporter avec les filtres actuels';
+      this.loading = false;
+      return;
+    }
 
-    // Nettoyer les valeurs vides
-    Object.keys(filters).forEach(key => {
-      if (!filters[key as keyof EtudiantFilters]) {
-        delete filters[key as keyof EtudiantFilters];
-      }
-    });
+    // Créer un fichier CSV côté front-end
+    this.createCSVExport(studentsToExport);
+  }
 
-    this.etudiantsService.exportEtudiants(filters)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: async (blob) => {
-          try {
-            console.log('Blob reçu:', blob);
-            console.log('Taille du blob:', blob.size);
-            console.log('Type du blob:', blob.type);
-            
-            // Vérifier si le blob est vide
-            if (blob.size === 0) {
-              console.error('Le blob reçu est vide');
-              this.error = 'Le fichier téléchargé est vide. Veuillez réessayer.';
-              this.loading = false;
-              return;
-            }
-            
-            // Méthode de téléchargement robuste
-            const fileName = `Etudiants_UM6SS_${new Date().toISOString().split('T')[0]}.csv`;
-            
-            // Méthode 1: Téléchargement moderne
-            if ('showSaveFilePicker' in window) {
-              try {
-                const fileHandle = await (window as any).showSaveFilePicker({
-                  suggestedName: fileName,
-                  types: [{
-                    description: 'Fichiers CSV',
-                    accept: { 'text/csv': ['.csv'] }
-                  }]
-                });
-                const writable = await fileHandle.createWritable();
-                await writable.write(blob);
-                await writable.close();
-                console.log('Fichier sauvegardé avec showSaveFilePicker');
-              } catch (e) {
-                console.log('showSaveFilePicker annulé ou échoué, utilisation de la méthode fallback');
-                this.downloadFallback(blob, fileName);
-              }
-            } else {
-              // Méthode 2: Fallback classique amélioré
-              this.downloadFallback(blob, fileName);
-            }
-            
-            // Afficher un message de succès
-            this.success = `Export CSV terminé avec succès ! Fichier de ${(blob.size / 1024).toFixed(1)} KB téléchargé.`;
-            
-            // Effacer le message après 5 secondes
-            setTimeout(() => {
-              this.success = '';
-            }, 5000);
-            
-          } catch (downloadError) {
-            console.error('Erreur lors du téléchargement:', downloadError);
-            this.error = 'Erreur lors du téléchargement du fichier CSV';
-          }
-          
-          this.loading = false;
-        },
-        error: (err) => {
-          console.error('Erreur lors de l\'export:', err);
-          
-          // Gestion d'erreurs plus détaillée
-          if (err.status === 0) {
-            this.error = 'Impossible de se connecter au serveur. Vérifiez votre connexion internet.';
-          } else if (err.status === 404) {
-            this.error = 'Service d\'exportation non trouvé. Contactez l\'administrateur.';
-          } else if (err.status === 500) {
-            this.error = 'Erreur serveur lors de l\'exportation. Veuillez réessayer.';
-          } else if (err.error && err.error.message) {
-            this.error = `Erreur: ${err.error.message}`;
-          } else {
-            this.error = 'Erreur lors de l\'export des étudiants. Veuillez réessayer.';
-          }
-          
-          this.loading = false;
-        }
-      });
+  /**
+   * Créer et télécharger un fichier CSV côté front-end
+   */
+  private createCSVExport(students: Etudiant[]): void {
+    try {
+      // En-têtes CSV
+      const headers = [
+        'ID',
+        'Matricule',
+        'Prénom',
+        'Nom',
+        'Email',
+        'Promotion',
+        'Groupe',
+        'Établissement',
+        'Ville',
+        'Option',
+        'Date de création'
+      ];
+
+      // Données CSV
+      const csvData = students.map(student => [
+        student.id,
+        student.matricule,
+        student.first_name,
+        student.last_name,
+        student.email,
+        student.promotion?.name || '',
+        student.group?.title || '',
+        student.etablissement?.name || '',
+        student.ville?.name || '',
+        student.option?.name || '',
+        new Date(student.created_at).toLocaleDateString('fr-FR')
+      ]);
+
+      // Créer le contenu CSV
+      const csvContent = [
+        headers.join(','),
+        ...csvData.map(row => row.map(field => `"${field}"`).join(','))
+      ].join('\n');
+
+      // Créer le blob
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      
+      // Nom du fichier
+      const fileName = `Etudiants_UM6SS_${new Date().toISOString().split('T')[0]}.csv`;
+      
+      // Télécharger le fichier
+      this.downloadFallback(blob, fileName);
+      
+      // Afficher un message de succès
+      this.success = `Export CSV terminé avec succès ! ${students.length} étudiant(s) exporté(s).`;
+      
+      // Effacer le message après 5 secondes
+      setTimeout(() => {
+        this.success = '';
+      }, 5000);
+      
+    } catch (error) {
+      console.error('Erreur lors de la création du CSV:', error);
+      this.error = 'Erreur lors de la création du fichier CSV';
+    }
+    
+    this.loading = false;
   }
 
   /**
@@ -768,6 +879,7 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
   applyFilters(): void {
     // Déclencher la recherche avec les filtres actuels
     this.resetToFirstPage();
+    this.applyFiltersAndPagination();
 
     // Afficher une notification de succès
     this.success = 'Filtres appliqués avec succès';
@@ -783,6 +895,7 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
     this.filtersForm.reset();
     this.globalFilterValue = '';
     this.resetToFirstPage();
+    this.applyFiltersAndPagination();
 
     // Afficher une notification de succès
     this.success = 'Filtres réinitialisés avec succès';

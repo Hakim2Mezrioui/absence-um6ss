@@ -35,19 +35,6 @@
             <span class="material-icons text-lg">info</span>
             {{ showAvailableOptions ? 'Masquer' : 'Voir' }} les options
           </button>
-              <button type="button"
-                      (click)="testSuggestions()"
-                      class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-yellow-300 bg-yellow-100 text-sm font-medium text-yellow-800 hover:bg-yellow-200 transition-colors">
-                <span class="material-icons text-lg">bug_report</span>
-                Tester les suggestions
-              </button>
-              
-              <button type="button"
-                      (click)="testImportMapping()"
-                      class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-blue-300 bg-blue-100 text-sm font-medium text-blue-800 hover:bg-blue-200 transition-colors">
-                <span class="material-icons text-lg">science</span>
-                Tester le mapping d'import
-              </button>
           <button *ngIf="tableRows.length"
                   type="button"
                   (click)="importStudents()"
@@ -365,10 +352,34 @@
     <div *ngIf="tableRows.length" class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
       <div class="px-6 py-4 border-b border-slate-200 bg-slate-50">
         <h2 class="text-lg font-semibold text-slate-900">Données importées</h2>
-        <p class="text-sm text-slate-600 mt-1">{{ tableRows.length }} ligne(s) de données</p>
+        <p class="text-sm text-slate-600 mt-1">
+          <span *ngIf="hasAnyErrors()">{{ getRowsWithErrors().length }} ligne(s) avec erreurs sur {{ tableRows.length }} total</span>
+          <span *ngIf="!hasAnyErrors()">{{ tableRows.length }} ligne(s) de données</span>
+        </p>
       </div>
       
-      <div class="overflow-x-auto max-h-[60vh] overflow-y-auto">
+      <!-- Message de validation quand tout est correct -->
+      <div *ngIf="!hasAnyErrors()" class="px-8 py-16 text-center">
+        <div class="flex flex-col items-center gap-4">
+          <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+            <span class="material-icons text-2xl text-green-500">check_circle</span>
+          </div>
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-slate-900">Fichier validé avec succès</h3>
+            <p class="text-slate-600 max-w-md">
+              Toutes les données ont été validées et sont prêtes pour l'importation. 
+              Aucune correction n'est nécessaire.
+            </p>
+          </div>
+          <div class="flex items-center gap-2 text-sm text-green-600 bg-green-50 px-4 py-2 rounded-lg border border-green-200">
+            <span class="material-icons text-sm">verified</span>
+            {{ tableRows.length }} étudiant(s) prêt(s) à être importé(s)
+          </div>
+        </div>
+      </div>
+
+      <!-- Tableau des lignes avec erreurs -->
+      <div *ngIf="hasAnyErrors()" class="overflow-x-auto max-h-[60vh] overflow-y-auto">
         <table class="min-w-full divide-y divide-slate-200">
           <thead class="bg-slate-50">
             <tr>
@@ -388,33 +399,29 @@
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-slate-200">
-            <tr *ngFor="let row of tableRows; index as i; trackBy: trackByRow"
-                class="transition-colors"
-                [class.bg-red-50]="isRowInvalid(i)"
-                [class.bg-green-50]="isRowValid(i)"
-                [class.hover:bg-red-100]="isRowInvalid(i)"
-                [class.hover:bg-green-100]="isRowValid(i)">
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-500">{{ i + 1 }}</td>
+            <tr *ngFor="let errorIndex of getRowsWithErrorsIndices(); let i = index; trackBy: trackByRow"
+                class="transition-colors bg-red-50 hover:bg-red-100">
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-500">{{ errorIndex + 1 }}</td>
               <td *ngFor="let header of tableHeaders; trackBy: trackByHeader" class="px-6 py-4 align-top min-w-40">
                 <div class="space-y-2">
-                  <input [(ngModel)]="tableRows[i][header]"
-                         (ngModelChange)="updateCell(i, header, $event)"
+                  <input [(ngModel)]="tableRows[errorIndex][header]"
+                         (ngModelChange)="updateCell(errorIndex, header, $event)"
                          class="w-full rounded-lg border px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-colors"
-                         [class.border-slate-300]="!isCellInvalid(i, header)"
-                         [class.border-slate-400]="isCellInvalid(i, header)"
-                         [class.bg-slate-50]="isCellInvalid(i, header)"
+                         [class.border-slate-300]="!isCellInvalid(errorIndex, header)"
+                         [class.border-slate-400]="isCellInvalid(errorIndex, header)"
+                         [class.bg-slate-50]="isCellInvalid(errorIndex, header)"
                          [placeholder]="getPlaceholder(header)"
-                         [title]="tableRows[i][header] || ''"
+                         [title]="tableRows[errorIndex][header] || ''"
                          type="text" />
 
                   <!-- Aperçu plein texte pour longue valeur -->
-                  <div *ngIf="showFullValue(tableRows[i][header])"
+                  <div *ngIf="showFullValue(tableRows[errorIndex][header])"
                        class="text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 break-words">
-                    {{ tableRows[i][header] }}
+                    {{ tableRows[errorIndex][header] }}
                   </div>
 
                   <!-- Suggestions pour les cellules invalides -->
-                  <div *ngIf="isCellInvalid(i, header) && getSuggestions(i, header).length"
+                  <div *ngIf="isCellInvalid(errorIndex, header) && getSuggestions(errorIndex, header).length"
                        class="rounded-lg border border-blue-200 bg-blue-50 text-xs">
                     <div class="px-3 py-2 font-medium text-blue-700 border-b border-blue-200 flex items-center gap-2">
                       <span class="material-icons text-sm">lightbulb_outline</span>
@@ -422,8 +429,8 @@
                     </div>
                     <div class="divide-y divide-blue-200">
                       <button type="button"
-                              *ngFor="let suggestion of getSuggestions(i, header)"
-                              (click)="applySuggestion(i, header, suggestion)"
+                              *ngFor="let suggestion of getSuggestions(errorIndex, header)"
+                              (click)="applySuggestion(errorIndex, header, suggestion)"
                               class="w-full text-left px-3 py-2 hover:bg-blue-100 focus:outline-none focus:bg-blue-100 transition-colors text-blue-700">
                         {{ suggestion.label }}
                       </button>
@@ -431,14 +438,14 @@
                   </div>
 
                   <!-- Message d'erreur pour les cellules sans suggestions -->
-                  <div *ngIf="isCellInvalid(i, header) && !getSuggestions(i, header).length"
+                  <div *ngIf="isCellInvalid(errorIndex, header) && !getSuggestions(errorIndex, header).length"
                        class="text-xs text-slate-600 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 flex items-center gap-2">
                     <span class="material-icons text-sm">warning_amber</span>
                     Valeur inconnue, corrigez manuellement
                   </div>
 
                   <!-- Indicateur de validation pour les cellules valides -->
-                  <div *ngIf="!isCellInvalid(i, header) && relationHeaders.includes(header) && tableRows[i][header]?.trim()"
+                  <div *ngIf="!isCellInvalid(errorIndex, header) && relationHeaders.includes(header) && tableRows[errorIndex][header]?.trim()"
                        class="text-xs text-blue-600 bg-blue-50 px-3 py-2 rounded-lg border border-blue-200 flex items-center gap-2">
                     <span class="material-icons text-sm">check_circle</span>
                     Validé

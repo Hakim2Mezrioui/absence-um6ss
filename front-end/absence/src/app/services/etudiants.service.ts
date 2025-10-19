@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { BaseApiService } from './base-api.service';
 import { UserContextService } from './user-context.service';
 
@@ -167,6 +168,22 @@ export class EtudiantsService extends BaseApiService {
     params = this.addUserContextFilters(params);
 
     return this.http.get<EtudiantResponse>(`${this.API_URL}/etudiants`, { params });
+  }
+
+  /**
+   * Récupérer tous les étudiants sans pagination pour le filtrage côté front-end
+   */
+  getAllEtudiants(): Observable<Etudiant[]> {
+    let params = new HttpParams()
+      .set('per_page', '10000'); // Grand nombre pour récupérer tous les étudiants
+
+    // Add user context filters automatically
+    params = this.addUserContextFilters(params);
+
+    return this.http.get<EtudiantResponse>(`${this.API_URL}/etudiants`, { params })
+      .pipe(
+        map(response => response.data || [])
+      );
   }
 
   /**
