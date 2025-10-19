@@ -49,6 +49,10 @@ export class EnseignantService {
     return this.http.post(`${environment.apiUrl}/enseignants-with-user`, payload, this.getAuthHeaders());
   }
 
+  updateWithUser(id: number, payload: { user: any; enseignant: { ville_id: number } }): Observable<any> {
+    return this.http.put(`${environment.apiUrl}/enseignants-with-user/${id}`, payload, this.getAuthHeaders());
+  }
+
   getFilterOptions(): Observable<any> {
     return this.http.get(`${this.baseUrl}/filter-options`, this.getAuthHeaders());
   }

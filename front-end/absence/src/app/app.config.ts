@@ -8,6 +8,7 @@ import { TokenInterceptor } from './interceptors/token.interceptor';
 import { CookieService } from 'ngx-cookie-service';
 
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { provideToastr } from 'ngx-toastr';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -20,6 +21,17 @@ export const appConfig: ApplicationConfig = {
       withFetch()
     ),
     provideAnimationsAsync(),
+    provideToastr({
+      timeOut: 3000,
+      positionClass: 'toast-top-right',
+      preventDuplicates: true,
+      progressBar: true,
+      closeButton: true,
+      enableHtml: true,
+      tapToDismiss: true,
+      newestOnTop: true,
+      maxOpened: 3
+    }),
     CookieService
   ]
 };

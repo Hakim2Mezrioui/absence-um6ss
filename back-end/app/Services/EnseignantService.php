@@ -20,43 +20,15 @@ class EnseignantService extends BaseService
 
     public function index(array $filters = [])
     {
-        $size = isset($filters['size']) && (int)$filters['size'] > 0 ? (int)$filters['size'] : 20;
-        $search = $filters['search'] ?? null;
-        $villeId = $filters['ville_id'] ?? null;
-        $roleId = $filters['role_id'] ?? null;
-        $sortBy = $filters['sortBy'] ?? 'created_at';
-        $sortDir = strtolower($filters['sortDir'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
-
+        // Pour l'optimisation frontend, nous retournons tous les enseignants
+        // Le filtrage, tri et pagination sont gérés côté client
         $query = Enseignant::with(['user', 'ville'])
             ->select('enseignants.*')
-            ->leftJoin('users', 'users.id', '=', 'enseignants.user_id');
+            ->leftJoin('users', 'users.id', '=', 'enseignants.user_id')
+            ->orderBy('enseignants.created_at', 'desc');
 
-        if ($search) {
-            $query->whereHas('user', function ($q) use ($search) {
-                $q->where('first_name', 'like', "%$search%");
-                $q->orWhere('last_name', 'like', "%$search%");
-                $q->orWhere('email', 'like', "%$search%");
-            });
-        }
-
-        if ($villeId) {
-            $query->where('enseignants.ville_id', $villeId);
-        }
-
-        if ($roleId) {
-            $query->where('users.role_id', $roleId);
-        }
-
-        // Sorting
-        if ($sortBy === 'name') {
-            $query->orderBy('users.last_name', $sortDir)->orderBy('users.first_name', $sortDir);
-        } elseif ($sortBy === 'email') {
-            $query->orderBy('users.email', $sortDir);
-        } else {
-            $query->orderBy('enseignants.created_at', $sortDir);
-        }
-
-        $enseignants = $query->paginate($size);
+        // Retourner tous les enseignants sans pagination ni filtres backend
+        $enseignants = $query->get();
         return $this->successResponse($enseignants);
     }
 
@@ -111,6 +83,36 @@ class EnseignantService extends BaseService
         }
         $enseignant->update($data);
         return $this->successResponse($enseignant->fresh(['user', 'ville']), 'Enseignant mis à jour');
+    }
+
+    /**
+     * Update a user and enseignant together.
+     */
+    public function updateWithUser(int $id, array $userData, array $enseignantData)
+    {
+        try {
+            DB::beginTransaction();
+
+            $enseignant = Enseignant::find($id);
+            if (!$enseignant) {
+                return $this->errorResponse('Enseignant non trouvé', 404);
+            }
+
+            // Mettre à jour l'utilisateur
+            $user = $enseignant->user;
+            if ($user) {
+                $user->update($userData);
+            }
+
+            // Mettre à jour l'enseignant
+            $enseignant->update($enseignantData);
+
+            DB::commit();
+            return $this->successResponse($enseignant->fresh(['user', 'ville']), 'Utilisateur et enseignant mis à jour');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return $this->errorResponse($e->getMessage(), 500);
+        }
     }
 
     public function destroy(int $id)

@@ -5,6 +5,7 @@ import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { AuthGuard } from './guards/auth.guard';
 import { RoleGuard } from './guards/role.guard';
 import { AddEnseignantComponent } from './components/add-enseignant/add-enseignant.component';
+import { EditEnseignantComponent } from './components/edit-enseignant/edit-enseignant.component';
 import { ExamensComponent } from './components/examens/examens.component';
 import { AddExamenComponent } from './components/add-examen/add-examen.component';
 import { EditExamenComponent } from './components/edit-examen/edit-examen.component';
@@ -90,6 +91,8 @@ export const routes: Routes = [
 
             // Enseignants list: admins and above
             { path: "enseignants", component: EnseignantsComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin'] } },
+            { path: "add-enseignant", component: AddEnseignantComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin'] } },
+            { path: "edit-enseignant/:id", component: EditEnseignantComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin'] } },
             { path: "import-enseignants", component: ImportEnseignantsComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin'] } },
 
             { path: "statistiques", component: DashboardComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin'] } },

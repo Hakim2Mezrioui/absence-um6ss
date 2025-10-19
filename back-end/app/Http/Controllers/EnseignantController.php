@@ -71,8 +71,6 @@ class EnseignantController extends Controller
             'user.email' => 'required|email|unique:users,email',
             'user.password' => 'required|string|min:6',
             'user.role_id' => 'required|exists:roles,id',
-            'user.post_id' => 'required|exists:posts,id',
-            // 'user.etablissement_id' => 'nullable|exists:etablissements,id',
             'user.ville_id' => 'required|exists:villes,id',
             'enseignant.ville_id' => 'required|exists:villes,id'
         ]);
@@ -81,6 +79,37 @@ class EnseignantController extends Controller
         $enseignantData = $request->input('enseignant');
 
         return $this->enseignantService->storeWithUser($userData, $enseignantData);
+    }
+
+    public function updateWithUser(Request $request, int $id): JsonResponse
+    {
+        $enseignant = $this->enseignantService->show($id);
+        if (!$enseignant->getData()->success) {
+            return $this->enseignantService->errorResponse('Enseignant non trouvé', 404);
+        }
+
+        $enseignantData = $enseignant->getData()->data;
+        $currentEmail = $enseignantData->user->email;
+
+        $validationRules = [
+            'user.first_name' => 'required|string|max:255',
+            'user.last_name' => 'required|string|max:255',
+            'user.email' => 'required|email|unique:users,email,' . $enseignantData->user->id,
+            'user.ville_id' => 'required|exists:villes,id',
+            'enseignant.ville_id' => 'required|exists:villes,id'
+        ];
+
+        // Le mot de passe est optionnel lors de la mise à jour
+        if ($request->has('user.password') && !empty($request->input('user.password'))) {
+            $validationRules['user.password'] = 'string|min:6';
+        }
+
+        $validated = $request->validate($validationRules);
+
+        $userData = $request->input('user');
+        $enseignantData = $request->input('enseignant');
+
+        return $this->enseignantService->updateWithUser($id, $userData, $enseignantData);
     }
 }
 

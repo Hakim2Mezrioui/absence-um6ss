@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { EnseignantService } from '../../services/enseignant.service';
 import { AuthService } from '../../services/auth.service';
@@ -10,13 +10,13 @@ import { ToastrService } from 'ngx-toastr';
 import { environment } from '../../../environments/environment';
 
 @Component({
-  selector: 'app-add-enseignant',
+  selector: 'app-edit-enseignant',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './add-enseignant.component.html',
-  styleUrl: './add-enseignant.component.css'
+  templateUrl: './edit-enseignant.component.html',
+  styleUrl: './edit-enseignant.component.css'
 })
-export class AddEnseignantComponent implements OnInit {
+export class EditEnseignantComponent implements OnInit {
   user: any = { 
     first_name: '', 
     last_name: '', 
@@ -40,11 +40,15 @@ export class AddEnseignantComponent implements OnInit {
   isSuperAdmin = false;
   villeFieldDisabled = false;
   
+  // ID de l'enseignant à modifier
+  enseignantId: number | null = null;
+  
   private apiBase = environment.apiUrl;
 
   constructor(
     private service: EnseignantService, 
     private router: Router,
+    private route: ActivatedRoute,
     private http: HttpClient,
     private authService: AuthService,
     private userContextService: UserContextService,
@@ -53,6 +57,7 @@ export class AddEnseignantComponent implements OnInit {
 
   ngOnInit(): void {
     this.initializeUserContext();
+    this.loadEnseignantData();
     this.loadOptions();
   }
 
@@ -77,6 +82,62 @@ export class AddEnseignantComponent implements OnInit {
         }
       }
     }
+  }
+
+  loadEnseignantData(): void {
+    // Récupérer l'ID depuis l'URL
+    this.route.params.subscribe(params => {
+      this.enseignantId = +params['id'];
+      if (this.enseignantId) {
+        this.loadEnseignant();
+      }
+    });
+  }
+
+  loadEnseignant(): void {
+    if (!this.enseignantId) return;
+    
+    this.isLoading = true;
+    this.service.get(this.enseignantId).subscribe({
+      next: (response) => {
+        console.log('Enseignant data:', response);
+        
+        if (response.success && response.data) {
+          const enseignantData = response.data;
+          
+          // Remplir les données utilisateur
+          this.user = {
+            first_name: enseignantData.user?.first_name || '',
+            last_name: enseignantData.user?.last_name || '',
+            email: enseignantData.user?.email || '',
+            password: '', // Ne pas pré-remplir le mot de passe
+            role_id: enseignantData.user?.role_id || 6,
+            ville_id: enseignantData.user?.ville_id || null
+          };
+          
+          // Remplir les données enseignant
+          this.enseignant = {
+            ville_id: enseignantData.ville_id || null
+          };
+          
+          // Si ce n'est pas un super-admin, utiliser la ville de l'utilisateur connecté
+          if (!this.isSuperAdmin) {
+            const villeId = this.userContext?.ville_id || this.currentUser.ville_id;
+            if (villeId) {
+              this.user.ville_id = villeId;
+              this.enseignant.ville_id = villeId;
+            }
+          }
+        }
+        
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Erreur lors du chargement de l\'enseignant:', error);
+        this.toastr.error('Erreur lors du chargement des données de l\'enseignant', 'Erreur');
+        this.isLoading = false;
+      }
+    });
   }
 
   loadOptions(): void {
@@ -109,9 +170,24 @@ export class AddEnseignantComponent implements OnInit {
     // Utiliser la même ville pour l'utilisateur et l'enseignant
     this.enseignant.ville_id = this.user.ville_id;
 
-    this.service.createWithUser({ user: this.user, enseignant: this.enseignant }).subscribe({
+    // Préparer les données pour la mise à jour
+    const updateData = {
+      user: {
+        first_name: this.user.first_name,
+        last_name: this.user.last_name,
+        email: this.user.email,
+        ville_id: this.user.ville_id,
+        // Ne mettre à jour le mot de passe que s'il est fourni
+        ...(this.user.password && { password: this.user.password })
+      },
+      enseignant: {
+        ville_id: this.enseignant.ville_id
+      }
+    };
+
+    this.service.updateWithUser(this.enseignantId!, updateData).subscribe({
       next: (response) => {
-        this.toastr.success('Enseignant créé avec succès !', 'Succès');
+        this.toastr.success('Enseignant modifié avec succès !', 'Succès');
         this.isSubmitting = false;
         
         // Rediriger après 1.5 secondes
@@ -120,8 +196,8 @@ export class AddEnseignantComponent implements OnInit {
         }, 1500);
       },
       error: (error) => {
-        console.error('Erreur lors de la création:', error);
-        this.toastr.error(error.error?.message || 'Erreur lors de la création de l\'enseignant', 'Erreur');
+        console.error('Erreur lors de la modification:', error);
+        this.toastr.error(error.error?.message || 'Erreur lors de la modification de l\'enseignant', 'Erreur');
         this.isSubmitting = false;
       }
     });
@@ -140,10 +216,6 @@ export class AddEnseignantComponent implements OnInit {
       this.toastr.warning('L\'email est requis', 'Validation');
       return false;
     }
-    if (!this.user.password?.trim()) {
-      this.toastr.warning('Le mot de passe est requis', 'Validation');
-      return false;
-    }
     if (!this.user.ville_id) {
       this.toastr.warning('La ville est requise', 'Validation');
       return false;
@@ -156,28 +228,8 @@ export class AddEnseignantComponent implements OnInit {
   }
 
   resetForm(): void {
-    this.user = { 
-      first_name: '', 
-      last_name: '', 
-      email: '', 
-      password: '', 
-      role_id: 6, // Rôle enseignant par défaut
-      ville_id: null
-    };
-    this.enseignant = { ville_id: null };
-    
-    // Réappliquer le contexte utilisateur pour la ville
-    this.initializeUserContext();
-    
+    // Recharger les données originales
+    this.loadEnseignant();
     this.toastr.info('Formulaire réinitialisé', 'Information');
-    
-    // Réinitialiser la ville selon le contexte utilisateur
-    if (!this.isSuperAdmin && this.currentUser) {
-      const villeId = this.userContext?.ville_id || this.currentUser.ville_id;
-      if (villeId) {
-        this.user.ville_id = villeId;
-        this.enseignant.ville_id = villeId;
-      }
-    }
   }
 }

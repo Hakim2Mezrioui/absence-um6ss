@@ -133,6 +133,7 @@ Route::post('/import-cours', [CoursController::class, 'ImportCourse']);
 
 // Enseignants - API Resource (protected)
 Route::post('enseignants-with-user', [EnseignantController::class, 'storeWithUser']);
+Route::put('enseignants-with-user/{id}', [EnseignantController::class, 'updateWithUser']);
 Route::apiResource('enseignants', EnseignantController::class);
 });
 

@@ -22,6 +22,11 @@ class EnseignantUserContextScope implements Scope
             return;
         }
 
+        // Super-admin (role_id = 1) et Admin (role_id = 2) peuvent voir tous les enseignants
+        if (in_array($user->role_id, [1, 2])) {
+            return;
+        }
+
         $table = $model->getTable();
 
         // Always enforce ville filter if user has a ville
