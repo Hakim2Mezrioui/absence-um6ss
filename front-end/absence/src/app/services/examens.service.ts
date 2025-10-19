@@ -135,6 +135,6 @@ export class ExamensService {
    * Importer des examens (format Excel généré par l'import simple)
    */
   importExamens(formData: FormData): Observable<any> {
-    return this.http.post(`${this.apiUrl}/import-examens-modern`, formData);
+    return this.http.post(`${this.apiUrl}/import-examens`, formData);
   }
 }

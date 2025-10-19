@@ -517,6 +517,25 @@ export class SimpleStudentImportComponent implements OnInit, OnDestroy {
     return this.tableRows.some((_, index) => this.isRowInvalid(index));
   }
 
+  isColumnInvalid(header: string): boolean {
+    return this.tableRows.some((_, index) => this.isCellInvalid(index, header));
+  }
+
+  getColumnWidth(header: string): string {
+    const columnWidths: Record<string, string> = {
+      'matricule': '140px',
+      'first_name': '160px',
+      'last_name': '160px',
+      'email': '240px',
+      'promotion_name': '180px',
+      'etablissement_name': '220px',
+      'ville_name': '140px',
+      'group_title': '140px',
+      'option_name': '160px'
+    };
+    return columnWidths[header] || '180px';
+  }
+
 
   importStudents(): void {
     if (this.hasInvalidCells()) {

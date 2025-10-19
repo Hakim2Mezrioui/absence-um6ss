@@ -230,15 +230,22 @@ class ExamenController extends Controller
         $file = $request->file('file');
         
         // Vérifier le type de fichier
-        $allowedTypes = ['csv', 'txt'];
+        $allowedTypes = ['csv', 'txt', 'xlsx', 'xls'];
         $fileExtension = strtolower($file->getClientOriginalExtension());
         
         if (!in_array($fileExtension, $allowedTypes)) {
-            return response()->json(['message' => 'Type de fichier non supporté. Utilisez CSV ou TXT'], 400);
+            return response()->json(['message' => 'Type de fichier non supporté. Utilisez CSV, TXT, XLSX ou XLS'], 400);
         }
 
         try {
             $path = $file->getRealPath();
+            
+            // Si c'est un fichier Excel, le convertir en CSV d'abord
+            if (in_array($fileExtension, ['xlsx', 'xls'])) {
+                return $this->importFromExcel($path, $fileExtension);
+            }
+            
+            // Sinon, traiter comme CSV/TXT
             $handle = fopen($path, 'r');
             
             if ($handle === false) {
@@ -412,6 +419,7 @@ class ExamenController extends Controller
         $options = \App\Models\Option::select('id', 'name')->get();
         $groups = \App\Models\Group::select('id', 'title')->get();
         $villes = \App\Models\Ville::select('id', 'name')->get();
+        $typesExamen = \App\Models\TypeExamen::select('id', 'name')->get();
 
         return response()->json([
             'etablissements' => $etablissements,
@@ -419,7 +427,8 @@ class ExamenController extends Controller
             'salles' => $salles,
             'options' => $options,
             'groups' => $groups,
-            'villes' => $villes
+            'villes' => $villes,
+            'typesExamen' => $typesExamen
         ]);
     }
 
@@ -428,14 +437,17 @@ class ExamenController extends Controller
      */
     private function validateAndTransformExamenData(array $data, int $lineNumber): ?array
     {
-        // Vérifier que les champs requis ne sont pas vides
-        $requiredFields = ['title', 'date', 'heure_debut', 'heure_fin', 'salle_id', 'promotion_id', 'type_examen_id', 'etablissement_id', 'group_id', 'ville_id'];
+        // Vérifier que les champs requis de base ne sont pas vides
+        $requiredBaseFields = ['title', 'date', 'heure_debut_poigntage', 'heure_debut', 'heure_fin'];
         
-        foreach ($requiredFields as $field) {
+        foreach ($requiredBaseFields as $field) {
             if (empty($data[$field])) {
                 throw new \Exception("Le champ '$field' est requis à la ligne $lineNumber");
             }
         }
+
+        // Convertir les noms en IDs si nécessaire
+        $data = $this->convertNamesToIds($data, $lineNumber);
 
         // Valider et formater la date
         $date = $this->parseDate($data['date']);
@@ -444,11 +456,17 @@ class ExamenController extends Controller
         }
 
         // Valider et formater les heures
+        $heureDebutPoigntage = $this->parseTime($data['heure_debut_poigntage']);
         $heureDebut = $this->parseTime($data['heure_debut']);
         $heureFin = $this->parseTime($data['heure_fin']);
         
-        if (!$heureDebut || !$heureFin) {
+        if (!$heureDebutPoigntage || !$heureDebut || !$heureFin) {
             throw new \Exception("Format d'heure invalide à la ligne $lineNumber. Utilisez HH:MM ou HH:MM:SS");
+        }
+
+        // Vérifier que l'heure de pointage est avant l'heure de début
+        if ($heureDebutPoigntage > $heureDebut) {
+            throw new \Exception("L'heure de début de pointage doit être avant l'heure de début de l'examen à la ligne $lineNumber");
         }
 
         // Vérifier que l'heure de fin est après l'heure de début
@@ -462,6 +480,7 @@ class ExamenController extends Controller
         return [
             'title' => $data['title'],
             'date' => $date,
+            'heure_debut_poigntage' => $heureDebutPoigntage,
             'heure_debut' => $heureDebut,
             'heure_fin' => $heureFin,
             'tolerance' => !empty($data['tolerance']) ? (int)$data['tolerance'] : 15,
@@ -472,9 +491,130 @@ class ExamenController extends Controller
             'etablissement_id' => $data['etablissement_id'],
             'group_id' => $data['group_id'],
             'ville_id' => $data['ville_id'],
+            'annee_universitaire' => !empty($data['annee_universitaire']) ? $data['annee_universitaire'] : null,
             'created_at' => now(),
             'updated_at' => now()
         ];
+    }
+
+    /**
+     * Convertir les noms en IDs
+     */
+    private function convertNamesToIds(array $data, int $lineNumber): array
+    {
+        // Établissement (avec recherche flexible)
+        if (empty($data['etablissement_id']) && !empty($data['etablissement_name'])) {
+            $etablissement = $this->findEntityByName(\App\Models\Etablissement::class, $data['etablissement_name']);
+            if (!$etablissement) {
+                $available = \App\Models\Etablissement::pluck('name')->implode(', ');
+                throw new \Exception("Établissement '{$data['etablissement_name']}' introuvable à la ligne $lineNumber. Disponibles: {$available}");
+            }
+            $data['etablissement_id'] = $etablissement->id;
+        }
+
+        // Promotion (avec recherche flexible)
+        if (empty($data['promotion_id']) && !empty($data['promotion_name'])) {
+            $promotion = $this->findEntityByName(\App\Models\Promotion::class, $data['promotion_name']);
+            if (!$promotion) {
+                $available = \App\Models\Promotion::pluck('name')->take(10)->implode(', ');
+                throw new \Exception("Promotion '{$data['promotion_name']}' introuvable à la ligne $lineNumber. Exemples: {$available}");
+            }
+            $data['promotion_id'] = $promotion->id;
+        }
+
+        // Type d'examen (avec recherche flexible)
+        if (empty($data['type_examen_id']) && !empty($data['type_examen_name'])) {
+            // Essayer d'abord une correspondance exacte
+            $typeExamen = \App\Models\TypeExamen::where('name', $data['type_examen_name'])->first();
+            
+            // Si pas trouvé, essayer une recherche insensible à la casse
+            if (!$typeExamen) {
+                $typeExamen = \App\Models\TypeExamen::whereRaw('LOWER(name) = ?', [strtolower($data['type_examen_name'])])->first();
+            }
+            
+            // Si toujours pas trouvé, essayer une recherche partielle
+            if (!$typeExamen) {
+                $typeExamen = \App\Models\TypeExamen::where('name', 'LIKE', '%' . $data['type_examen_name'] . '%')->first();
+            }
+            
+            if (!$typeExamen) {
+                // Suggérer les types disponibles
+                $availableTypes = \App\Models\TypeExamen::pluck('name')->implode(', ');
+                throw new \Exception("Type d'examen '{$data['type_examen_name']}' introuvable à la ligne $lineNumber. Types disponibles: {$availableTypes}");
+            }
+            $data['type_examen_id'] = $typeExamen->id;
+        }
+
+        // Salle (avec recherche flexible)
+        if (empty($data['salle_id']) && !empty($data['salle_name'])) {
+            $salle = $this->findEntityByName(\App\Models\Salle::class, $data['salle_name']);
+            if (!$salle) {
+                $available = \App\Models\Salle::pluck('name')->take(10)->implode(', ');
+                throw new \Exception("Salle '{$data['salle_name']}' introuvable à la ligne $lineNumber. Exemples: {$available}");
+            }
+            $data['salle_id'] = $salle->id;
+        }
+
+        // Groupe (avec recherche flexible sur 'title')
+        if (empty($data['group_id']) && !empty($data['group_title'])) {
+            // Pour les groupes, on utilise 'title' au lieu de 'name'
+            $group = \App\Models\Group::where('title', $data['group_title'])->first();
+            if (!$group) {
+                $group = \App\Models\Group::whereRaw('LOWER(title) = ?', [strtolower($data['group_title'])])->first();
+            }
+            if (!$group) {
+                $group = \App\Models\Group::where('title', 'LIKE', '%' . $data['group_title'] . '%')->first();
+            }
+            if (!$group) {
+                $available = \App\Models\Group::pluck('title')->take(10)->implode(', ');
+                throw new \Exception("Groupe '{$data['group_title']}' introuvable à la ligne $lineNumber. Exemples: {$available}");
+            }
+            $data['group_id'] = $group->id;
+        }
+
+        // Ville (avec recherche flexible)
+        if (empty($data['ville_id']) && !empty($data['ville_name'])) {
+            $ville = $this->findEntityByName(\App\Models\Ville::class, $data['ville_name']);
+            if (!$ville) {
+                $available = \App\Models\Ville::pluck('name')->implode(', ');
+                throw new \Exception("Ville '{$data['ville_name']}' introuvable à la ligne $lineNumber. Disponibles: {$available}");
+            }
+            $data['ville_id'] = $ville->id;
+        }
+
+        // Option (optionnel, avec recherche flexible)
+        if (empty($data['option_id']) && !empty($data['option_name'])) {
+            $option = $this->findEntityByName(\App\Models\Option::class, $data['option_name']);
+            if ($option) {
+                $data['option_id'] = $option->id;
+            }
+        }
+
+        return $data;
+    }
+
+    /**
+     * Rechercher une entité par son nom avec recherche flexible
+     */
+    private function findEntityByName(string $modelClass, string $name)
+    {
+        // 1. Correspondance exacte
+        $entity = $modelClass::where('name', $name)->first();
+        if ($entity) return $entity;
+        
+        // 2. Correspondance exacte insensible à la casse
+        $entity = $modelClass::whereRaw('LOWER(name) = ?', [strtolower($name)])->first();
+        if ($entity) return $entity;
+        
+        // 3. Correspondance partielle (contient le texte)
+        $entity = $modelClass::where('name', 'LIKE', '%' . $name . '%')->first();
+        if ($entity) return $entity;
+        
+        // 4. Le texte contient le nom de l'entité
+        $entity = $modelClass::whereRaw('? LIKE CONCAT("%", name, "%")', [$name])->first();
+        if ($entity) return $entity;
+        
+        return null;
     }
 
     /**
@@ -585,5 +725,147 @@ class ExamenController extends Controller
         
         // Si la date est dans le futur
         return 'futur';
+    }
+
+    /**
+     * Importer des examens depuis un fichier Excel
+     */
+    private function importFromExcel(string $path, string $extension): \Illuminate\Http\JsonResponse
+    {
+        try {
+            // Vérifier si PhpSpreadsheet est disponible
+            if (!class_exists('\PhpOffice\PhpSpreadsheet\IOFactory')) {
+                return response()->json([
+                    'message' => 'La bibliothèque PhpSpreadsheet n\'est pas installée. Veuillez exécuter: composer require phpoffice/phpspreadsheet'
+                ], 500);
+            }
+
+            // Charger le fichier Excel
+            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($path);
+            $worksheet = $spreadsheet->getActiveSheet();
+            $rows = $worksheet->toArray();
+
+            if (empty($rows)) {
+                return response()->json(['message' => 'Le fichier Excel est vide'], 400);
+            }
+
+            // Extraire les en-têtes
+            $header = array_shift($rows);
+            $header = array_map(function($h) {
+                return strtolower(trim($h));
+            }, $header);
+
+            // Vérifier les en-têtes requis (accepter soit les noms soit les IDs)
+            $requiredBaseHeaders = ['title', 'date', 'heure_debut_poigntage', 'heure_debut', 'heure_fin'];
+            $missingBaseHeaders = array_diff($requiredBaseHeaders, $header);
+            
+            if (!empty($missingBaseHeaders)) {
+                return response()->json([
+                    'message' => 'En-têtes de base manquants: ' . implode(', ', $missingBaseHeaders),
+                    'required_headers' => $requiredBaseHeaders,
+                    'found_headers' => $header
+                ], 400);
+            }
+            
+            // Vérifier qu'on a soit les IDs soit les noms pour chaque relation
+            $hasEtablissementId = in_array('etablissement_id', $header);
+            $hasEtablissementName = in_array('etablissement_name', $header);
+            $hasPromotionId = in_array('promotion_id', $header);
+            $hasPromotionName = in_array('promotion_name', $header);
+            $hasTypeExamenId = in_array('type_examen_id', $header);
+            $hasTypeExamenName = in_array('type_examen_name', $header);
+            $hasSalleId = in_array('salle_id', $header);
+            $hasSalleName = in_array('salle_name', $header);
+            $hasGroupId = in_array('group_id', $header);
+            $hasGroupTitle = in_array('group_title', $header);
+            $hasVilleId = in_array('ville_id', $header);
+            $hasVilleName = in_array('ville_name', $header);
+            
+            if (!$hasEtablissementId && !$hasEtablissementName) {
+                return response()->json(['message' => 'Colonne etablissement_id ou etablissement_name requise'], 400);
+            }
+            if (!$hasPromotionId && !$hasPromotionName) {
+                return response()->json(['message' => 'Colonne promotion_id ou promotion_name requise'], 400);
+            }
+            if (!$hasTypeExamenId && !$hasTypeExamenName) {
+                return response()->json(['message' => 'Colonne type_examen_id ou type_examen_name requise'], 400);
+            }
+            if (!$hasSalleId && !$hasSalleName) {
+                return response()->json(['message' => 'Colonne salle_id ou salle_name requise'], 400);
+            }
+            if (!$hasGroupId && !$hasGroupTitle) {
+                return response()->json(['message' => 'Colonne group_id ou group_title requise'], 400);
+            }
+            if (!$hasVilleId && !$hasVilleName) {
+                return response()->json(['message' => 'Colonne ville_id ou ville_name requise'], 400);
+            }
+
+            $examens = [];
+            $errors = [];
+            $lineNumber = 1;
+
+            // Traiter chaque ligne
+            foreach ($rows as $row) {
+                $lineNumber++;
+                $row = array_map('trim', $row);
+                
+                // Ignorer les lignes vides
+                if (empty(array_filter($row))) {
+                    continue;
+                }
+
+                try {
+                    $examenData = array_combine($header, $row);
+                    
+                    // Valider et transformer les données
+                    $validatedData = $this->validateAndTransformExamenData($examenData, $lineNumber);
+                    
+                    if ($validatedData) {
+                        $examens[] = $validatedData;
+                    }
+                } catch (\Exception $e) {
+                    $errors[] = [
+                        'line' => $lineNumber,
+                        'data' => $row,
+                        'error' => $e->getMessage()
+                    ];
+                }
+            }
+
+            // Si il y a des erreurs, les retourner
+            if (!empty($errors)) {
+                return response()->json([
+                    'message' => 'Erreurs détectées lors de l\'importation',
+                    'errors' => $errors,
+                    'total_errors' => count($errors)
+                ], 400);
+            }
+
+            // Insérer les données dans la base
+            if (!empty($examens)) {
+                try {
+                    Examen::insert($examens);
+                    
+                    return response()->json([
+                        'message' => count($examens) . ' examens importés avec succès',
+                        'imported_count' => count($examens),
+                        'data' => $examens
+                    ], 200);
+                } catch (\Exception $e) {
+                    return response()->json([
+                        'message' => 'Erreur lors de l\'insertion en base de données',
+                        'error' => $e->getMessage()
+                    ], 500);
+                }
+            }
+
+            return response()->json(['message' => 'Aucune donnée valide trouvée dans le fichier'], 400);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erreur lors du traitement du fichier Excel',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

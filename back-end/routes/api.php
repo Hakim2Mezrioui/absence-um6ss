@@ -103,21 +103,18 @@ Route::apiResource('villes', VilleController::class);
 Route::get('villes/search', [VilleController::class, 'search']);
 Route::get('villes/etablissement/{etablissementId}', [VilleController::class, 'getByEtablissement']);
 
-// Routes d'examens avec ressource
-Route::post('/import-examens', [ExamenController::class, 'ImportExamens']);
-
-// Routes pour les options de filtres
+// Routes spécifiques pour les examens AVANT la ressource
+Route::post('/examens/import-examens', [ExamenController::class, 'ImportExamens']);
 Route::get('/examens/etablissements', [ExamenController::class, 'getEtablissements']);
 Route::get('/examens/promotions', [ExamenController::class, 'getPromotions']);
 Route::get('/examens/salles', [ExamenController::class, 'getSalles']);
 Route::get('/examens/filter-options', [ExamenController::class, 'getFilterOptions']);
 
-
 // Routes spécifiques pour les établissements AVANT la ressource
 Route::get('etablissements/statistics', [EtablissementController::class, 'getStatistics']);
 Route::get('etablissements/all', [EtablissementController::class, 'allEtablissements']);
 
-// CRUD complet pour les établissements (routes de ressources)
+// CRUD complet pour les établissements et examens (routes de ressources)
 Route::apiResource('etablissements', EtablissementController::class);
 Route::apiResource('examens', ExamenController::class);
 
