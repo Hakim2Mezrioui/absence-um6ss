@@ -205,7 +205,7 @@ export class CoursService extends BaseApiService {
    * Importe des cours depuis un fichier CSV
    */
   importCours(formData: FormData): Observable<any> {
-    return this.http.post(`${this.API_URL}/import-cours-modern`, formData);
+    return this.http.post(`${this.API_URL}/import-cours`, formData);
   }
 
   /**

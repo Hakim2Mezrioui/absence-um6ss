@@ -126,7 +126,7 @@ Route::get('/cours/{id}', [CoursController::class, 'show']);
 Route::post('/cours', [CoursController::class, 'store']);
 Route::put('/cours/{id}', [CoursController::class, 'update']);
 Route::delete('/cours/{id}', [CoursController::class, 'destroy']);
-Route::post('/import-cours', [CoursController::class, 'ImportCourse']);
+Route::post('/import-cours', [CoursController::class, 'importCoursModern']);
 
 // Enseignants - API Resource (protected)
 Route::post('enseignants-with-user', [EnseignantController::class, 'storeWithUser']);

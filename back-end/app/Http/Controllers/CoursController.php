@@ -251,6 +251,70 @@ class CoursController extends Controller
     //     return response()->json(['message' => 'No file uploaded'], 400);
     // }
 
+    /**
+     * Import moderne des cours depuis un fichier Excel
+     */
+    public function importCoursModern(Request $request)
+    {
+        try {
+            // Vérifier si des données JSON sont fournies directement
+            if ($request->has('data')) {
+                $coursesData = json_decode($request->input('data'), true);
+                
+                if (empty($coursesData)) {
+                    return response()->json(['message' => 'Aucune donnée fournie'], 400);
+                }
+                
+                // Utiliser le service CoursService pour l'import
+                $results = $this->coursService->importCoursFromData($coursesData);
+                
+                return response()->json([
+                    'message' => 'Importation terminée',
+                    'summary' => [
+                        'total_processed' => $results['total'],
+                        'created' => $results['created'],
+                        'updated' => $results['updated'],
+                        'errors' => $results['errors']
+                    ],
+                    'error_details' => $results['error_details'] ?? []
+                ]);
+            }
+            
+            // Fallback pour les fichiers Excel
+            if (!$request->hasFile('file')) {
+                return response()->json(['message' => 'Aucun fichier fourni'], 400);
+            }
+
+            $file = $request->file('file');
+            
+            // Vérifier que c'est un fichier Excel
+            $allowedMimes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'];
+            if (!in_array($file->getMimeType(), $allowedMimes)) {
+                return response()->json(['message' => 'Format de fichier non supporté. Veuillez utiliser un fichier Excel (.xlsx ou .xls)'], 400);
+            }
+
+            // Utiliser le service CoursService pour l'import
+            $results = $this->coursService->importCoursFromExcel($file, $request);
+
+            return response()->json([
+                'message' => 'Importation terminée',
+                'summary' => [
+                    'total_processed' => $results['total'],
+                    'created' => $results['created'],
+                    'updated' => $results['updated'],
+                    'errors' => $results['errors']
+                ],
+                'error_details' => $results['error_details'] ?? []
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erreur lors de l\'importation',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     function ImportCourse(Request $request) {
         if ($request->hasFile('file')) {
             $file = $request->file('file');

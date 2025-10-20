@@ -216,6 +216,257 @@ class CoursService
     }
 
     /**
+     * Import courses from JSON data (modern method)
+     */
+    public function importCoursFromData(array $coursesData): array
+    {
+        $results = [
+            'total' => 0,
+            'created' => 0,
+            'updated' => 0,
+            'errors' => 0,
+            'error_details' => []
+        ];
+
+        try {
+            $results['total'] = count($coursesData);
+            
+            foreach ($coursesData as $index => $courseData) {
+                try {
+                    // Valider et transformer les données
+                    $coursData = $this->transformCoursDataForImport($courseData);
+                    
+                    // Vérifier si le cours existe déjà
+                    $existingCours = Cours::where('name', $coursData['name'])
+                        ->where('date', $coursData['date'])
+                        ->where('heure_debut', $coursData['heure_debut'])
+                        ->where('etablissement_id', $coursData['etablissement_id'])
+                        ->first();
+
+                    if ($existingCours) {
+                        // Mettre à jour le cours existant
+                        $existingCours->update($coursData);
+                        $results['updated']++;
+                    } else {
+                        // Créer un nouveau cours
+                        Cours::create($coursData);
+                        $results['created']++;
+                    }
+
+                } catch (\Exception $e) {
+                    $results['errors']++;
+                    $results['error_details'][] = [
+                        'line' => $index + 1,
+                        'message' => $e->getMessage(),
+                        'data' => $courseData
+                    ];
+                }
+            }
+
+        } catch (\Exception $e) {
+            $results['errors']++;
+            $results['error_details'][] = [
+                'line' => 0,
+                'message' => 'Erreur lors du traitement des données: ' . $e->getMessage()
+            ];
+        }
+
+        return $results;
+    }
+
+    /**
+     * Import courses from Excel file (modern method)
+     */
+    public function importCoursFromExcel($file, $request = null): array
+    {
+        $results = [
+            'total' => 0,
+            'created' => 0,
+            'updated' => 0,
+            'errors' => 0,
+            'error_details' => []
+        ];
+
+        try {
+            // Le frontend génère un fichier Excel temporaire, on va le traiter directement
+            $filePath = $file->getPathname();
+            
+            // Utiliser une approche différente pour lire le fichier Excel
+            // Le frontend génère un fichier Excel avec des données JSON dans le FormData
+            $coursesData = [];
+            
+            // Essayer de récupérer les données depuis le FormData si elles sont disponibles
+            if ($request && $request->has('data')) {
+                $coursesData = json_decode($request->input('data'), true);
+            }
+            
+            // Si pas de données JSON, essayer de lire le fichier Excel comme CSV avec détection d'encodage
+            if (empty($coursesData)) {
+                // Détecter l'encodage du fichier
+                $content = file_get_contents($filePath);
+                $encoding = mb_detect_encoding($content, ['UTF-8', 'ISO-8859-1', 'Windows-1252'], true);
+                
+                if ($encoding === false) {
+                    $encoding = 'UTF-8';
+                }
+                
+                // Convertir le contenu en UTF-8 si nécessaire
+                if ($encoding !== 'UTF-8') {
+                    $content = mb_convert_encoding($content, 'UTF-8', $encoding);
+                    file_put_contents($filePath, $content);
+                }
+                
+                $handle = fopen($filePath, 'r');
+                if (!$handle) {
+                    throw new \Exception('Impossible d\'ouvrir le fichier');
+                }
+                
+                $headers = fgetcsv($handle);
+                if (!$headers) {
+                    throw new \Exception('Format de fichier invalide');
+                }
+                
+                $headers = array_map('strtolower', array_map('trim', $headers));
+                
+                while (($row = fgetcsv($handle)) !== false) {
+                    $rowData = array_combine($headers, $row);
+                    $coursesData[] = $rowData;
+                }
+                
+                fclose($handle);
+            }
+            
+            if (empty($coursesData)) {
+                throw new \Exception('Aucune donnée valide trouvée dans le fichier');
+            }
+            
+            $results['total'] = count($coursesData);
+            
+            foreach ($coursesData as $index => $courseData) {
+                try {
+                    // Valider et transformer les données
+                    $coursData = $this->transformCoursDataForImport($courseData);
+                    
+                    // Vérifier si le cours existe déjà
+                    $existingCours = Cours::where('name', $coursData['name'])
+                        ->where('date', $coursData['date'])
+                        ->where('heure_debut', $coursData['heure_debut'])
+                        ->where('etablissement_id', $coursData['etablissement_id'])
+                        ->first();
+
+                    if ($existingCours) {
+                        // Mettre à jour le cours existant
+                        $existingCours->update($coursData);
+                        $results['updated']++;
+                    } else {
+                        // Créer un nouveau cours
+                        Cours::create($coursData);
+                        $results['created']++;
+                    }
+
+                } catch (\Exception $e) {
+                    $results['errors']++;
+                    $results['error_details'][] = [
+                        'line' => $index + 1,
+                        'message' => $e->getMessage(),
+                        'data' => $courseData
+                    ];
+                }
+            }
+
+        } catch (\Exception $e) {
+            $results['errors']++;
+            $results['error_details'][] = [
+                'line' => 0,
+                'message' => 'Erreur lors de la lecture du fichier: ' . $e->getMessage()
+            ];
+        }
+
+        return $results;
+    }
+
+    /**
+     * Transform course data from Excel import
+     */
+    private function transformCoursDataForImport(array $data): array
+    {
+        // Valider les champs requis (mapping des champs du frontend)
+        $requiredFields = ['name', 'date', 'heure_debut', 'heure_fin', 'etablissement_id', 'promotion_id', 'type_cours_id', 'salle_id', 'ville_id'];
+        foreach ($requiredFields as $field) {
+            if (empty($data[$field])) {
+                throw new \Exception("Le champ '{$field}' est requis");
+            }
+        }
+
+        // Convertir la date si elle est au format DD/MM/YYYY
+        $date = $data['date'];
+        if (strpos($date, '/') !== false) {
+            $carbonDate = \Carbon\Carbon::createFromFormat('d/m/Y', $date);
+            if (!$carbonDate) {
+                throw new \Exception("Format de date invalide: '{$date}'. Utilisez le format DD/MM/YYYY");
+            }
+            $date = $carbonDate->format('Y-m-d');
+        }
+
+        // Convertir les heures
+        $heureDebut = $this->formatTime($data['heure_debut']);
+        $heureFin = $this->formatTime($data['heure_fin']);
+        $tolerance = $this->formatTime($data['tolerance'] ?? '00:15');
+
+        $coursData = [
+            'name' => $data['name'],
+            'date' => $date,
+            'pointage_start_hour' => $heureDebut,
+            'heure_debut' => $heureDebut,
+            'heure_fin' => $heureFin,
+            'tolerance' => $tolerance,
+            'etablissement_id' => $data['etablissement_id'],
+            'promotion_id' => $data['promotion_id'],
+            'type_cours_id' => $data['type_cours_id'],
+            'salle_id' => $data['salle_id'],
+            'ville_id' => $data['ville_id'],
+            'annee_universitaire' => $data['annee_universitaire'] ?? '2024-2025'
+        ];
+
+        // Option (optionnel)
+        if (!empty($data['option_id'])) {
+            $coursData['option_id'] = $data['option_id'];
+        }
+
+        return $coursData;
+    }
+
+    /**
+     * Format time string to HH:MM:SS format
+     */
+    private function formatTime($timeString): string
+    {
+        $time = trim($timeString);
+        
+        // Si c'est déjà au format HH:MM:SS, le retourner tel quel
+        if (preg_match('/^\d{2}:\d{2}:\d{2}$/', $time)) {
+            return $time;
+        }
+        
+        // Si c'est au format HH:MM, ajouter :00
+        if (preg_match('/^\d{1,2}:\d{2}$/', $time)) {
+            return $time . ':00';
+        }
+        
+        // Si c'est au format HHhMM, convertir en HH:MM:SS
+        if (preg_match('/^\d{1,2}h\d{2}$/', $time)) {
+            return str_replace('h', ':', $time) . ':00';
+        }
+        
+        // Si c'est au format HH.MM, convertir en HH:MM:SS
+        if (preg_match('/^\d{1,2}\.\d{2}$/', $time)) {
+            return str_replace('.', ':', $time) . ':00';
+        }
+        
+        throw new \Exception("Format d'heure invalide: '{$timeString}'. Utilisez le format HH:MM");
+    }
+
+    /**
      * Import courses from CSV
      */
     public function importCoursFromCSV(string $filePath): array
