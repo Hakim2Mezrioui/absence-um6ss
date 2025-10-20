@@ -56,6 +56,15 @@
           </button>
         </div>
       </div>
+      <!-- Indicateur d'actualisation automatique -->
+      <div class="mt-2 flex items-center justify-end text-sm text-gray-500">
+        <span class="material-icons text-sm mr-1">schedule</span>
+        <span>Dernière actualisation: {{ getTimeSinceLastRefresh() }}</span>
+        <span class="ml-2 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium flex items-center gap-1">
+          <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+          Auto-refresh 30s
+        </span>
+      </div>
     </div>
 
     <!-- Informations de l'examen (style compact comme cours) -->

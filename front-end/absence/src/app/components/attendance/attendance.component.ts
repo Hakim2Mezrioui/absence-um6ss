@@ -6,7 +6,7 @@ import { ActivatedRoute } from '@angular/router';
 import { AttendanceService, AttendanceFilters, AttendanceResponse, StudentAttendance } from '../../services/attendance.service';
 import { AbsenceAutoService, CreateAbsencesFromAttendanceRequest } from '../../services/absence-auto.service';
 import { NotificationService } from '../../services/notification.service';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, interval } from 'rxjs';
 import * as XLSX from 'xlsx';
 
 @Component({
@@ -76,6 +76,10 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   showAbsenceCreationDialog: boolean = false;
   examenId: number | null = null;
   
+  // Propriétés pour l'actualisation automatique
+  autoRefreshInterval = 30000; // 30 secondes en millisecondes
+  lastRefreshTime: Date | null = null;
+  
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -113,6 +117,9 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       
       // Charger les données d'attendance
       this.loadAttendance();
+      
+      // Démarrer l'actualisation automatique
+      this.startAutoRefresh();
     });
   }
 
@@ -165,6 +172,10 @@ export class AttendanceComponent implements OnInit, OnDestroy {
           
           // Initialiser le filtrage
           this.filterStudents();
+          
+          // Enregistrer l'heure de la dernière actualisation
+          this.lastRefreshTime = new Date();
+          
           this.loading = false;
         },
         error: (err) => {
@@ -193,6 +204,10 @@ export class AttendanceComponent implements OnInit, OnDestroy {
             
             // Initialiser le filtrage avec une liste vide
             this.filterStudents();
+            
+            // Enregistrer l'heure de la dernière actualisation
+            this.lastRefreshTime = new Date();
+            
             this.loading = false;
             
             // Afficher le message spécifique de l'API
@@ -200,6 +215,10 @@ export class AttendanceComponent implements OnInit, OnDestroy {
           } else {
             // Vraie erreur de chargement
             this.error = 'Erreur lors du chargement des données d\'attendance';
+            
+            // Enregistrer l'heure de la dernière actualisation (même en cas d'erreur)
+            this.lastRefreshTime = new Date();
+            
             this.loading = false;
           }
         }
@@ -236,6 +255,39 @@ export class AttendanceComponent implements OnInit, OnDestroy {
 
   refreshAttendance(): void {
     this.loadAttendance();
+  }
+
+  /**
+   * Démarre l'actualisation automatique toutes les 30 secondes
+   */
+  startAutoRefresh(): void {
+    console.log('🔄 Démarrage de l\'actualisation automatique (toutes les 30s)');
+    
+    interval(this.autoRefreshInterval)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        console.log('⏰ Actualisation automatique déclenchée');
+        this.loadAttendance();
+      });
+  }
+
+  /**
+   * Obtient le texte formaté du temps écoulé depuis la dernière actualisation
+   */
+  getTimeSinceLastRefresh(): string {
+    if (!this.lastRefreshTime) {
+      return 'Jamais';
+    }
+    
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - this.lastRefreshTime.getTime()) / 1000);
+    
+    if (diffInSeconds < 60) {
+      return `il y a ${diffInSeconds}s`;
+    } else {
+      const minutes = Math.floor(diffInSeconds / 60);
+      return `il y a ${minutes}min`;
+    }
   }
 
   showStudentDetails(student: StudentAttendance): void {

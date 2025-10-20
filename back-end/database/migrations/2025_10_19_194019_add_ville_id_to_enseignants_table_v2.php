@@ -14,21 +14,22 @@ return new class extends Migration
     {
         // Vérifier si la colonne existe déjà
         if (!Schema::hasColumn('enseignants', 'ville_id')) {
-            Schema::table('enseignants', function (Blueprint $table) {
+            // Get default ville before creating column
+            $firstVille = DB::table('villes')->first();
+            $defaultVilleId = $firstVille ? $firstVille->id : null;
+            
+            Schema::table('enseignants', function (Blueprint $table) use ($defaultVilleId) {
+                // Add column as nullable initially to allow data population
                 $table->unsignedBigInteger('ville_id')->nullable();
+                $table->foreign('ville_id')->references('id')->on('villes')->onDelete('cascade');
             });
             
             // Mettre à jour les enregistrements existants avec une valeur par défaut
-            $firstVille = DB::table('villes')->first();
-            if ($firstVille) {
-                DB::table('enseignants')->update(['ville_id' => $firstVille->id]);
+            if ($defaultVilleId) {
+                DB::table('enseignants')
+                    ->whereNull('ville_id')
+                    ->update(['ville_id' => $defaultVilleId]);
             }
-            
-            // Ajouter la contrainte de clé étrangère
-            Schema::table('enseignants', function (Blueprint $table) {
-                $table->foreign('ville_id')->references('id')->on('villes')->onDelete('cascade');
-                $table->change('ville_id')->nullable(false);
-            });
         }
     }
 
