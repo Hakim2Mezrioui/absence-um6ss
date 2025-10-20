@@ -57,7 +57,8 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     name: '',
     matricule: '',
     status: '',
-    promotion: ''
+    promotion: '',
+    device: ''
   };
   
   // Filtrage alphabétique
@@ -80,6 +81,7 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
   ];
   
   promotionOptions: { value: string, label: string }[] = [];
+  deviceOptions: { value: string, label: string }[] = [];
   
   // Tri
   sortConfig = {
@@ -403,6 +405,8 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
 
   /**
    * Calcule le statut de l'étudiant basé sur l'heure de pointage et la tolérance
+   * RÈGLE IMPORTANTE: Si un étudiant a pointé (face ID), il ne peut PAS être "absent"
+   * Il sera soit "present" soit "late" selon l'heure
    */
   private calculateStudentStatus(punchTime: Date): string {
     if (!this.coursData?.cours) {
@@ -456,19 +460,26 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     console.log('   ⏰ Début cours:', coursStartDateTime.toLocaleString());
     console.log('   ⏱️ Limite tolérance:', toleranceDateTime.toLocaleString());
 
-    // Logique simplifiée - si l'étudiant a pointé, il est au minimum "en retard"
+    // LOGIQUE CORRIGÉE: Si l'étudiant a pointé, il ne peut pas être "absent"
+    // Il est soit "present" (avant le début du cours) soit "late" (après le début du cours)
+    
     if (coursPunchStartDateTime && punchTime >= coursPunchStartDateTime && punchTime < coursStartDateTime) {
-      console.log('✅ Présent (pointage avant début)');
+      // Pointage entre l'heure de début de pointage et l'heure de début du cours
+      console.log('✅ Présent (pointage avant début du cours)');
       return 'present';
-    } else if (punchTime >= coursStartDateTime && punchTime <= toleranceDateTime) {
-      console.log('⏰ En retard (dans la tolérance)');
+    } else if (punchTime >= coursStartDateTime) {
+      // Pointage après le début du cours = toujours en retard (peu importe la tolérance)
+      // La tolérance peut être utilisée pour des rapports, mais le statut reste "late"
+      if (punchTime <= toleranceDateTime) {
+        console.log('⏰ En retard (dans la période de tolérance)');
+      } else {
+        console.log('⏰ En retard (au-delà de la tolérance)');
+      }
       return 'late';
-    } else if (punchTime > toleranceDateTime) {
-      console.log('❌ Absent (au-delà de la tolérance)');
-      return 'absent';
     } else {
-      console.log('❌ Absent (avant début de pointage)');
-      return 'absent';
+      // Pointage avant l'heure de début de pointage = considéré comme présent
+      console.log('✅ Présent (pointage anticipé)');
+      return 'present';
     }
   }
 
@@ -897,90 +908,6 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Forcer le recalcul de tous les statuts avec logs détaillés
-   */
-  forceRecalculateAllStatuses(): void {
-    console.log('\n🔄 FORÇAGE DU RECALCUL DES STATUTS');
-    console.log('=====================================');
-    
-    if (!this.coursData?.cours) {
-      console.log('❌ Pas de données de cours disponibles');
-      return;
-    }
-    
-    console.log('📊 Données du cours:');
-    console.log('   📅 Date:', this.coursData.cours.date);
-    console.log('   ⏰ Heure début:', this.coursData.cours.heure_debut);
-    console.log('   🎯 Heure pointage:', this.coursData.cours.pointage_start_hour);
-    console.log('   ⏱️ Tolérance:', this.coursData.cours.tolerance);
-    
-    // Appliquer la logique de tolérance avec logs détaillés
-    this.applyToleranceLogic();
-    
-    // Afficher le résumé final
-    this.showAttendanceSummary();
-  }
-
-  /**
-   * Afficher un résumé détaillé des statuts d'attendance
-   */
-  showAttendanceSummary(): void {
-    if (!this.students.length) {
-      console.log('❌ Aucun étudiant à analyser');
-      return;
-    }
-
-    console.log('\n📊 RÉSUMÉ DÉTAILLÉ DE L\'ATTENDANCE');
-    console.log('=====================================');
-    
-    const presents = this.students.filter(s => s.status === 'present');
-    const lates = this.students.filter(s => s.status === 'late');
-    const absents = this.students.filter(s => s.status === 'absent');
-    const excused = this.students.filter(s => s.status === 'excused');
-
-    console.log(`\n✅ PRÉSENTS (${presents.length}):`);
-    presents.forEach((student, index) => {
-      const punchInfo = student.punch_time ? 
-        `${student.punch_time.time} (${student.punch_time.device})` : 
-        'Pas de pointage';
-      console.log(`   ${index + 1}. ${student.first_name} ${student.last_name} (${student.matricule}) - ${punchInfo}`);
-    });
-
-    console.log(`\n⏰ EN RETARD (${lates.length}):`);
-    lates.forEach((student, index) => {
-      const punchInfo = student.punch_time ? 
-        `${student.punch_time.time} (${student.punch_time.device})` : 
-        'Pas de pointage';
-      console.log(`   ${index + 1}. ${student.first_name} ${student.last_name} (${student.matricule}) - ${punchInfo}`);
-    });
-
-    console.log(`\n❌ ABSENTS (${absents.length}):`);
-    absents.forEach((student, index) => {
-      const punchInfo = student.punch_time ? 
-        `${student.punch_time.time} (${student.punch_time.device})` : 
-        'Pas de pointage';
-      console.log(`   ${index + 1}. ${student.first_name} ${student.last_name} (${student.matricule}) - ${punchInfo}`);
-    });
-
-    if (excused.length > 0) {
-      console.log(`\nℹ️ EXCUSÉS (${excused.length}):`);
-      excused.forEach((student, index) => {
-        const punchInfo = student.punch_time ? 
-          `${student.punch_time.time} (${student.punch_time.device})` : 
-          'Pas de pointage';
-        console.log(`   ${index + 1}. ${student.first_name} ${student.last_name} (${student.matricule}) - ${punchInfo}`);
-      });
-    }
-
-    console.log('\n📈 STATISTIQUES FINALES:');
-    console.log(`   Total: ${this.totalStudents}`);
-    console.log(`   Présents: ${this.presents} (${((this.presents / this.totalStudents) * 100).toFixed(1)}%)`);
-    console.log(`   En retard: ${this.lates} (${((this.lates / this.totalStudents) * 100).toFixed(1)}%)`);
-    console.log(`   Absents: ${this.absents} (${((this.absents / this.totalStudents) * 100).toFixed(1)}%)`);
-    console.log(`   Excusés: ${this.excused} (${((this.excused / this.totalStudents) * 100).toFixed(1)}%)`);
-  }
-
-  /**
    * Obtenir le statut traduit
    */
   getStatusLabel(status: string): string {
@@ -1238,19 +1165,29 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Mettre à jour les options de promotion pour les filtres
+   * Mettre à jour les options de promotion et device pour les filtres
    */
   private updatePromotionOptions(): void {
     const promotions = new Set<string>();
+    const devices = new Set<string>();
+    
     this.students.forEach(student => {
       if (student.promotion?.name) {
         promotions.add(student.promotion.name);
+      }
+      if (student.punch_time?.device) {
+        devices.add(student.punch_time.device);
       }
     });
     
     this.promotionOptions = [
       { value: '', label: 'Toutes les promotions' },
       ...Array.from(promotions).map(promo => ({ value: promo, label: promo }))
+    ];
+    
+    this.deviceOptions = [
+      { value: '', label: 'Tous les appareils' },
+      ...Array.from(devices).map(device => ({ value: device, label: device }))
     ];
   }
 
@@ -1271,10 +1208,13 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
       const promotionMatch = !this.searchFilters.promotion || 
         student.promotion?.name === this.searchFilters.promotion;
       
+      const deviceMatch = !this.searchFilters.device || 
+        student.punch_time?.device === this.searchFilters.device;
+      
       // Filtrage alphabétique
       const alphabetMatch = !this.alphabetFilter.enabled || this.matchesAlphabetFilter(student);
       
-      return nameMatch && matriculeMatch && statusMatch && promotionMatch && alphabetMatch;
+      return nameMatch && matriculeMatch && statusMatch && promotionMatch && deviceMatch && alphabetMatch;
     });
     
     // Appliquer le tri après le filtrage
@@ -1289,7 +1229,8 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
       name: '',
       matricule: '',
       status: '',
-      promotion: ''
+      promotion: '',
+      device: ''
     };
     this.alphabetFilter = {
       enabled: false,
