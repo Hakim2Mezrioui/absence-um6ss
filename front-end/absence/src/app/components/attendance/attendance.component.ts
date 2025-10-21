@@ -1187,6 +1187,248 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     return this.students.filter(s => s.status === 'absent' || s.status === 'en retard');
   }
 
+  /**
+   * Exporte uniquement les absences (étudiants absents et en retard) en CSV ou Excel
+   */
+  exportAbsences(format: 'csv' | 'excel'): void {
+    const absentStudents = this.getAbsentAndLateStudents();
+    
+    if (absentStudents.length === 0) {
+      this.notificationService.warning('Aucune absence', 'Aucun étudiant absent ou en retard trouvé pour l\'exportation');
+      return;
+    }
+
+    this.isExporting = true;
+    this.exportFormat = format;
+
+    try {
+      // Préparer les données pour l'export des absences
+      const exportData = this.prepareAbsencesExportData(absentStudents);
+      
+      if (format === 'csv') {
+        // Créer le contenu CSV
+        const csvContent = this.createAbsencesCSVContent(exportData);
+        this.downloadCSV(csvContent, this.generateAbsencesFileName('csv'));
+      } else if (format === 'excel') {
+        // Créer le fichier Excel
+        this.createAbsencesExcelFile(exportData);
+      }
+      
+      this.notificationService.success('Export des absences réussi', `La liste des absences a été exportée en ${format.toUpperCase()} avec succès`);
+    } catch (error) {
+      console.error('Erreur lors de l\'export des absences:', error);
+      this.notificationService.error('Erreur d\'export', 'Une erreur est survenue lors de l\'exportation des absences');
+    } finally {
+      this.isExporting = false;
+      this.exportFormat = null;
+    }
+  }
+
+  /**
+   * Prépare les données pour l'export des absences
+   */
+  private prepareAbsencesExportData(absentStudents: StudentAttendance[]): any[] {
+    return absentStudents.map(student => ({
+      nom: student.last_name,
+      prenom: student.first_name,
+      matricule: student.matricule,
+      email: student.email,
+      statut: student.status,
+      heure_pointage: student.punch_time ? this.formatDateTime(student.punch_time.time) : 'N/A',
+      appareil: student.punch_time ? student.punch_time.device : 'N/A',
+      promotion: student.promotion?.name || 'N/A',
+      groupe: student.group?.title || 'N/A',
+      option: student.option?.name || 'N/A',
+      etablissement: student.etablissement?.name || 'N/A',
+      ville: student.ville?.name || 'N/A'
+    }));
+  }
+
+  /**
+   * Crée le contenu CSV pour les absences
+   */
+  private createAbsencesCSVContent(data: any[]): string {
+    if (data.length === 0) return '';
+
+    // En-têtes
+    const headers = [
+      'Nom',
+      'Prénom',
+      'Matricule',
+      'Email',
+      'Statut',
+      'Heure de pointage',
+      'Appareil',
+      'Promotion',
+      'Groupe',
+      'Option',
+      'Établissement',
+      'Ville'
+    ];
+
+    // Informations de l'examen
+    const examDetails = [
+      `Examen du ${this.formatDate(this.examDate)}`,
+      `Heure début: ${this.formatTime(this.examStartTime)}`,
+      `Heure fin: ${this.formatTime(this.examEndTime)}`,
+      `Tolérance: ${this.examTolerance} minutes`,
+      `Salle: ${this.examSalle}`,
+      `Total étudiants: ${this.totalStudents}`,
+      `Présents: ${this.presents}`,
+      `En retard: ${this.getLateStudentsCount()}`,
+      `Absents: ${this.absents}`,
+      `Absences exportées: ${data.length}`,
+      '',
+      ''
+    ];
+
+    // Créer le contenu CSV
+    let csvContent = '';
+    
+    // Ajouter les informations de l'examen
+    csvContent += 'LISTE DES ABSENCES - INFORMATIONS DE L\'EXAMEN\n';
+    examDetails.forEach((detail, index) => {
+      if (detail) {
+        csvContent += `"${detail}"`;
+        if (index < examDetails.length - 1) csvContent += ',';
+      } else {
+        csvContent += ',';
+      }
+    });
+    csvContent += '\n\n';
+
+    // Ajouter les en-têtes
+    csvContent += headers.join(',') + '\n';
+
+    // Ajouter les données
+    data.forEach(row => {
+      const values = [
+        `"${row.nom}"`,
+        `"${row.prenom}"`,
+        `"${row.matricule}"`,
+        `"${row.email}"`,
+        `"${row.statut}"`,
+        `"${row.heure_pointage}"`,
+        `"${row.appareil}"`,
+        `"${row.promotion}"`,
+        `"${row.groupe}"`,
+        `"${row.option}"`,
+        `"${row.etablissement}"`,
+        `"${row.ville}"`
+      ];
+      csvContent += values.join(',') + '\n';
+    });
+
+    return csvContent;
+  }
+
+  /**
+   * Génère le nom du fichier pour les absences
+   */
+  private generateAbsencesFileName(format: 'csv' | 'excel'): string {
+    const date = this.formatDate(this.examDate).replace(/\//g, '-');
+    const time = this.formatTime(this.examStartTime).replace(/:/g, '-');
+    const extension = format === 'excel' ? 'xlsx' : 'csv';
+    return `absences_${date}_${time}.${extension}`;
+  }
+
+  /**
+   * Crée un fichier Excel avec les données des absences
+   */
+  private createAbsencesExcelFile(data: any[]): void {
+    // Créer un nouveau workbook
+    const wb = XLSX.utils.book_new();
+    
+    // Ajouter la feuille d'informations de l'examen
+    this.addExamInfoSheet(wb);
+    
+    // Ajouter la feuille principale avec les données des absences
+    this.addAbsencesDataSheet(wb, data);
+    
+    // Ajouter la feuille de statistiques des absences
+    this.addAbsencesStatisticsSheet(wb);
+    
+    // Télécharger le fichier Excel
+    XLSX.writeFile(wb, this.generateAbsencesFileName('excel'));
+  }
+
+  /**
+   * Ajoute la feuille principale avec les données des absences
+   */
+  private addAbsencesDataSheet(wb: XLSX.WorkBook, data: any[]): void {
+    const headers = [
+      'Nom', 'Prénom', 'Matricule', 'Email', 'Statut', 
+      'Heure de pointage', 'Appareil', 'Promotion', 'Groupe', 
+      'Option', 'Établissement', 'Ville'
+    ];
+
+    const sheetData = [headers, ...data.map(row => [
+      row.nom, row.prenom, row.matricule, row.email, row.statut,
+      row.heure_pointage, row.appareil, row.promotion, row.groupe,
+      row.option, row.etablissement, row.ville
+    ])];
+
+    const ws = XLSX.utils.aoa_to_sheet(sheetData);
+    
+    // Styliser la feuille
+    ws['!cols'] = [
+      { wch: 15 }, // Nom
+      { wch: 15 }, // Prénom
+      { wch: 12 }, // Matricule
+      { wch: 25 }, // Email
+      { wch: 12 }, // Statut
+      { wch: 20 }, // Heure de pointage
+      { wch: 15 }, // Appareil
+      { wch: 15 }, // Promotion
+      { wch: 15 }, // Groupe
+      { wch: 20 }, // Option
+      { wch: 20 }, // Établissement
+      { wch: 15 }  // Ville
+    ];
+    
+    XLSX.utils.book_append_sheet(wb, ws, 'Liste des absences');
+  }
+
+  /**
+   * Ajoute une feuille de statistiques des absences
+   */
+  private addAbsencesStatisticsSheet(wb: XLSX.WorkBook): void {
+    const absentStudents = this.getAbsentAndLateStudents();
+    const lateStudents = absentStudents.filter(s => s.status === 'en retard');
+    const absentStudentsOnly = absentStudents.filter(s => s.status === 'absent');
+    
+    const statsData = [
+      ['STATISTIQUES DES ABSENCES'],
+      [''],
+      ['Par statut'],
+      ['Absents', absentStudentsOnly.length],
+      ['En retard', lateStudents.length],
+      ['Total absences', absentStudents.length],
+      [''],
+      ['Pourcentages'],
+      ['Absents', `${((absentStudentsOnly.length / this.totalStudents) * 100).toFixed(1)}%`],
+      ['En retard', `${((lateStudents.length / this.totalStudents) * 100).toFixed(1)}%`],
+      ['Total absences', `${((absentStudents.length / this.totalStudents) * 100).toFixed(1)}%`],
+      [''],
+      ['Détails de l\'examen'],
+      ['Date', this.formatDate(this.examDate)],
+      ['Heure début', this.formatTime(this.examStartTime)],
+      ['Heure fin', this.formatTime(this.examEndTime)],
+      ['Tolérance', `${this.examTolerance} minutes`],
+      ['Salle', this.examSalle]
+    ];
+
+    const ws = XLSX.utils.aoa_to_sheet(statsData);
+    
+    // Styliser la feuille
+    ws['!cols'] = [
+      { wch: 25 }, // Colonne 1
+      { wch: 20 }  // Colonne 2
+    ];
+    
+    XLSX.utils.book_append_sheet(wb, ws, 'Statistiques des absences');
+  }
+
 
   /**
    * Vérifier si un étudiant correspond au filtre alphabétique
