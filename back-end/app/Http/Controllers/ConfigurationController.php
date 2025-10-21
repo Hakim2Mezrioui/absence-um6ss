@@ -90,6 +90,84 @@ class ConfigurationController extends Controller
     }
 
     /**
+     * Get configuration for a specific ville
+     */
+    public function getConfigurationForVille($villeId): JsonResponse
+    {
+        return $this->configurationService->getConfigurationForVille($villeId);
+    }
+
+    /**
+     * Get configuration for a cours (based on cours ville)
+     */
+    public function getConfigurationForCours($coursId): JsonResponse
+    {
+        return $this->configurationService->getConfigurationForCours($coursId);
+    }
+
+    /**
+     * Get configuration for an examen (based on examen ville)
+     */
+    public function getConfigurationForExamen($examenId): JsonResponse
+    {
+        return $this->configurationService->getConfigurationForExamen($examenId);
+    }
+
+    /**
+     * Get connection configuration for a specific ville
+     */
+    public function getConnectionConfigForVille($villeId): JsonResponse
+    {
+        $config = $this->configurationService->getConnectionConfigForVille($villeId);
+        
+        if (isset($config['error'])) {
+            return response()->json($config, 404);
+        }
+        
+        return response()->json([
+            'success' => true,
+            'data' => $config,
+            'message' => 'Connection configuration retrieved successfully'
+        ]);
+    }
+
+    /**
+     * Get connection configuration for a cours
+     */
+    public function getConnectionConfigForCours($coursId): JsonResponse
+    {
+        $config = $this->configurationService->getConnectionConfigForCours($coursId);
+        
+        if (isset($config['error'])) {
+            return response()->json($config, 404);
+        }
+        
+        return response()->json([
+            'success' => true,
+            'data' => $config,
+            'message' => 'Connection configuration retrieved successfully for cours'
+        ]);
+    }
+
+    /**
+     * Get connection configuration for an examen
+     */
+    public function getConnectionConfigForExamen($examenId): JsonResponse
+    {
+        $config = $this->configurationService->getConnectionConfigForExamen($examenId);
+        
+        if (isset($config['error'])) {
+            return response()->json($config, 404);
+        }
+        
+        return response()->json([
+            'success' => true,
+            'data' => $config,
+            'message' => 'Connection configuration retrieved successfully for examen'
+        ]);
+    }
+
+    /**
      * Get villes for dropdown
      */
     public function getVilles(): JsonResponse

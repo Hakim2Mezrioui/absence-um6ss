@@ -10,6 +10,8 @@ import { CoursService, Cours } from '../../services/cours.service';
 import { CoursAttendanceService, CoursAttendanceData } from '../../services/cours-attendance.service';
 import { NotificationService } from '../../services/notification.service';
 import { AttendanceStateService } from '../../services/attendance-state.service';
+import { ConfigurationAutoService } from '../../services/configuration-auto.service';
+import { BiostarAttendanceService } from '../../services/biostar-attendance.service';
 import { AttendanceStateModalComponent } from '../attendance-state-modal/attendance-state-modal.component';
 
 
@@ -108,6 +110,8 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     private coursAttendanceService: CoursAttendanceService,
     private notificationService: NotificationService,
     private attendanceStateService: AttendanceStateService,
+    private configurationAutoService: ConfigurationAutoService,
+    private biostarAttendanceService: BiostarAttendanceService,
     private fb: FormBuilder,
     private route: ActivatedRoute
   ) {}
@@ -117,6 +121,10 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
       this.coursId = +params['id'];
       if (this.coursId) {
+        // Auto-sélectionner la configuration pour ce cours
+        this.autoSelectConfigurationForCours();
+        
+        // Charger les données d'attendance
         this.loadAttendanceData();
       }
     });
@@ -125,6 +133,133 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  /**
+   * Auto-sélectionner la configuration pour le cours actuel
+   */
+  autoSelectConfigurationForCours(): void {
+    if (!this.coursId) return;
+
+    console.log('🔄 Auto-sélection de la configuration pour le cours ID:', this.coursId);
+    
+    this.configurationAutoService.autoSelectConfigurationForCours(this.coursId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          console.log('✅ Configuration auto-sélectionnée avec succès:', response);
+          this.notificationService.success(
+            'Configuration chargée', 
+            `Configuration Biostar chargée pour la ville: ${response.data.ville?.name || 'Inconnue'}`
+          );
+          
+          // Récupérer les données de pointage depuis Biostar
+          this.loadBiostarAttendanceData();
+        },
+        error: (error) => {
+          console.warn('⚠️ Aucune configuration trouvée pour ce cours:', error);
+          this.notificationService.warning(
+            'Configuration manquante', 
+            'Aucune configuration Biostar trouvée pour la ville de ce cours. Les données de pointage ne seront pas disponibles.'
+          );
+        }
+      });
+  }
+
+  /**
+   * Charger les données de pointage depuis Biostar
+   */
+  loadBiostarAttendanceData(): void {
+    if (!this.coursId || !this.coursData?.cours) return;
+
+    console.log('🔄 Chargement des données de pointage depuis Biostar pour le cours:', this.coursId);
+    
+    const request = {
+      cours_id: this.coursId,
+      date: this.coursData.cours.date,
+      start_time: this.coursData.cours.pointage_start_hour,
+      end_time: this.coursData.cours.heure_fin
+    };
+
+    this.biostarAttendanceService.syncCoursAttendanceWithBiostar(
+      this.coursId,
+      this.coursData.cours.date,
+      this.coursData.cours.pointage_start_hour,
+      this.coursData.cours.heure_fin
+    ).pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (response) => {
+        console.log('✅ Données de pointage Biostar récupérées:', response);
+        
+        if (response.success && response.data) {
+          // Intégrer les données de pointage avec les étudiants
+          this.integrateBiostarDataWithStudents(response.data);
+          
+          this.notificationService.success(
+            'Données de pointage chargées', 
+            `${response.data.total_punches} pointage(s) récupéré(s) depuis Biostar`
+          );
+        }
+      },
+      error: (error) => {
+        console.warn('⚠️ Erreur lors de la récupération des données Biostar:', error);
+        this.notificationService.warning(
+          'Données de pointage indisponibles', 
+          'Impossible de récupérer les données de pointage depuis Biostar. Vérifiez la configuration.'
+        );
+      }
+    });
+  }
+
+  /**
+   * Intégrer les données de pointage Biostar avec les étudiants
+   */
+  integrateBiostarDataWithStudents(biostarData: any): void {
+    if (!biostarData.punches || !this.students) return;
+
+    console.log('🔄 Intégration des données Biostar avec les étudiants');
+
+    // Créer un map des pointages par student_id
+    const punchMap = new Map();
+    biostarData.punches.forEach((punch: any) => {
+      if (!punchMap.has(punch.student_id)) {
+        punchMap.set(punch.student_id, []);
+      }
+      punchMap.get(punch.student_id).push(punch);
+    });
+
+    // Mettre à jour les étudiants avec leurs données de pointage
+    this.students.forEach(student => {
+      const studentPunches = punchMap.get(student.matricule);
+      if (studentPunches && studentPunches.length > 0) {
+        // Prendre le premier pointage (le plus tôt)
+        const firstPunch = studentPunches[0];
+        student.punch_time = {
+          time: firstPunch.punch_time,
+          device: firstPunch.device || firstPunch.device_name || 'Inconnu'
+        };
+        
+        // Recalculer le statut avec les nouvelles données
+        if (student.punch_time) {
+          const punchTime = new Date(student.punch_time.time);
+          student.status = this.calculateStudentStatus(punchTime);
+        }
+      }
+    });
+
+    // Recalculer les statistiques
+    this.updateStatistics({
+      total_students: this.students.length,
+      presents: this.students.filter(s => s.status === 'présent').length,
+      absents: this.students.filter(s => s.status === 'absent').length,
+      lates: this.students.filter(s => s.status === 'en retard').length,
+      excused: this.students.filter(s => s.status === 'excusé').length
+    });
+
+    // Mettre à jour les étudiants filtrés
+    this.filteredStudents = [...this.students];
+    
+    console.log('✅ Données Biostar intégrées avec succès');
   }
 
   /**

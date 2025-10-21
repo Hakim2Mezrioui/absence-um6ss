@@ -18,10 +18,11 @@ use App\Http\Controllers\PromotionController;
 use App\Http\Controllers\TypeCoursController;
 use App\Http\Controllers\AbsenceController;
 use App\Http\Controllers\TypeExamenController;
+use App\Http\Controllers\ConfigurationController;
+use App\Http\Controllers\BiostarAttendanceController;
 use App\Http\Controllers\ListStudentController;
 use App\Http\Controllers\StatisticController;
 use App\Http\Controllers\AbsenceAutoController;
-use App\Http\Controllers\ConfigurationController;
 use App\Http\Controllers\AttendanceStateController;
 use App\Http\Controllers\EnseignantController;
 
@@ -57,6 +58,21 @@ Route::put('configuration/{id}', [ConfigurationController::class, 'update']);
 Route::delete('configuration/{id}', [ConfigurationController::class, 'destroy']);
 Route::post('configuration/test-connection', [ConfigurationController::class, 'testConnection']);
 Route::get('configuration/villes', [ConfigurationController::class, 'getVilles']);
+
+// Auto-selection routes for configuration based on ville
+Route::get('configuration/for-ville/{villeId}', [ConfigurationController::class, 'getConfigurationForVille']);
+Route::get('configuration/for-cours/{coursId}', [ConfigurationController::class, 'getConfigurationForCours']);
+Route::get('configuration/for-examen/{examenId}', [ConfigurationController::class, 'getConfigurationForExamen']);
+Route::get('configuration/connection/for-ville/{villeId}', [ConfigurationController::class, 'getConnectionConfigForVille']);
+Route::get('configuration/connection/for-cours/{coursId}', [ConfigurationController::class, 'getConnectionConfigForCours']);
+Route::get('configuration/connection/for-examen/{examenId}', [ConfigurationController::class, 'getConnectionConfigForExamen']);
+
+// Biostar attendance routes
+Route::get('biostar-attendance/cours', [BiostarAttendanceController::class, 'getCoursAttendance']);
+Route::get('biostar-attendance/examen', [BiostarAttendanceController::class, 'getExamenAttendance']);
+Route::get('biostar-attendance/ville', [BiostarAttendanceController::class, 'getAttendanceByVille']);
+Route::get('biostar-attendance/test-connection', [BiostarAttendanceController::class, 'testConnection']);
+Route::get('biostar-attendance/statistics', [BiostarAttendanceController::class, 'getStatistics']);
 
 // Routes spéciales pour les étudiants (AVANT les ressources)
 Route::post("import-etudiants", [EtudiantController::class, "ImportEtudiants"]);
