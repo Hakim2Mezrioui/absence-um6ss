@@ -259,3 +259,1042 @@
   visibility: visible;
   opacity: 1;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ✨ HEADER SIMPLE & ÉLÉGANT - Design Minimaliste
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.header-elegant {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08),
+              0 1px 2px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e5e7eb;
+  overflow: visible;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   📝 SECTION TITRE (EN HAUT)
+   ───────────────────────────────────────────────────────────────────────── */
+
+.title-section {
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.icon-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: #3b82f6;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.icon-badge .material-icons {
+  font-size: 28px;
+  color: #ffffff;
+}
+
+.main-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 0.9375rem;
+  color: #6b7280;
+  margin: 2px 0 0 0;
+  font-weight: 500;
+}
+
+.description {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.description .material-icons {
+  font-size: 16px;
+  color: #9ca3af;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   🎯 SECTION ACTIONS FULL WIDTH (EN BAS)
+   ───────────────────────────────────────────────────────────────────────── */
+
+.actions-section-full {
+  width: 100%;
+  overflow: visible;
+}
+
+.info-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 0.875rem;
+  color: #1e40af;
+}
+
+.info-badge .material-icons {
+  font-size: 18px;
+  color: #3b82f6;
+}
+
+.info-badge strong {
+  font-weight: 700;
+  color: #1e3a8a;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   📋 GRILLE D'ACTIONS FULL WIDTH
+   ───────────────────────────────────────────────────────────────────────── */
+
+.actions-grid-full {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  width: 100%;
+  overflow: visible;
+}
+
+.action-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: visible;
+}
+
+.group-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #6b7280;
+  padding: 0 4px;
+}
+
+.group-label .material-icons {
+  font-size: 14px;
+  color: #9ca3af;
+}
+
+.btn-group-full {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  position: relative;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   🔘 BOUTONS SIMPLES & ÉLÉGANTS (FULL WIDTH)
+   ───────────────────────────────────────────────────────────────────────── */
+
+.btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  width: 100%;
+  min-height: 42px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.2;
+  border-radius: 8px;
+  border: 1px solid;
+  cursor: pointer;
+  transition: all 150ms ease;
+  white-space: nowrap;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+.btn .material-icons {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.btn:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.btn:active:not([disabled]) {
+  transform: scale(0.98);
+}
+
+/* Réinitialisation - plus besoin de ces classes */
+
+/* Vert */
+.btn-green {
+  background: #10b981;
+  border-color: #059669;
+  color: #ffffff;
+}
+
+.btn-green:hover:not([disabled]) {
+  background: #059669;
+  border-color: #047857;
+}
+
+/* Bleu */
+.btn-blue {
+  background: #3b82f6;
+  border-color: #2563eb;
+  color: #ffffff;
+}
+
+.btn-blue:hover:not([disabled]) {
+  background: #2563eb;
+  border-color: #1d4ed8;
+}
+
+/* Orange */
+.btn-orange {
+  background: #f59e0b;
+  border-color: #d97706;
+  color: #ffffff;
+}
+
+.btn-orange:hover:not([disabled]) {
+  background: #d97706;
+  border-color: #b45309;
+}
+
+/* Rouge */
+.btn-red {
+  background: #ef4444;
+  border-color: #dc2626;
+  color: #ffffff;
+}
+
+.btn-red:hover:not([disabled]) {
+  background: #dc2626;
+  border-color: #b91c1c;
+}
+
+/* Violet */
+.btn-purple {
+  background: #ffffff;
+  border-color: #a78bfa;
+  color: #7c3aed;
+}
+
+.btn-purple:hover:not([disabled]) {
+  background: #f5f3ff;
+  border-color: #8b5cf6;
+}
+
+.btn-purple-active {
+  background: #8b5cf6;
+  border-color: #7c3aed;
+  color: #ffffff;
+}
+
+.btn-purple-active:hover {
+  background: #7c3aed;
+  border-color: #6d28d9;
+}
+
+/* Gris */
+.btn-gray {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  color: #374151;
+}
+
+.btn-gray:hover:not([disabled]) {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+/* État désactivé */
+.btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   🔔 BADGE DE COMPTAGE OPTIMISÉ
+   ───────────────────────────────────────────────────────────────────────── */
+
+.badge-count {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  color: #ffffff;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  line-height: 1;
+  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25),
+              0 1px 3px rgba(0, 0, 0, 0.15);
+  letter-spacing: -0.01em;
+  z-index: 10;
+  pointer-events: none;
+}
+
+@keyframes badge-bounce {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   ⏳ ANIMATION LOADING
+   ───────────────────────────────────────────────────────────────────────── */
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   📱 RESPONSIVE
+   ───────────────────────────────────────────────────────────────────────── */
+
+@media (max-width: 1024px) {
+  .actions-grid-full {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-elegant {
+    padding: 20px;
+  }
+
+  .title-section {
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+  }
+
+  .title-wrapper {
+    gap: 12px;
+  }
+
+  .icon-badge {
+    width: 44px;
+    height: 44px;
+  }
+
+  .icon-badge .material-icons {
+    font-size: 26px;
+  }
+
+  .main-title {
+    font-size: 1.5rem;
+  }
+
+  .subtitle {
+    font-size: 0.875rem;
+  }
+
+  .actions-grid-full {
+    gap: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .header-elegant {
+    padding: 16px;
+  }
+
+  .icon-badge {
+    width: 40px;
+    height: 40px;
+  }
+
+  .icon-badge .material-icons {
+    font-size: 24px;
+  }
+
+  .main-title {
+    font-size: 1.375rem;
+  }
+
+  .btn {
+    padding: 12px 16px;
+    font-size: 0.9375rem;
+  }
+
+  .badge-count {
+    min-width: 32px;
+    height: 32px;
+    font-size: 0.875rem;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ANCIENS STYLES - Compatibilité
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─────────────────────────────────────────────────────────────────────────
+   📦 CONTENEUR PRINCIPAL
+   ───────────────────────────────────────────────────────────────────────── */
+
+.elegant-actions-container {
+  background: linear-gradient(135deg, #fafbfc 0%, #f8f9fa 100%);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 
+              0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  min-width: 380px;
+  backdrop-filter: blur(10px);
+  transition: all 200ms ease-out;
+}
+
+.elegant-actions-container:hover {
+  box-shadow: 0 6px 12px -2px rgba(0, 0, 0, 0.08), 
+              0 4px 6px -2px rgba(0, 0, 0, 0.06);
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .elegant-actions-container {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border-color: rgba(71, 85, 105, 0.5);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   🏷️ INFO BADGE
+   ───────────────────────────────────────────────────────────────────────── */
+
+.info-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+  color: #4f46e5;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border-radius: 9999px;
+  border: 1px solid #c7d2fe;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 2px rgba(79, 70, 229, 0.08);
+  transition: all 200ms ease-out;
+}
+
+.info-badge:hover {
+  background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(79, 70, 229, 0.12);
+}
+
+.info-badge .material-icons {
+  font-size: 16px;
+}
+
+.info-badge strong {
+  font-weight: 700;
+  color: #3730a3;
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .info-badge {
+    background: linear-gradient(135deg, #312e81 0%, #1e1b4b 100%);
+    color: #a5b4fc;
+    border-color: #4338ca;
+  }
+  
+  .info-badge strong {
+    color: #c7d2fe;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   📁 STRUCTURE DES GROUPES
+   ───────────────────────────────────────────────────────────────────────── */
+
+.actions-groups-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.action-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.group-title {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #64748b;
+  padding-left: 4px;
+  opacity: 0.9;
+}
+
+@media (prefers-color-scheme: dark) {
+  .group-title {
+    color: #94a3b8;
+  }
+}
+
+.buttons-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   🎯 BASE BUTTON STYLES
+   ───────────────────────────────────────────────────────────────────────── */
+
+button[class*="btn-"] {
+  /* Layout */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  
+  /* Spacing */
+  padding: 12px 24px;
+  
+  /* Typography */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', 'Roboto', 'Helvetica Neue', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  
+  /* Visual */
+  border-radius: 12px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  user-select: none;
+  
+  /* Transitions */
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Effects */
+  position: relative;
+  overflow: hidden;
+}
+
+button[class*="btn-"]:focus-visible {
+  outline: 3px solid rgba(59, 130, 246, 0.5);
+  outline-offset: 2px;
+}
+
+button[class*="btn-"] .material-icons {
+  font-size: 19px;
+  transition: transform 200ms ease-out;
+}
+
+button[class*="btn-"]:hover .material-icons:not(.icon-spinning) {
+  transform: scale(1.1);
+}
+
+.btn-text {
+  font-weight: 600;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   ✨ VARIANTE 1: BOUTON PRINCIPAL REMPLI (Primary Filled)
+   ───────────────────────────────────────────────────────────────────────── */
+
+.btn-primary-filled {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.15),
+              0 1px 2px rgba(16, 185, 129, 0.1);
+}
+
+.btn-primary-filled:hover:not(.btn-disabled) {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(16, 185, 129, 0.25),
+              0 3px 6px rgba(16, 185, 129, 0.15);
+}
+
+.btn-primary-filled:active:not(.btn-disabled) {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(16, 185, 129, 0.2);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   📝 VARIANTE 2: BOUTON SECONDAIRE CONTOUR (Primary Outlined)
+   ───────────────────────────────────────────────────────────────────────── */
+
+.btn-primary-outlined {
+  background: rgba(16, 185, 129, 0.04);
+  color: #059669;
+  border-color: rgba(16, 185, 129, 0.3);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.btn-primary-outlined:hover:not(.btn-disabled) {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.5);
+  color: #047857;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.15);
+}
+
+.btn-primary-outlined:active:not(.btn-disabled) {
+  transform: translateY(0);
+  background: rgba(16, 185, 129, 0.15);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   ⚠️ VARIANTE 3: BOUTON WARNING REMPLI
+   ───────────────────────────────────────────────────────────────────────── */
+
+.btn-warning-filled {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 2px 4px rgba(245, 158, 11, 0.15),
+              0 1px 2px rgba(245, 158, 11, 0.1);
+  position: relative;
+}
+
+.btn-warning-filled:hover:not(.btn-disabled) {
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(245, 158, 11, 0.25),
+              0 3px 6px rgba(245, 158, 11, 0.15);
+}
+
+.btn-warning-filled:active:not(.btn-disabled) {
+  transform: translateY(0);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   ❌ VARIANTE 4: BOUTON DANGER REMPLI
+   ───────────────────────────────────────────────────────────────────────── */
+
+.btn-danger-filled {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.15),
+              0 1px 2px rgba(239, 68, 68, 0.1);
+}
+
+.btn-danger-filled:hover:not(.btn-disabled) {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(239, 68, 68, 0.25),
+              0 3px 6px rgba(239, 68, 68, 0.15);
+}
+
+.btn-danger-filled:active:not(.btn-disabled) {
+  transform: translateY(0);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   🎨 VARIANTE 5: BOUTON ACCENT REMPLI
+   ───────────────────────────────────────────────────────────────────────── */
+
+.btn-accent-filled {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 2px 4px rgba(139, 92, 246, 0.15),
+              0 1px 2px rgba(139, 92, 246, 0.1),
+              0 0 0 0 rgba(139, 92, 246, 0.4);
+  animation: pulse-accent 2s ease-in-out infinite;
+}
+
+@keyframes pulse-accent {
+  0%, 100% {
+    box-shadow: 0 2px 4px rgba(139, 92, 246, 0.15),
+                0 1px 2px rgba(139, 92, 246, 0.1),
+                0 0 0 0 rgba(139, 92, 246, 0.4);
+  }
+  50% {
+    box-shadow: 0 2px 4px rgba(139, 92, 246, 0.15),
+                0 1px 2px rgba(139, 92, 246, 0.1),
+                0 0 0 8px rgba(139, 92, 246, 0);
+  }
+}
+
+.btn-accent-filled:hover {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(139, 92, 246, 0.3),
+              0 3px 6px rgba(139, 92, 246, 0.2);
+  animation: none;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   🎨 VARIANTE 6: BOUTON ACCENT CONTOUR
+   ───────────────────────────────────────────────────────────────────────── */
+
+.btn-accent-outlined {
+  background: rgba(139, 92, 246, 0.04);
+  color: #7c3aed;
+  border-color: rgba(139, 92, 246, 0.3);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.btn-accent-outlined:hover:not(.btn-disabled) {
+  background: rgba(139, 92, 246, 0.1);
+  border-color: rgba(139, 92, 246, 0.5);
+  color: #6d28d9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(139, 92, 246, 0.15);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   👻 VARIANTE 7: BOUTON GHOST/TEXTE (fond transparent)
+   ───────────────────────────────────────────────────────────────────────── */
+
+.btn-ghost {
+  background: transparent;
+  color: #64748b;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.btn-ghost:hover:not(.btn-disabled) {
+  background: rgba(100, 116, 139, 0.08);
+  color: #475569;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(100, 116, 139, 0.1);
+}
+
+.btn-ghost:active:not(.btn-disabled) {
+  background: rgba(100, 116, 139, 0.12);
+  transform: translateY(0);
+}
+
+@media (prefers-color-scheme: dark) {
+  .btn-ghost {
+    color: #94a3b8;
+  }
+  
+  .btn-ghost:hover:not(.btn-disabled) {
+    background: rgba(148, 163, 184, 0.1);
+    color: #cbd5e1;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   🚫 ÉTAT DÉSACTIVÉ
+   ───────────────────────────────────────────────────────────────────────── */
+
+.btn-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+  filter: grayscale(20%);
+}
+
+button[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   ⏳ ÉTAT CHARGEMENT
+   ───────────────────────────────────────────────────────────────────────── */
+
+.btn-loading {
+  opacity: 0.85;
+  cursor: wait;
+}
+
+.icon-spinning {
+  animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   🔔 BADGE DE NOTIFICATION
+   ───────────────────────────────────────────────────────────────────────── */
+
+.badge-notification {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  color: #1e293b;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  line-height: 1;
+  border-radius: 11px;
+  border: 2px solid currentColor;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15),
+              0 0 0 4px rgba(255, 255, 255, 0.3);
+  animation: badge-appear 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes badge-appear {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   📱 RESPONSIVE
+   ───────────────────────────────────────────────────────────────────────── */
+
+@media (max-width: 1024px) {
+  .elegant-actions-container {
+    min-width: auto;
+    width: 100%;
+    padding: 16px;
+  }
+
+  .actions-groups-wrapper {
+    gap: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  button[class*="btn-"] {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .buttons-row {
+    flex-direction: column;
+    width: 100%;
+  }
+}
+
+/* Anciens styles - conservés pour compatibilité si besoin */
+.action-button-primary {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border: none;
+  color: white;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 1px 2px rgba(16, 185, 129, 0.2);
+}
+
+.action-button-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+}
+
+.action-button-secondary {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border: none;
+  color: white;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 1px 2px rgba(59, 130, 246, 0.2);
+}
+
+.action-button-secondary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+}
+
+.action-button-warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  border: none;
+  color: white;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 1px 2px rgba(245, 158, 11, 0.2);
+}
+
+.action-button-warning:hover:not(:disabled) {
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
+}
+
+.action-button-danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border: none;
+  color: white;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 1px 2px rgba(239, 68, 68, 0.2);
+}
+
+.action-button-danger:hover:not(:disabled) {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+}
+
+.action-button-purple {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  border: none;
+  color: white;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 1px 2px rgba(139, 92, 246, 0.2);
+}
+
+.action-button-purple:hover:not(:disabled) {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(139, 92, 246, 0.3);
+}
+
+.action-button-gray {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  border: none;
+  color: white;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 1px 2px rgba(107, 114, 128, 0.2);
+}
+
+.action-button-gray:hover:not(:disabled) {
+  background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(107, 114, 128, 0.3);
+}
+
+.action-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.action-count-badge {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  font-weight: 600;
+  font-size: 0.75rem;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+}
+
+.context-info {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  font-weight: 500;
+}
+
+/* Animations pour les boutons */
+@keyframes buttonPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+}
+
+.action-button-loading {
+  animation: buttonPulse 2s infinite;
+}
+
+/* Responsive design pour la barre d'actions */
+@media (max-width: 1024px) {
+  .action-group-separator {
+    display: none;
+  }
+  
+  .action-bar {
+    padding: 0.75rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .action-bar {
+    padding: 0.5rem;
+  }
+  
+  .action-group {
+    margin-bottom: 0.75rem;
+  }
+  
+  .action-group:last-child {
+    margin-bottom: 0;
+  }
+}

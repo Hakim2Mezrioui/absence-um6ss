@@ -135,6 +135,7 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+
   /**
    * Auto-sélectionner la configuration pour le cours actuel
    */
@@ -276,6 +277,10 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data) => {
+          console.log('📥 Données reçues de l\'API:', data);
+          console.log('📊 Statistiques reçues:', data.statistics);
+          console.log('👥 Nombre d\'étudiants:', data.students?.length || 0);
+          
           // Appliquer le calcul automatique du statut temporel
           if (data.cours) {
             data.cours.statut_temporel = this.coursService.calculateStatutTemporel(data.cours);
@@ -287,7 +292,7 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
           this.applyToleranceLogic();
           
           this.filteredStudents = [...this.students];
-          this.updateStatistics(data.statistics);
+          // Ne pas appeler updateStatistics ici car applyToleranceLogic() recalcule déjà les stats
           this.updatePromotionOptions();
           this.loading = false;
           
@@ -401,8 +406,11 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
       };
 
       this.students = this.coursData.students;
+      
+      // Appliquer la logique de tolérance même pour les données simulées
+      this.applyToleranceLogic();
+      
       this.filteredStudents = [...this.students];
-      this.updateStatistics(this.coursData.statistics);
       this.updatePromotionOptions();
       this.loading = false;
     }, 1000);
@@ -475,6 +483,19 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     console.log(`   Présents: ${this.presents}`);
     console.log(`   En retard: ${this.lates}`);
     console.log(`   Absents: ${this.absents}`);
+    console.log(`   Total étudiants: ${this.totalStudents}`);
+    
+    // Vérifier que les statistiques sont cohérentes
+    const actualPresents = this.students.filter(s => s.status === 'present').length;
+    const actualLates = this.students.filter(s => s.status === 'late').length;
+    const actualAbsents = this.students.filter(s => s.status === 'absent').length;
+    const actualExcused = this.students.filter(s => s.status === 'excused').length;
+    
+    console.log(`\n🔍 VÉRIFICATION DES STATISTIQUES:`);
+    console.log(`   Présents calculés: ${actualPresents} (attendu: ${this.presents})`);
+    console.log(`   En retard calculés: ${actualLates} (attendu: ${this.lates})`);
+    console.log(`   Absents calculés: ${actualAbsents} (attendu: ${this.absents})`);
+    console.log(`   Excusés calculés: ${actualExcused} (attendu: ${this.excused})`);
     
     // Mettre à jour les étudiants filtrés
     this.filteredStudents = [...this.students];
@@ -1039,8 +1060,10 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
    * Actualiser les données
    */
   refreshData(): void {
+    console.log('🔄 Actualisation des données...');
     this.loadAttendanceData();
   }
+
 
   /**
    * Obtenir le statut traduit
@@ -1734,7 +1757,7 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
    * Obtient la liste des étudiants absents et en retard
    */
   getAbsentAndLateStudents(): any[] {
-    return this.students.filter(s => s.status === 'absent' || s.status === 'late');
+    return this.filteredStudents.filter(s => s.status === 'absent' || s.status === 'late');
   }
 
   /**

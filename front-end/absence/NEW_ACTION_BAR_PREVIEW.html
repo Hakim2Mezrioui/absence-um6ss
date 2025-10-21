@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nouvelle Barre d'Actions - Aperçu</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .demo-container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #111827;
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            margin-bottom: 30px;
+            font-size: 0.875rem;
+        }
+
+        /* === BARRE D'ACTIONS === */
+        .actions-container {
+            background: #ffffff;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .context-info-compact {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-bottom: 12px;
+            padding: 6px 10px;
+            background: #f9fafb;
+            border-radius: 6px;
+            border-left: 3px solid #3b82f6;
+        }
+
+        .context-info-compact .material-icons {
+            font-size: 14px;
+            color: #3b82f6;
+        }
+
+        .context-info-compact strong {
+            color: #111827;
+            font-weight: 600;
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .actions-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .group-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #9ca3af;
+            padding: 0 4px;
+            margin-bottom: 2px;
+        }
+
+        .group-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 12px;
+            font-size: 0.813rem;
+            font-weight: 500;
+            border-radius: 8px;
+            border: 1.5px solid;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            position: relative;
+        }
+
+        button .material-icons {
+            font-size: 16px;
+        }
+
+        .btn-csv {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border-color: #059669;
+            color: white;
+        }
+
+        .btn-csv:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn-excel {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            border-color: #2563eb;
+            color: white;
+        }
+
+        .btn-excel:hover {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn-csv-absence {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            border-color: #d97706;
+            color: white;
+        }
+
+        .btn-csv-absence:hover {
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn-excel-absence {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            border-color: #dc2626;
+            color: white;
+        }
+
+        .btn-excel-absence:hover {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn-modifier {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            border-color: #7c3aed;
+            color: white;
+        }
+
+        .btn-modifier:hover {
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn-refresh {
+            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+            border-color: #4b5563;
+            color: white;
+        }
+
+        .btn-refresh:hover {
+            background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+            box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .badge-count {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: #ffffff;
+            color: #111827;
+            font-size: 0.688rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 10px;
+            border: 1.5px solid currentColor;
+            min-width: 20px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            text-align: center;
+            color: #6b7280;
+            font-size: 0.75rem;
+        }
+
+        .legend {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9fafb;
+            border-radius: 8px;
+            border-left: 3px solid #3b82f6;
+        }
+
+        .legend h3 {
+            font-size: 0.875rem;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+
+        .legend ul {
+            list-style: none;
+            font-size: 0.75rem;
+            color: #6b7280;
+            line-height: 1.6;
+        }
+
+        .legend li {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .color-box {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+
+        @media (max-width: 768px) {
+            .actions-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .group-buttons {
+                flex-direction: row;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <h1>🎨 Nouvelle Barre d'Actions</h1>
+        <p class="subtitle">Interface compacte et moderne pour la gestion des présences</p>
+
+        <div class="actions-container">
+            <div class="context-info-compact">
+                <span class="material-icons">info</span>
+                <span><strong>270</strong> étudiants à exporter</span>
+            </div>
+
+            <div class="actions-grid">
+                <!-- EXPORT -->
+                <div class="actions-group">
+                    <div class="group-label">EXPORT</div>
+                    <div class="group-buttons">
+                        <button class="btn-csv">
+                            <span class="material-icons">download</span>
+                            <span>CSV</span>
+                        </button>
+                        <button class="btn-excel">
+                            <span class="material-icons">table_chart</span>
+                            <span>Excel</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ABSENCES -->
+                <div class="actions-group">
+                    <div class="group-label">ABSENCES</div>
+                    <div class="group-buttons">
+                        <button class="btn-csv-absence">
+                            <span class="material-icons">person_off</span>
+                            <span>CSV</span>
+                            <span class="badge-count">269</span>
+                        </button>
+                        <button class="btn-excel-absence">
+                            <span class="material-icons">table_chart</span>
+                            <span>Excel</span>
+                            <span class="badge-count">269</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- GESTION -->
+                <div class="actions-group">
+                    <div class="group-label">GESTION</div>
+                    <div class="group-buttons">
+                        <button class="btn-modifier">
+                            <span class="material-icons">edit</span>
+                            <span>Modifier</span>
+                        </button>
+                        <button class="btn-refresh">
+                            <span class="material-icons">refresh</span>
+                            <span>Actualiser</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="legend">
+            <h3>📋 Légende des Couleurs</h3>
+            <ul>
+                <li><span class="color-box" style="background: #10b981;"></span> Export CSV - Données complètes</li>
+                <li><span class="color-box" style="background: #3b82f6;"></span> Export Excel - Format standard</li>
+                <li><span class="color-box" style="background: #f59e0b;"></span> Absences CSV - Attention requise</li>
+                <li><span class="color-box" style="background: #ef4444;"></span> Absences Excel - Problème à traiter</li>
+                <li><span class="color-box" style="background: #8b5cf6;"></span> Modifier - Action spéciale</li>
+                <li><span class="color-box" style="background: #6b7280;"></span> Actualiser - Action utilitaire</li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            <p>✨ Interface compacte, organisée et responsive</p>
+            <p>Survolez les boutons pour voir les effets d'interaction</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,14 +1,444 @@
-.loading-spinner {
+/* ═══════════════════════════════════════════════════════════════════════════
+   ✨ HEADER SIMPLE & ÉLÉGANT - Design Minimaliste
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.header-elegant {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08),
+              0 1px 2px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e5e7eb;
+  overflow: visible;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   📝 SECTION TITRE (EN HAUT)
+   ───────────────────────────────────────────────────────────────────────── */
+
+.title-section {
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.icon-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: #3b82f6;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.icon-badge .material-icons {
+  font-size: 28px;
+  color: #ffffff;
+}
+
+.main-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 0.9375rem;
+  color: #6b7280;
+  margin: 2px 0 0 0;
+  font-weight: 500;
+}
+
+.description {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0 0 12px 0;
+  line-height: 1.5;
+}
+
+.description .material-icons {
+  font-size: 16px;
+  color: #9ca3af;
+}
+
+/* Auto-refresh indicator */
+.auto-refresh-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-top: 8px;
+}
+
+.auto-refresh-indicator .material-icons {
+  font-size: 16px;
+  color: #9ca3af;
+}
+
+.auto-refresh-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: #d1fae5;
+  color: #065f46;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  background: #10b981;
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   🎯 SECTION ACTIONS FULL WIDTH (EN BAS)
+   ───────────────────────────────────────────────────────────────────────── */
+
+.actions-section-full {
+  width: 100%;
+  overflow: visible;
+}
+
+.info-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 0.875rem;
+  color: #1e40af;
+}
+
+.info-badge .material-icons {
+  font-size: 18px;
+  color: #3b82f6;
+}
+
+.info-badge strong {
+  font-weight: 700;
+  color: #1e3a8a;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   📋 GRILLE D'ACTIONS FULL WIDTH (3 COLONNES POUR EXAMEN)
+   ───────────────────────────────────────────────────────────────────────── */
+
+.actions-grid-full-examen {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  width: 100%;
+  overflow: visible;
+}
+
+.action-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: visible;
+}
+
+.group-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #6b7280;
+  padding: 0 4px;
+}
+
+.group-label .material-icons {
+  font-size: 14px;
+  color: #9ca3af;
+}
+
+.btn-group-full {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  position: relative;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   🔘 BOUTONS SIMPLES & ÉLÉGANTS (FULL WIDTH)
+   ───────────────────────────────────────────────────────────────────────── */
+
+.btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  width: 100%;
+  min-height: 42px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.2;
+  border-radius: 8px;
+  border: 1px solid;
+  cursor: pointer;
+  transition: all 150ms ease;
+  white-space: nowrap;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+.btn .material-icons {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.btn:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.btn:active:not([disabled]) {
+  transform: scale(0.98);
+}
+
+/* Vert */
+.btn-green {
+  background: #10b981;
+  border-color: #059669;
+  color: #ffffff;
+}
+
+.btn-green:hover:not([disabled]) {
+  background: #059669;
+  border-color: #047857;
+}
+
+/* Bleu */
+.btn-blue {
+  background: #3b82f6;
+  border-color: #2563eb;
+  color: #ffffff;
+}
+
+.btn-blue:hover:not([disabled]) {
+  background: #2563eb;
+  border-color: #1d4ed8;
+}
+
+/* Orange */
+.btn-orange {
+  background: #f59e0b;
+  border-color: #d97706;
+  color: #ffffff;
+}
+
+.btn-orange:hover:not([disabled]) {
+  background: #d97706;
+  border-color: #b45309;
+}
+
+/* Rouge */
+.btn-red {
+  background: #ef4444;
+  border-color: #dc2626;
+  color: #ffffff;
+}
+
+.btn-red:hover:not([disabled]) {
+  background: #dc2626;
+  border-color: #b91c1c;
+}
+
+/* Danger (pour créer absences) */
+.btn-danger {
+  background: #dc2626;
+  border-color: #b91c1c;
+  color: #ffffff;
+}
+
+.btn-danger:hover:not([disabled]) {
+  background: #b91c1c;
+  border-color: #991b1b;
+}
+
+/* Gris */
+.btn-gray {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  color: #374151;
+}
+
+.btn-gray:hover:not([disabled]) {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+/* État désactivé */
+.btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   🔔 BADGE DE COMPTAGE OPTIMISÉ
+   ───────────────────────────────────────────────────────────────────────── */
+
+.badge-count {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  color: #ffffff;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  line-height: 1;
+  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25),
+              0 1px 3px rgba(0, 0, 0, 0.15);
+  letter-spacing: -0.01em;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   ⏳ ANIMATION LOADING
+   ───────────────────────────────────────────────────────────────────────── */
+
+.spinning {
   animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-  from {
-    transform: rotate(0deg);
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   📱 RESPONSIVE
+   ───────────────────────────────────────────────────────────────────────── */
+
+@media (max-width: 1024px) {
+  .actions-grid-full-examen {
+    grid-template-columns: 1fr;
+    gap: 20px;
   }
-  to {
-    transform: rotate(360deg);
+}
+
+@media (max-width: 768px) {
+  .header-elegant {
+    padding: 20px;
   }
+
+  .title-section {
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+  }
+
+  .title-wrapper {
+    gap: 12px;
+  }
+
+  .icon-badge {
+    width: 44px;
+    height: 44px;
+  }
+
+  .icon-badge .material-icons {
+    font-size: 26px;
+  }
+
+  .main-title {
+    font-size: 1.5rem;
+  }
+
+  .subtitle {
+    font-size: 0.875rem;
+  }
+
+  .actions-grid-full-examen {
+    gap: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .header-elegant {
+    padding: 16px;
+  }
+
+  .icon-badge {
+    width: 40px;
+    height: 40px;
+  }
+
+  .icon-badge .material-icons {
+    font-size: 24px;
+  }
+
+  .main-title {
+    font-size: 1.375rem;
+  }
+
+  .btn {
+    padding: 12px 16px;
+    font-size: 0.9375rem;
+  }
+
+  .badge-count {
+    min-width: 32px;
+    height: 32px;
+    font-size: 0.875rem;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ANCIENS STYLES - Compatibilité
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.loading-spinner {
+  animation: spin 1s linear infinite;
 }
 
 .action-button {
@@ -48,91 +478,29 @@
 }
 
 .overflow-x-auto::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 4px;
+  background: #f1f1f1;
+  border-radius: 10px;
 }
 
 .overflow-x-auto::-webkit-scrollbar-thumb {
   background: #cbd5e1;
-  border-radius: 4px;
+  border-radius: 10px;
 }
 
 .overflow-x-auto::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
 
-/* Modal styles */
-.modal-overlay {
-  animation: fadeIn 0.3s ease-out;
-  background: rgba(59, 130, 246, 0.1); /* Bleu transparent */
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.modal-overlay::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.2); /* Un peu de noir */
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-}
-
-.modal-content {
-  animation: slideIn 0.3s ease-out;
-  position: relative;
-  z-index: 10;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
+/* Animation pour le badge de création */
+@keyframes bounce {
+  0%, 100% {
     transform: translateY(0);
   }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
-/* Detail button hover effect */
-.detail-button {
-  transition: all 0.2s ease-in-out;
-}
-
-.detail-button:hover {
-  transform: scale(1.1);
-  color: #1d4ed8;
-}
-
-/* Status badge improvements */
-.status-present {
-  background-color: #dcfce7;
-  color: #166534;
-}
-
-.status-absent {
-  background-color: #fef2f2;
-  color: #dc2626;
-}
-
-.status-default {
-  background-color: #f3f4f6;
-  color: #374151;
+.creation-success {
+  animation: bounce 0.5s ease-in-out;
 }

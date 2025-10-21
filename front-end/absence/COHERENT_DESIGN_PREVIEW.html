@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design Cohérent - Badges & Boutons</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Design Cohérent - Style Badges</h1>
+        <p class="text-gray-600 mb-8">Tous les éléments partagent le même langage visuel</p>
+
+        <!-- Section Info Cours -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Informations du Cours</h2>
+            
+            <!-- Badges horaires (référence) -->
+            <div class="mb-6">
+                <p class="text-xs text-gray-500 mb-2 uppercase font-semibold">Badges de Référence</p>
+                <div class="flex flex-wrap gap-2">
+                    <div class="inline-flex items-center gap-2 text-sm px-3 py-2 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+                        <span class="material-icons text-[18px]">access_time</span>
+                        <span class="font-medium">Pointage</span>
+                        <span class="text-blue-600">14:37 - 15:52</span>
+                    </div>
+                    <div class="inline-flex items-center gap-2 text-sm px-3 py-2 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">
+                        <span class="material-icons text-[18px]">schedule</span>
+                        <span class="font-medium">Cours</span>
+                        <span class="text-emerald-600">15:37 - 16:37</span>
+                    </div>
+                    <div class="inline-flex items-center gap-2 text-sm px-3 py-2 rounded-full bg-amber-50 text-amber-700 border border-amber-100">
+                        <span class="material-icons text-[18px]">timer</span>
+                        <span class="font-medium">Tolérance</span>
+                        <span class="text-amber-600">15 minutes</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Séparateur -->
+            <div class="border-t border-gray-200 my-6"></div>
+
+            <!-- Boutons d'actions (même style) -->
+            <div class="flex flex-col gap-3">
+                <!-- Info contexte -->
+                <div class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100 w-fit">
+                    <span class="material-icons text-[16px]">info</span>
+                    <span class="font-medium">270</span> étudiants à exporter
+                </div>
+
+                <!-- Groupe EXPORT -->
+                <div class="flex flex-col gap-2">
+                    <div class="text-[0.65rem] font-bold text-gray-400 uppercase tracking-wider pl-1">Export</div>
+                    <div class="flex flex-wrap gap-2">
+                        <button class="inline-flex items-center gap-2 text-sm px-3 py-2 rounded-full bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 hover:shadow-md transition-all duration-200">
+                            <span class="material-icons text-[18px]">download</span>
+                            <span class="font-medium">CSV</span>
+                        </button>
+                        <button class="inline-flex items-center gap-2 text-sm px-3 py-2 rounded-full bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 hover:shadow-md transition-all duration-200">
+                            <span class="material-icons text-[18px]">table_chart</span>
+                            <span class="font-medium">Excel</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Groupe ABSENCES -->
+                <div class="flex flex-col gap-2">
+                    <div class="text-[0.65rem] font-bold text-gray-400 uppercase tracking-wider pl-1">Absences</div>
+                    <div class="flex flex-wrap gap-2">
+                        <button class="inline-flex items-center gap-2 text-sm px-3 py-2 rounded-full bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 hover:shadow-md transition-all duration-200">
+                            <span class="material-icons text-[18px]">person_off</span>
+                            <span class="font-medium">CSV</span>
+                            <span class="ml-1 px-1.5 py-0.5 bg-orange-600 text-white text-xs rounded-full font-bold">269</span>
+                        </button>
+                        <button class="inline-flex items-center gap-2 text-sm px-3 py-2 rounded-full bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 hover:shadow-md transition-all duration-200">
+                            <span class="material-icons text-[18px]">table_chart</span>
+                            <span class="font-medium">Excel</span>
+                            <span class="ml-1 px-1.5 py-0.5 bg-red-600 text-white text-xs rounded-full font-bold">269</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Groupe GESTION -->
+                <div class="flex flex-col gap-2">
+                    <div class="text-[0.65rem] font-bold text-gray-400 uppercase tracking-wider pl-1">Gestion</div>
+                    <div class="flex flex-wrap gap-2">
+                        <button class="inline-flex items-center gap-2 text-sm px-3 py-2 rounded-full bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 hover:shadow-md transition-all duration-200">
+                            <span class="material-icons text-[18px]">edit</span>
+                            <span class="font-medium">Modifier</span>
+                        </button>
+                        <button class="inline-flex items-center gap-2 text-sm px-3 py-2 rounded-full bg-purple-600 text-white border border-purple-600 shadow-lg transition-all duration-200">
+                            <span class="material-icons text-[18px]">edit_off</span>
+                            <span class="font-medium">Arrêter</span>
+                        </button>
+                        <button class="inline-flex items-center gap-2 text-sm px-3 py-2 rounded-full bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100 hover:shadow-md transition-all duration-200">
+                            <span class="material-icons text-[18px]">refresh</span>
+                            <span class="font-medium">Actualiser</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analyse de cohérence -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <h3 class="text-sm font-semibold text-blue-900 mb-3">✨ Cohérence Visuelle</h3>
+            <div class="space-y-2 text-sm text-blue-800">
+                <div class="flex items-start gap-2">
+                    <span class="material-icons text-blue-600 text-base">check_circle</span>
+                    <span><strong>Forme:</strong> Tous les éléments utilisent <code class="bg-white px-1 rounded">rounded-full</code></span>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span class="material-icons text-blue-600 text-base">check_circle</span>
+                    <span><strong>Fond:</strong> Couleurs claires <code class="bg-white px-1 rounded">bg-{color}-50</code></span>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span class="material-icons text-blue-600 text-base">check_circle</span>
+                    <span><strong>Texte:</strong> Couleurs foncées <code class="bg-white px-1 rounded">text-{color}-700</code></span>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span class="material-icons text-blue-600 text-base">check_circle</span>
+                    <span><strong>Bordure:</strong> Bordures fines <code class="bg-white px-1 rounded">border-{color}-100/200</code></span>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span class="material-icons text-blue-600 text-base">check_circle</span>
+                    <span><strong>Icônes:</strong> Taille uniforme <code class="bg-white px-1 rounded">text-[18px]</code></span>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span class="material-icons text-blue-600 text-base">check_circle</span>
+                    <span><strong>Espacement:</strong> Gap cohérent <code class="bg-white px-1 rounded">gap-2</code>, padding <code class="bg-white px-1 rounded">px-3 py-2</code></span>
+                </div>
+                <div class="flex items-start gap-2">
+                    <span class="material-icons text-blue-600 text-base">check_circle</span>
+                    <span><strong>Transitions:</strong> Animations douces <code class="bg-white px-1 rounded">transition-all duration-200</code></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Palette de couleurs -->
+        <div class="mt-6 bg-white rounded-lg border border-gray-200 p-6">
+            <h3 class="text-sm font-semibold text-gray-900 mb-4">🎨 Palette de Couleurs</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="text-center">
+                    <div class="w-full h-12 rounded-lg bg-green-50 border border-green-200 mb-2"></div>
+                    <p class="text-xs font-medium text-gray-900">CSV Export</p>
+                    <p class="text-xs text-gray-500">Vert</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-full h-12 rounded-lg bg-blue-50 border border-blue-200 mb-2"></div>
+                    <p class="text-xs font-medium text-gray-900">Excel Export</p>
+                    <p class="text-xs text-gray-500">Bleu</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-full h-12 rounded-lg bg-orange-50 border border-orange-200 mb-2"></div>
+                    <p class="text-xs font-medium text-gray-900">CSV Absences</p>
+                    <p class="text-xs text-gray-500">Orange</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-full h-12 rounded-lg bg-red-50 border border-red-200 mb-2"></div>
+                    <p class="text-xs font-medium text-gray-900">Excel Absences</p>
+                    <p class="text-xs text-gray-500">Rouge</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-full h-12 rounded-lg bg-purple-50 border border-purple-200 mb-2"></div>
+                    <p class="text-xs font-medium text-gray-900">Modifier</p>
+                    <p class="text-xs text-gray-500">Violet</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-full h-12 rounded-lg bg-gray-50 border border-gray-200 mb-2"></div>
+                    <p class="text-xs font-medium text-gray-900">Actualiser</p>
+                    <p class="text-xs text-gray-500">Gris</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-full h-12 rounded-lg bg-indigo-50 border border-indigo-100 mb-2"></div>
+                    <p class="text-xs font-medium text-gray-900">Info</p>
+                    <p class="text-xs text-gray-500">Indigo</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-6 text-center text-sm text-gray-500">
+            <p>✨ Design cohérent et professionnel pour une meilleure expérience utilisateur</p>
+            <p class="mt-1">Survolez les boutons pour voir les effets de transition</p>
+        </div>
+    </div>
+</body>
+</html>
