@@ -112,12 +112,12 @@ Route::get("groups/by-etablissement/{etablissementId}", [GroupController::class,
 Route::get("groups/by-promotion/{promotionId}", [GroupController::class, "getGroupsByPromotion"]);
 Route::get("groups/by-ville/{villeId}", [GroupController::class, "getGroupsByVille"]);
 
-// Ville routes - API Resource
-Route::apiResource('villes', VilleController::class);
-
-// Ville routes supplémentaires
+// Ville routes - Routes spécifiques AVANT la ressource
 Route::get('villes/search', [VilleController::class, 'search']);
 Route::get('villes/etablissement/{etablissementId}', [VilleController::class, 'getByEtablissement']);
+
+// Ville routes - API Resource
+Route::apiResource('villes', VilleController::class);
 
 // Routes spécifiques pour les examens AVANT la ressource
 Route::post('/examens/import-examens', [ExamenController::class, 'ImportExamens']);
@@ -144,6 +144,13 @@ Route::put('/cours/{id}', [CoursController::class, 'update']);
 Route::delete('/cours/{id}', [CoursController::class, 'destroy']);
 Route::post('/import-cours', [CoursController::class, 'importCoursModern']);
 
+// Promotion routes - Routes spécifiques AVANT la ressource
+Route::get('promotions/search', [PromotionController::class, 'search']);
+Route::get('promotions/all', [PromotionController::class, 'getAll']);
+Route::get('promotions/etablissement/{etablissementId}', [PromotionController::class, 'getByEtablissement']);
+Route::get('promotions/faculte/{faculteId}', [PromotionController::class, 'getByFaculte']);
+Route::apiResource('promotions', PromotionController::class);
+
 // Enseignants - API Resource (protected)
 Route::post('enseignants-with-user', [EnseignantController::class, 'storeWithUser']);
 Route::put('enseignants-with-user/{id}', [EnseignantController::class, 'updateWithUser']);
@@ -160,15 +167,15 @@ Route::get('/export-simple-public', [EtudiantController::class, 'exportSimple'])
 Route::get('/export-etudiants-public', [EtudiantController::class, 'exportEtudiantsStream']);
 
 
-// Salle routes - API Resource
-Route::apiResource('salles', SalleController::class);
-
-// Salle routes supplémentaires
+// Salle routes - Routes spécifiques AVANT la ressource
 Route::get('salles/search', [SalleController::class, 'search']);
 Route::get('salles/etablissement/{etablissementId}', [SalleController::class, 'getByEtablissement']);
 Route::get('salles/building/{batiment}', [SalleController::class, 'getByBuilding']);
 Route::get('salles/floor/{etage}', [SalleController::class, 'getByFloor']);
 Route::post('salles/available', [SalleController::class, 'getAvailable']);
+
+// Salle routes - API Resource
+Route::apiResource('salles', SalleController::class);
 
 // Option routes - API Resource
 Route::apiResource('options', OptionController::class);
@@ -182,13 +189,6 @@ Route::apiResource('roles', RoleController::class);
 Route::get('posts/search', [PostController::class, 'search']);
 Route::get('posts/all', [PostController::class, 'getAll']);
 Route::apiResource('posts', PostController::class);
-
-// Promotion routes - Routes spécifiques AVANT la ressource
-Route::get('promotions/search', [PromotionController::class, 'search']);
-Route::get('promotions/all', [PromotionController::class, 'getAll']);
-Route::get('promotions/etablissement/{etablissementId}', [PromotionController::class, 'getByEtablissement']);
-Route::get('promotions/faculte/{faculteId}', [PromotionController::class, 'getByFaculte']);
-Route::apiResource('promotions', PromotionController::class);
 
 // TypeCours routes - Routes spécifiques AVANT la ressource
 Route::get('types-cours/search', [TypeCoursController::class, 'search']);

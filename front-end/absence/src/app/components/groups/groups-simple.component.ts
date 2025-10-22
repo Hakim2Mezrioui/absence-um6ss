@@ -7,18 +7,14 @@ import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSelectModule } from '@angular/material/select';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatChipsModule } from '@angular/material/chips';
 
 // Services et interfaces
 import { GroupsService, Group } from '../../services/groups.service';
 
 @Component({
-  selector: 'app-groups',
+  selector: 'app-groups-simple',
   standalone: true,
   imports: [
     CommonModule,
@@ -27,17 +23,13 @@ import { GroupsService, Group } from '../../services/groups.service';
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatSelectModule,
-    MatFormFieldModule,
-    MatInputModule,
     MatTooltipModule,
-    MatSnackBarModule,
-    MatChipsModule
+    MatSnackBarModule
   ],
-  templateUrl: './groups.component.html',
-  styleUrl: './groups.component.css'
+  templateUrl: './groups-simple.component.html',
+  styleUrl: './groups-simple.component.css'
 })
-export class GroupsComponent implements OnInit, OnDestroy {
+export class GroupsSimpleComponent implements OnInit, OnDestroy {
   // Données
   allGroups: Group[] = []; // Tous les groupes
   groups: Group[] = []; // Groupes filtrés et paginés
@@ -84,7 +76,7 @@ export class GroupsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    console.log('👥 Composant Groups initialisé');
+    console.log('👥 Composant Groups Simple initialisé');
     this.loadGroups();
   }
 
@@ -312,10 +304,6 @@ export class GroupsComponent implements OnInit, OnDestroy {
 
   formatDate(dateString: string): string {
     return new Date(dateString).toLocaleDateString('fr-FR');
-  }
-
-  formatDateTime(dateString: string): string {
-    return new Date(dateString).toLocaleString('fr-FR');
   }
 
   showSuccess(message: string): void {

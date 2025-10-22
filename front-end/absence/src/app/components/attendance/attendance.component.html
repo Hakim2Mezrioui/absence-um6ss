@@ -1,139 +1,35 @@
 <div class="min-h-screen bg-gray-50 py-8">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <!-- Header Simple & Élégant -->
-    <div class="header-elegant">
-      <!-- Section Titre en Haut -->
+
+    <!-- Header -->
+    <div class="header-elegant mb-6">
       <div class="title-section">
-        <div class="title-wrapper">
-          <div class="icon-badge">
-            <span class="material-icons">how_to_reg</span>
+        <div class="title-wrapper flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="icon-badge">
+              <span class="material-icons">how_to_reg</span>
+            </div>
+            <div>
+              <h1 class="main-title">Suivi des Présences</h1>
+              <p class="subtitle">Examen</p>
+            </div>
           </div>
-          <div>
-            <h1 class="main-title">Suivi des Présences</h1>
-            <p class="subtitle">Examen</p>
+          <div class="auto-refresh-indicator flex items-center gap-2 text-sm text-gray-600">
+            <span class="material-icons">schedule</span>
+            <span>Dernière actualisation: {{ getTimeSinceLastRefresh() }}</span>
+            <span class="auto-refresh-badge relative inline-flex h-2 w-2">
+              <span class="pulse-dot inline-flex absolute inset-0 rounded-full bg-emerald-500"></span>
+            </span>
           </div>
         </div>
-        <p class="description">
+        <p class="description mt-2 flex items-center gap-2 text-gray-600">
           <span class="material-icons">info_outline</span>
           Consultez le statut de présence des étudiants pour cet examen
         </p>
-        <!-- Indicateur d'actualisation automatique -->
-        <div class="auto-refresh-indicator">
-          <span class="material-icons">schedule</span>
-          <span>Dernière actualisation: {{ getTimeSinceLastRefresh() }}</span>
-          <span class="auto-refresh-badge">
-            <span class="pulse-dot"></span>
-            Auto-refresh 30s
-          </span>
-        </div>
-      </div>
-
-      <!-- Section Actions Full Width -->
-      <div class="actions-section-full">
-        <!-- Info Badge -->
-        <div *ngIf="students.length > 0" class="info-badge">
-          <span class="material-icons">groups</span>
-          <span><strong>{{ students.length }}</strong> étudiant{{ students.length > 1 ? 's' : '' }}</span>
-        </div>
-
-        <!-- Groupes d'actions -->
-        <div class="actions-grid-full-examen">
-          <!-- EXPORT -->
-          <div class="action-group">
-            <div class="group-label">
-              <span class="material-icons">file_download</span>
-              <span>EXPORT</span>
-            </div>
-            <div class="btn-group-full">
-              <button 
-                (click)="exportAttendanceList('csv')"
-                [disabled]="isExporting || students.length === 0"
-                class="btn btn-green"
-                title="Exporter toutes les présences en CSV">
-                <span *ngIf="isExporting && exportFormat === 'csv'" class="material-icons spinning">sync</span>
-                <span *ngIf="!isExporting || exportFormat !== 'csv'" class="material-icons">download</span>
-                <span>CSV</span>
-              </button>
-              <button 
-                (click)="exportAttendanceList('excel')"
-                [disabled]="isExporting || students.length === 0"
-                class="btn btn-blue"
-                title="Exporter toutes les présences en Excel">
-                <span *ngIf="isExporting && exportFormat === 'excel'" class="material-icons spinning">sync</span>
-                <span *ngIf="!isExporting || exportFormat !== 'excel'" class="material-icons">table_chart</span>
-                <span>Excel</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- ABSENCES -->
-          <div class="action-group">
-            <div class="group-label">
-              <span class="material-icons">person_off</span>
-              <span>ABSENCES</span>
-            </div>
-            <div class="btn-group-full">
-              <button 
-                (click)="exportAbsences('csv')"
-                [disabled]="isExporting || getAbsentAndLateStudentsCount() === 0"
-                class="btn btn-orange"
-                title="Exporter les absences en CSV">
-                <span *ngIf="isExporting && exportFormat === 'csv'" class="material-icons spinning">sync</span>
-                <span *ngIf="!isExporting || exportFormat !== 'csv'" class="material-icons">download</span>
-                <span>CSV</span>
-                <span *ngIf="!isExporting && getAbsentAndLateStudentsCount() > 0" class="badge-count">
-                  {{ getAbsentAndLateStudentsCount() }}
-                </span>
-              </button>
-              <button 
-                (click)="exportAbsences('excel')"
-                [disabled]="isExporting || getAbsentAndLateStudentsCount() === 0"
-                class="btn btn-red"
-                title="Exporter les absences en Excel">
-                <span *ngIf="isExporting && exportFormat === 'excel'" class="material-icons spinning">sync</span>
-                <span *ngIf="!isExporting || exportFormat !== 'excel'" class="material-icons">table_chart</span>
-                <span>Excel</span>
-                <span *ngIf="!isExporting && getAbsentAndLateStudentsCount() > 0" class="badge-count">
-                  {{ getAbsentAndLateStudentsCount() }}
-                </span>
-              </button>
-            </div>
-          </div>
-
-          <!-- GESTION -->
-          <div class="action-group">
-            <div class="group-label">
-              <span class="material-icons">settings</span>
-              <span>GESTION</span>
-            </div>
-            <div class="btn-group-full">
-              <button 
-                (click)="openAbsenceCreationDialog()"
-                [disabled]="isCreatingAbsences || getAbsentAndLateStudentsCount() === 0"
-                class="btn btn-danger"
-                title="Créer automatiquement les absences">
-                <span *ngIf="isCreatingAbsences" class="material-icons spinning">sync</span>
-                <span *ngIf="!isCreatingAbsences" class="material-icons">person_add_disabled</span>
-                <span *ngIf="!isCreatingAbsences">Créer Absences</span>
-                <span *ngIf="isCreatingAbsences">Création...</span>
-                <span *ngIf="!isCreatingAbsences && getAbsentAndLateStudentsCount() > 0" class="badge-count">
-                  {{ getAbsentAndLateStudentsCount() }}
-                </span>
-              </button>
-              <button 
-                (click)="refreshAttendance()"
-                class="btn btn-gray"
-                title="Actualiser les données">
-                <span class="material-icons">refresh</span>
-                <span>Actualiser</span>
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
 
-    <!-- Informations de l'examen (style compact comme cours) -->
+    <!-- Exam info -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6">
       <div class="flex items-center justify-between mb-3">
         <h2 class="text-lg font-semibold text-gray-900">Informations de l'examen</h2>
@@ -197,311 +93,212 @@
       </div>
     </div>
 
-    <!-- Statistiques -->
+    <!-- Stats cards -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div class="flex items-center">
           <div class="flex-shrink-0">
-            <svg class="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-            </svg>
+            <span class="material-icons text-blue-600">groups</span>
           </div>
           <div class="ml-4">
-            <p class="text-sm font-medium text-gray-600">Total étudiants</p>
-            <p class="text-2xl font-semibold text-gray-900">{{ totalStudents }}</p>
+            <div class="text-sm text-gray-500">Total</div>
+            <div class="text-2xl font-semibold">{{ totalStudents }}</div>
           </div>
         </div>
       </div>
-
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div class="flex items-center">
           <div class="flex-shrink-0">
-            <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <span class="material-icons text-emerald-600">check_circle</span>
           </div>
           <div class="ml-4">
-            <p class="text-sm font-medium text-gray-600">Présents</p>
-            <p class="text-2xl font-semibold text-green-600">{{ presents }}</p>
+            <div class="text-sm text-gray-500">Présents</div>
+            <div class="text-2xl font-semibold">{{ presents }}</div>
           </div>
         </div>
       </div>
-
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div class="flex items-center">
           <div class="flex-shrink-0">
-            <svg class="h-8 w-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <span class="material-icons text-amber-600">schedule</span>
           </div>
           <div class="ml-4">
-            <p class="text-sm font-medium text-gray-600">En retard</p>
-            <p class="text-2xl font-semibold text-yellow-600">{{ getLateStudentsCount() }}</p>
+            <div class="text-sm text-gray-500">En retard</div>
+            <div class="text-2xl font-semibold">{{ getLateStudentsCount() }}</div>
           </div>
         </div>
       </div>
-
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div class="flex items-center">
           <div class="flex-shrink-0">
-            <svg class="h-8 w-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <span class="material-icons text-red-600">cancel</span>
           </div>
           <div class="ml-4">
-            <p class="text-sm font-medium text-gray-600">Absents</p>
-            <p class="text-2xl font-semibold text-red-600">{{ absents }}</p>
+            <div class="text-sm text-gray-500">Absents</div>
+            <div class="text-2xl font-semibold">{{ absents }}</div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Loading State -->
+    <!-- Loading -->
     <div *ngIf="loading" class="flex justify-center items-center py-12">
       <div class="loading-spinner rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
     </div>
 
-    <!-- Error State -->
+    <!-- Error -->
     <div *ngIf="error && !loading" class="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
       <div class="flex">
         <div class="flex-shrink-0">
-          <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-          </svg>
+          <span class="material-icons text-red-600">error</span>
         </div>
         <div class="ml-3">
-          <p class="text-sm text-red-800">{{ error }}</p>
+          <h3 class="text-sm font-medium text-red-800">Erreur</h3>
+          <div class="mt-2 text-sm text-red-700">{{ error }}</div>
         </div>
       </div>
     </div>
 
-    <!-- Liste des étudiants -->
+    <!-- Main card -->
     <div *ngIf="!loading && !error" class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
       <div class="px-6 py-4 border-b border-gray-200">
         <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-medium text-gray-900">Liste des étudiants</h3>
           <div class="flex items-center space-x-4">
-            <!-- Indicateur de recherche active -->
             <div *ngIf="isSearchActive" class="flex items-center space-x-2 text-sm text-blue-600">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <span>{{ getSearchResultsCount() }} résultat{{ getSearchResultsCount() > 1 ? 's' : '' }}</span>
+              <span class="material-icons text-base">search</span>
+              <span>{{ getSearchResultsCount() }} résultat(s)</span>
             </div>
           </div>
         </div>
-        
-        <!-- Barre de recherche -->
+
+        <!-- Search input -->
         <div class="relative">
           <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+            <span class="material-icons text-gray-400">search</span>
           </div>
-          <input
-            type="text"
-            [(ngModel)]="searchTerm"
-            (input)="onSearchChange()"
-            placeholder="Rechercher par nom, email ou matricule..."
-            class="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm placeholder-gray-500"
-          >
+          <input type="text"
+                 class="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                 placeholder="Rechercher par nom, email ou matricule"
+                 [(ngModel)]="searchTerm"
+                 (ngModelChange)="onSearchChange()" />
           <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-            <button
-              *ngIf="isSearchActive"
-              (click)="clearSearch()"
-              class="text-gray-400 hover:text-gray-600 transition-colors"
-              title="Effacer la recherche"
-            >
-              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
+            <button *ngIf="isSearchActive"
+                    class="text-gray-400 hover:text-gray-600"
+                    (click)="clearSearch()">
+              <span class="material-icons text-base">close</span>
             </button>
           </div>
         </div>
-        
-        <!-- Filtrage alphabétique -->
+
+        <!-- Toolbar bottom -->
         <div class="mt-4 pt-4 border-t border-gray-200">
           <div class="flex items-center justify-between mb-3">
-            <h4 class="text-sm font-medium text-gray-700 flex items-center gap-2">
-              <span class="material-icons text-lg">sort_by_alpha</span>
-              Filtrage alphabétique
-            </h4>
-            <button
-              (click)="toggleAlphabetFilter()"
-              [class]="alphabetFilter.enabled ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'"
-              class="px-3 py-1 rounded-full text-xs font-medium transition-colors duration-200 flex items-center gap-1"
-            >
-              <span class="material-icons text-sm">{{ alphabetFilter.enabled ? 'check' : 'close' }}</span>
-              {{ alphabetFilter.enabled ? 'Activé' : 'Désactivé' }}
-            </button>
-          </div>
-          
-          <div *ngIf="alphabetFilter.enabled" class="space-y-3">
-            <!-- Sélection de plage -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">Lettre de début</label>
-                <select
-                  [(ngModel)]="alphabetFilter.startLetter"
-                  (change)="updateAlphabetRange()"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                >
-                  <option *ngFor="let letter of alphabetLetters" [value]="letter">
-                    {{ letter }}
-                  </option>
-                </select>
-              </div>
-              
-              <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">Lettre de fin</label>
-                <select
-                  [(ngModel)]="alphabetFilter.endLetter"
-                  (change)="updateAlphabetRange()"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                >
-                  <option *ngFor="let letter of alphabetLetters" [value]="letter">
-                    {{ letter }}
-                  </option>
-                </select>
-              </div>
+            <div class="flex items-center gap-2 text-sm text-gray-600">
+              <span class="material-icons text-blue-600 text-base">info</span>
+              <span>Heure de fin de tolérance: {{ getToleranceEndTime() }}</span>
             </div>
-            
-            <!-- Affichage de la plage sélectionnée -->
-            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                  <span class="material-icons text-blue-600 text-sm">filter_list</span>
-                  <span class="text-sm font-medium text-blue-800">
-                    Plage sélectionnée: {{ getAlphabetRangeText() }}
-                  </span>
-                </div>
-                <div class="text-xs text-blue-600">
-                  {{ getAvailableLettersInRange().length }} lettre{{ getAvailableLettersInRange().length > 1 ? 's' : '' }}
-                </div>
-              </div>
-              
-              <!-- Lettres de la plage -->
-              <div class="mt-2 flex flex-wrap gap-1">
-                <span 
-                  *ngFor="let letter of getAvailableLettersInRange()" 
-                  class="inline-flex items-center justify-center w-6 h-6 text-xs font-medium text-blue-700 bg-blue-100 rounded border border-blue-200"
-                >
-                  {{ letter }}
+            <div class="flex items-center gap-3">
+              <!-- Bouton Actualisation - Bleu -->
+              <button class="w-36 h-24 px-3 py-3 text-sm rounded-lg border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-800 flex flex-col items-center justify-center gap-1 transition-colors"
+                      (click)="refreshAttendance()"
+                      title="Actualiser les données">
+                <span class="material-icons text-lg text-blue-700">refresh</span>
+                <span class="text-xs font-medium text-center">Actualisation</span>
+              </button>
+
+              <!-- Bouton Export Absents CSV - Rouge -->
+              <button class="w-36 h-24 px-3 py-3 text-sm rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-800 flex flex-col items-center justify-center gap-1 transition-colors"
+                      (click)="exportAbsences('csv')"
+                      [disabled]="getAbsentAndLateStudentsCount() === 0"
+                      title="Exporter seulement les absents en CSV">
+                <span class="material-icons text-lg text-red-700">download</span>
+                <span class="text-xs font-medium text-center leading-tight">Export Absents CSV</span>
+                <span *ngIf="getAbsentAndLateStudentsCount() > 0" class="px-2 py-0.5 text-xs bg-red-500 text-white rounded-full font-medium">
+                  {{ getAbsentAndLateStudentsCount() }}
                 </span>
-              </div>
+              </button>
+
+              <!-- Bouton Export Absents Excel - Orange -->
+              <button class="w-36 h-24 px-3 py-3 text-sm rounded-lg border border-orange-200 bg-orange-50 hover:bg-orange-100 text-orange-800 flex flex-col items-center justify-center gap-1 transition-colors"
+                      (click)="exportAbsences('excel')"
+                      [disabled]="getAbsentAndLateStudentsCount() === 0"
+                      title="Exporter seulement les absents en Excel">
+                <span class="material-icons text-lg text-orange-700">download</span>
+                <span class="text-xs font-medium text-center leading-tight">Export Absents Excel</span>
+                <span *ngIf="getAbsentAndLateStudentsCount() > 0" class="px-2 py-0.5 text-xs bg-red-500 text-white rounded-full font-medium">
+                  {{ getAbsentAndLateStudentsCount() }}
+                </span>
+              </button>
+
+              <!-- Bouton Créer Absences - Violet -->
+              <button class="w-36 h-24 px-3 py-3 text-sm rounded-lg border border-purple-200 bg-purple-50 hover:bg-purple-100 text-purple-800 flex flex-col items-center justify-center gap-1 transition-colors"
+                      (click)="openAbsenceCreationDialog()"
+                      title="Créer automatiquement les absences">
+                <span class="material-icons text-lg text-purple-700">person_off</span>
+                <span class="text-xs font-medium text-center">Créer absences</span>
+              </button>
+
+              <!-- Bouton Export CSV - Vert -->
+              <button class="w-36 h-24 px-3 py-3 text-sm rounded-lg border border-green-200 bg-green-50 hover:bg-green-100 text-green-800 flex flex-col items-center justify-center gap-1 transition-colors"
+                      (click)="exportAttendanceList('csv')"
+                      title="Exporter toutes les présences en CSV">
+                <span class="material-icons text-lg text-green-700">download</span>
+                <span class="text-xs font-medium text-center">Export CSV</span>
+              </button>
+
+              <!-- Bouton Export Excel - Cyan -->
+              <button class="w-36 h-24 px-3 py-3 text-sm rounded-lg border border-cyan-200 bg-cyan-50 hover:bg-cyan-100 text-cyan-800 flex flex-col items-center justify-center gap-1 transition-colors"
+                      (click)="exportAttendanceList('excel')"
+                      title="Exporter toutes les présences en Excel">
+                <span class="material-icons text-lg text-cyan-700">download</span>
+                <span class="text-xs font-medium text-center">Export Excel</span>
+              </button>
             </div>
           </div>
         </div>
       </div>
-      
+
+      <!-- Table -->
       <div class="overflow-x-auto">
-        <!-- Tableau des étudiants -->
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                <button 
-                  (click)="sortStudents('name')"
-                  class="flex items-center space-x-2 hover:text-gray-700 transition-colors group"
-                  [class]="getSortClass('name')"
-                >
+                <button (click)="sortStudents('name')"
+                        class="flex items-center space-x-2 hover:text-gray-700 transition-colors group"
+                        [class]="getSortClass('name')">
                   <span>Étudiant</span>
-                  <div class="flex flex-col">
-                    <svg *ngIf="getSortIcon('name') === 'sort'" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 16a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"/>
-                    </svg>
-                    <svg *ngIf="getSortIcon('name') === 'sort-up'" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd"/>
-                    </svg>
-                    <svg *ngIf="getSortIcon('name') === 'sort-down'" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                    </svg>
-                  </div>
                 </button>
               </th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                <button 
-                  (click)="sortStudents('matricule')"
-                  class="flex items-center space-x-2 hover:text-gray-700 transition-colors group"
-                  [class]="getSortClass('matricule')"
-                >
+                <button (click)="sortStudents('matricule')"
+                        class="flex items-center space-x-2 hover:text-gray-700 transition-colors group"
+                        [class]="getSortClass('matricule')">
                   <span>Matricule</span>
-                  <div class="flex flex-col">
-                    <svg *ngIf="getSortIcon('matricule') === 'sort'" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 16a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"/>
-                    </svg>
-                    <svg *ngIf="getSortIcon('matricule') === 'sort-up'" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd"/>
-                    </svg>
-                    <svg *ngIf="getSortIcon('matricule') === 'sort-down'" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                    </svg>
-                  </div>
                 </button>
               </th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                <button 
-                  (click)="sortStudents('status')"
-                  class="flex items-center space-x-2 hover:text-gray-700 transition-colors group"
-                  [class]="getSortClass('status')"
-                >
+                <button (click)="sortStudents('status')"
+                        class="flex items-center space-x-2 hover:text-gray-700 transition-colors group"
+                        [class]="getSortClass('status')">
                   <span>Statut</span>
-                  <div class="flex flex-col">
-                    <svg *ngIf="getSortIcon('status') === 'sort'" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 16a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"/>
-                    </svg>
-                    <svg *ngIf="getSortIcon('status') === 'sort-up'" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd"/>
-                    </svg>
-                    <svg *ngIf="getSortIcon('status') === 'sort-down'" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                    </svg>
-                  </div>
                 </button>
               </th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                <button 
-                  (click)="sortStudents('punch_time')"
-                  class="flex items-center space-x-2 hover:text-gray-700 transition-colors group"
-                  [class]="getSortClass('punch_time')"
-                >
+                <button (click)="sortStudents('punch_time')"
+                        class="flex items-center space-x-2 hover:text-gray-700 transition-colors group"
+                        [class]="getSortClass('punch_time')">
                   <span>Heure de pointage</span>
-                  <div class="flex flex-col">
-                    <svg *ngIf="getSortIcon('punch_time') === 'sort'" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 16a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"/>
-                    </svg>
-                    <svg *ngIf="getSortIcon('punch_time') === 'sort-up'" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd"/>
-                    </svg>
-                    <svg *ngIf="getSortIcon('punch_time') === 'sort-down'" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                    </svg>
-                  </div>
                 </button>
               </th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                <button 
-                  (click)="sortStudents('device')"
-                  class="flex items-center space-x-2 hover:text-gray-700 transition-colors group"
-                  [class]="getSortClass('device')"
-                >
+                <button (click)="sortStudents('device')"
+                        class="flex items-center space-x-2 hover:text-gray-700 transition-colors group"
+                        [class]="getSortClass('device')">
                   <span>Appareil</span>
-                  <div class="flex flex-col">
-                    <svg *ngIf="getSortIcon('device') === 'sort'" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 16a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"/>
-                    </svg>
-                    <svg *ngIf="getSortIcon('device') === 'sort-up'" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd"/>
-                    </svg>
-                    <svg *ngIf="getSortIcon('device') === 'sort-down'" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                    </svg>
-                  </div>
                 </button>
               </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
@@ -511,22 +308,16 @@
                   <div class="flex-shrink-0 h-10 w-10">
                     <img *ngIf="student.photo" [src]="student.photo" alt="Photo" class="h-10 w-10 rounded-full">
                     <div *ngIf="!student.photo" class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                      <span class="text-sm font-medium text-gray-700">
-                        {{ student.first_name.charAt(0) }}{{ student.last_name.charAt(0) }}
-                      </span>
+                      <span class="text-sm font-medium text-gray-700">{{ student.first_name.charAt(0) }}{{ student.last_name.charAt(0) }}</span>
                     </div>
                   </div>
                   <div class="ml-4">
-                    <div class="text-sm font-medium text-gray-900">
-                      {{ student.last_name }} {{ student.first_name }}
-                    </div>
+                    <div class="text-sm font-medium text-gray-900">{{ student.last_name }} {{ student.first_name }}</div>
                     <div class="text-sm text-gray-500">{{ student.email }}</div>
                   </div>
                 </div>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {{ student.matricule }}
-              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ student.matricule }}</td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
                       [ngClass]="getStatusClassWithTolerance(student.status)">
@@ -534,84 +325,44 @@
                   {{ student.status }}
                 </span>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {{ student.punch_time ? formatDateTime(student.punch_time.time) : 'N/A' }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {{ student.punch_time ? student.punch_time.device : 'N/A' }}
-              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ student.punch_time ? formatDateTime(student.punch_time.time) : 'N/A' }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ student.punch_time ? student.punch_time.device : 'N/A' }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <div class="flex items-center space-x-2">
-                  <button 
-                    (click)="showStudentDetails(student)"
-                    class="text-blue-600 hover:text-blue-900 detail-button"
-                    title="Voir les détails de l'étudiant"
-                  >
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
+                  <button (click)="showStudentDetails(student)" class="text-blue-600 hover:text-blue-900" title="Voir les détails de l'étudiant">
+                    <span class="material-icons text-base">visibility</span>
                   </button>
                 </div>
               </td>
             </tr>
           </tbody>
         </table>
-
       </div>
 
-      <!-- Empty State -->
+      <!-- Empty state -->
       <div *ngIf="getStudentsToDisplay().length === 0" class="text-center py-12">
         <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
         </svg>
-        <h3 class="mt-4 text-lg font-medium text-gray-900">
-          {{ isSearchActive ? 'Aucun résultat trouvé' : 'Aucun étudiant trouvé' }}
-        </h3>
-        <p class="mt-2 text-sm text-gray-500">
-          {{ isSearchActive ? 'Aucun étudiant ne correspond à votre recherche.' : 'Aucun étudiant ne correspond aux critères de recherche pour cet examen.' }}
-        </p>
+        <h3 class="mt-4 text-lg font-medium text-gray-900">{{ isSearchActive ? 'Aucun résultat trouvé' : 'Aucun étudiant trouvé' }}</h3>
+        <p class="mt-2 text-sm text-gray-500">{{ isSearchActive ? 'Aucun étudiant ne correspond à votre recherche.' : 'Aucun étudiant ne correspond aux critères de recherche pour cet examen.' }}</p>
         <div *ngIf="isSearchActive" class="mt-4">
-          <button
-            (click)="clearSearch()"
-            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+          <button (click)="clearSearch()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200">
+            <span class="material-icons text-sm mr-2">close</span>
             Effacer la recherche
           </button>
-        </div>
-        <div *ngIf="!isSearchActive && !error" class="mt-4">
-          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-md mx-auto">
-            <div class="flex items-center">
-              <div class="flex-shrink-0">
-                <svg class="h-5 w-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div class="ml-3">
-                <p class="text-sm text-blue-700">
-                  <strong>Information :</strong> Aucun étudiant n'a été trouvé avec les critères spécifiés pour cet examen.
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
 
-    <!-- Modal des détails de l'étudiant -->
-    <div *ngIf="selectedStudent" class="fixed inset-0 overflow-y-auto h-full w-full z-50 modal-overlay flex items-center justify-center p-4" (click)="closeStudentDetails()">
-      <div class="relative p-6 border w-full max-w-2xl shadow-2xl rounded-lg bg-white modal-content backdrop-blur-sm" (click)="$event.stopPropagation()">
+    <!-- Student details modal -->
+    <div *ngIf="selectedStudent" class="fixed inset-0 overflow-y-auto h-full w-full z-50 backdrop-blur-sm flex items-center justify-center p-4" (click)="closeStudentDetails()">
+      <div class="relative p-6 border w-full max-w-2xl shadow-2xl rounded-lg bg-white modal-content" (click)="$event.stopPropagation()">
         <div class="mt-3">
           <!-- Header du modal -->
-          <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center justify-between mb-6">
             <h3 class="text-lg font-medium text-gray-900">Détails de l'étudiant</h3>
-            <button 
-              (click)="closeStudentDetails()"
-              class="text-gray-400 hover:text-gray-600 transition-colors duration-200"
-            >
+            <button (click)="closeStudentDetails()" class="text-gray-400 hover:text-gray-600 transition-colors duration-200">
               <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -703,10 +454,7 @@
 
           <!-- Boutons d'action -->
           <div class="mt-6 flex justify-end space-x-3">
-            <button 
-              (click)="closeStudentDetails()"
-              class="px-4 py-2 border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 rounded-md transition-colors duration-200"
-            >
+            <button (click)="closeStudentDetails()" class="px-4 py-2 border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 rounded-md transition-colors duration-200">
               Fermer
             </button>
           </div>
@@ -714,125 +462,33 @@
       </div>
     </div>
 
-    <!-- Dialogue de création d'absences -->
-    <div *ngIf="showAbsenceCreationDialog" class="fixed inset-0 overflow-y-auto h-full w-full z-50 modal-overlay flex items-center justify-center p-4" (click)="closeAbsenceCreationDialog()">
-      <div class="relative p-6 border w-full max-w-2xl shadow-2xl rounded-lg bg-white modal-content backdrop-blur-sm" (click)="$event.stopPropagation()">
-        <div class="mt-3">
-          <!-- Header du modal -->
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-medium text-gray-900">Création automatique des absences</h3>
-            <button 
-              (click)="closeAbsenceCreationDialog()"
-              class="text-gray-400 hover:text-gray-600 transition-colors duration-200"
-            >
-              <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-
-          <!-- Contenu du modal -->
-          <div class="space-y-6">
-            <!-- Avertissement -->
-            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <div class="flex items-start">
-                <div class="flex-shrink-0">
-                  <svg class="h-5 w-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                  </svg>
-                </div>
-                <div class="ml-3">
-                  <h4 class="text-sm font-medium text-yellow-800">Attention</h4>
-                  <div class="mt-2 text-sm text-yellow-700">
-                    <p>Cette action va créer automatiquement des absences pour tous les étudiants absents ou en retard.</p>
-                    <p class="mt-1 font-medium">Cette action ne peut pas être annulée.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Informations sur l'examen -->
-            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 class="text-sm font-medium text-blue-800 mb-2">Informations de l'examen</h4>
-              <div class="text-sm text-blue-700">
-                <p><strong>Date:</strong> {{ formatDate(examDate) }}</p>
-                <p><strong>Heure début:</strong> {{ formatTime(examStartTime) }}</p>
-                <p><strong>Heure fin:</strong> {{ formatTime(examEndTime) }}</p>
-                <p><strong>Salle:</strong> {{ examSalle || 'N/A' }}</p>
-              </div>
-            </div>
-
-            <!-- Statistiques des absences -->
-            <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
-              <h4 class="text-sm font-medium text-gray-800 mb-3">Étudiants concernés</h4>
-              <div class="grid grid-cols-2 gap-4">
-                <div class="text-center">
-                  <div class="text-2xl font-bold text-red-600">{{ getAbsentAndLateStudentsCount() }}</div>
-                  <div class="text-sm text-gray-600">Étudiants absents/en retard</div>
-                </div>
-                <div class="text-center">
-                  <div class="text-2xl font-bold text-green-600">{{ presents }}</div>
-                  <div class="text-sm text-gray-600">Étudiants présents</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Liste des étudiants absents -->
-            <div *ngIf="getAbsentAndLateStudents().length > 0" class="max-h-60 overflow-y-auto">
-              <h4 class="text-sm font-medium text-gray-800 mb-2">Liste des étudiants concernés</h4>
-              <div class="space-y-2">
-                <div *ngFor="let student of getAbsentAndLateStudents()" class="flex items-center justify-between p-2 bg-gray-50 rounded">
-                  <div class="flex items-center space-x-3">
-                    <div class="flex-shrink-0 h-8 w-8">
-                      <img *ngIf="student.photo" [src]="student.photo" alt="Photo" class="h-8 w-8 rounded-full">
-                      <div *ngIf="!student.photo" class="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
-                        <span class="text-xs font-medium text-gray-700">
-                          {{ student.first_name.charAt(0) }}{{ student.last_name.charAt(0) }}
-                        </span>
-                      </div>
-                    </div>
-                    <div>
-                      <div class="text-sm font-medium text-gray-900">
-                        {{ student.last_name }} {{ student.first_name }}
-                      </div>
-                      <div class="text-xs text-gray-500">{{ student.matricule }}</div>
-                    </div>
-                  </div>
-                  <div class="flex items-center space-x-2">
-                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
-                          [ngClass]="getStatusClassWithTolerance(student.status)">
-                      <span class="material-icons text-xs mr-1">{{ getStatusIcon(student.status) }}</span>
-                      {{ student.status }}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Boutons d'action -->
-          <div class="mt-6 flex justify-end space-x-3">
-            <button 
-              (click)="closeAbsenceCreationDialog()"
-              [disabled]="isCreatingAbsences"
-              class="px-4 py-2 border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 rounded-md transition-colors duration-200 disabled:opacity-50"
-            >
-              Annuler
-            </button>
-            <button 
-              (click)="createAbsencesForAbsentStudents()"
-              [disabled]="isCreatingAbsences || getAbsentAndLateStudentsCount() === 0"
-              class="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-md transition-colors duration-200 disabled:opacity-50 flex items-center gap-2"
-            >
-              <span *ngIf="isCreatingAbsences" class="material-icons animate-spin text-sm">refresh</span>
-              <span *ngIf="!isCreatingAbsences" class="material-icons text-sm">person_off</span>
-              <span *ngIf="!isCreatingAbsences">Créer les absences</span>
-              <span *ngIf="isCreatingAbsences">Création en cours...</span>
-            </button>
-          </div>
+    <!-- Absence creation dialog -->
+    <div *ngIf="showAbsenceCreationDialog" class="fixed inset-0 overflow-y-auto h-full w-full z-50 backdrop-blur-sm flex items-center justify-center p-4" (click)="closeAbsenceCreationDialog()">
+      <div class="relative p-6 border w-full max-w-xl shadow-2xl rounded-lg bg-white" (click)="$event.stopPropagation()">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-medium text-gray-900">Créer les absences</h3>
+          <button (click)="closeAbsenceCreationDialog()" class="text-gray-400 hover:text-gray-600">
+            <span class="material-icons">close</span>
+          </button>
+        </div>
+        <div class="space-y-3 text-sm text-gray-700">
+          <div>Étudiants concernés: {{ getAbsentAndLateStudentsCount() }}</div>
+          <div>Date de l'examen: {{ formatDate(examDate) }}</div>
+          <div>Heure de début: {{ formatTime(examStartTime) }}</div>
+          <div>Heure de fin: {{ formatTime(examEndTime) }}</div>
+          <div>Tolérance: {{ examTolerance }} minutes (fin: {{ getToleranceEndTime() }})</div>
+        </div>
+        <div class="mt-6 flex justify-end space-x-3">
+          <button (click)="closeAbsenceCreationDialog()" [disabled]="isCreatingAbsences" class="px-4 py-2 border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 rounded-md disabled:opacity-50">Annuler</button>
+          <button (click)="createAbsencesForAbsentStudents()" [disabled]="isCreatingAbsences || getAbsentAndLateStudentsCount() === 0" class="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-md disabled:opacity-50 flex items-center gap-2">
+            <span *ngIf="isCreatingAbsences" class="material-icons animate-spin text-sm">refresh</span>
+            <span *ngIf="!isCreatingAbsences" class="material-icons text-sm">person_off</span>
+            <span *ngIf="!isCreatingAbsences">Créer les absences</span>
+            <span *ngIf="isCreatingAbsences">Création en cours...</span>
+          </button>
         </div>
       </div>
     </div>
+
   </div>
 </div>
-

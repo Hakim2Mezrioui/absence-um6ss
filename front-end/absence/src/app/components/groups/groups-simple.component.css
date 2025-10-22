@@ -1,0 +1,174 @@
+/* Styles pour le composant Groups Simple */
+
+/* Styles améliorés pour les dialogs */
+.dialog-container {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.dialog-header {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+}
+
+.dialog-content {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.dialog-input {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(209, 213, 219, 0.5);
+  transition: all 0.2s ease-in-out;
+}
+
+.dialog-input:focus {
+  background: rgba(255, 255, 255, 1);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.dialog-button {
+  transition: all 0.2s ease-in-out;
+  backdrop-filter: blur(4px);
+}
+
+.dialog-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.dialog-overlay {
+  backdrop-filter: blur(4px);
+}
+
+.group-card {
+  transition: all 0.2s ease-in-out;
+}
+
+.group-card:hover {
+  transform: translateY(-2px);
+}
+
+/* Styles pour les snackbars */
+.success-snackbar {
+  background-color: #10b981 !important;
+  color: white !important;
+}
+
+.error-snackbar {
+  background-color: #ef4444 !important;
+  color: white !important;
+}
+
+/* Animation pour les cartes */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.group-card {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+/* Styles pour les statistiques */
+.stat-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid #e2e8f0;
+}
+
+.stat-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Styles pour les boutons d'action */
+.action-button {
+  transition: all 0.2s ease-in-out;
+}
+
+.action-button:hover {
+  transform: scale(1.1);
+}
+
+/* Styles pour les messages d'erreur */
+.error-message {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border-left: 4px solid #ef4444;
+}
+
+/* Styles pour les états vides */
+.empty-state {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .group-card {
+    margin-bottom: 1rem;
+  }
+  
+  .stat-card {
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* Styles pour les icônes Material */
+mat-icon {
+  font-family: 'Material Icons' !important;
+}
+
+/* Styles pour les inputs focus */
+input:focus {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Styles pour les boutons */
+button {
+  font-weight: 500;
+  letter-spacing: 0.025em;
+}
+
+/* Styles pour les tooltips */
+.mat-tooltip {
+  font-size: 12px !important;
+  background-color: #374151 !important;
+  color: white !important;
+}
+
+/* Animation pour les dialogs */
+.dialog-enter {
+  animation: dialogEnter 0.3s ease-out;
+}
+
+@keyframes dialogEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Styles pour la pagination */
+.pagination-button {
+  transition: all 0.2s ease-in-out;
+}
+
+.pagination-button:hover:not(:disabled) {
+  background-color: #f3f4f6;
+}
+
+.pagination-button.active {
+  background-color: #3b82f6;
+  color: white;
+}

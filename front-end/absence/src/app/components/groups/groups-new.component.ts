@@ -16,9 +16,12 @@ import { MatChipsModule } from '@angular/material/chips';
 
 // Services et interfaces
 import { GroupsService, Group } from '../../services/groups.service';
+import { EtablissementsService } from '../../services/etablissements.service';
+import { PromotionsService } from '../../services/promotions.service';
+import { VilleService, Ville } from '../../services/ville.service';
 
 @Component({
-  selector: 'app-groups',
+  selector: 'app-groups-new',
   standalone: true,
   imports: [
     CommonModule,
@@ -34,13 +37,16 @@ import { GroupsService, Group } from '../../services/groups.service';
     MatSnackBarModule,
     MatChipsModule
   ],
-  templateUrl: './groups.component.html',
-  styleUrl: './groups.component.css'
+  templateUrl: './groups-new.component.html',
+  styleUrl: './groups-new.component.css'
 })
-export class GroupsComponent implements OnInit, OnDestroy {
+export class GroupsNewComponent implements OnInit, OnDestroy {
   // Données
   allGroups: Group[] = []; // Tous les groupes
   groups: Group[] = []; // Groupes filtrés et paginés
+  etablissements: any[] = [];
+  promotions: any[] = [];
+  villes: Ville[] = [];
   totalGroups = 0;
 
   // Pagination
@@ -50,6 +56,9 @@ export class GroupsComponent implements OnInit, OnDestroy {
 
   // Filtres et recherche
   searchValue = '';
+  selectedEtablissement: number | string = '';
+  selectedPromotion: number | string = '';
+  selectedVille: number | string = '';
   searchResults: number | null = null;
   
   // États
@@ -76,6 +85,9 @@ export class GroupsComponent implements OnInit, OnDestroy {
 
   constructor(
     private groupsService: GroupsService,
+    private etablissementsService: EtablissementsService,
+    private promotionsService: PromotionsService,
+    private villeService: VilleService,
     private fb: FormBuilder,
     private snackBar: MatSnackBar
   ) {
@@ -85,7 +97,7 @@ export class GroupsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     console.log('👥 Composant Groups initialisé');
-    this.loadGroups();
+    this.loadInitialData();
   }
 
   ngOnDestroy(): void {
@@ -97,7 +109,10 @@ export class GroupsComponent implements OnInit, OnDestroy {
 
   private initializeForm(): void {
     this.groupForm = this.fb.group({
-      name: ['', [Validators.required, Validators.minLength(2)]]
+      title: ['', [Validators.required, Validators.minLength(2)]],
+      etablissement_id: ['', [Validators.required]],
+      promotion_id: ['', [Validators.required]],
+      ville_id: ['', [Validators.required]]
     });
   }
 
@@ -114,7 +129,29 @@ export class GroupsComponent implements OnInit, OnDestroy {
       });
   }
 
+  private loadInitialData(): void {
+    this.loadVilles();
+    this.loadEtablissements();
+    this.loadPromotions();
+    this.loadGroups();
+  }
+
   // ===== CHARGEMENT DES DONNÉES =====
+
+  loadVilles(): void {
+    this.villeService.getAllVilles()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (villes) => {
+          console.log('✅ Villes chargées:', villes);
+          this.villes = villes;
+        },
+        error: (error) => {
+          console.error('❌ Erreur lors du chargement des villes:', error);
+          this.showError('Erreur lors du chargement des villes');
+        }
+      });
+  }
 
   loadGroups(): void {
     this.loading = true;
@@ -137,6 +174,36 @@ export class GroupsComponent implements OnInit, OnDestroy {
       });
   }
 
+  loadEtablissements(): void {
+    this.etablissementsService.getAllEtablissements()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (etablissements) => {
+          console.log('✅ Établissements chargés:', etablissements);
+          this.etablissements = etablissements;
+        },
+        error: (error) => {
+          console.error('❌ Erreur lors du chargement des établissements:', error);
+          this.showError('Erreur lors du chargement des établissements');
+        }
+      });
+  }
+
+  loadPromotions(): void {
+    this.promotionsService.getAllPromotions()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (promotions) => {
+          console.log('✅ Promotions chargées:', promotions);
+          this.promotions = promotions;
+        },
+        error: (error) => {
+          console.error('❌ Erreur lors du chargement des promotions:', error);
+          this.showError('Erreur lors du chargement des promotions');
+        }
+      });
+  }
+
   // ===== FILTRAGE ET PAGINATION =====
 
   applyFiltersAndPagination(): void {
@@ -146,7 +213,31 @@ export class GroupsComponent implements OnInit, OnDestroy {
     if (this.searchValue.trim()) {
       const searchTerm = this.searchValue.toLowerCase();
       filteredGroups = filteredGroups.filter(group =>
-        group.name.toLowerCase().includes(searchTerm)
+        group.title.toLowerCase().includes(searchTerm) ||
+        group.promotion?.name.toLowerCase().includes(searchTerm) ||
+        group.etablissement?.name.toLowerCase().includes(searchTerm) ||
+        group.ville?.name.toLowerCase().includes(searchTerm)
+      );
+    }
+
+    // Filtrage par établissement
+    if (this.selectedEtablissement) {
+      filteredGroups = filteredGroups.filter(group => 
+        group.etablissement_id === Number(this.selectedEtablissement)
+      );
+    }
+
+    // Filtrage par promotion
+    if (this.selectedPromotion) {
+      filteredGroups = filteredGroups.filter(group => 
+        group.promotion_id === Number(this.selectedPromotion)
+      );
+    }
+
+    // Filtrage par ville
+    if (this.selectedVille) {
+      filteredGroups = filteredGroups.filter(group => 
+        group.ville_id === Number(this.selectedVille)
       );
     }
 
@@ -169,6 +260,23 @@ export class GroupsComponent implements OnInit, OnDestroy {
     this.searchSubject$.next(this.searchValue);
   }
 
+  applyFilters(): void {
+    console.log('🔍 Application des filtres');
+    this.currentPage = 1;
+    this.applyFiltersAndPagination();
+  }
+
+  clearFilters(): void {
+    console.log('🧹 Réinitialisation de tous les filtres');
+    this.searchValue = '';
+    this.selectedEtablissement = '';
+    this.selectedPromotion = '';
+    this.selectedVille = '';
+    this.searchResults = null;
+    this.currentPage = 1;
+    this.applyFiltersAndPagination();
+  }
+
   clearSearch(): void {
     this.searchValue = '';
     this.searchResults = null;
@@ -176,12 +284,38 @@ export class GroupsComponent implements OnInit, OnDestroy {
     this.applyFiltersAndPagination();
   }
 
+  clearEtablissementFilter(): void {
+    this.selectedEtablissement = '';
+    this.currentPage = 1;
+    this.applyFiltersAndPagination();
+  }
+
+  clearPromotionFilter(): void {
+    this.selectedPromotion = '';
+    this.currentPage = 1;
+    this.applyFiltersAndPagination();
+  }
+
+  clearVilleFilter(): void {
+    this.selectedVille = '';
+    this.currentPage = 1;
+    this.applyFiltersAndPagination();
+  }
+
   hasActiveFilters(): boolean {
-    return this.searchValue.trim() !== '';
+    return this.searchValue.trim() !== '' || 
+           this.selectedEtablissement !== '' || 
+           this.selectedPromotion !== '' || 
+           this.selectedVille !== '';
   }
 
   getActiveFiltersCount(): number {
-    return this.searchValue.trim() !== '' ? 1 : 0;
+    let count = 0;
+    if (this.searchValue.trim() !== '') count++;
+    if (this.selectedEtablissement !== '') count++;
+    if (this.selectedPromotion !== '') count++;
+    if (this.selectedVille !== '') count++;
+    return count;
   }
 
   // ===== PAGINATION =====
@@ -211,7 +345,10 @@ export class GroupsComponent implements OnInit, OnDestroy {
     this.isEditMode = true;
     this.selectedGroup = group;
     this.groupForm.patchValue({
-      name: group.name
+      title: group.title,
+      etablissement_id: group.etablissement_id,
+      promotion_id: group.promotion_id,
+      ville_id: group.ville_id
     });
     this.showDialog = true;
   }
@@ -244,7 +381,7 @@ export class GroupsComponent implements OnInit, OnDestroy {
 
   saveGroup(): void {
     if (this.groupForm.invalid) {
-      this.showError('Veuillez remplir le nom du groupe');
+      this.showError('Veuillez remplir tous les champs obligatoires');
       return;
     }
 
@@ -330,16 +467,5 @@ export class GroupsComponent implements OnInit, OnDestroy {
       duration: 5000,
       panelClass: ['error-snackbar']
     });
-  }
-
-  // ===== STATISTIQUES =====
-
-  getTotalStudents(): number {
-    return this.allGroups.reduce((total, group) => total + (group.etudiants?.length || 0), 0);
-  }
-
-  getAverageStudentsPerGroup(): number {
-    if (this.totalGroups === 0) return 0;
-    return Math.round(this.getTotalStudents() / this.totalGroups);
   }
 }

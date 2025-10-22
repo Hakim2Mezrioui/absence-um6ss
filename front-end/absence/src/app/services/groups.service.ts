@@ -4,24 +4,9 @@ import { Observable } from 'rxjs';
 
 export interface Group {
   id: number;
-  title: string;
-  promotion_id: number;
-  etablissement_id: number;
-  ville_id: number;
+  name: string;
   created_at: string;
   updated_at: string;
-  promotion?: {
-    id: number;
-    name: string;
-  };
-  etablissement?: {
-    id: number;
-    name: string;
-  };
-  ville?: {
-    id: number;
-    name: string;
-  };
   etudiants?: {
     id: number;
     nom: string;
@@ -67,6 +52,13 @@ export class GroupsService {
   private apiUrl = 'http://127.0.0.1:8000/api/groups';
 
   constructor(private http: HttpClient) { }
+
+  /**
+   * Récupérer tous les groupes (pour le filtrage frontend)
+   */
+  getAllGroups(): Observable<Group[]> {
+    return this.http.get<Group[]>(this.apiUrl);
+  }
 
   getGroups(filters: GroupFilters = {}): Observable<Group[]> {
     let params = new HttpParams();

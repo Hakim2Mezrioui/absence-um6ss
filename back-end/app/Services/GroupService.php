@@ -10,11 +10,14 @@ class GroupService
 {
     use FilterByUserContext;
     /**
-     * Get all groups with their relationships (groupes maintenant globaux)
+     * Get all groups with their relationships (without user context filtering for frontend filtering)
      */
     public function getAllGroups(): Collection
     {
-        return Group::with(['etudiants'])->get();
+        return Group::withoutGlobalScope(\App\Scopes\UserContextScope::class)
+            ->with(['etudiants'])
+            ->orderBy('title')
+            ->get();
     }
 
     /**

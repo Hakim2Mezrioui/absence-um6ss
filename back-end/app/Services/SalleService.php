@@ -16,12 +16,14 @@ class SalleService
     }
 
     /**
-     * Get all salles (filtered by user context)
+     * Get all salles (without user context filtering for frontend filtering)
      */
     public function getAllSalles(): Collection
     {
-        $query = Salle::with('etablissement')->orderBy('name');
-        return $this->applyUserContextFilters($query)->get();
+        return Salle::withoutGlobalScope(\App\Scopes\UserContextScope::class)
+            ->with(['etablissement', 'ville'])
+            ->orderBy('name')
+            ->get();
     }
 
     /**
@@ -37,6 +39,13 @@ class SalleService
      */
     public function createSalle(array $data): Salle
     {
+        $context = $this->getUserContextForFiltering();
+        
+        // Automatically set ville_id from user context if not provided
+        if (!isset($data['ville_id']) && $context['ville_id']) {
+            $data['ville_id'] = $context['ville_id'];
+        }
+        
         return Salle::create($data);
     }
 

@@ -45,7 +45,8 @@ import { MatChipsModule } from '@angular/material/chips';
 })
 export class EtablissementsComponent implements OnInit, OnDestroy {
   // Données
-  etablissements: Etablissement[] = [];
+  allEtablissements: Etablissement[] = []; // Tous les établissements
+  etablissements: Etablissement[] = []; // Établissements filtrés et paginés
   villes: Ville[] = [];
   totalEtablissements = 0;
   uniqueVilles = 0;
@@ -125,7 +126,7 @@ export class EtablissementsComponent implements OnInit, OnDestroy {
       )
       .subscribe(() => {
         this.currentPage = 1;
-        this.loadEtablissements();
+        this.applyFiltersAndPagination();
       });
   }
 
@@ -140,23 +141,14 @@ export class EtablissementsComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.error = '';
 
-    const filters: EtablissementFilters = {
-      searchValue: this.searchValue || undefined,
-      ville_id: this.selectedVille ? Number(this.selectedVille) : undefined
-    };
-
-    this.etablissementsService.getEtablissements(this.currentPage, this.pageSize, filters)
+    this.etablissementsService.getAllEtablissements()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          console.log('✅ Établissements chargés:', response);
+          console.log('✅ Tous les établissements chargés:', response);
           
-          this.etablissements = response.etablissements || [];
-          this.totalEtablissements = response.total || 0;
-          this.totalPages = Math.ceil(this.totalEtablissements / this.pageSize);
-          this.searchResults = this.hasActiveFilters() ? this.totalEtablissements : null;
-          
-          this.calculateStatistics();
+          this.allEtablissements = response.etablissements || [];
+          this.applyFiltersAndPagination();
           this.loading = false;
         },
         error: (error) => {
@@ -166,6 +158,49 @@ export class EtablissementsComponent implements OnInit, OnDestroy {
           this.showErrorSnackBar('Erreur lors du chargement des établissements');
         }
       });
+  }
+
+  /**
+   * Applique les filtres et la pagination côté frontend
+   */
+  private applyFiltersAndPagination(): void {
+    // Filtrer les établissements
+    let filtered = [...this.allEtablissements];
+
+    // Filtre par recherche (nom)
+    if (this.searchValue && this.searchValue.trim() !== '') {
+      const searchLower = this.searchValue.toLowerCase().trim();
+      filtered = filtered.filter(etab => 
+        etab.name.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Filtre par ville
+    if (this.selectedVille && this.selectedVille !== '') {
+      const villeId = Number(this.selectedVille);
+      filtered = filtered.filter(etab => etab.ville_id === villeId);
+    }
+
+    // Calculer les totaux
+    this.totalEtablissements = filtered.length;
+    this.totalPages = Math.ceil(this.totalEtablissements / this.pageSize);
+    this.searchResults = this.hasActiveFilters() ? this.totalEtablissements : null;
+
+    // Ajuster la page actuelle si nécessaire
+    if (this.currentPage > this.totalPages && this.totalPages > 0) {
+      this.currentPage = this.totalPages;
+    }
+    if (this.currentPage < 1 && this.totalPages > 0) {
+      this.currentPage = 1;
+    }
+
+    // Paginer
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    this.etablissements = filtered.slice(startIndex, endIndex);
+
+    // Calculer les statistiques
+    this.calculateStatistics();
   }
 
   loadVilles(): void {
@@ -184,9 +219,9 @@ export class EtablissementsComponent implements OnInit, OnDestroy {
   }
 
   private calculateStatistics(): void {
-    // Calculer le nombre de villes uniques
+    // Calculer le nombre de villes uniques depuis tous les établissements
     const villesUniques = new Set(
-      this.etablissements
+      this.allEtablissements
         .filter(e => e.ville_id)
         .map(e => e.ville_id)
     );
@@ -202,7 +237,7 @@ export class EtablissementsComponent implements OnInit, OnDestroy {
 
   applyFilters(): void {
     this.currentPage = 1;
-    this.loadEtablissements();
+    this.applyFiltersAndPagination();
   }
 
   clearFilters(): void {
@@ -210,20 +245,20 @@ export class EtablissementsComponent implements OnInit, OnDestroy {
     this.selectedVille = '';
     this.searchResults = null;
     this.currentPage = 1;
-    this.loadEtablissements();
+    this.applyFiltersAndPagination();
   }
 
   clearSearch(): void {
     this.searchValue = '';
     this.searchResults = null;
     this.currentPage = 1;
-    this.loadEtablissements();
+    this.applyFiltersAndPagination();
   }
 
   clearVilleFilter(): void {
     this.selectedVille = '';
     this.currentPage = 1;
-    this.loadEtablissements();
+    this.applyFiltersAndPagination();
   }
 
   hasActiveFilters(): boolean {
@@ -249,7 +284,7 @@ export class EtablissementsComponent implements OnInit, OnDestroy {
   }
 
   getEtablissementsCountByVille(villeId: number): number {
-    return this.etablissements.filter(e => e.ville_id === villeId).length;
+    return this.allEtablissements.filter(e => e.ville_id === villeId).length;
   }
 
   trackByVille(index: number, ville: Ville): number {
@@ -261,13 +296,13 @@ export class EtablissementsComponent implements OnInit, OnDestroy {
   goToPage(page: number): void {
     if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
       this.currentPage = page;
-      this.loadEtablissements();
+      this.applyFiltersAndPagination();
     }
   }
 
   onPageSizeChange(): void {
     this.currentPage = 1;
-    this.loadEtablissements();
+    this.applyFiltersAndPagination();
   }
 
   getQuickNavPages(): (number | string)[] {
@@ -384,6 +419,8 @@ export class EtablissementsComponent implements OnInit, OnDestroy {
           
           this.showSuccessSnackBar(message);
           this.closeDialog();
+          
+          // Recharger tous les établissements
           this.loadEtablissements();
         },
         error: (error) => {
@@ -411,6 +448,8 @@ export class EtablissementsComponent implements OnInit, OnDestroy {
           console.log('✅ Établissement supprimé:', response);
           this.showSuccessSnackBar('Établissement supprimé avec succès');
           this.closeDeleteDialog();
+          
+          // Recharger tous les établissements
           this.loadEtablissements();
         },
         error: (error) => {
@@ -428,12 +467,31 @@ export class EtablissementsComponent implements OnInit, OnDestroy {
   }
 
   formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('fr-FR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    } catch {
+      return 'Date invalide';
+    }
+  }
+
+  formatDateTime(dateString: string): string {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return 'Date invalide';
+    }
   }
 
   private markFormGroupTouched(): void {
@@ -445,21 +503,25 @@ export class EtablissementsComponent implements OnInit, OnDestroy {
 
   // ===== NOTIFICATIONS =====
 
-  private showSuccessSnackBar(message: string): void {
+  private showSuccess(message: string): void {
     this.snackBar.open(message, 'Fermer', {
-      duration: 3000,
-      horizontalPosition: 'end',
-      verticalPosition: 'top',
+      duration: 5000,
       panelClass: ['success-snackbar']
     });
   }
 
-  private showErrorSnackBar(message: string): void {
+  private showError(message: string): void {
     this.snackBar.open(message, 'Fermer', {
       duration: 5000,
-      horizontalPosition: 'end',
-      verticalPosition: 'top',
       panelClass: ['error-snackbar']
     });
+  }
+
+  private showSuccessSnackBar(message: string): void {
+    this.showSuccess(message);
+  }
+
+  private showErrorSnackBar(message: string): void {
+    this.showError(message);
   }
 }

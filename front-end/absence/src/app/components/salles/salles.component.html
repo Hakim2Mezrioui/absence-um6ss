@@ -1,348 +1,475 @@
-<div class="min-h-screen bg-gray-50">
-  <!-- Header Optimisé -->
-  <header class="relative bg-gradient-to-br from-blue-600 via-indigo-700 to-purple-800 text-white shadow-2xl overflow-hidden">
-    <!-- Background Pattern -->
-    <div class="absolute inset-0 bg-black/10">
-      <div class="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-transparent to-purple-600/20"></div>
-      <div class="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-48 translate-x-48"></div>
-      <div class="absolute bottom-0 left-0 w-80 h-80 bg-white/5 rounded-full translate-y-40 -translate-x-40"></div>
-    </div>
-    
-    <div class="relative max-w-7xl mx-auto px-4 py-8">
-      <div class="flex flex-col lg:flex-row justify-between items-center gap-8">
-        <!-- Titre Principal -->
-        <div class="text-center lg:text-left flex-1">
-          <div class="flex items-center justify-center lg:justify-start gap-4 mb-3">
-            <div class="relative">
-              <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg">
-                <span class="material-icons text-white text-3xl">meeting_room</span>
-              </div>
-              <div class="absolute -top-1 -right-1 w-6 h-6 bg-green-400 rounded-full flex items-center justify-center">
-                <span class="material-icons text-white text-sm">check</span>
-              </div>
-            </div>
-            <div>
-              <h1 class="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
-                Gestion des Salles
-              </h1>
-              <div class="flex items-center gap-2 mt-2">
-                <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <p class="text-lg text-blue-100 font-medium">Système de gestion intelligent</p>
-              </div>
-            </div>
-          </div>
-          <p class="text-xl text-blue-100/90 max-w-2xl leading-relaxed">
-            Gérez efficacement vos salles, planifiez les réservations et optimisez l'utilisation de vos espaces
-          </p>
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">Gestion des Salles</h1>
+          <p class="mt-2 text-gray-600">Gérez les salles et leurs informations</p>
         </div>
-
-        <!-- Actions Principales -->
-        <div class="flex flex-col sm:flex-row items-center gap-4">
-          <!-- Statistiques Rapides -->
-          <div class="hidden lg:flex items-center gap-6 mr-6">
-            <div class="text-center">
-              <div class="text-2xl font-bold text-white">{{ totalSalles }}</div>
-              <div class="text-sm text-blue-200">Salles</div>
-            </div>
-            <div class="w-px h-12 bg-white/30"></div>
-            <div class="text-center">
-              <div class="text-2xl font-bold text-white">{{ uniqueEtablissements }}</div>
-              <div class="text-sm text-blue-200">Établissements</div>
-            </div>
-          </div>
-
-          <!-- Boutons d'Action -->
-          <div class="flex flex-col sm:flex-row gap-3">
-            <button class="group relative bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 text-white px-6 py-3 rounded-xl transition-all duration-300 flex items-center gap-3 disabled:opacity-50 hover:scale-105 hover:shadow-lg"
-                    (click)="openAddDialog()"
-                    [disabled]="loading">
-              <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition-colors">
-                <span class="material-icons text-sm">add</span>
-              </div>
-              <span class="font-semibold">Nouvelle Salle</span>
-            </button>
-            
-            <button class="group relative bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 text-white px-6 py-3 rounded-xl transition-all duration-300 flex items-center gap-3 disabled:opacity-50 hover:scale-105 hover:shadow-lg"
-                    (click)="loadSalles()"
-                    [disabled]="loading">
-              <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition-colors">
-                <span class="material-icons text-sm" [class.animate-spin]="loading">refresh</span>
-              </div>
-              <span class="font-semibold">Actualiser</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Barre de Progression (si chargement) -->
-      <div class="mt-6" *ngIf="loading">
-        <div class="w-full bg-white/20 rounded-full h-2 overflow-hidden">
-          <div class="h-full bg-gradient-to-r from-blue-400 to-purple-400 rounded-full animate-pulse"></div>
-        </div>
-        <p class="text-center text-blue-200 mt-2 text-sm">Chargement en cours...</p>
-      </div>
-    </div>
-  </header>
-
-  <!-- Statistiques générales -->
-  <section class="mb-12" *ngIf="!loading">
-    <div class="max-w-7xl mx-auto px-4 py-8">
-      <h2 class="text-2xl font-bold text-gray-800 mb-6 pb-2 border-b-2 border-blue-600 inline-block flex items-center gap-3">
-        <span class="material-icons text-blue-600 text-3xl">insights</span>
-        Vue d'ensemble
-      </h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500 hover:shadow-xl transition-all duration-300 group">
-          <div class="flex items-center gap-4">
-            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-              <span class="material-icons text-white text-2xl">meeting_room</span>
-            </div>
-            <div>
-              <h3 class="text-2xl font-bold text-gray-800">{{ totalSalles }}</h3>
-              <p class="text-gray-600 text-sm uppercase tracking-wide">Salles</p>
-            </div>
-          </div>
-          <div class="mt-4 pt-4 border-t border-gray-100">
-            <div class="flex items-center gap-2 text-blue-600 text-sm">
-              <span class="material-icons text-sm">trending_up</span>
-              <span>Total général</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500 hover:shadow-xl transition-all duration-300 group">
-          <div class="flex items-center gap-4">
-            <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-              <span class="material-icons text-white text-2xl">business</span>
-            </div>
-            <div>
-              <h3 class="text-2xl font-bold text-gray-800">{{ uniqueEtablissements }}</h3>
-              <p class="text-gray-600 text-sm uppercase tracking-wide">Établissements</p>
-            </div>
-          </div>
-          <div class="mt-4 pt-4 border-t border-gray-100">
-            <div class="flex items-center gap-2 text-green-600 text-sm">
-              <span class="material-icons text-sm">location_on</span>
-              <span>Répartis géographiquement</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-yellow-500 hover:shadow-xl transition-all duration-300 group">
-          <div class="flex items-center gap-4">
-            <div class="w-12 h-12 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-              <span class="material-icons text-white text-2xl">apartment</span>
-            </div>
-            <div>
-              <h3 class="text-2xl font-bold text-gray-800">{{ uniqueBatiments }}</h3>
-              <p class="text-gray-600 text-sm uppercase tracking-wide">Bâtiments</p>
-            </div>
-          </div>
-          <div class="mt-4 pt-4 border-t border-gray-100">
-            <div class="flex items-center gap-2 text-yellow-600 text-sm">
-              <span class="material-icons text-sm">layers</span>
-              <span>Organisés par niveau</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-cyan-500 hover:shadow-xl transition-all duration-300 group">
-          <div class="flex items-center gap-4">
-            <div class="w-12 h-12 bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-              <span class="material-icons text-white text-2xl">stairs</span>
-            </div>
-            <div>
-              <h3 class="text-2xl font-bold text-gray-800">{{ uniqueEtages }}</h3>
-              <p class="text-gray-600 text-sm uppercase tracking-wide">Étages</p>
-            </div>
-          </div>
-          <div class="mt-4 pt-4 border-t border-gray-100">
-            <div class="flex items-center gap-2 text-cyan-600 text-sm">
-              <span class="material-icons text-sm">schedule</span>
-              <span>Niveaux disponibles</span>
-            </div>
-          </div>
+        <div class="flex gap-3">
+          <button 
+            (click)="openAddDialog()"
+            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center gap-2"
+            [disabled]="loading">
+            <span class="material-icons">add</span>
+            Ajouter une salle
+          </button>
         </div>
       </div>
     </div>
-  </section>
 
-  <!-- Filtres -->
-  <div class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 py-4">
-      <div class="flex flex-col lg:flex-row gap-4 lg:gap-6 items-end">
-        <div class="flex-1">
-          <label for="search-filter" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-            <span class="material-icons text-blue-600 text-lg">search</span>
-            Recherche
-          </label>
-          <input type="text" 
-                 id="search-filter"
-                 [(ngModel)]="searchTerm" 
-                 (input)="onSearchChange()"
-                 placeholder="Rechercher une salle..."
-                 [disabled]="loading"
-                 class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+    <!-- Filters Section -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold text-gray-900">Filtres</h2>
+        <button 
+          (click)="clearFilters()"
+          class="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+          [disabled]="loading">
+          Effacer les filtres
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Search -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Recherche</label>
+          <input
+            type="text"
+            placeholder="Rechercher une salle..."
+            [(ngModel)]="searchValue"
+            (input)="onSearchChange($event)"
+            [disabled]="loading"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
         </div>
 
-        <div class="flex-1">
-          <label for="etablissement-filter" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-            <span class="material-icons text-green-600 text-lg">business</span>
-            Établissement
-          </label>
-          <select id="etablissement-filter"
-                  [(ngModel)]="selectedEtablissement"
-                  (change)="onFilterChange()"
-                  class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+        <!-- Établissement filter -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Établissement</label>
+          <select
+            [(ngModel)]="selectedEtablissement"
+            (change)="applyFilters()"
+            [disabled]="loading"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
             <option value="">Tous les établissements</option>
             <option *ngFor="let etablissement of etablissements" [value]="etablissement.id">{{ etablissement.name }}</option>
           </select>
         </div>
 
-        <div class="flex-1">
-          <label for="batiment-filter" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-            <span class="material-icons text-yellow-600 text-lg">apartment</span>
-            Bâtiment
-          </label>
-          <select id="batiment-filter"
-                  [(ngModel)]="selectedBatiment"
-                  (change)="onFilterChange()"
-                  class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+        <!-- Bâtiment filter -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Bâtiment</label>
+          <select
+            [(ngModel)]="selectedBatiment"
+            (change)="applyFilters()"
+            [disabled]="loading"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
             <option value="">Tous les bâtiments</option>
             <option *ngFor="let batiment of uniqueBatimentsList" [value]="batiment">{{ batiment }}</option>
           </select>
         </div>
 
-        <div class="flex-1">
-          <label for="etage-filter" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-            <span class="material-icons text-purple-600 text-lg">stairs</span>
-            Étage
-          </label>
-          <select id="etage-filter"
-                  [(ngModel)]="selectedEtage"
-                  (change)="onFilterChange()"
-                  class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+        <!-- Étage filter -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Étage</label>
+          <select
+            [(ngModel)]="selectedEtage"
+            (change)="applyFilters()"
+            [disabled]="loading"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
             <option value="">Tous les étages</option>
             <option *ngFor="let etage of uniqueEtagesList" [value]="etage">Étage {{ etage }}</option>
           </select>
         </div>
-
-        <button class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-all duration-300 flex items-center gap-2"
-                (click)="clearFilters()"
-                [disabled]="!hasActiveFilters() || loading">
-          <span class="material-icons">restart_alt</span>
-          Réinitialiser
-        </button>
       </div>
+    </div>
 
-      <!-- Indicateur de filtres actifs -->
-      <div class="mt-4" *ngIf="hasActiveFilters()">
-        <div class="flex items-center gap-3 text-sm text-gray-600">
-          <span class="material-icons text-blue-600">filter_list</span>
-          <span class="font-medium">Filtres actifs :</span>
-          <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold"
-                *ngIf="searchTerm">Recherche: "{{ searchTerm }}"</span>
-          <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold"
-                *ngIf="selectedEtablissement">{{ getEtablissementName(selectedEtablissement) }}</span>
-          <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold"
-                *ngIf="selectedBatiment">{{ selectedBatiment }}</span>
-          <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold"
-                *ngIf="selectedEtage">Étage {{ selectedEtage }}</span>
+    <!-- Results Header -->
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center space-x-4">
+        <span class="text-sm text-gray-700">
+          Affichage de {{ (currentPage - 1) * pageSize + 1 }} à {{ Math.min(currentPage * pageSize, totalSalles) }} sur {{ totalSalles }} résultats
+        </span>
+      </div>
+      
+      <div class="flex items-center space-x-2">
+        <label class="text-sm text-gray-700">Par page:</label>
+        <select
+          [value]="pageSize"
+          (change)="onPageSizeChange()"
+          [(ngModel)]="pageSize"
+          class="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="5">5</option>
+          <option value="10">10</option>
+          <option value="20">20</option>
+          <option value="50">50</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="flex justify-center items-center py-12">
+      <div class="loading-spinner rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error && !loading" class="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+          </svg>
         </div>
-      </div>
-
-      <!-- Indicateur de résultats -->
-      <div class="mt-4" *ngIf="searchTerm">
-        <div class="flex items-center gap-2 text-sm text-gray-600">
-          <span class="material-icons text-green-600">info</span>
-          <span>{{ filteredSalles.length }} résultat(s) trouvé(s)</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Loading State -->
-  <div class="flex justify-center items-center min-h-96" *ngIf="loading">
-    <div class="text-center text-gray-600">
-      <span class="material-icons animate-spin text-6xl mb-4 block">refresh</span>
-      <p class="text-lg">Chargement des salles...</p>
-    </div>
-  </div>
-
-  <!-- Error State -->
-  <div class="flex justify-center items-center min-h-96" *ngIf="error && !loading">
-    <div class="text-center bg-red-50 border border-red-200 rounded-xl p-8 max-w-md">
-      <span class="material-icons text-red-500 text-6xl mb-4 block">error</span>
-      <p class="text-red-700 mb-4">{{ error }}</p>
-      <button class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg transition-all duration-300"
-              (click)="loadSalles()">Réessayer</button>
-    </div>
-  </div>
-
-  <!-- Dashboard Content -->
-  <div class="max-w-7xl mx-auto px-4 py-8" *ngIf="!loading && !error">
-    <!-- Liste des salles -->
-    <div *ngIf="filteredSalles.length > 0">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        <div *ngFor="let salle of filteredSalles; trackBy: trackBySalle" 
-             class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500 hover:shadow-xl transition-all duration-300 group">
-          <div class="flex items-center gap-4 mb-4">
-            <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-              <span class="material-icons text-white text-2xl">meeting_room</span>
-            </div>
-            <div class="flex-1">
-              <h3 class="text-lg font-bold text-gray-800">{{ salle.name }}</h3>
-              <p class="text-sm text-gray-600">{{ salle.etablissement?.name || 'Établissement non défini' }}</p>
-            </div>
-          </div>
-
-          <div class="space-y-3">
-            <div class="flex items-center gap-3 text-sm text-gray-600">
-              <span class="material-icons text-blue-600 text-lg">apartment</span>
-              <span class="font-medium">Bâtiment: {{ salle.batiment }}</span>
-            </div>
-            <div class="flex items-center gap-3 text-sm text-gray-600">
-              <span class="material-icons text-purple-600 text-lg">stairs</span>
-              <span class="font-medium">Étage: {{ salle.etage }}</span>
-            </div>
-            <div class="flex items-center gap-3 text-sm text-gray-600" *ngIf="salle.capacite">
-              <span class="material-icons text-yellow-600 text-lg">people</span>
-              <span class="font-medium">Capacité: {{ salle.capacite }} places</span>
-            </div>
-            <div class="flex items-center gap-3 text-sm text-gray-600" *ngIf="salle.description">
-              <span class="material-icons text-gray-600 text-lg">description</span>
-              <span class="font-medium">{{ salle.description }}</span>
-            </div>
-          </div>
-
-          <div class="flex justify-end gap-2 mt-6 pt-4 border-t border-gray-100">
-            <button class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg transition-all duration-300 flex items-center gap-2"
-                    (click)="editSalle(salle)"
-                    title="Modifier">
-              <span class="material-icons text-sm">edit</span>
-            </button>
-            <button class="bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg transition-all duration-300 flex items-center gap-2"
-                    (click)="deleteSalle(salle)"
-                    title="Supprimer">
-              <span class="material-icons text-sm">delete</span>
-            </button>
-          </div>
+        <div class="ml-3">
+          <p class="text-sm text-red-800">{{ error }}</p>
         </div>
       </div>
     </div>
 
-    <!-- Message aucun résultat -->
-    <div class="flex justify-center items-center min-h-96" *ngIf="filteredSalles.length === 0">
-      <div class="text-center bg-white border border-gray-200 rounded-xl p-8 max-w-md">
-        <span class="material-icons text-gray-400 text-6xl mb-4 block">search_off</span>
-        <h3 class="text-xl font-semibold text-gray-800 mb-2">Aucune salle trouvée</h3>
-        <p class="text-gray-600 mb-6" *ngIf="hasActiveFilters()">Essayez de modifier vos critères de recherche</p>
-        <p class="text-gray-600 mb-6" *ngIf="!hasActiveFilters()">Aucune salle n'est encore enregistrée</p>
-        <button class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 mx-auto"
-                (click)="openAddDialog()" 
-                *ngIf="!hasActiveFilters()">
+    <!-- Salles Cards -->
+    <div *ngIf="!loading && !error" class="salles-grid grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div *ngFor="let salle of salles; trackBy: trackBySalle" class="salle-card bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col">
+        <!-- Header de la card -->
+        <div class="p-6 border-b border-gray-100">
+          <div class="flex items-start justify-between mb-3">
+            <h3 class="text-lg font-semibold text-gray-900">{{ salle.name }}</h3>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+              ID: {{ salle.id }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Contenu principal de la card -->
+        <div class="p-6 space-y-4 flex-grow">
+          <!-- Établissement -->
+          <div class="flex items-center space-x-3">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+            </div>
+            <div>
+              <div class="text-sm font-medium text-gray-900">Établissement</div>
+              <div class="text-sm text-gray-600">{{ salle.etablissement?.name || 'Non défini' }}</div>
+            </div>
+          </div>
+
+          <!-- Bâtiment -->
+          <div class="flex items-center space-x-3">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+            </div>
+            <div>
+              <div class="text-sm font-medium text-gray-900">Bâtiment</div>
+              <div class="text-sm text-gray-600">{{ salle.batiment }}</div>
+            </div>
+          </div>
+
+          <!-- Étage -->
+          <div class="flex items-center space-x-3">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+              </svg>
+            </div>
+            <div>
+              <div class="text-sm font-medium text-gray-900">Étage</div>
+              <div class="text-sm text-gray-600">{{ salle.etage }}</div>
+            </div>
+          </div>
+
+          <!-- Capacité -->
+          <div class="flex items-center space-x-3" *ngIf="salle.capacite">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </div>
+            <div>
+              <div class="text-sm font-medium text-gray-900">Capacité</div>
+              <div class="text-sm text-gray-600">{{ salle.capacite }} places</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions et footer - Toujours en bas -->
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 mt-auto">
+          <div class="flex items-center justify-between">
+            <div class="text-xs text-gray-500" *ngIf="salle.created_at">
+              Créé le {{ formatDate(salle.created_at) }}
+            </div>
+            <div class="flex space-x-2">
+              <button 
+                class="action-button text-blue-600 hover:text-blue-900 p-2 rounded-md hover:bg-blue-50 transition-colors"
+                (click)="openEditDialog(salle)"
+                title="Modifier">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </button>
+              
+              <button 
+                class="action-button delete text-red-600 hover:text-red-900 p-2 rounded-md hover:bg-red-50 transition-colors"
+                (click)="openDeleteDialog(salle)"
+                title="Supprimer">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="salles.length === 0 && !loading && !error" class="text-center py-12">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+        <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
+        </svg>
+        <h3 class="mt-4 text-lg font-medium text-gray-900">Aucune salle trouvée</h3>
+        <p class="mt-2 text-sm text-gray-500">{{ searchValue ? 'Aucune salle ne correspond à votre recherche.' : 'Commencez par ajouter votre première salle.' }}</p>
+        <button 
+          (click)="openAddDialog()"
+          class="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center gap-2 mx-auto">
           <span class="material-icons">add</span>
           Ajouter la première salle
+        </button>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="!loading && !error && totalPages > 1" class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 rounded-lg shadow-sm border border-gray-200">
+      <div class="flex-1 flex justify-between sm:hidden">
+        <button
+          (click)="goToPage(currentPage - 1)"
+          [disabled]="currentPage === 1"
+          class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Précédent
+        </button>
+        <button
+          (click)="goToPage(currentPage + 1)"
+          [disabled]="currentPage === totalPages"
+          class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Suivant
+        </button>
+      </div>
+      <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+        <div>
+          <p class="text-sm text-gray-700">
+            Affichage de <span class="font-medium">{{ (currentPage - 1) * pageSize + 1 }}</span> à 
+            <span class="font-medium">{{ Math.min(currentPage * pageSize, totalSalles) }}</span> sur 
+            <span class="font-medium">{{ totalSalles }}</span> résultats
+          </p>
+        </div>
+        <div>
+          <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+            <!-- Previous Page -->
+            <button
+              (click)="goToPage(currentPage - 1)"
+              [disabled]="currentPage === 1"
+              class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span class="sr-only">Précédent</span>
+              <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+              </svg>
+            </button>
+
+            <!-- Page Numbers -->
+            <ng-container *ngFor="let page of getQuickNavPages()">
+              <button
+                *ngIf="page !== '...'"
+                (click)="goToPage(+page)"
+                [class]="page === currentPage 
+                  ? 'relative inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md z-10 bg-blue-50 border-blue-500 text-blue-600'
+                  : 'relative inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md bg-white border-gray-300 text-gray-500 hover:bg-gray-50'"
+              >
+                {{ page }}
+              </button>
+              <span *ngIf="page === '...'" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                ...
+              </span>
+            </ng-container>
+
+            <!-- Next Page -->
+            <button
+              (click)="goToPage(currentPage + 1)"
+              [disabled]="currentPage === totalPages"
+              class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span class="sr-only">Suivant</span>
+              <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+              </svg>
+            </button>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Dialog pour ajouter/modifier une salle -->
+<div *ngIf="showDialog" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+  <div class="absolute inset-0 backdrop-blur-md" (click)="closeDialog()"></div>
+  
+  <div class="relative bg-white rounded-lg shadow-lg border border-gray-200 max-w-2xl w-full transform transition-all duration-300 scale-100" (click)="$event.stopPropagation()">
+    <div class="bg-gray-50 border-b border-gray-200 p-6">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+            <span class="material-icons text-white">{{ isEditMode ? 'edit' : 'add' }}</span>
+          </div>
+          <div>
+            <h2 class="text-lg font-semibold text-gray-900">{{ isEditMode ? 'Modifier la salle' : 'Ajouter une salle' }}</h2>
+          </div>
+        </div>
+        <button (click)="closeDialog()" class="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-all duration-200 text-gray-600 hover:text-gray-800">
+          <span class="material-icons text-lg">close</span>
+        </button>
+      </div>
+    </div>
+    
+    <div class="p-6">
+      <form [formGroup]="salleForm" (ngSubmit)="saveSalle()">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Nom de la salle</label>
+            <input type="text" formControlName="name" placeholder="Ex: Salle A101"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              [class.border-red-500]="salleForm.get('name')?.invalid && salleForm.get('name')?.touched">
+            <div *ngIf="salleForm.get('name')?.invalid && salleForm.get('name')?.touched" class="mt-1 text-sm text-red-600">
+              Le nom est requis (min. 2 caractères)
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Établissement</label>
+            <select formControlName="etablissement_id"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              [class.border-red-500]="salleForm.get('etablissement_id')?.invalid && salleForm.get('etablissement_id')?.touched">
+              <option value="">Sélectionner</option>
+              <option *ngFor="let etablissement of etablissements" [value]="etablissement.id">{{ etablissement.name }}</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Ville</label>
+            <select formControlName="ville_id" 
+              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              <option value="">Sélectionner une ville</option>
+              <option *ngFor="let ville of villes" [value]="ville.id">{{ ville.name }}</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Bâtiment</label>
+            <input type="text" formControlName="batiment" placeholder="Ex: Bâtiment A"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Étage</label>
+            <input type="number" formControlName="etage" placeholder="Ex: 1"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Capacité (optionnel)</label>
+            <input type="number" formControlName="capacite" placeholder="Ex: 50"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Description (optionnel)</label>
+            <textarea formControlName="description" rows="3" placeholder="Description de la salle"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3">
+          <button type="button" (click)="closeDialog()" [disabled]="dialogLoading"
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors duration-200 disabled:opacity-50">
+            Annuler
+          </button>
+          <button type="submit" [disabled]="salleForm.invalid || dialogLoading"
+            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors duration-200 disabled:opacity-50 flex items-center gap-2">
+            <div *ngIf="dialogLoading" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            <span *ngIf="!dialogLoading" class="material-icons text-sm">{{ isEditMode ? 'save' : 'add' }}</span>
+            {{ isEditMode ? 'Modifier' : 'Ajouter' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Dialog de confirmation de suppression -->
+<div *ngIf="showDeleteDialog" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+  <div class="absolute inset-0 backdrop-blur-md" (click)="closeDeleteDialog()"></div>
+  
+  <div class="relative bg-white rounded-lg shadow-lg border border-gray-200 max-w-md w-full transform transition-all duration-300 scale-100" (click)="$event.stopPropagation()">
+    <div class="bg-red-50 border-b border-red-200 p-6">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center">
+            <span class="material-icons text-white">warning</span>
+          </div>
+          <div>
+            <h2 class="text-lg font-semibold text-red-900">Confirmer la suppression</h2>
+          </div>
+        </div>
+        <button (click)="closeDeleteDialog()" class="w-8 h-8 bg-red-100 hover:bg-red-200 rounded-full flex items-center justify-center transition-all duration-200 text-red-600 hover:text-red-800">
+          <span class="material-icons text-lg">close</span>
+        </button>
+      </div>
+    </div>
+    
+    <div class="p-6" *ngIf="salleToDelete">
+      <div class="bg-gray-50 rounded-lg p-4 mb-4">
+        <div class="flex items-center gap-3">
+          <span class="material-icons text-blue-600">meeting_room</span>
+          <div>
+            <div class="font-medium text-gray-900">{{ salleToDelete.name }}</div>
+            <div class="text-sm text-gray-600">{{ salleToDelete.batiment }} - Étage {{ salleToDelete.etage }}</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mb-6">
+        <p class="text-sm text-gray-700 mb-3">Êtes-vous sûr de vouloir supprimer cette salle ?</p>
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+          <div class="flex items-start gap-2">
+            <span class="material-icons text-yellow-600 text-sm">info</span>
+            <p class="text-sm text-yellow-800">
+              Cette action est <strong>irréversible</strong> et supprimera définitivement toutes les données associées.
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="flex items-center justify-end gap-3">
+        <button (click)="closeDeleteDialog()" [disabled]="deleteLoading"
+          class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors duration-200 disabled:opacity-50">
+          Annuler
+        </button>
+        <button (click)="confirmDelete()" [disabled]="deleteLoading"
+          class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors duration-200 disabled:opacity-50 flex items-center gap-2">
+          <div *ngIf="deleteLoading" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+          <span *ngIf="!deleteLoading" class="material-icons text-sm">delete_forever</span>
+          {{ deleteLoading ? 'Suppression...' : 'Supprimer définitivement' }}
         </button>
       </div>
     </div>

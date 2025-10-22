@@ -23,6 +23,7 @@ try {
         'type_cours_id' => 1,
         'salle_id' => 1,
         'option_id' => 1,
+        'ville_id' => 1,
         'annee_universitaire' => '2023-2024',
         'statut_temporel' => 'futur'
     ]);

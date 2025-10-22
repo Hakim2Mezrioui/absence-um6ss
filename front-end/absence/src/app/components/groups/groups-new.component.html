@@ -27,7 +27,7 @@
           type="text" 
           [(ngModel)]="searchValue"
           (input)="onSearchChange()"
-          placeholder="Rechercher par nom de groupe..."
+          placeholder="Rechercher par nom, promotion, établissement..."
           class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
         <mat-icon class="absolute left-3 top-2.5 text-gray-400">search</mat-icon>
         <button 
@@ -39,13 +39,79 @@
       </div>
     </div>
 
+    <!-- Filtre Établissement -->
+    <div class="min-w-48">
+      <label class="block text-sm font-medium text-gray-700 mb-2">Établissement</label>
+      <div class="relative">
+        <select 
+          [(ngModel)]="selectedEtablissement"
+          (change)="applyFilters()"
+          class="w-full pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <option value="">Tous les établissements</option>
+          <option *ngFor="let etablissement of etablissements" [value]="etablissement.id">
+            {{ etablissement.name }}
+          </option>
+        </select>
+        <button 
+          *ngIf="selectedEtablissement"
+          (click)="clearEtablissementFilter()"
+          class="absolute right-2 top-2 text-gray-400 hover:text-gray-600">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Filtre Promotion -->
+    <div class="min-w-48">
+      <label class="block text-sm font-medium text-gray-700 mb-2">Promotion</label>
+      <div class="relative">
+        <select 
+          [(ngModel)]="selectedPromotion"
+          (change)="applyFilters()"
+          class="w-full pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <option value="">Toutes les promotions</option>
+          <option *ngFor="let promotion of promotions" [value]="promotion.id">
+            {{ promotion.name }}
+          </option>
+        </select>
+        <button 
+          *ngIf="selectedPromotion"
+          (click)="clearPromotionFilter()"
+          class="absolute right-2 top-2 text-gray-400 hover:text-gray-600">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Filtre Ville -->
+    <div class="min-w-48">
+      <label class="block text-sm font-medium text-gray-700 mb-2">Ville</label>
+      <div class="relative">
+        <select 
+          [(ngModel)]="selectedVille"
+          (change)="applyFilters()"
+          class="w-full pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <option value="">Toutes les villes</option>
+          <option *ngFor="let ville of villes" [value]="ville.id">
+            {{ ville.name }}
+          </option>
+        </select>
+        <button 
+          *ngIf="selectedVille"
+          (click)="clearVilleFilter()"
+          class="absolute right-2 top-2 text-gray-400 hover:text-gray-600">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    </div>
+
     <!-- Bouton Réinitialiser -->
     <button 
       *ngIf="hasActiveFilters()"
-      (click)="clearSearch()"
+      (click)="clearFilters()"
       class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
       <mat-icon>clear</mat-icon>
-      Réinitialiser
+      Réinitialiser ({{ getActiveFiltersCount() }})
     </button>
   </div>
 
@@ -71,7 +137,7 @@
   </div>
 
   <!-- Statistiques -->
-  <div *ngIf="!loading && !error" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+  <div *ngIf="!loading && !error" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
     <div class="bg-white rounded-lg p-4 shadow-sm">
       <div class="flex items-center">
         <div class="p-2 bg-blue-100 rounded-lg">
@@ -87,11 +153,11 @@
     <div class="bg-white rounded-lg p-4 shadow-sm">
       <div class="flex items-center">
         <div class="p-2 bg-green-100 rounded-lg">
-          <mat-icon class="text-green-600">people</mat-icon>
+          <mat-icon class="text-green-600">school</mat-icon>
         </div>
         <div class="ml-3">
-          <p class="text-sm font-medium text-gray-600">Total Étudiants</p>
-          <p class="text-2xl font-bold text-gray-900">{{ getTotalStudents() }}</p>
+          <p class="text-sm font-medium text-gray-600">Établissements</p>
+          <p class="text-2xl font-bold text-gray-900">{{ etablissements.length }}</p>
         </div>
       </div>
     </div>
@@ -99,11 +165,23 @@
     <div class="bg-white rounded-lg p-4 shadow-sm">
       <div class="flex items-center">
         <div class="p-2 bg-purple-100 rounded-lg">
-          <mat-icon class="text-purple-600">trending_up</mat-icon>
+          <mat-icon class="text-purple-600">workspace_premium</mat-icon>
         </div>
         <div class="ml-3">
-          <p class="text-sm font-medium text-gray-600">Moyenne par groupe</p>
-          <p class="text-2xl font-bold text-gray-900">{{ getAverageStudentsPerGroup() }}</p>
+          <p class="text-sm font-medium text-gray-600">Promotions</p>
+          <p class="text-2xl font-bold text-gray-900">{{ promotions.length }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg p-4 shadow-sm">
+      <div class="flex items-center">
+        <div class="p-2 bg-orange-100 rounded-lg">
+          <mat-icon class="text-orange-600">location_city</mat-icon>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm font-medium text-gray-600">Villes</p>
+          <p class="text-2xl font-bold text-gray-900">{{ villes.length }}</p>
         </div>
       </div>
     </div>
@@ -119,10 +197,18 @@
       <div class="p-6 border-b border-gray-100">
         <div class="flex items-start justify-between">
           <div class="flex-1">
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ group.name }}</h3>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ group.title }}</h3>
+            <div class="flex items-center text-sm text-gray-600 mb-1">
+              <mat-icon class="text-gray-400 mr-1" style="font-size: 16px;">school</mat-icon>
+              <span>{{ group.etablissement?.name || 'N/A' }}</span>
+            </div>
+            <div class="flex items-center text-sm text-gray-600 mb-1">
+              <mat-icon class="text-gray-400 mr-1" style="font-size: 16px;">workspace_premium</mat-icon>
+              <span>{{ group.promotion?.name || 'N/A' }}</span>
+            </div>
             <div class="flex items-center text-sm text-gray-600">
-              <mat-icon class="text-gray-400 mr-1" style="font-size: 16px;">people</mat-icon>
-              <span>{{ group.etudiants?.length || 0 }} étudiant(s)</span>
+              <mat-icon class="text-gray-400 mr-1" style="font-size: 16px;">location_city</mat-icon>
+              <span>{{ group.ville?.name || 'N/A' }}</span>
             </div>
           </div>
           
@@ -150,11 +236,11 @@
       <div class="p-6 pt-4">
         <div class="flex items-center justify-between text-sm text-gray-500">
           <div class="flex items-center">
-            <mat-icon class="text-gray-400 mr-1" style="font-size: 16px;">schedule</mat-icon>
-            <span>Créé le {{ formatDate(group.created_at) }}</span>
+            <mat-icon class="text-gray-400 mr-1" style="font-size: 16px;">people</mat-icon>
+            <span>{{ group.etudiants?.length || 0 }} étudiant(s)</span>
           </div>
-          <div class="text-xs text-gray-400">
-            ID: {{ group.id }}
+          <div class="text-xs">
+            Créé le {{ formatDate(group.created_at) }}
           </div>
         </div>
       </div>
@@ -202,15 +288,14 @@
         Précédent
       </button>
       
-      <ng-container *ngFor="let page of [1, 2, 3, 4, 5]">
-        <button 
-          *ngIf="page <= totalPages"
-          (click)="goToPage(page)"
-          [class]="page === currentPage ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'"
-          class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
-          {{ page }}
-        </button>
-      </ng-container>
+      <button 
+        *ngFor="let page of [1, 2, 3, 4, 5]"
+        *ngIf="page <= totalPages"
+        (click)="goToPage(page)"
+        [class]="page === currentPage ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'"
+        class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+        {{ page }}
+      </button>
       
       <button 
         (click)="goToPage(currentPage + 1)"
@@ -225,37 +310,73 @@
 <!-- Dialog Ajout/Modification -->
 <div 
   *ngIf="showDialog" 
-  class="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50"
+  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
   (click)="closeDialogOnOverlay($event)">
   
-  <div class="bg-white bg-opacity-95 backdrop-blur-md rounded-lg shadow-xl max-w-md w-full mx-4 border border-gray-200">
-    <div class="p-6 border-b border-gray-200 bg-gray-50 bg-opacity-80">
+  <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
+    <div class="p-6 border-b border-gray-200">
       <h2 class="text-xl font-semibold text-gray-900">
         {{ isEditMode ? 'Modifier le groupe' : 'Nouveau groupe' }}
       </h2>
     </div>
 
-    <form [formGroup]="groupForm" (ngSubmit)="saveGroup()" class="p-6 space-y-4 bg-white bg-opacity-90">
+    <form [formGroup]="groupForm" (ngSubmit)="saveGroup()" class="p-6 space-y-4">
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">Nom du groupe</label>
         <input 
           type="text" 
-          formControlName="name" 
+          formControlName="title" 
           placeholder="Ex: Groupe A"
-          class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white bg-opacity-80 backdrop-blur-sm">
+          class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Établissement</label>
+        <select 
+          formControlName="etablissement_id" 
+          class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <option value="">Sélectionner</option>
+          <option *ngFor="let etablissement of etablissements" [value]="etablissement.id">
+            {{ etablissement.name }}
+          </option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Promotion</label>
+        <select 
+          formControlName="promotion_id" 
+          class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <option value="">Sélectionner</option>
+          <option *ngFor="let promotion of promotions" [value]="promotion.id">
+            {{ promotion.name }}
+          </option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Ville</label>
+        <select 
+          formControlName="ville_id" 
+          class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <option value="">Sélectionner</option>
+          <option *ngFor="let ville of villes" [value]="ville.id">
+            {{ ville.name }}
+          </option>
+        </select>
       </div>
 
       <div class="flex justify-end gap-3 pt-4">
         <button 
           type="button"
           (click)="closeDialog()"
-          class="px-4 py-2 text-gray-700 bg-gray-100 bg-opacity-80 hover:bg-gray-200 rounded-lg transition-colors backdrop-blur-sm">
+          class="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
           Annuler
         </button>
         <button 
           type="submit"
           [disabled]="groupForm.invalid || dialogLoading"
-          class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 backdrop-blur-sm">
+          class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
           <mat-spinner *ngIf="dialogLoading" diameter="16"></mat-spinner>
           {{ isEditMode ? 'Modifier' : 'Créer' }}
         </button>
@@ -267,10 +388,10 @@
 <!-- Dialog Suppression -->
 <div 
   *ngIf="showDeleteDialog" 
-  class="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50">
+  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
   
-  <div class="bg-white bg-opacity-95 backdrop-blur-md rounded-lg shadow-xl max-w-md w-full mx-4 border border-gray-200">
-    <div class="p-6 bg-white bg-opacity-90">
+  <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+    <div class="p-6">
       <div class="flex items-center mb-4">
         <div class="p-2 bg-red-100 rounded-lg mr-3">
           <mat-icon class="text-red-600">warning</mat-icon>
@@ -279,20 +400,20 @@
       </div>
       
       <p class="text-gray-600 mb-6">
-        Êtes-vous sûr de vouloir supprimer le groupe <strong>{{ groupToDelete?.name }}</strong> ?
+        Êtes-vous sûr de vouloir supprimer le groupe <strong>{{ groupToDelete?.title }}</strong> ?
         Cette action est irréversible.
       </p>
       
       <div class="flex justify-end gap-3">
         <button 
           (click)="closeDeleteDialog()"
-          class="px-4 py-2 text-gray-700 bg-gray-100 bg-opacity-80 hover:bg-gray-200 rounded-lg transition-colors backdrop-blur-sm">
+          class="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
           Annuler
         </button>
         <button 
           (click)="confirmDelete()"
           [disabled]="deleteLoading"
-          class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 backdrop-blur-sm">
+          class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
           <mat-spinner *ngIf="deleteLoading" diameter="16"></mat-spinner>
           Supprimer
         </button>

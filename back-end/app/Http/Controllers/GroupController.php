@@ -62,10 +62,15 @@ class GroupController extends Controller
     public function store(Request $request): JsonResponse
     {
         $request->validate([
-            'title' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
         ]);
 
-        $group = $this->groupService->createGroup($request->all());
+        // Convertir 'name' en 'title' pour la base de données
+        $data = $request->all();
+        $data['title'] = $data['name'];
+        unset($data['name']);
+
+        $group = $this->groupService->createGroup($data);
         
         return response()->json([
             'message' => 'Groupe créé avec succès',
@@ -100,10 +105,15 @@ class GroupController extends Controller
     public function update(Request $request, string $id): JsonResponse
     {
         $request->validate([
-            'title' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
         ]);
 
-        $group = $this->groupService->updateGroup($id, $request->all());
+        // Convertir 'name' en 'title' pour la base de données
+        $data = $request->all();
+        $data['title'] = $data['name'];
+        unset($data['name']);
+
+        $group = $this->groupService->updateGroup($id, $data);
         
         return response()->json([
             'message' => 'Groupe mis à jour avec succès',
@@ -190,7 +200,7 @@ class GroupController extends Controller
     public function getGroupsByEtablissement(string $etablissementId): JsonResponse
     {
         // Les groupes sont maintenant globaux, retourner tous les groupes
-        $groups = Group::select('id', \DB::raw('title as name'))->get();
+        $groups = Group::select('id', 'title')->get();
         return response()->json($groups);
     }
 
@@ -200,7 +210,7 @@ class GroupController extends Controller
     public function getGroupsByPromotion(string $promotionId): JsonResponse
     {
         // Les groupes sont maintenant globaux, retourner tous les groupes
-        $groups = Group::select('id', \DB::raw('title as name'))->get();
+        $groups = Group::select('id', 'title')->get();
         return response()->json($groups);
     }
 
@@ -210,7 +220,7 @@ class GroupController extends Controller
     public function getGroupsByVille(string $villeId): JsonResponse
     {
         // Les groupes sont maintenant globaux, retourner tous les groupes
-        $groups = Group::select('id', \DB::raw('title as name'))->get();
+        $groups = Group::select('id', 'title')->get();
         return response()->json($groups);
     }
 }

@@ -1,528 +1,464 @@
-<div class="min-h-screen bg-gray-50">
-  <!-- Header Optimisé -->
-  <header class="relative bg-gradient-to-br from-emerald-600 via-teal-700 to-cyan-800 text-white shadow-2xl overflow-hidden">
-    <!-- Background Pattern -->
-    <div class="absolute inset-0 bg-black/10">
-      <div class="absolute inset-0 bg-gradient-to-r from-emerald-600/20 via-transparent to-cyan-600/20"></div>
-      <div class="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-48 translate-x-48"></div>
-      <div class="absolute bottom-0 left-0 w-80 h-80 bg-white/5 rounded-full translate-y-40 -translate-x-40"></div>
-    </div>
-    
-    <div class="relative max-w-7xl mx-auto px-4 py-8">
-      <div class="flex flex-col lg:flex-row justify-between items-center gap-8">
-        <!-- Titre Principal -->
-        <div class="text-center lg:text-left flex-1">
-          <div class="flex items-center justify-center lg:justify-start gap-4 mb-3">
-            <div class="relative">
-              <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg">
-                <span class="material-icons text-white text-3xl">business</span>
-              </div>
-              <div class="absolute -top-1 -right-1 w-6 h-6 bg-green-400 rounded-full flex items-center justify-center">
-                <span class="material-icons text-white text-sm">check</span>
-              </div>
-            </div>
-            <div>
-              <h1 class="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-white to-emerald-100 bg-clip-text text-transparent">
-                Gestion des Établissements
-              </h1>
-              <div class="flex items-center gap-2 mt-2">
-                <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <p class="text-lg text-emerald-100 font-medium">Système de gestion institutionnel</p>
-              </div>
-            </div>
-          </div>
-          <p class="text-xl text-emerald-100/90 max-w-2xl leading-relaxed">
-            Gérez efficacement vos établissements d'enseignement, organisez les structures académiques et optimisez l'administration
-          </p>
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">Gestion des Établissements</h1>
+          <p class="mt-2 text-gray-600">Gérez les établissements et leurs informations</p>
         </div>
-
-        <!-- Actions Principales -->
-        <div class="flex flex-col sm:flex-row items-center gap-4">
-          <!-- Statistiques Rapides -->
-          <div class="hidden lg:flex items-center gap-6 mr-6">
-            <div class="text-center">
-              <div class="text-2xl font-bold text-white">{{ totalEtablissements }}</div>
-              <div class="text-sm text-emerald-200">Établissements</div>
-            </div>
-            <div class="w-px h-12 bg-white/30"></div>
-            <div class="text-center">
-              <div class="text-2xl font-bold text-white">{{ uniqueVilles }}</div>
-              <div class="text-sm text-emerald-200">Villes</div>
-            </div>
-            <div class="w-px h-12 bg-white/30"></div>
-            <div class="text-center">
-              <div class="text-2xl font-bold text-white">{{ etablissements.length }}</div>
-              <div class="text-sm text-emerald-200">Affichés</div>
-            </div>
-          </div>
-
-          <!-- Boutons d'Action -->
-          <div class="flex flex-col sm:flex-row gap-3">
-            <button class="group relative bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 text-white px-6 py-3 rounded-xl transition-all duration-300 flex items-center gap-3 disabled:opacity-50 hover:scale-105 hover:shadow-lg"
-                    (click)="openAddDialog()"
-                    [disabled]="loading">
-              <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition-colors">
-                <span class="material-icons text-sm">add</span>
-              </div>
-              <span class="font-semibold">Nouvel Établissement</span>
-            </button>
-            
-            <button class="group relative bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 text-white px-6 py-3 rounded-xl transition-all duration-300 flex items-center gap-3 disabled:opacity-50 hover:scale-105 hover:shadow-lg"
-                    (click)="loadEtablissements()"
-                    [disabled]="loading">
-              <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition-colors">
-                <span class="material-icons text-sm" [class.animate-spin]="loading">refresh</span>
-              </div>
-              <span class="font-semibold">Actualiser</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Barre de Progression (si chargement) -->
-      <div class="mt-6" *ngIf="loading">
-        <div class="w-full bg-white/20 rounded-full h-2 overflow-hidden">
-          <div class="h-full bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-full animate-pulse"></div>
-        </div>
-        <p class="text-center text-emerald-200 mt-2 text-sm">Chargement en cours...</p>
-      </div>
-    </div>
-  </header>
-
-  <!-- Statistiques générales -->
-  <section class="mb-12" *ngIf="!loading">
-    <div class="max-w-7xl mx-auto px-4 py-8">
-      <h2 class="text-2xl font-bold text-gray-800 mb-6 pb-2 border-b-2 border-emerald-600 inline-block flex items-center gap-3">
-        <span class="material-icons text-emerald-600 text-3xl">insights</span>
-        Vue d'ensemble
-      </h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-emerald-500 hover:shadow-xl transition-all duration-300 group">
-          <div class="flex items-center gap-4">
-            <div class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-              <span class="material-icons text-white text-2xl">business</span>
-            </div>
-            <div>
-              <h3 class="text-2xl font-bold text-gray-800">{{ totalEtablissements }}</h3>
-              <p class="text-gray-600 text-sm uppercase tracking-wide">Établissements</p>
-            </div>
-          </div>
-          <div class="mt-4 pt-4 border-t border-gray-100">
-            <div class="flex items-center gap-2 text-emerald-600 text-sm">
-              <span class="material-icons text-sm">trending_up</span>
-              <span>Total général</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500 hover:shadow-xl transition-all duration-300 group">
-          <div class="flex items-center gap-4">
-            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-              <span class="material-icons text-white text-2xl">location_city</span>
-            </div>
-            <div>
-              <h3 class="text-2xl font-bold text-gray-800">{{ uniqueVilles }}</h3>
-              <p class="text-gray-600 text-sm uppercase tracking-wide">Villes</p>
-            </div>
-          </div>
-          <div class="mt-4 pt-4 border-t border-gray-100">
-            <div class="flex items-center gap-2 text-blue-600 text-sm">
-              <span class="material-icons text-sm">location_on</span>
-              <span>Répartis géographiquement</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-cyan-500 hover:shadow-xl transition-all duration-300 group">
-          <div class="flex items-center gap-4">
-            <div class="w-12 h-12 bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-              <span class="material-icons text-white text-2xl">verified</span>
-            </div>
-            <div>
-              <h3 class="text-2xl font-bold text-gray-800">{{ etablissements.length }}</h3>
-              <p class="text-gray-600 text-sm uppercase tracking-wide">Affichés</p>
-            </div>
-          </div>
-          <div class="mt-4 pt-4 border-t border-gray-100">
-            <div class="flex items-center gap-2 text-cyan-600 text-sm">
-              <span class="material-icons text-sm">visibility</span>
-              <span>Actuellement visibles</span>
-            </div>
-          </div>
+        <div class="flex gap-3">
+          <button 
+            (click)="openAddDialog()"
+            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center gap-2"
+            [disabled]="loading">
+            <span class="material-icons">add</span>
+            Ajouter un établissement
+          </button>
         </div>
       </div>
     </div>
-  </section>
 
-  <!-- Filtres -->
-  <div class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 py-4">
-      <div class="flex flex-col lg:flex-row gap-4 lg:gap-6 items-end">
-        <div class="flex-1">
-          <label for="search" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-            <span class="material-icons text-emerald-600 text-lg">search</span>
-            Recherche
-          </label>
-          <div class="relative">
-            <input type="text" 
-                   id="search"
-                   [(ngModel)]="searchValue"
-                   (input)="onSearchChange($event)"
-                   placeholder="Rechercher un établissement..."
-                   class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all duration-200 pr-10"
-                   [disabled]="loading">
-            <button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                    *ngIf="searchValue"
-                    (click)="clearSearch()"
-                    title="Effacer la recherche">
-              <span class="material-icons text-sm">close</span>
-            </button>
-          </div>
-        </div>
-
-        <div class="flex-1">
-          <label for="ville-filter" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-            <span class="material-icons text-blue-600 text-lg">location_on</span>
-            Ville
-          </label>
-          <select id="ville-filter"
-                  [(ngModel)]="selectedVille"
-                  (change)="applyFilters()"
-                  class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all duration-200">
-            <option value="">Toutes les villes</option>
-            <option *ngFor="let ville of villes" [value]="ville.id">
-              {{ ville.name }} ({{ getEtablissementsCountByVille(ville.id) }})
-            </option>
-          </select>
-        </div>
-
-        <button class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition-all duration-300 flex items-center gap-2"
-                (click)="clearFilters()"
-                [disabled]="!hasActiveFilters() || loading">
-          <span class="material-icons">restart_alt</span>
-          Réinitialiser
+    <!-- Filters Section -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold text-gray-900">Filtres</h2>
+        <button 
+          (click)="clearFilters()"
+          class="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+          [disabled]="loading">
+          Effacer les filtres
         </button>
       </div>
 
-      <!-- Indicateur de filtres actifs -->
-      <div class="mt-4" *ngIf="hasActiveFilters()">
-        <div class="flex items-center gap-3 text-sm text-gray-600">
-          <span class="material-icons text-emerald-600">filter_list</span>
-          <span class="font-medium">Filtres actifs :</span>
-          <span class="bg-emerald-600 text-white px-3 py-1 rounded-full text-xs font-semibold"
-                *ngIf="searchValue">Recherche: "{{ searchValue }}"</span>
-          <span class="bg-emerald-600 text-white px-3 py-1 rounded-full text-xs font-semibold"
-                *ngIf="selectedVille">{{ getSelectedVilleName() }}</span>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Search -->
+        <div class="lg:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Recherche</label>
+          <input
+            type="text"
+            placeholder="Rechercher un établissement..."
+            [(ngModel)]="searchValue"
+            (input)="onSearchChange($event)"
+            [disabled]="loading"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
         </div>
-      </div>
 
-      <!-- Indicateur de résultats -->
-      <div class="mt-4" *ngIf="searchValue">
-        <div class="flex items-center gap-2 text-sm text-gray-600">
-          <span class="material-icons text-green-600">info</span>
-          <span>{{ searchResults }} résultat(s) trouvé(s)</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Loading State -->
-  <div class="flex justify-center items-center min-h-96" *ngIf="loading">
-    <div class="text-center text-gray-600">
-      <span class="material-icons animate-spin text-6xl mb-4 block">refresh</span>
-      <p class="text-lg">Chargement des établissements...</p>
-    </div>
-  </div>
-
-  <!-- Error State -->
-  <div class="flex justify-center items-center min-h-96" *ngIf="error && !loading">
-    <div class="text-center bg-red-50 border border-red-200 rounded-xl p-8 max-w-md">
-      <span class="material-icons text-red-500 text-6xl mb-4 block">error</span>
-      <p class="text-red-700 mb-4">{{ error }}</p>
-      <button class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg transition-all duration-300"
-              (click)="loadEtablissements()">Réessayer</button>
-    </div>
-  </div>
-
-  <!-- Dashboard Content -->
-  <div class="max-w-7xl mx-auto px-4 py-8" *ngIf="!loading && !error">
-    <!-- Liste des établissements -->
-    <div *ngIf="etablissements.length > 0">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        <div *ngFor="let etablissement of etablissements; trackBy: trackByEtablissement" 
-             class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-emerald-500 hover:shadow-xl transition-all duration-300 group">
-          <div class="flex items-center gap-4 mb-4">
-            <div class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-              <span class="material-icons text-white text-2xl">business</span>
-            </div>
-            <div class="flex-1">
-              <h3 class="text-lg font-bold text-gray-800">{{ etablissement.name }}</h3>
-              <p class="text-sm text-gray-600">{{ etablissement.ville?.name || 'Ville non définie' }}</p>
-            </div>
-          </div>
-
-          <div class="space-y-3">
-            <div class="flex items-center gap-3 text-sm text-gray-600">
-              <span class="material-icons text-blue-600 text-lg">location_on</span>
-              <span class="font-medium">Ville: {{ etablissement.ville?.name || 'N/A' }}</span>
-            </div>
-            <div class="flex items-center gap-3 text-sm text-gray-600">
-              <span class="material-icons text-green-600 text-lg">business</span>
-              <span class="font-medium">Établissement d'enseignement</span>
-            </div>
-            <div class="flex items-center gap-3 text-sm text-gray-600">
-              <span class="material-icons text-cyan-600 text-lg">access_time</span>
-              <span class="font-medium">Statut: Actif</span>
-            </div>
-            <div class="flex items-center gap-3 text-sm text-gray-600">
-              <span class="material-icons text-purple-600 text-lg">schedule</span>
-              <span class="font-medium">Créé le {{ formatDate(etablissement.created_at) }}</span>
-            </div>
-          </div>
-
-          <div class="flex justify-end gap-2 mt-6 pt-4 border-t border-gray-100">
-            <button class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg transition-all duration-300 flex items-center gap-2"
-                    (click)="openEditDialog(etablissement)"
-                    title="Modifier">
-              <span class="material-icons text-sm">edit</span>
-            </button>
-            <button class="bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg transition-all duration-300 flex items-center gap-2"
-                    (click)="openDeleteDialog(etablissement)"
-                    title="Supprimer">
-              <span class="material-icons text-sm">delete</span>
-            </button>
-          </div>
+        <!-- Ville filter -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Ville</label>
+          <select
+            [(ngModel)]="selectedVille"
+            (change)="applyFilters()"
+            [disabled]="loading"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">Toutes les villes</option>
+            <option *ngFor="let ville of villes" [value]="ville.id">{{ ville.name }}</option>
+          </select>
         </div>
       </div>
     </div>
 
-    <!-- Message aucun résultat -->
-    <div class="flex justify-center items-center min-h-96" *ngIf="etablissements.length === 0">
-      <div class="text-center bg-white border border-gray-200 rounded-xl p-8 max-w-md">
-        <span class="material-icons text-gray-400 text-6xl mb-4 block">business_center</span>
-        <h3 class="text-xl font-semibold text-gray-800 mb-2">Aucun établissement trouvé</h3>
-        <p class="text-gray-600 mb-6" *ngIf="hasActiveFilters()">Essayez de modifier vos critères de recherche</p>
-        <p class="text-gray-600 mb-6" *ngIf="!hasActiveFilters()">Commencez par ajouter votre premier établissement</p>
-        <button class="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 mx-auto"
-                (click)="openAddDialog()" 
-                *ngIf="!hasActiveFilters()">
+    <!-- Results Header -->
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center space-x-4">
+        <span class="text-sm text-gray-700">
+          Affichage de {{ (currentPage - 1) * pageSize + 1 }} à {{ Math.min(currentPage * pageSize, totalEtablissements) }} sur {{ totalEtablissements }} résultats
+        </span>
+      </div>
+      
+      <div class="flex items-center space-x-2">
+        <label class="text-sm text-gray-700">Par page:</label>
+        <select
+          [value]="pageSize"
+          (change)="onPageSizeChange()"
+          [(ngModel)]="pageSize"
+          class="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="5">5</option>
+          <option value="10">10</option>
+          <option value="20">20</option>
+          <option value="50">50</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="flex justify-center items-center py-12">
+      <div class="loading-spinner rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error && !loading" class="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm text-red-800">{{ error }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Établissements Cards -->
+    <div *ngIf="!loading && !error" class="etablissements-grid grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div *ngFor="let etablissement of etablissements; trackBy: trackByEtablissement" class="etablissement-card bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col">
+        <!-- Header de la card -->
+        <div class="p-6 border-b border-gray-100">
+          <div class="flex items-start justify-between mb-3">
+            <h3 class="text-lg font-semibold text-gray-900">{{ etablissement.name }}</h3>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+              ID: {{ etablissement.id }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Contenu principal de la card -->
+        <div class="p-6 space-y-4 flex-grow">
+          <!-- Ville -->
+          <div class="flex items-center space-x-3">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            <div>
+              <div class="text-sm font-medium text-gray-900">Ville</div>
+              <div class="text-sm text-gray-600">{{ etablissement.ville?.name || 'Non définie' }}</div>
+            </div>
+          </div>
+
+          <!-- Date de création -->
+          <div class="flex items-center space-x-3">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div>
+              <div class="text-sm font-medium text-gray-900">Date de création</div>
+              <div class="text-sm text-gray-600">{{ formatDate(etablissement.created_at) }}</div>
+            </div>
+          </div>
+
+          <!-- Dernière modification -->
+          <div class="flex items-center space-x-3" *ngIf="etablissement.updated_at !== etablissement.created_at">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+            </div>
+            <div>
+              <div class="text-sm font-medium text-gray-900">Dernière modification</div>
+              <div class="text-sm text-gray-600">{{ formatDate(etablissement.updated_at) }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions et footer - Toujours en bas -->
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 mt-auto">
+          <div class="flex items-center justify-between">
+            <div class="text-xs text-gray-500">
+              Créé le {{ formatDate(etablissement.created_at) }}
+            </div>
+            <div class="flex space-x-2">
+              <button 
+                class="action-button text-blue-600 hover:text-blue-900 p-2 rounded-md hover:bg-blue-50 transition-colors"
+                (click)="openEditDialog(etablissement)"
+                title="Modifier">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </button>
+              
+              <button 
+                class="action-button delete text-red-600 hover:text-red-900 p-2 rounded-md hover:bg-red-50 transition-colors"
+                (click)="openDeleteDialog(etablissement)"
+                title="Supprimer">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="etablissements.length === 0 && !loading && !error" class="text-center py-12">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+        <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+        </svg>
+        <h3 class="mt-4 text-lg font-medium text-gray-900">Aucun établissement trouvé</h3>
+        <p class="mt-2 text-sm text-gray-500">{{ searchValue ? 'Aucun établissement ne correspond à votre recherche.' : 'Commencez par ajouter votre premier établissement.' }}</p>
+        <button 
+          (click)="openAddDialog()"
+          class="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center gap-2 mx-auto">
           <span class="material-icons">add</span>
           Ajouter le premier établissement
         </button>
       </div>
     </div>
-  </div>
 
-  <!-- Pagination -->
-  <div class="max-w-7xl mx-auto px-4 py-8" *ngIf="!loading && etablissements.length > 0">
-    <div class="bg-white rounded-xl shadow-lg p-6">
-      <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
-        <div class="text-sm text-gray-700">
-          Page {{ currentPage }} sur {{ totalPages }} ({{ totalEtablissements }} établissements)
+    <!-- Pagination -->
+    <div *ngIf="!loading && !error && totalPages > 1" class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 rounded-lg shadow-sm border border-gray-200">
+      <div class="flex-1 flex justify-between sm:hidden">
+        <button
+          (click)="goToPage(currentPage - 1)"
+          [disabled]="currentPage === 1"
+          class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Précédent
+        </button>
+        <button
+          (click)="goToPage(currentPage + 1)"
+          [disabled]="currentPage === totalPages"
+          class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Suivant
+        </button>
+      </div>
+      <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+        <div>
+          <p class="text-sm text-gray-700">
+            Affichage de <span class="font-medium">{{ (currentPage - 1) * pageSize + 1 }}</span> à 
+            <span class="font-medium">{{ Math.min(currentPage * pageSize, totalEtablissements) }}</span> sur 
+            <span class="font-medium">{{ totalEtablissements }}</span> résultats
+          </p>
         </div>
-        
-        <div class="flex items-center gap-2">
-          <button 
-            type="button"
-            (click)="goToPage(1)"
-            class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            [disabled]="currentPage === 1 || loading"
-            title="Première page">
-            <span class="material-icons text-sm">first_page</span>
-          </button>
-          
-          <button 
-            type="button"
-            (click)="goToPage(currentPage - 1)"
-            class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            [disabled]="currentPage === 1 || loading"
-            title="Page précédente">
-            <span class="material-icons text-sm">chevron_left</span>
-          </button>
-          
-          <div class="flex items-center gap-1">
-            <button 
-              *ngFor="let page of getQuickNavPages()"
-              type="button"
-              (click)="page !== '...' && goToPage(+page)"
-              class="px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200"
-              [class]="page === currentPage ? 'bg-emerald-600 text-white' : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'"
-              [disabled]="loading || page === '...'">
-              {{ page }}
+        <div>
+          <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+            <!-- Previous Page -->
+            <button
+              (click)="goToPage(currentPage - 1)"
+              [disabled]="currentPage === 1"
+              class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span class="sr-only">Précédent</span>
+              <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+              </svg>
             </button>
-          </div>
-          
-          <button 
-            type="button"
-            (click)="goToPage(currentPage + 1)"
-            class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            [disabled]="currentPage === totalPages || loading"
-            title="Page suivante">
-            <span class="material-icons text-sm">chevron_right</span>
-          </button>
-          
-          <button 
-            type="button"
-            (click)="goToPage(totalPages)"
-            class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            [disabled]="currentPage === totalPages || loading"
-            title="Dernière page">
-            <span class="material-icons text-sm">last_page</span>
-          </button>
+
+            <!-- Page Numbers -->
+            <ng-container *ngFor="let page of getQuickNavPages()">
+              <button
+                *ngIf="page !== '...'"
+                (click)="goToPage(+page)"
+                [class]="page === currentPage 
+                  ? 'relative inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md z-10 bg-blue-50 border-blue-500 text-blue-600'
+                  : 'relative inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md bg-white border-gray-300 text-gray-500 hover:bg-gray-50'"
+              >
+                {{ page }}
+              </button>
+              <span *ngIf="page === '...'" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                ...
+              </span>
+            </ng-container>
+
+            <!-- Next Page -->
+            <button
+              (click)="goToPage(currentPage + 1)"
+              [disabled]="currentPage === totalPages"
+              class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span class="sr-only">Suivant</span>
+              <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+              </svg>
+            </button>
+          </nav>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Modal pour ajouter/modifier un établissement -->
-<div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" *ngIf="showDialog" (click)="closeDialogOnOverlay($event)">
-  <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
-    <!-- Header -->
-    <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-emerald-600 to-cyan-600 text-white rounded-t-2xl">
+<!-- Dialog pour ajouter/modifier un établissement -->
+<div *ngIf="showDialog" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+  <!-- Arrière-plan transparent avec flou -->
+  <div 
+    class="absolute inset-0 backdrop-blur-md"
+    (click)="closeDialog()"
+  ></div>
+  
+  <!-- Carte de dialogue flottante -->
+  <div class="relative bg-white rounded-lg shadow-lg border border-gray-200 max-w-md w-full transform transition-all duration-300 scale-100" (click)="$event.stopPropagation()">
+    <!-- En-tête de la carte -->
+    <div class="bg-gray-50 border-b border-gray-200 p-6">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-            <span class="material-icons text-white text-lg">{{ isEditMode ? 'edit' : 'add' }}</span>
+          <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+            <span class="material-icons text-white">{{ isEditMode ? 'edit' : 'add' }}</span>
           </div>
           <div>
-            <h2 class="text-xl font-semibold">{{ isEditMode ? 'Modifier l\'établissement' : 'Ajouter un établissement' }}</h2>
-            <p class="text-emerald-100 text-sm">Gérez les informations de l'établissement</p>
+            <h2 class="text-lg font-semibold text-gray-900">{{ isEditMode ? 'Modifier l\'établissement' : 'Ajouter un établissement' }}</h2>
           </div>
         </div>
-        <button type="button" 
-                (click)="closeDialog()" 
-                class="w-8 h-8 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-center transition-colors duration-200">
-          <span class="material-icons text-white text-sm">close</span>
+        <button 
+          (click)="closeDialog()"
+          class="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-all duration-200 text-gray-600 hover:text-gray-800"
+        >
+          <span class="material-icons text-lg">close</span>
         </button>
       </div>
     </div>
     
-    <!-- Body -->
-    <form [formGroup]="etablissementForm" (ngSubmit)="saveEtablissement()">
-      <div class="p-6">
-        <div class="grid grid-cols-1 gap-6">
-          <div>
-            <label for="name" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-              <span class="material-icons text-emerald-600 text-lg">business</span>
-              Nom de l'établissement *
-            </label>
-            <input 
-              id="name"
-              type="text" 
-              formControlName="name"
-              placeholder="Ex: Université Mohammed V"
-              class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all duration-200"
-              [class.border-red-500]="etablissementForm.get('name')?.invalid && etablissementForm.get('name')?.touched">
-            <div class="text-red-500 text-sm mt-1" *ngIf="etablissementForm.get('name')?.hasError('required') && etablissementForm.get('name')?.touched">
-              Le nom est obligatoire
-            </div>
-            <div class="text-red-500 text-sm mt-1" *ngIf="etablissementForm.get('name')?.hasError('minlength') && etablissementForm.get('name')?.touched">
-              Le nom doit contenir au moins 2 caractères
-            </div>
+    <!-- Contenu de la carte -->
+    <div class="p-6">
+      <form [formGroup]="etablissementForm" (ngSubmit)="saveEtablissement()">
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Nom de l'établissement</label>
+          <input 
+            type="text"
+            formControlName="name" 
+            placeholder="Entrez le nom de l'établissement"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            [class.border-red-500]="etablissementForm.get('name')?.invalid && etablissementForm.get('name')?.touched"
+          >
+          <div *ngIf="etablissementForm.get('name')?.invalid && etablissementForm.get('name')?.touched" class="mt-1 text-sm text-red-600">
+            <div *ngIf="etablissementForm.get('name')?.hasError('required')">Le nom est requis</div>
+            <div *ngIf="etablissementForm.get('name')?.hasError('minlength')">Le nom doit contenir au moins 2 caractères</div>
           </div>
-          
+        </div>
+
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Ville</label>
+          <select
+            formControlName="ville_id" 
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            [class.border-red-500]="etablissementForm.get('ville_id')?.invalid && etablissementForm.get('ville_id')?.touched"
+          >
+            <option value="">Sélectionner une ville</option>
+            <option *ngFor="let ville of villes" [value]="ville.id">{{ ville.name }}</option>
+          </select>
+          <div *ngIf="etablissementForm.get('ville_id')?.invalid && etablissementForm.get('ville_id')?.touched" class="mt-1 text-sm text-red-600">
+            <div *ngIf="etablissementForm.get('ville_id')?.hasError('required')">La ville est requise</div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3">
+          <button 
+            type="button" 
+            (click)="closeDialog()"
+            [disabled]="dialogLoading"
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors duration-200 disabled:opacity-50"
+          >
+            Annuler
+          </button>
+          <button 
+            type="submit" 
+            [disabled]="etablissementForm.invalid || dialogLoading"
+            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors duration-200 disabled:opacity-50 flex items-center gap-2"
+          >
+            <div *ngIf="dialogLoading" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            <span *ngIf="!dialogLoading" class="material-icons text-sm">{{ isEditMode ? 'save' : 'add' }}</span>
+            {{ isEditMode ? 'Modifier' : 'Ajouter' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Dialog de confirmation de suppression -->
+<div *ngIf="showDeleteDialog" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+  <!-- Arrière-plan transparent avec flou -->
+  <div 
+    class="absolute inset-0 backdrop-blur-md"
+    (click)="closeDeleteDialog()"
+  ></div>
+  
+  <!-- Carte de confirmation flottante -->
+  <div class="relative bg-white rounded-lg shadow-lg border border-gray-200 max-w-md w-full transform transition-all duration-300 scale-100" (click)="$event.stopPropagation()">
+    <!-- En-tête de la carte -->
+    <div class="bg-red-50 border-b border-red-200 p-6">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center">
+            <span class="material-icons text-white">warning</span>
+          </div>
           <div>
-            <label for="ville_id" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-              <span class="material-icons text-blue-600 text-lg">location_on</span>
-              Ville *
-            </label>
-            <select 
-              id="ville_id"
-              formControlName="ville_id"
-              class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all duration-200"
-              [class.border-red-500]="etablissementForm.get('ville_id')?.invalid && etablissementForm.get('ville_id')?.touched">
-              <option value="">Sélectionner une ville</option>
-              <option *ngFor="let ville of villes" [value]="ville.id">{{ ville.name }}</option>
-            </select>
-            <div class="text-red-500 text-sm mt-1" *ngIf="etablissementForm.get('ville_id')?.hasError('required') && etablissementForm.get('ville_id')?.touched">
-              La ville est obligatoire
-            </div>
+            <h2 class="text-lg font-semibold text-red-900">Confirmer la suppression</h2>
+          </div>
+        </div>
+        <button 
+          (click)="closeDeleteDialog()"
+          class="w-8 h-8 bg-red-100 hover:bg-red-200 rounded-full flex items-center justify-center transition-all duration-200 text-red-600 hover:text-red-800"
+        >
+          <span class="material-icons text-lg">close</span>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Contenu de la carte -->
+    <div class="p-6" *ngIf="etablissementToDelete">
+      <!-- Informations de l'établissement -->
+      <div class="bg-gray-50 rounded-lg p-4 mb-4">
+        <div class="flex items-center gap-3">
+          <span class="material-icons text-blue-600">business</span>
+          <div>
+            <div class="font-medium text-gray-900">{{ etablissementToDelete.name }}</div>
+            <div class="text-sm text-gray-600">ID: {{ etablissementToDelete.id }}</div>
           </div>
         </div>
       </div>
       
-      <!-- Footer -->
-      <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
-        <div class="flex justify-end gap-3">
-          <button 
-            type="button" 
-            (click)="closeDialog()" 
-            class="px-6 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-300 flex items-center gap-2 disabled:opacity-50"
-            [disabled]="dialogLoading">
-            <span class="material-icons text-sm">close</span>
-            Annuler
-          </button>
-          
-          <button 
-            type="submit" 
-            class="px-6 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg transition-all duration-300 flex items-center gap-2 disabled:opacity-50 hover:scale-105"
-            [disabled]="etablissementForm.invalid || dialogLoading">
-            <span class="material-icons text-sm" [class.animate-spin]="dialogLoading">{{ isEditMode ? 'save' : 'add' }}</span>
-            <span *ngIf="dialogLoading">Enregistrement...</span>
-            <span *ngIf="!dialogLoading">{{ isEditMode ? 'Modifier' : 'Ajouter' }}</span>
-          </button>
+      <!-- Message d'avertissement -->
+      <div class="mb-6">
+        <p class="text-sm text-gray-700 mb-3">
+          Êtes-vous sûr de vouloir supprimer cet établissement ?
+        </p>
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+          <div class="flex items-start gap-2">
+            <span class="material-icons text-yellow-600 text-sm">info</span>
+            <p class="text-sm text-yellow-800">
+              Cette action est <strong>irréversible</strong> et supprimera définitivement toutes les données associées.
+            </p>
+          </div>
         </div>
       </div>
-    </form>
-  </div>
-</div>
-
-<!-- Modal de confirmation de suppression -->
-<div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" *ngIf="showDeleteDialog" (click)="closeDeleteDialog()">
-  <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full" (click)="$event.stopPropagation()">
-    <!-- Header -->
-    <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-t-2xl">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-          <span class="material-icons text-white text-lg">warning</span>
+      
+      <!-- Conséquences -->
+      <div class="space-y-2 mb-6">
+        <div class="flex items-center gap-2 text-sm text-gray-600">
+          <span class="material-icons text-red-500 text-sm">cancel</span>
+          <span>Suppression de l'établissement de la base de données</span>
         </div>
-        <div>
-          <h2 class="text-xl font-semibold">Confirmer la suppression</h2>
-          <p class="text-red-100 text-sm">Cette action est irréversible</p>
+        <div class="flex items-center gap-2 text-sm text-gray-600">
+          <span class="material-icons text-orange-500 text-sm">warning</span>
+          <span>Impact possible sur les étudiants associés</span>
+        </div>
+        <div class="flex items-center gap-2 text-sm text-gray-600">
+          <span class="material-icons text-blue-500 text-sm">info</span>
+          <span>Révision des promotions liées recommandée</span>
         </div>
       </div>
-    </div>
-    
-    <!-- Body -->
-    <div class="p-6">
-      <div class="flex items-start gap-4">
-        <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
-          <span class="material-icons text-red-600 text-xl">delete</span>
-        </div>
-        <div>
-          <p class="text-gray-800 mb-2">
-            Êtes-vous sûr de vouloir supprimer l'établissement 
-            <strong class="text-red-600">{{ etablissementToDelete?.name }}</strong> ?
-          </p>
-          <p class="text-sm text-gray-600 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-            <span class="material-icons text-yellow-600 text-sm mr-2">info</span>
-            Cette action est irréversible et peut affecter les données liées (étudiants, promotions, etc.).
-          </p>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Footer -->
-    <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
-      <div class="flex justify-end gap-3">
+      
+      <!-- Actions de la carte -->
+      <div class="flex items-center justify-end gap-3">
         <button 
-          type="button" 
-          (click)="closeDeleteDialog()" 
-          class="px-6 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-300 flex items-center gap-2 disabled:opacity-50"
-          [disabled]="deleteLoading">
-          <span class="material-icons text-sm">close</span>
+          (click)="closeDeleteDialog()"
+          [disabled]="deleteLoading"
+          class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors duration-200 disabled:opacity-50"
+        >
           Annuler
         </button>
-        
         <button 
-          type="button" 
-          (click)="confirmDelete()" 
-          class="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all duration-300 flex items-center gap-2 disabled:opacity-50 hover:scale-105"
-          [disabled]="deleteLoading">
-          <span class="material-icons text-sm" [class.animate-spin]="deleteLoading">delete</span>
-          <span *ngIf="deleteLoading">Suppression...</span>
-          <span *ngIf="!deleteLoading">Supprimer</span>
+          (click)="confirmDelete()"
+          [disabled]="deleteLoading"
+          class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors duration-200 disabled:opacity-50 flex items-center gap-2"
+        >
+          <div *ngIf="deleteLoading" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+          <span *ngIf="!deleteLoading" class="material-icons text-sm">delete_forever</span>
+          {{ deleteLoading ? 'Suppression...' : 'Supprimer définitivement' }}
         </button>
       </div>
     </div>

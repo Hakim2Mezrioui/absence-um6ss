@@ -120,12 +120,15 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     // Récupérer l'ID du cours depuis les paramètres de route
     this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
       this.coursId = +params['id'];
-      if (this.coursId) {
+      if (this.coursId && !isNaN(this.coursId) && this.coursId > 0) {
         // Auto-sélectionner la configuration pour ce cours
         this.autoSelectConfigurationForCours();
         
         // Charger les données d'attendance
         this.loadAttendanceData();
+      } else {
+        this.error = 'ID du cours invalide ou manquant';
+        this.notificationService.error('Erreur', 'ID du cours invalide ou manquant');
       }
     });
   }
@@ -444,6 +447,19 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     let studentsWithPunchTime = 0;
 
     this.students.forEach((student, index) => {
+      // Vérifier si l'étudiant a un statut manuellement défini
+      if (student.manual_override) {
+        console.log(`👤 ${student.first_name} ${student.last_name}: Statut manuel préservé (${student.status})`);
+        
+        // Compter selon le statut manuel
+        if (student.status === 'present') presentCount++;
+        else if (student.status === 'late') lateCount++;
+        else if (student.status === 'absent') absentCount++;
+        else if (student.status === 'excused') absentCount++; // Les excusés sont comptés comme absents pour les stats
+        
+        return; // Ne pas recalculer le statut
+      }
+      
       if (student.punch_time && student.punch_time.time) {
         studentsWithPunchTime++;
         const punchTime = this.parseStudentPunchTime(student.punch_time.time);
@@ -1685,16 +1701,9 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
       justificatif: undefined
     };
 
-    console.log('🔄 Sauvegarde du statut:', {
-      student: student.first_name + ' ' + student.last_name,
-      newStatus: newStatus,
-      updateData: updateData
-    });
-
     // Appeler l'API pour sauvegarder
     this.attendanceStateService.updateCoursAttendanceState(updateData).subscribe({
       next: (response) => {
-        console.log('✅ Statut sauvegardé avec succès:', response);
         this.notificationService.success('Succès', `Statut sauvegardé pour ${student.first_name} ${student.last_name}`);
       },
       error: (error) => {

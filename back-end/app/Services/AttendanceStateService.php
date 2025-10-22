@@ -35,13 +35,13 @@ class AttendanceStateService
             DB::beginTransaction();
 
             // Vérifier que le cours existe
-            $cours = Cours::find($coursId);
+            $cours = Cours::withoutGlobalScopes()->find($coursId);
             if (!$cours) {
                 throw new \Exception('Cours non trouvé');
             }
 
             // Vérifier que l'étudiant existe
-            $etudiant = Etudiant::find($etudiantId);
+            $etudiant = Etudiant::withoutGlobalScopes()->find($etudiantId);
             if (!$etudiant) {
                 throw new \Exception('Étudiant non trouvé');
             }
@@ -98,13 +98,13 @@ class AttendanceStateService
             DB::beginTransaction();
 
             // Vérifier que l'examen existe
-            $examen = Examen::find($examenId);
+            $examen = Examen::withoutGlobalScopes()->find($examenId);
             if (!$examen) {
                 throw new \Exception('Examen non trouvé');
             }
 
             // Vérifier que l'étudiant existe
-            $etudiant = Etudiant::find($etudiantId);
+            $etudiant = Etudiant::withoutGlobalScopes()->find($etudiantId);
             if (!$etudiant) {
                 throw new \Exception('Étudiant non trouvé');
             }
@@ -232,7 +232,7 @@ class AttendanceStateService
      */
     public function getStudentAttendanceState(int $coursId, int $etudiantId): array
     {
-        $cours = Cours::find($coursId);
+        $cours = Cours::withoutGlobalScopes()->find($coursId);
         if (!$cours) {
             return ['status' => self::STATUS_ABSENT, 'absence' => null];
         }
@@ -259,7 +259,7 @@ class AttendanceStateService
      */
     public function getStudentExamAttendanceState(int $examenId, int $etudiantId): array
     {
-        $examen = Examen::find($examenId);
+        $examen = Examen::withoutGlobalScopes()->find($examenId);
         if (!$examen) {
             return ['status' => self::STATUS_ABSENT, 'absence' => null];
         }

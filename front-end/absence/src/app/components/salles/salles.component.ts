@@ -1,23 +1,22 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
+
+// Angular Material Imports
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatChipsModule } from '@angular/material/chips';
 
+// Services et interfaces
 import { SallesService, Salle, CreateSalleRequest } from '../../services/salles.service';
-import { SalleDialogComponent } from './salle-dialog/salle-dialog.component';
-import { AuthService, User } from '../../services/auth.service';
-import { UserContextService, UserContext } from '../../services/user-context.service';
+import { VilleService, Ville } from '../../services/ville.service';
 
 @Component({
   selector: 'app-salles',
@@ -25,417 +24,484 @@ import { UserContextService, UserContext } from '../../services/user-context.ser
   imports: [
     CommonModule,
     FormsModule,
-    MatCardModule,
+    ReactiveFormsModule,
     MatButtonModule,
     MatIconModule,
+    MatProgressSpinnerModule,
+    MatSelectModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSelectModule,
-    MatProgressBarModule,
-    MatDatepickerModule,
-    MatNativeDateModule,
     MatTooltipModule,
-    MatDialogModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatChipsModule
   ],
   templateUrl: './salles.component.html',
   styleUrl: './salles.component.css'
 })
-export class SallesComponent implements OnInit {
+export class SallesComponent implements OnInit, OnDestroy {
   // Données
-  salles: Salle[] = [];
-  filteredSalles: Salle[] = [];
+  allSalles: Salle[] = []; // Toutes les salles
+  salles: Salle[] = []; // Salles filtrées et paginées
   etablissements: any[] = [];
-  
-  // User context and role management
-  currentUser: User | null = null;
-  userContext: UserContext | null = null;
-  isSuperAdmin = false;
-  isAdminEtablissement = false;
+  villes: Ville[] = [];
+  totalSalles = 0;
+
+  // Pagination
+  currentPage = 1;
+  pageSize = 10;
+  totalPages = 0;
+
+  // Filtres et recherche
+  searchValue = '';
+  selectedEtablissement: number | string = '';
+  selectedBatiment = '';
+  selectedEtage: number | string = '';
+  searchResults: number | null = null;
   
   // États
   loading = false;
-  error: string | null = null;
-  
-  // Filtres
-  searchTerm = '';
-  selectedEtablissement = '';
-  selectedBatiment = '';
-  selectedEtage = '';
-  
-  // Disponibilité
-  availabilityDate: Date | null = null;
-  availabilityStartTime = '';
-  availabilityEndTime = '';
-  
-  // Statistiques calculées
-  get totalSalles(): number {
-    return this.salles.length;
-  }
-  
-  get uniqueEtablissements(): number {
-    return new Set(this.salles.map(s => s.etablissement_id)).size;
-  }
-  
-  get uniqueBatiments(): number {
-    return new Set(this.salles.map(s => s.batiment)).size;
-  }
-  
-  get uniqueEtages(): number {
-    return new Set(this.salles.map(s => s.etage)).size;
-  }
-  
-  get uniqueBatimentsList(): string[] {
-    return Array.from(new Set(this.salles.map(s => s.batiment))).sort();
-  }
-  
-  get uniqueEtagesList(): number[] {
-    return Array.from(new Set(this.salles.map(s => s.etage))).sort((a, b) => a - b);
-  }
+  error = '';
+
+  // Dialog states
+  showDialog = false;
+  showDeleteDialog = false;
+  isEditMode = false;
+  dialogLoading = false;
+  deleteLoading = false;
+  selectedSalle: Salle | null = null;
+  salleToDelete: Salle | null = null;
+
+  // Form
+  salleForm!: FormGroup;
+
+  // Utilitaires
+  Math = Math;
+
+  private destroy$ = new Subject<void>();
+  private searchSubject$ = new Subject<string>();
 
   constructor(
     private sallesService: SallesService,
-    private dialog: MatDialog,
-    private snackBar: MatSnackBar,
-    private authService: AuthService,
-    private userContextService: UserContextService
-  ) {}
+    private villeService: VilleService,
+    private fb: FormBuilder,
+    private snackBar: MatSnackBar
+  ) {
+    this.initializeForm();
+    this.setupSearchDebounce();
+  }
 
   ngOnInit(): void {
-    this.initializeUserContext();
-    this.loadSalles();
+    console.log('🏢 Composant Salles initialisé');
+    this.loadInitialData();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  // ===== INITIALISATION =====
+
+  private initializeForm(): void {
+    this.salleForm = this.fb.group({
+      name: ['', [Validators.required, Validators.minLength(2)]],
+      etablissement_id: ['', [Validators.required]],
+      ville_id: ['', [Validators.required]],
+      batiment: ['', [Validators.required]],
+      etage: ['', [Validators.required]],
+      capacite: [''],
+      description: ['']
+    });
+  }
+
+  private setupSearchDebounce(): void {
+    this.searchSubject$
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(() => {
+        this.currentPage = 1;
+        this.applyFiltersAndPagination();
+      });
+  }
+
+  private loadInitialData(): void {
+    this.loadVilles();
     this.loadEtablissements();
+    this.loadSalles();
   }
 
-  initializeUserContext() {
-    this.currentUser = this.authService.getCurrentUser();
-    this.userContext = this.userContextService.getCurrentUserContext();
-    
-    if (this.currentUser) {
-      this.isSuperAdmin = this.currentUser.role_id === 1;
-      this.isAdminEtablissement = [2, 3, 4, 6].includes(this.currentUser.role_id);
-      
-      console.log('🔐 Contexte utilisateur initialisé (salles):', {
-        user: this.currentUser.email,
-        role_id: this.currentUser.role_id,
-        isSuperAdmin: this.isSuperAdmin,
-        isAdminEtablissement: this.isAdminEtablissement,
-        ville_id: this.currentUser.ville_id,
-        etablissement_id: this.currentUser.etablissement_id
-      });
-    }
-  }
+  // ===== CHARGEMENT DES DONNÉES =====
 
-  /**
-   * Charger toutes les salles
-   */
-  loadSalles(): void {
-    this.loading = true;
-    this.error = null;
-    
-    this.sallesService.getSalles().subscribe({
-      next: (response) => {
-        this.salles = response.salles || [];
-        
-        // Filtrer les salles selon le rôle et l'établissement
-        this.filterSallesByRoleAndEtablissement();
-        
-        this.applyFilters();
-        this.loading = false;
-      },
-      error: (error) => {
-        console.error('Erreur lors du chargement des salles:', error);
-        this.error = 'Impossible de charger les salles. Vérifiez votre connexion.';
-        this.loading = false;
-      }
-    });
-  }
-
-  /**
-   * Filtrer les salles selon le rôle de l'utilisateur, l'établissement et la ville
-   */
-  filterSallesByRoleAndEtablissement(): void {
-    if (!this.salles || this.salles.length === 0) {
-      return;
-    }
-
-    // Super Admin voit toutes les salles
-    if (this.isSuperAdmin) {
-      console.log('🔓 Super Admin: Affichage de toutes les salles');
-      return;
-    }
-
-    // Les autres rôles voient seulement les salles de leur établissement et ville
-    if (this.currentUser && this.currentUser.etablissement_id && this.currentUser.ville_id) {
-      const originalSalles = [...this.salles];
-      this.salles = this.salles.filter((salle: any) => {
-        return salle.etablissement_id === this.currentUser!.etablissement_id && 
-               salle.ville_id === this.currentUser!.ville_id;
-      });
-      
-      console.log('🔒 Filtrage des salles par établissement et ville:', {
-        etablissementId: this.currentUser.etablissement_id,
-        villeId: this.currentUser.ville_id,
-        sallesOriginales: originalSalles.length,
-        sallesFiltrees: this.salles.length,
-        sallesDetails: this.salles.map(s => ({ id: s.id, name: s.name, etablissement_id: s.etablissement_id, ville_id: s.ville_id }))
-      });
-    } else {
-      console.log('⚠️ Utilisateur sans établissement ou ville défini');
-    }
-  }
-
-  /**
-   * Charger les établissements
-   */
-  loadEtablissements(): void {
-    this.sallesService.getEtablissements().subscribe({
-      next: (response) => {
-        this.etablissements = response.etablissements || [];
-      },
-      error: (error) => {
-        console.error('Erreur lors du chargement des établissements:', error);
-      }
-    });
-  }
-
-  /**
-   * Ouvrir le dialog d'ajout
-   */
-  openAddDialog(): void {
-    const dialogRef = this.dialog.open(SalleDialogComponent, {
-      width: '600px',
-      data: {
-        salle: null,
-        etablissements: this.etablissements,
-        mode: 'create'
-      }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.createSalle(result);
-      }
-    });
-  }
-
-  /**
-   * Modifier une salle
-   */
-  editSalle(salle: Salle): void {
-    const dialogRef = this.dialog.open(SalleDialogComponent, {
-      width: '600px',
-      data: {
-        salle: { ...salle },
-        etablissements: this.etablissements,
-        mode: 'edit'
-      }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.updateSalle(salle.id, result);
-      }
-    });
-  }
-
-  /**
-   * Supprimer une salle
-   */
-  deleteSalle(salle: Salle): void {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer la salle "${salle.name}" ?`)) {
-      this.sallesService.deleteSalle(salle.id).subscribe({
-        next: () => {
-          this.showSnackBar('Salle supprimée avec succès', 'success');
-          this.loadSalles();
+  loadVilles(): void {
+    this.villeService.getAllVilles()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (villes) => {
+          console.log('✅ Villes chargées:', villes);
+          this.villes = villes;
         },
         error: (error) => {
-          console.error('Erreur lors de la suppression:', error);
-          this.showSnackBar('Erreur lors de la suppression de la salle', 'error');
+          console.error('❌ Erreur lors du chargement des villes:', error);
+          this.showError('Erreur lors du chargement des villes');
         }
       });
-    }
   }
 
-  /**
-   * Créer une nouvelle salle
-   */
-  private createSalle(salleData: CreateSalleRequest): void {
-    this.sallesService.createSalle(salleData).subscribe({
-      next: () => {
-        this.showSnackBar('Salle créée avec succès', 'success');
-        this.loadSalles();
+  loadSalles(): void {
+    this.loading = true;
+    this.error = '';
+    
+    this.sallesService.getSalles()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+      next: (response) => {
+          console.log('✅ Toutes les salles chargées:', response);
+          
+          this.allSalles = response.salles || [];
+          this.applyFiltersAndPagination();
+        this.loading = false;
       },
       error: (error) => {
-        console.error('Erreur lors de la création:', error);
-        this.showSnackBar('Erreur lors de la création de la salle', 'error');
+          console.error('❌ Erreur lors du chargement des salles:', error);
+          this.error = 'Erreur lors du chargement des salles';
+        this.loading = false;
+          this.showError('Erreur lors du chargement des salles');
       }
     });
   }
 
   /**
-   * Mettre à jour une salle
+   * Applique les filtres et la pagination côté frontend
    */
-  private updateSalle(id: number, salleData: CreateSalleRequest): void {
-    this.sallesService.updateSalle(id, salleData).subscribe({
-      next: () => {
-        this.showSnackBar('Salle mise à jour avec succès', 'success');
-        this.loadSalles();
-      },
-      error: (error) => {
-        console.error('Erreur lors de la mise à jour:', error);
-        this.showSnackBar('Erreur lors de la mise à jour de la salle', 'error');
-      }
-    });
-  }
+  private applyFiltersAndPagination(): void {
+    // Filtrer les salles
+    let filtered = [...this.allSalles];
 
-  /**
-   * Recherche et filtres
-   */
-  onSearchChange(): void {
-    this.applyFilters();
-  }
-
-  onFilterChange(): void {
-    this.applyFilters();
-  }
-
-  clearSearch(): void {
-    this.searchTerm = '';
-    this.applyFilters();
-  }
-
-  clearFilters(): void {
-    this.searchTerm = '';
-    this.selectedEtablissement = '';
-    this.selectedBatiment = '';
-    this.selectedEtage = '';
-    this.applyFilters();
-  }
-
-  /**
-   * Appliquer les filtres
-   */
-  private applyFilters(): void {
-    let filtered = [...this.salles];
-
-    // Filtre de recherche
-    if (this.searchTerm.trim()) {
-      const search = this.searchTerm.toLowerCase().trim();
-      filtered = filtered.filter(salle =>
-        salle.name.toLowerCase().includes(search) ||
-        salle.batiment.toLowerCase().includes(search) ||
-        (salle.description && salle.description.toLowerCase().includes(search))
+    // Filtre par recherche (nom)
+    if (this.searchValue && this.searchValue.trim() !== '') {
+      const searchLower = this.searchValue.toLowerCase().trim();
+      filtered = filtered.filter(salle => 
+        salle.name.toLowerCase().includes(searchLower) ||
+        salle.batiment.toLowerCase().includes(searchLower) ||
+        (salle.description && salle.description.toLowerCase().includes(searchLower))
       );
     }
 
     // Filtre par établissement
-    if (this.selectedEtablissement) {
-      filtered = filtered.filter(salle => 
-        salle.etablissement_id.toString() === this.selectedEtablissement
-      );
+    if (this.selectedEtablissement && this.selectedEtablissement !== '') {
+      const etablissementId = Number(this.selectedEtablissement);
+      filtered = filtered.filter(salle => salle.etablissement_id === etablissementId);
     }
 
     // Filtre par bâtiment
-    if (this.selectedBatiment) {
+    if (this.selectedBatiment && this.selectedBatiment !== '') {
       filtered = filtered.filter(salle => salle.batiment === this.selectedBatiment);
     }
 
     // Filtre par étage
-    if (this.selectedEtage) {
-      filtered = filtered.filter(salle => 
-        salle.etage.toString() === this.selectedEtage
-      );
+    if (this.selectedEtage && this.selectedEtage !== '') {
+      const etage = Number(this.selectedEtage);
+      filtered = filtered.filter(salle => salle.etage === etage);
     }
 
-    this.filteredSalles = filtered;
+    // Calculer les totaux
+    this.totalSalles = filtered.length;
+    this.totalPages = Math.ceil(this.totalSalles / this.pageSize);
+    this.searchResults = this.hasActiveFilters() ? this.totalSalles : null;
+
+    // Ajuster la page actuelle si nécessaire
+    if (this.currentPage > this.totalPages && this.totalPages > 0) {
+      this.currentPage = this.totalPages;
+    }
+    if (this.currentPage < 1 && this.totalPages > 0) {
+      this.currentPage = 1;
+    }
+
+    // Paginer
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    this.salles = filtered.slice(startIndex, endIndex);
   }
 
-  /**
-   * Vérifier la disponibilité
-   */
-  checkAvailability(): void {
-    if (!this.isAvailabilityFormValid()) return;
-
-    const dateStr = this.formatDate(this.availabilityDate!);
-    
-    this.sallesService.getSallesDisponibles({
-      date: dateStr,
-      heure_debut: this.availabilityStartTime + ':00',
-      heure_fin: this.availabilityEndTime + ':00'
-    }).subscribe({
+  loadEtablissements(): void {
+    this.sallesService.getEtablissements()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
       next: (response) => {
-        this.filteredSalles = response.salles || [];
-        this.showSnackBar(`${this.filteredSalles.length} salle(s) disponible(s) trouvée(s)`, 'success');
+          console.log('✅ Établissements chargés:', response);
+        this.etablissements = response.etablissements || [];
       },
       error: (error) => {
-        console.error('Erreur lors de la vérification:', error);
-        this.showSnackBar('Erreur lors de la vérification de disponibilité', 'error');
+          console.error('❌ Erreur lors du chargement des établissements:', error);
+          this.showError('Erreur lors du chargement des établissements');
       }
     });
   }
 
-  /**
-   * Valider le formulaire de disponibilité
-   */
-  isAvailabilityFormValid(): boolean {
-    return !!(this.availabilityDate && 
-             this.availabilityStartTime && 
-             this.availabilityEndTime &&
-             this.availabilityStartTime < this.availabilityEndTime);
+  // ===== RECHERCHE ET FILTRES =====
+
+  onSearchChange(event: any): void {
+    this.searchValue = event.target.value;
+    this.searchSubject$.next(this.searchValue);
   }
 
-  /**
-   * Vérifier s'il y a des filtres actifs
-   */
+  applyFilters(): void {
+    this.currentPage = 1;
+    this.applyFiltersAndPagination();
+  }
+
+  clearFilters(): void {
+    this.searchValue = '';
+    this.selectedEtablissement = '';
+    this.selectedBatiment = '';
+    this.selectedEtage = '';
+    this.searchResults = null;
+    this.currentPage = 1;
+    this.applyFiltersAndPagination();
+  }
+
   hasActiveFilters(): boolean {
-    return !!(this.searchTerm || 
-             this.selectedEtablissement || 
-             this.selectedBatiment || 
-             this.selectedEtage);
+    return this.searchValue.trim() !== '' || 
+           this.selectedEtablissement !== '' || 
+           this.selectedBatiment !== '' || 
+           this.selectedEtage !== '';
   }
 
-  /**
-   * Compter le nombre de filtres actifs
-   */
   getActiveFiltersCount(): number {
     let count = 0;
-    if (this.searchTerm) count++;
-    if (this.selectedEtablissement) count++;
-    if (this.selectedBatiment) count++;
-    if (this.selectedEtage) count++;
+    if (this.searchValue.trim() !== '') count++;
+    if (this.selectedEtablissement !== '') count++;
+    if (this.selectedBatiment !== '') count++;
+    if (this.selectedEtage !== '') count++;
     return count;
   }
 
-  /**
-   * TrackBy pour optimiser le rendu
-   */
+  // Helpers pour les listes de filtres
+  get uniqueBatimentsList(): string[] {
+    return Array.from(new Set(this.allSalles.map(s => s.batiment))).sort();
+  }
+
+  get uniqueEtagesList(): number[] {
+    return Array.from(new Set(this.allSalles.map(s => s.etage))).sort((a, b) => a - b);
+  }
+
+  getEtablissementName(id: number | string): string {
+    const etablissement = this.etablissements.find(e => e.id === Number(id));
+    return etablissement ? etablissement.name : 'Inconnu';
+  }
+
+  // ===== PAGINATION =====
+
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
+      this.currentPage = page;
+      this.applyFiltersAndPagination();
+    }
+  }
+
+  onPageSizeChange(): void {
+    this.currentPage = 1;
+    this.applyFiltersAndPagination();
+  }
+
+  getQuickNavPages(): (number | string)[] {
+    const pages: (number | string)[] = [];
+    const totalPages = this.totalPages;
+    const currentPage = this.currentPage;
+
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (currentPage <= 4) {
+        for (let i = 1; i <= 5; i++) {
+          pages.push(i);
+        }
+        pages.push('...');
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 3) {
+        pages.push(1);
+        pages.push('...');
+        for (let i = totalPages - 4; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        pages.push(1);
+        pages.push('...');
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pages.push(i);
+        }
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+
+    return pages;
+  }
+
+  // ===== DIALOG MANAGEMENT =====
+
+  openAddDialog(): void {
+    this.isEditMode = false;
+    this.selectedSalle = null;
+    this.salleForm.reset();
+    this.showDialog = true;
+  }
+
+  openEditDialog(salle: Salle): void {
+    this.isEditMode = true;
+    this.selectedSalle = salle;
+    this.salleForm.patchValue({
+      name: salle.name,
+      etablissement_id: salle.etablissement_id,
+      ville_id: salle.ville_id,
+      batiment: salle.batiment,
+      etage: salle.etage,
+      capacite: salle.capacite || '',
+      description: salle.description || ''
+    });
+    this.showDialog = true;
+  }
+
+  closeDialog(): void {
+    this.showDialog = false;
+    this.dialogLoading = false;
+    this.salleForm.reset();
+    this.selectedSalle = null;
+  }
+
+  closeDialogOnOverlay(event: MouseEvent): void {
+    if (event.target === event.currentTarget) {
+      this.closeDialog();
+    }
+  }
+
+  openDeleteDialog(salle: Salle): void {
+    this.salleToDelete = salle;
+    this.showDeleteDialog = true;
+  }
+
+  closeDeleteDialog(): void {
+    this.showDeleteDialog = false;
+    this.deleteLoading = false;
+    this.salleToDelete = null;
+  }
+
+  // ===== CRUD OPERATIONS =====
+
+  saveSalle(): void {
+    if (this.salleForm.invalid) {
+      this.markFormGroupTouched();
+      return;
+    }
+
+    this.dialogLoading = true;
+    const formData: CreateSalleRequest = {
+      name: this.salleForm.value.name.trim(),
+      etablissement_id: Number(this.salleForm.value.etablissement_id),
+      ville_id: Number(this.salleForm.value.ville_id),
+      batiment: this.salleForm.value.batiment.trim(),
+      etage: Number(this.salleForm.value.etage),
+      capacite: this.salleForm.value.capacite ? Number(this.salleForm.value.capacite) : undefined,
+      description: this.salleForm.value.description ? this.salleForm.value.description.trim() : undefined
+    };
+
+    const operation = this.isEditMode
+      ? this.sallesService.updateSalle(this.selectedSalle!.id, formData)
+      : this.sallesService.createSalle(formData);
+
+    operation
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+      next: (response) => {
+          console.log('✅ Salle sauvegardée:', response);
+          
+          const message = this.isEditMode 
+            ? 'Salle modifiée avec succès' 
+            : 'Salle créée avec succès';
+          
+          this.showSuccess(message);
+          this.closeDialog();
+          this.loadSalles();
+      },
+      error: (error) => {
+          console.error('❌ Erreur lors de la sauvegarde:', error);
+          this.dialogLoading = false;
+          
+          const message = this.isEditMode 
+            ? 'Erreur lors de la modification de la salle' 
+            : 'Erreur lors de la création de la salle';
+          
+          this.showError(message);
+      }
+    });
+  }
+
+  confirmDelete(): void {
+    if (!this.salleToDelete) return;
+
+    this.deleteLoading = true;
+
+    this.sallesService.deleteSalle(this.salleToDelete.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          console.log('✅ Salle supprimée:', response);
+          this.showSuccess('Salle supprimée avec succès');
+          this.closeDeleteDialog();
+          this.loadSalles();
+        },
+        error: (error) => {
+          console.error('❌ Erreur lors de la suppression:', error);
+          this.deleteLoading = false;
+          this.showError('Erreur lors de la suppression de la salle');
+        }
+      });
+  }
+
+  // ===== HELPERS =====
+
   trackBySalle(index: number, salle: Salle): number {
     return salle.id;
   }
 
-  /**
-   * Formater une date pour l'API
-   */
-  private formatDate(date: Date): string {
-    return date.toISOString().split('T')[0];
+  formatDate(dateString: string): string {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    } catch {
+      return 'Date invalide';
+    }
   }
 
-  /**
-   * Obtenir le nom de l'établissement par son ID
-   */
-  getEtablissementName(etablissementId: string): string {
-    const etablissement = this.etablissements.find(e => e.id.toString() === etablissementId);
-    return etablissement ? etablissement.name : 'Établissement inconnu';
+  private markFormGroupTouched(): void {
+    Object.keys(this.salleForm.controls).forEach(key => {
+      const control = this.salleForm.get(key);
+      control?.markAsTouched();
+    });
   }
 
-  /**
-   * Afficher un message
-   */
-  private showSnackBar(message: string, type: 'success' | 'error'): void {
+  // ===== NOTIFICATIONS =====
+
+  private showSuccess(message: string): void {
     this.snackBar.open(message, 'Fermer', {
-      duration: 3000,
-      panelClass: type === 'success' ? 'snack-success' : 'snack-error'
+      duration: 5000,
+      panelClass: ['success-snackbar']
+    });
+  }
+
+  private showError(message: string): void {
+    this.snackBar.open(message, 'Fermer', {
+      duration: 5000,
+      panelClass: ['error-snackbar']
     });
   }
 }
