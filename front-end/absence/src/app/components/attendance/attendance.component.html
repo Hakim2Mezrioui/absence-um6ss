@@ -213,6 +213,82 @@
           </div>
         </div>
 
+        <!-- Filtrage alphabétique -->
+        <div class="mt-4 pt-4 border-t border-gray-200">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-sm font-medium text-gray-700 flex items-center gap-2">
+              <span class="material-icons text-lg">sort_by_alpha</span>
+              Filtrage alphabétique
+            </h4>
+            <button
+              (click)="toggleAlphabetFilter()"
+              [class]="alphabetFilter.enabled ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'"
+              class="px-3 py-1 rounded-full text-xs font-medium transition-colors duration-200 flex items-center gap-1"
+            >
+              <span class="material-icons text-sm">{{ alphabetFilter.enabled ? 'check' : 'close' }}</span>
+              {{ alphabetFilter.enabled ? 'Activé' : 'Désactivé' }}
+            </button>
+          </div>
+          
+          <div class="space-y-3">
+            <!-- Sélection de plage -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Lettre de début</label>
+                <select
+                  [(ngModel)]="alphabetFilter.startLetter"
+                  (change)="updateAlphabetRange()"
+                  [disabled]="!alphabetFilter.enabled"
+                  [class]="alphabetFilter.enabled ? 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm' : 'w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 text-gray-400 cursor-not-allowed'"
+                >
+                  <option *ngFor="let letter of alphabetLetters" [value]="letter">
+                    {{ letter }}
+                  </option>
+                </select>
+              </div>
+              
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Lettre de fin</label>
+                <select
+                  [(ngModel)]="alphabetFilter.endLetter"
+                  (change)="updateAlphabetRange()"
+                  [disabled]="!alphabetFilter.enabled"
+                  [class]="alphabetFilter.enabled ? 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm' : 'w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 text-gray-400 cursor-not-allowed'"
+                >
+                  <option *ngFor="let letter of alphabetLetters" [value]="letter">
+                    {{ letter }}
+                  </option>
+                </select>
+              </div>
+            </div>
+            
+            <!-- Affichage de la plage sélectionnée -->
+            <div [class]="alphabetFilter.enabled ? 'bg-blue-50 border border-blue-200 rounded-lg p-3' : 'bg-gray-50 border border-gray-200 rounded-lg p-3'">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span [class]="alphabetFilter.enabled ? 'material-icons text-blue-600 text-sm' : 'material-icons text-gray-400 text-sm'">filter_list</span>
+                  <span [class]="alphabetFilter.enabled ? 'text-sm font-medium text-blue-800' : 'text-sm font-medium text-gray-600'">
+                    Plage sélectionnée: {{ getAlphabetRangeText() }}
+                  </span>
+                </div>
+                <div [class]="alphabetFilter.enabled ? 'text-xs text-blue-600' : 'text-xs text-gray-500'">
+                  {{ getAvailableLettersInRange().length }} lettre{{ getAvailableLettersInRange().length > 1 ? 's' : '' }}
+                </div>
+              </div>
+              
+              <!-- Lettres de la plage -->
+              <div class="mt-2 flex flex-wrap gap-1">
+                <span 
+                  *ngFor="let letter of getAvailableLettersInRange()" 
+                  [class]="alphabetFilter.enabled ? 'inline-flex items-center justify-center w-6 h-6 text-xs font-medium text-blue-700 bg-blue-100 rounded border border-blue-200' : 'inline-flex items-center justify-center w-6 h-6 text-xs font-medium text-gray-500 bg-gray-100 rounded border border-gray-200'"
+                >
+                  {{ letter }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Toolbar bottom -->
         <div class="mt-4 pt-4 border-t border-gray-200">
           <div class="flex items-center justify-between mb-3">
