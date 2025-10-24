@@ -93,6 +93,56 @@
       </div>
     </div>
 
+    <!-- Alerte de statut de configuration Biostar -->
+    <div *ngIf="biostarConfigStatus !== 'none'" class="mb-6">
+      <!-- Configuration en cours de chargement -->
+      <div *ngIf="biostarConfigStatus === 'loading'" class="bg-blue-50 border-l-4 border-blue-400 rounded-lg p-4">
+        <div class="flex items-start">
+          <div class="flex-shrink-0">
+            <span class="material-icons text-blue-500 text-xl animate-spin">sync</span>
+          </div>
+          <div class="ml-3 flex-1">
+            <h3 class="text-sm font-semibold text-blue-900 mb-1">Configuration Biostar</h3>
+            <p class="text-sm text-blue-700">{{ biostarConfigMessage }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Configuration chargée avec succès -->
+      <div *ngIf="biostarConfigStatus === 'success'" class="bg-green-50 border-l-4 border-green-400 rounded-lg p-4">
+        <div class="flex items-start">
+          <div class="flex-shrink-0">
+            <span class="material-icons text-green-500 text-xl">check_circle</span>
+          </div>
+          <div class="ml-3 flex-1">
+            <h3 class="text-sm font-semibold text-green-900 mb-1">Configuration Biostar</h3>
+            <p class="text-sm text-green-700">{{ biostarConfigMessage }}</p>
+            <p class="text-xs text-green-600 mt-1">
+              <span class="material-icons text-xs mr-1">fingerprint</span>
+              Les données de pointage sont maintenant disponibles
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Configuration non trouvée -->
+      <div *ngIf="biostarConfigStatus === 'error'" class="bg-yellow-50 border-l-4 border-yellow-400 rounded-lg p-4">
+        <div class="flex items-start">
+          <div class="flex-shrink-0">
+            <span class="material-icons text-yellow-500 text-xl">warning</span>
+          </div>
+          <div class="ml-3 flex-1">
+            <h3 class="text-sm font-semibold text-yellow-900 mb-1">Configuration Biostar</h3>
+            <p class="text-sm text-yellow-700">{{ biostarConfigMessage }}</p>
+            <p class="text-xs text-yellow-600 mt-1">
+              <span class="material-icons text-xs mr-1">info</span>
+              Les données de pointage ne seront pas disponibles pour cet examen
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Message d'information sur la logique -->
     <div class="bg-blue-50 border-l-4 border-blue-400 rounded-lg p-4 mb-6">
       <div class="flex items-start">

@@ -82,6 +82,10 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   autoRefreshInterval = 30000; // 30 secondes en millisecondes
   lastRefreshTime: Date | null = null;
   
+  // Propriétés pour l'état de la configuration Biostar
+  biostarConfigStatus: 'loading' | 'success' | 'error' | 'none' = 'none';
+  biostarConfigMessage: string = '';
+  
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -143,14 +147,23 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   autoSelectConfigurationForExamen(examenId: number): void {
     console.log('🔄 Auto-sélection de la configuration pour l\'examen ID:', examenId);
     
+    // Mettre à jour l'état de chargement
+    this.biostarConfigStatus = 'loading';
+    this.biostarConfigMessage = 'Chargement de la configuration Biostar...';
+    
     this.configurationAutoService.autoSelectConfigurationForExamen(examenId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
           console.log('✅ Configuration auto-sélectionnée avec succès:', response);
+          
+          // Mettre à jour l'état de succès
+          this.biostarConfigStatus = 'success';
+          this.biostarConfigMessage = `Configuration Biostar chargée pour la ville: ${response.data.ville?.name || 'Inconnue'}`;
+          
           this.notificationService.success(
             'Configuration chargée', 
-            `Configuration Biostar chargée pour la ville: ${response.data.ville?.name || 'Inconnue'}`
+            this.biostarConfigMessage
           );
           
           // Récupérer les données de pointage depuis Biostar
@@ -158,9 +171,14 @@ export class AttendanceComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.warn('⚠️ Aucune configuration trouvée pour cet examen:', error);
+          
+          // Mettre à jour l'état d'erreur
+          this.biostarConfigStatus = 'error';
+          this.biostarConfigMessage = 'Aucune configuration Biostar trouvée pour la ville de cet examen. Les données de pointage ne seront pas disponibles.';
+          
           this.notificationService.warning(
             'Configuration manquante', 
-            'Aucune configuration Biostar trouvée pour la ville de cet examen. Les données de pointage ne seront pas disponibles.'
+            this.biostarConfigMessage
           );
         }
       });
