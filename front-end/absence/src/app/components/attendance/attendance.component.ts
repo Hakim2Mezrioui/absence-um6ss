@@ -83,8 +83,8 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   lastRefreshTime: Date | null = null;
   
   // Propriétés pour l'état de la configuration Biostar
-  biostarConfigStatus: 'loading' | 'success' | 'error' | 'none' = 'none';
-  biostarConfigMessage: string = '';
+  biostarConfigStatus: 'loading' | 'success' | 'error' | 'none' = 'loading';
+  biostarConfigMessage: string = 'Initialisation de la configuration Biostar...';
   
   private destroy$ = new Subject<void>();
 
@@ -123,10 +123,8 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       if (params['option_id']) this.filtersForm.patchValue({ option_id: params['option_id'] });
       if (params['ville_id']) this.filtersForm.patchValue({ ville_id: params['ville_id'] });
       
-      // Auto-sélectionner la configuration si un examen est spécifié
-      if (params['examen_id']) {
-        this.autoSelectConfigurationForExamen(+params['examen_id']);
-      }
+      // Note: L'auto-configuration sera déclenchée après le chargement des données d'attendance
+      // quand nous aurons l'ID de l'examen depuis les données de l'API
       
       // Charger les données d'attendance
       this.loadAttendance();
@@ -145,6 +143,8 @@ export class AttendanceComponent implements OnInit, OnDestroy {
    * Auto-sélectionner la configuration pour l'examen actuel
    */
   autoSelectConfigurationForExamen(examenId: number): void {
+    if (!examenId) return;
+
     console.log('🔄 Auto-sélection de la configuration pour l\'examen ID:', examenId);
     
     // Mettre à jour l'état de chargement
@@ -157,7 +157,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
         next: (response) => {
           console.log('✅ Configuration auto-sélectionnée avec succès:', response);
           
-          // Mettre à jour l'état de succès
+          // Mettre à jour l'état de succès avec le nom de la ville
           this.biostarConfigStatus = 'success';
           this.biostarConfigMessage = `Configuration Biostar chargée pour la ville: ${response.data.ville?.name || 'Inconnue'}`;
           
@@ -373,7 +373,13 @@ export class AttendanceComponent implements OnInit, OnDestroy {
           
           // Auto-sélectionner la configuration si un examen est trouvé
           if (this.examId) {
+            console.log('🔍 ID d\'examen trouvé dans les données:', this.examId);
             this.autoSelectConfigurationForExamen(this.examId);
+          } else {
+            console.log('⚠️ Aucun ID d\'examen trouvé dans les données de l\'API');
+            // Ne pas afficher d'alerte d'erreur si aucun examen n'est trouvé
+            this.biostarConfigStatus = 'none';
+            this.biostarConfigMessage = 'Aucun examen trouvé pour ces critères';
           }
           
           // Appliquer la logique de tolérance aux étudiants
