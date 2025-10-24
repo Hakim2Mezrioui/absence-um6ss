@@ -170,9 +170,18 @@ export class AttendanceComponent implements OnInit, OnDestroy {
    * Charger les données de pointage depuis Biostar pour un examen
    */
   loadBiostarAttendanceDataForExamen(examenId: number): void {
-    if (!this.examData) return;
+    if (!this.examData) {
+      console.warn('⚠️ Aucune donnée d\'examen disponible pour charger les données Biostar');
+      return;
+    }
 
     console.log('🔄 Chargement des données de pointage depuis Biostar pour l\'examen:', examenId);
+    console.log('📅 Paramètres de l\'examen:', {
+      date: this.examDate,
+      heureDebutPointage: this.examPunchStartTime,
+      heureFin: this.examEndTime,
+      examenId: examenId
+    });
     
     this.biostarAttendanceService.syncExamenAttendanceWithBiostar(
       examenId,
@@ -185,6 +194,13 @@ export class AttendanceComponent implements OnInit, OnDestroy {
         console.log('✅ Données de pointage Biostar récupérées:', response);
         
         if (response.success && response.data) {
+          console.log('📊 Détails des données Biostar:', {
+            totalPunches: response.data.total_punches,
+            studentsWithPunches: response.data.students_with_punches,
+            studentsWithoutPunches: response.data.students_without_punches,
+            samplePunches: response.data.punches?.slice(0, 3) // Afficher les 3 premiers pointages
+          });
+          
           // Intégrer les données de pointage avec les étudiants
           this.integrateBiostarDataWithStudents(response.data);
           
@@ -192,10 +208,12 @@ export class AttendanceComponent implements OnInit, OnDestroy {
             'Données de pointage chargées', 
             `${response.data.total_punches} pointage(s) récupéré(s) depuis Biostar`
           );
+        } else {
+          console.warn('⚠️ Réponse Biostar sans succès ou sans données:', response);
         }
       },
       error: (error) => {
-        console.warn('⚠️ Erreur lors de la récupération des données Biostar:', error);
+        console.error('❌ Erreur lors de la récupération des données Biostar:', error);
         this.notificationService.warning(
           'Données de pointage indisponibles', 
           'Impossible de récupérer les données de pointage depuis Biostar. Vérifiez la configuration.'
@@ -211,25 +229,35 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     if (!biostarData.punches || !this.students) return;
 
     console.log('🔄 Intégration des données Biostar avec les étudiants');
+    console.log('📊 Données Biostar reçues:', biostarData);
+    console.log('👥 Étudiants locaux:', this.students.length);
 
-    // Créer un map des pointages par student_id
+    // Créer un map des pointages par matricule (essayer student_id et user_id)
     const punchMap = new Map();
     biostarData.punches.forEach((punch: any) => {
-      if (!punchMap.has(punch.student_id)) {
-        punchMap.set(punch.student_id, []);
+      // Essayer d'abord avec student_id, puis avec user_id
+      const matricule = punch.student_id || punch.user_id;
+      if (matricule) {
+        if (!punchMap.has(matricule)) {
+          punchMap.set(matricule, []);
+        }
+        punchMap.get(matricule).push(punch);
       }
-      punchMap.get(punch.student_id).push(punch);
     });
 
+    console.log('🗺️ Map des pointages créé:', punchMap.size, 'étudiants avec pointages');
+
     // Mettre à jour les étudiants avec leurs données de pointage
+    let matchedStudents = 0;
     this.students.forEach(student => {
       const studentPunches = punchMap.get(student.matricule);
       if (studentPunches && studentPunches.length > 0) {
+        matchedStudents++;
         // Prendre le premier pointage (le plus tôt)
         const firstPunch = studentPunches[0];
         student.punch_time = {
-          time: firstPunch.punch_time,
-          device: firstPunch.device || firstPunch.device_name || 'Inconnu'
+          time: firstPunch.punch_time || firstPunch.bsevtdt,
+          device: firstPunch.device || firstPunch.device_name || firstPunch.devnm || 'Inconnu'
         };
         
         // Recalculer le statut avec les nouvelles données
@@ -237,6 +265,10 @@ export class AttendanceComponent implements OnInit, OnDestroy {
           const punchTime = new Date(student.punch_time.time);
           student.status = this.calculateStudentStatus(punchTime);
         }
+        
+        console.log(`✅ Étudiant ${student.matricule} (${student.last_name} ${student.first_name}) - Statut: ${student.status}`);
+      } else {
+        console.log(`❌ Aucun pointage trouvé pour l'étudiant ${student.matricule} (${student.last_name} ${student.first_name})`);
       }
     });
 
@@ -248,7 +280,13 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     // Mettre à jour les étudiants filtrés
     this.filteredStudents = [...this.students];
     
-    console.log('✅ Données Biostar intégrées avec succès');
+    console.log(`✅ Données Biostar intégrées avec succès - ${matchedStudents}/${this.students.length} étudiants correspondants`);
+    console.log('📊 Statistiques finales:', {
+      total: this.totalStudents,
+      presents: this.presents,
+      absents: this.absents,
+      enRetard: this.getLateStudentsCount()
+    });
   }
 
   loadAttendance(): void {
@@ -267,12 +305,29 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     });
 
     console.log('📋 Filtres appliqués:', filters);
+    console.log('🔍 Valeurs des filtres détaillées:', {
+      date: filters.date,
+      hour1: filters.hour1,
+      hour2: filters.hour2,
+      promotion_id: filters.promotion_id,
+      etablissement_id: filters.etablissement_id,
+      group_id: filters.group_id,
+      option_id: filters.option_id,
+      ville_id: filters.ville_id
+    });
 
     this.attendanceService.getStudentAttendance(filters)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: AttendanceResponse) => {
           console.log('✅ Données d\'attendance reçues:', response);
+          console.log('📊 Statistiques de la réponse:', {
+            total_etudiants: response.total_etudiants,
+            presents: response.presents,
+            absents: response.absents,
+            nombre_etudiants: response.etudiants?.length || 0
+          });
+          
           this.students = response.etudiants;
           this.totalStudents = response.total_etudiants;
           this.presents = response.presents;
@@ -289,6 +344,14 @@ export class AttendanceComponent implements OnInit, OnDestroy {
           // Debug: Vérifier les données de l'examen
           console.log('🔍 Données de l\'examen:', this.examData);
           console.log('🔍 Option de l\'examen:', this.examData?.option);
+          
+          // Debug: Vérifier les statuts des étudiants
+          console.log('👥 Statuts des étudiants reçus:', this.students.map(s => ({
+            matricule: s.matricule,
+            nom: `${s.last_name} ${s.first_name}`,
+            status: s.status,
+            punch_time: s.punch_time
+          })));
           
           // Auto-sélectionner la configuration si un examen est trouvé
           if (this.examId) {
@@ -602,13 +665,43 @@ export class AttendanceComponent implements OnInit, OnDestroy {
    * Applique la logique de tolérance aux étudiants
    */
   applyToleranceLogic(): void {
-    this.students.forEach(student => {
-      if (student.punch_time) {
-        const punchTime = new Date(student.punch_time.time);
-        const newStatus = this.calculateStudentStatus(punchTime);
-        student.status = newStatus;
+    if (!this.examDate || !this.examStartTime) {
+      console.log('❌ Pas de données d\'examen pour appliquer la logique de tolérance');
+      return;
+    }
+
+    console.log('🔄 Application de la logique de tolérance pour', this.students.length, 'étudiants');
+
+    let presentCount = 0;
+    let lateCount = 0;
+    let absentCount = 0;
+    let studentsWithPunchTime = 0;
+
+    this.students.forEach((student, index) => {
+      if (student.punch_time && student.punch_time.time) {
+        studentsWithPunchTime++;
+        const punchTime = this.parseStudentPunchTime(student.punch_time.time);
+        
+        if (isNaN(punchTime.getTime())) {
+          console.log(`❌ Étudiant ${index + 1}: Date invalide - ${student.punch_time.time}`);
+          student.status = 'absent';
+          absentCount++;
+        } else {
+          const oldStatus = student.status;
+          const newStatus = this.calculateStudentStatus(punchTime);
+          
+          console.log(`👤 ${student.first_name} ${student.last_name}: ${oldStatus} → ${newStatus}`);
+          console.log(`   📅 Pointage: ${student.punch_time.time} → ${punchTime.toLocaleString()}`);
+          
+          student.status = newStatus;
+          
+          if (newStatus === 'présent') presentCount++;
+          else if (newStatus === 'en retard') lateCount++;
+          else absentCount++;
+        }
       } else {
         student.status = 'absent';
+        absentCount++;
       }
     });
 
@@ -617,57 +710,90 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     this.absents = this.students.filter(s => s.status === 'absent').length;
     this.totalStudents = this.students.length;
     
+    console.log(`\n📊 RÉSULTAT FINAL:`);
+    console.log(`   Étudiants avec pointage: ${studentsWithPunchTime}/${this.students.length}`);
+    console.log(`   Présents: ${this.presents}`);
+    console.log(`   En retard: ${this.getLateStudentsCount()}`);
+    console.log(`   Absents: ${this.absents}`);
+    console.log(`   Total étudiants: ${this.totalStudents}`);
+    
     // Mettre à jour les étudiants filtrés
     this.filteredStudents = [...this.students];
   }
 
   /**
    * Calcule le statut de l'étudiant basé sur l'heure de pointage et la tolérance
+   * RÈGLE IMPORTANTE: Si un étudiant a pointé (face ID), il ne peut PAS être "absent"
+   * Il sera soit "présent" soit "en retard" selon l'heure
    */
   calculateStudentStatus(punchTime: Date): string {
     if (!this.examDate || !this.examStartTime) {
+      console.log('❌ Pas de données d\'examen pour calculer le statut');
       return 'absent';
     }
 
-    // Créer les dates de référence
+    // Vérifier si la date de pointage est valide
+    if (isNaN(punchTime.getTime())) {
+      console.log('❌ Date de pointage invalide:', punchTime);
+      return 'absent';
+    }
+
+    console.log('🔍 DÉTAILS DU CALCUL:');
+    console.log('   📅 Date de l\'examen:', this.examDate);
+    console.log('   ⏰ Heure de début:', this.examStartTime);
+    console.log('   🎯 Heure de pointage:', this.examPunchStartTime);
+    console.log('   ⏱️ Tolérance:', this.examTolerance, 'minutes');
+    console.log('   📍 Pointage étudiant:', punchTime.toLocaleString());
+
+    // Créer les dates de référence - utiliser la même date que l'examen
     const examDate = new Date(this.examDate);
+    console.log('   📆 Date examen parsée:', examDate.toLocaleString());
+    
+    // Parser les heures simplement
     const examStartTime = this.parseTimeString(this.examStartTime);
     const examPunchStartTime = this.examPunchStartTime ? this.parseTimeString(this.examPunchStartTime) : null;
 
-    // Date de début de l'examen
-    const examStartDateTime = new Date(examDate);
-    examStartDateTime.setHours(examStartTime.getHours(), examStartTime.getMinutes(), examStartTime.getSeconds());
+    console.log('   🕐 Heure début parsée:', examStartTime.toLocaleString());
+    console.log('   🎯 Heure pointage parsée:', examPunchStartTime?.toLocaleString() || 'N/A');
 
-    // Date de début de pointage (si disponible)
+    // Créer les dates complètes
+    const examStartDateTime = new Date(examDate);
+    examStartDateTime.setHours(examStartTime.getHours(), examStartTime.getMinutes(), examStartTime.getSeconds(), 0);
+
     const examPunchStartDateTime = examPunchStartTime ? new Date(examDate) : null;
     if (examPunchStartDateTime && examPunchStartTime) {
-      examPunchStartDateTime.setHours(examPunchStartTime.getHours(), examPunchStartTime.getMinutes(), examPunchStartTime.getSeconds());
+      examPunchStartDateTime.setHours(examPunchStartTime.getHours(), examPunchStartTime.getMinutes(), examPunchStartTime.getSeconds(), 0);
     }
 
-    // Date limite avec tolérance (heure début + tolérance)
     const toleranceDateTime = new Date(examStartDateTime);
     toleranceDateTime.setMinutes(toleranceDateTime.getMinutes() + this.examTolerance);
 
-    console.log('🕐 Calcul du statut:', {
-      punchTime: punchTime.toLocaleString(),
-      examStart: examStartDateTime.toLocaleString(),
-      toleranceLimit: toleranceDateTime.toLocaleString(),
-      tolerance: this.examTolerance + ' minutes'
-    });
+    console.log('🕐 CALCUL FINAL:');
+    console.log('   📍 Pointage étudiant:', punchTime.toLocaleString());
+    console.log('   🎯 Début pointage:', examPunchStartDateTime?.toLocaleString() || 'N/A');
+    console.log('   ⏰ Début examen:', examStartDateTime.toLocaleString());
+    console.log('   ⏱️ Limite tolérance:', toleranceDateTime.toLocaleString());
 
-    // Logique de statut
+    // LOGIQUE CORRIGÉE: Si l'étudiant a pointé, il ne peut pas être "absent"
+    // Il est soit "présent" (avant le début de l'examen) soit "en retard" (après le début de l'examen)
+    
     if (examPunchStartDateTime && punchTime >= examPunchStartDateTime && punchTime < examStartDateTime) {
-      // Entre heure début pointage et heure début = Présent
+      // Pointage entre l'heure de début de pointage et l'heure de début de l'examen
+      console.log('✅ Présent (pointage avant début de l\'examen)');
       return 'présent';
-    } else if (punchTime >= examStartDateTime && punchTime <= toleranceDateTime) {
-      // Entre heure début et limite de tolérance = En retard
+    } else if (punchTime >= examStartDateTime) {
+      // Pointage après le début de l'examen = toujours en retard (peu importe la tolérance)
+      // La tolérance peut être utilisée pour des rapports, mais le statut reste "en retard"
+      if (punchTime <= toleranceDateTime) {
+        console.log('⏰ En retard (dans la période de tolérance)');
+      } else {
+        console.log('⏰ En retard (au-delà de la tolérance)');
+      }
       return 'en retard';
-    } else if (punchTime > toleranceDateTime) {
-      // Après la limite de tolérance = Absent
-      return 'absent';
     } else {
-      // Avant l'heure de début de pointage ou pas de pointage = Absent
-      return 'absent';
+      // Pointage avant l'heure de début de pointage = considéré comme présent
+      console.log('✅ Présent (pointage anticipé)');
+      return 'présent';
     }
   }
 
@@ -679,6 +805,64 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     const date = new Date();
     date.setHours(hours, minutes, seconds || 0, 0);
     return date;
+  }
+
+  /**
+   * Parse l'heure de pointage d'un étudiant (gère le format français DD/MM/YYYY HH:MM:SS)
+   */
+  private parseStudentPunchTime(punchTimeString: string): Date {
+    console.log('🎯 Parsing student punch time:', punchTimeString);
+    
+    // Si c'est un timestamp ISO complet
+    if (punchTimeString.includes('T') && (punchTimeString.includes('Z') || punchTimeString.includes('+'))) {
+      const date = new Date(punchTimeString);
+      console.log('📅 Parsed ISO punch time:', date.toLocaleString());
+      return date;
+    }
+    
+    // Si c'est au format DD/MM/YYYY HH:MM:SS (format français)
+    if (punchTimeString.includes('/') && punchTimeString.includes(' ')) {
+      // Format: "18/10/2025 15:39:08"
+      const [datePart, timePart] = punchTimeString.split(' ');
+      const [day, month, year] = datePart.split('/').map(Number);
+      const [hours, minutes, seconds] = timePart.split(':').map(Number);
+      
+      const date = new Date(year, month - 1, day, hours, minutes, seconds || 0, 0);
+      console.log('📅 Parsed French date/time:', date.toLocaleString());
+      return date;
+    }
+    
+    // Si c'est au format YYYY-MM-DD HH:MM:SS.microseconds (format SQL Server)
+    if (punchTimeString.match(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+$/)) {
+      // Format: "2025-10-18 15:39:08.0000000"
+      const [datePart, timePart] = punchTimeString.split(' ');
+      const [year, month, day] = datePart.split('-').map(Number);
+      const [timeOnly] = timePart.split('.');
+      const [hours, minutes, seconds] = timeOnly.split(':').map(Number);
+      
+      const date = new Date(year, month - 1, day, hours, minutes, seconds, 0);
+      console.log('📅 Parsed SQL Server date/time:', date.toLocaleString());
+      return date;
+    }
+    
+    // Si c'est juste une heure HH:MM ou HH:MM:SS
+    if (punchTimeString.includes(':') && !punchTimeString.includes('/')) {
+      const [hours, minutes, seconds] = punchTimeString.split(':').map(Number);
+      const date = new Date();
+      date.setHours(hours, minutes, seconds || 0, 0);
+      console.log('⏰ Parsed time only:', date.toLocaleString());
+      return date;
+    }
+    
+    // Fallback: essayer de parser comme date générique
+    const date = new Date(punchTimeString);
+    if (!isNaN(date.getTime())) {
+      console.log('📅 Parsed fallback punch time:', date.toLocaleString());
+      return date;
+    }
+    
+    console.error('❌ Impossible de parser l\'heure de pointage:', punchTimeString);
+    return new Date();
   }
 
   /**

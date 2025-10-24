@@ -161,8 +161,17 @@ class EtudiantController extends Controller
 
             // Fetch the results
             $biostarResults = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Debug: Log des résultats Biostar
+            \Log::info("Résultats Biostar récupérés:", [
+                'nombre_pointages' => count($biostarResults),
+                'premiers_pointages' => array_slice($biostarResults, 0, 3),
+                'champs_disponibles' => !empty($biostarResults) ? array_keys($biostarResults[0]) : []
+            ]);
+            
             } catch (PDOException $e) {
                 // If Biostar connection fails, continue with empty results
+                \Log::error("Erreur de connexion Biostar:", ['error' => $e->getMessage()]);
                 $biostarResults = [];
             }
         } else {
@@ -194,6 +203,21 @@ class EtudiantController extends Controller
         }   
 
         $localStudents = $query->get();
+        
+        // Debug: Log des étudiants locaux
+        \Log::info("Étudiants locaux récupérés:", [
+            'nombre_etudiants' => $localStudents->count(),
+            'premiers_etudiants' => $localStudents->take(3)->map(function($student) {
+                return [
+                    'id' => $student->id,
+                    'matricule' => $student->matricule,
+                    'nom' => $student->last_name . ' ' . $student->first_name,
+                    'promotion_id' => $student->promotion_id,
+                    'group_id' => $student->group_id,
+                    'ville_id' => $student->ville_id
+                ];
+            })->toArray()
+        ]);
             
             // Check if any students were found
             if ($localStudents->isEmpty()) {
@@ -268,23 +292,57 @@ class EtudiantController extends Controller
             
             
             // Get present students (those who have punched in Biostar)
-            $presentStudentMatricules = collect($biostarResults)->pluck('user_id')->toArray();
+            // Essayer d'abord avec user_id, puis avec student_id
+            $presentStudentMatricules = collect($biostarResults)->pluck('user_id')->filter()->toArray();
+            if (empty($presentStudentMatricules)) {
+                $presentStudentMatricules = collect($biostarResults)->pluck('student_id')->filter()->toArray();
+            }
             
             // ici biostarResults ca marche bien
 
             // Prepare the final response with attendance status
-            $studentsWithAttendance = $localStudents->map(function ($student) use ($presentStudentMatricules, $biostarResults, $heureDebutPointage, $heure1) {
+            $studentsWithAttendance = $localStudents->map(function ($student) use ($presentStudentMatricules, $biostarResults, $heureDebutPointage, $heure1, $examen) {
                 $punchTime = $this->getPunchTime($student->matricule, $biostarResults);
-                $isPresent = false;
+                $status = 'absent';
                 
                 if ($punchTime) {
                     // Convertir l'heure de pointage en format comparable
                     $punchTimeFormatted = date('H:i:s', strtotime($punchTime['time']));
-                    
-                    // L'étudiant est présent s'il a pointé avant l'heure de début de l'examen
-                    // (peu importe l'heure de début de pointage, l'important est d'arriver avant le début de l'examen)
                     $heureDebutExamen = date('H:i:s', strtotime($heure1));
-                    $isPresent = $punchTimeFormatted < $heureDebutExamen;
+                    $heureDebutPointageFormatted = $heureDebutPointage ? date('H:i:s', strtotime($heureDebutPointage)) : $heureDebutExamen;
+                    
+                    // Calculer la tolérance (par défaut 15 minutes si pas définie)
+                    $tolerance = $examen ? $examen->tolerance : 15;
+                    $toleranceMinutes = is_numeric($tolerance) ? $tolerance : 15;
+                    
+                    // Calculer l'heure limite avec tolérance
+                    $heureLimite = date('H:i:s', strtotime($heureDebutExamen . ' + ' . $toleranceMinutes . ' minutes'));
+                    
+                    // Logique de statut améliorée
+                    if ($punchTimeFormatted >= $heureDebutPointageFormatted && $punchTimeFormatted < $heureDebutExamen) {
+                        // Entre heure début pointage et heure début = Présent
+                        $status = 'présent';
+                    } elseif ($punchTimeFormatted >= $heureDebutExamen && $punchTimeFormatted <= $heureLimite) {
+                        // Entre heure début et limite de tolérance = En retard
+                        $status = 'en retard';
+                    } elseif ($punchTimeFormatted > $heureLimite) {
+                        // Après la limite de tolérance = Absent
+                        $status = 'absent';
+                    } else {
+                        // Avant l'heure de début de pointage = Absent
+                        $status = 'absent';
+                    }
+                    
+                    // Debug log pour tracer le calcul
+                    \Log::info("Calcul statut pour étudiant {$student->matricule}:", [
+                        'punch_time' => $punchTime['time'],
+                        'punch_time_formatted' => $punchTimeFormatted,
+                        'heure_debut_pointage' => $heureDebutPointageFormatted,
+                        'heure_debut_examen' => $heureDebutExamen,
+                        'tolerance_minutes' => $toleranceMinutes,
+                        'heure_limite' => $heureLimite,
+                        'status_calculé' => $status
+                    ]);
                 }
                 
                 return [
@@ -299,7 +357,7 @@ class EtudiantController extends Controller
                     'ville' => $student->ville,
                     'group' => $student->group,
                     'option' => $student->option,
-                    'status' => $isPresent ? 'présent' : 'absent',
+                    'status' => $status,
                     'punch_time' => $punchTime,
                 ];
             });
@@ -371,17 +429,71 @@ class EtudiantController extends Controller
     }
 
     /**
-     * Get punch time for a specific student
+     * Get punch time for a specific student with improved matching logic
      */
     private function getPunchTime($matricule, $biostarResults)
     {
+        // Stratégie 1: Correspondance exacte
         $studentPunch = collect($biostarResults)->firstWhere('user_id', $matricule);
         if ($studentPunch) {
             return [
-                'time' => $studentPunch['bsevtdt'],
-                'device' => $studentPunch['devnm']
+                'time' => $studentPunch['bsevtdt'] ?? $studentPunch['punch_time'],
+                'device' => $studentPunch['devnm'] ?? $studentPunch['device'] ?? $studentPunch['device_name'] ?? 'Inconnu'
             ];
         }
+        
+        // Stratégie 2: Supprimer les zéros de début (ex: "000123" → "123")
+        $matriculeTrimmed = ltrim($matricule, '0');
+        if ($matriculeTrimmed !== $matricule && !empty($matriculeTrimmed)) {
+            $studentPunch = collect($biostarResults)->firstWhere('user_id', $matriculeTrimmed);
+            if ($studentPunch) {
+                \Log::info("Match trouvé avec suppression des zéros: '$matricule' → '$matriculeTrimmed'");
+                return [
+                    'time' => $studentPunch['bsevtdt'] ?? $studentPunch['punch_time'],
+                    'device' => $studentPunch['devnm'] ?? $studentPunch['device'] ?? $studentPunch['device_name'] ?? 'Inconnu'
+                ];
+            }
+        }
+        
+        // Stratégie 3: Ajouter des zéros de début (ex: "123" → "000123")
+        $matriculePadded = str_pad($matricule, 6, '0', STR_PAD_LEFT);
+        if ($matriculePadded !== $matricule) {
+            $studentPunch = collect($biostarResults)->firstWhere('user_id', $matriculePadded);
+            if ($studentPunch) {
+                \Log::info("Match trouvé avec ajout de zéros: '$matricule' → '$matriculePadded'");
+                return [
+                    'time' => $studentPunch['bsevtdt'] ?? $studentPunch['punch_time'],
+                    'device' => $studentPunch['devnm'] ?? $studentPunch['device'] ?? $studentPunch['device_name'] ?? 'Inconnu'
+                ];
+            }
+        }
+        
+        // Stratégie 4: Recherche partielle (contient le matricule)
+        $studentPunch = collect($biostarResults)->first(function ($punch) use ($matricule) {
+            return strpos($punch['user_id'], $matricule) !== false;
+        });
+        if ($studentPunch) {
+            \Log::info("Match trouvé avec recherche partielle: '$matricule' contenu dans '{$studentPunch['user_id']}'");
+            return [
+                'time' => $studentPunch['bsevtdt'] ?? $studentPunch['punch_time'],
+                'device' => $studentPunch['devnm'] ?? $studentPunch['device'] ?? $studentPunch['device_name'] ?? 'Inconnu'
+            ];
+        }
+        
+        // Stratégie 5: Recherche inverse (le matricule contient le user_id)
+        $studentPunch = collect($biostarResults)->first(function ($punch) use ($matricule) {
+            return strpos($matricule, $punch['user_id']) !== false;
+        });
+        if ($studentPunch) {
+            \Log::info("Match trouvé avec recherche inverse: '{$studentPunch['user_id']}' contenu dans '$matricule'");
+            return [
+                'time' => $studentPunch['bsevtdt'] ?? $studentPunch['punch_time'],
+                'device' => $studentPunch['devnm'] ?? $studentPunch['device'] ?? $studentPunch['device_name'] ?? 'Inconnu'
+            ];
+        }
+        
+        // Aucun match trouvé
+        \Log::warning("Aucun match trouvé pour le matricule: '$matricule'");
         return null;
     }
 

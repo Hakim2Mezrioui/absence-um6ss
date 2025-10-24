@@ -764,10 +764,11 @@ class CoursController extends Controller
     }
 
     /**
-     * Get punch time for a specific student
+     * Get punch time for a specific student with improved matching logic
      */
     private function getPunchTime($matricule, $biostarResults)
     {
+        // Stratégie 1: Correspondance exacte
         $studentPunch = collect($biostarResults)->firstWhere('user_id', $matricule);
         if ($studentPunch) {
             return [
@@ -775,6 +776,59 @@ class CoursController extends Controller
                 'device' => $studentPunch['devnm']
             ];
         }
+        
+        // Stratégie 2: Supprimer les zéros de début (ex: "000123" → "123")
+        $matriculeTrimmed = ltrim($matricule, '0');
+        if ($matriculeTrimmed !== $matricule && !empty($matriculeTrimmed)) {
+            $studentPunch = collect($biostarResults)->firstWhere('user_id', $matriculeTrimmed);
+            if ($studentPunch) {
+                \Log::info("Match trouvé avec suppression des zéros: '$matricule' → '$matriculeTrimmed'");
+                return [
+                    'time' => $studentPunch['bsevtdt'],
+                    'device' => $studentPunch['devnm']
+                ];
+            }
+        }
+        
+        // Stratégie 3: Ajouter des zéros de début (ex: "123" → "000123")
+        $matriculePadded = str_pad($matricule, 6, '0', STR_PAD_LEFT);
+        if ($matriculePadded !== $matricule) {
+            $studentPunch = collect($biostarResults)->firstWhere('user_id', $matriculePadded);
+            if ($studentPunch) {
+                \Log::info("Match trouvé avec ajout de zéros: '$matricule' → '$matriculePadded'");
+                return [
+                    'time' => $studentPunch['bsevtdt'],
+                    'device' => $studentPunch['devnm']
+                ];
+            }
+        }
+        
+        // Stratégie 4: Recherche partielle (contient le matricule)
+        $studentPunch = collect($biostarResults)->first(function ($punch) use ($matricule) {
+            return strpos($punch['user_id'], $matricule) !== false;
+        });
+        if ($studentPunch) {
+            \Log::info("Match trouvé avec recherche partielle: '$matricule' contenu dans '{$studentPunch['user_id']}'");
+            return [
+                'time' => $studentPunch['bsevtdt'],
+                'device' => $studentPunch['devnm']
+            ];
+        }
+        
+        // Stratégie 5: Recherche inverse (le matricule contient le user_id)
+        $studentPunch = collect($biostarResults)->first(function ($punch) use ($matricule) {
+            return strpos($matricule, $punch['user_id']) !== false;
+        });
+        if ($studentPunch) {
+            \Log::info("Match trouvé avec recherche inverse: '{$studentPunch['user_id']}' contenu dans '$matricule'");
+            return [
+                'time' => $studentPunch['bsevtdt'],
+                'device' => $studentPunch['devnm']
+            ];
+        }
+        
+        // Aucun match trouvé
+        \Log::warning("Aucun match trouvé pour le matricule: '$matricule'");
         return null;
     }
 }
