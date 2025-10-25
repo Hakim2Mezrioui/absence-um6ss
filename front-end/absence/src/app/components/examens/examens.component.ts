@@ -118,10 +118,10 @@ export class ExamensComponent implements OnInit, OnDestroy {
     if (examen.ville_id) queryParams.ville_id = examen.ville_id;
     
     console.log('📋 Paramètres de navigation:', queryParams);
-    console.log('🔄 Navigation vers /attendance');
+    console.log('🔄 Navigation vers /attendance avec ID:', examen.id);
     
-    // Naviguer vers la page d'attendance avec les paramètres
-    this.router.navigate(['/attendance'], { queryParams });
+    // Naviguer vers la page d'attendance avec l'ID de l'examen et les paramètres
+    this.router.navigate(['/attendance', examen.id], { queryParams });
   }
 
   openImportModal(): void {

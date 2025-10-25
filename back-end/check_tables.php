@@ -83,3 +83,5 @@ try {
 
 echo "\n🏁 Vérification terminée\n";
 
+
+

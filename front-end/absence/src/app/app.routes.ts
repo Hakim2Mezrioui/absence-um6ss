@@ -61,6 +61,7 @@ export const routes: Routes = [
             { path: "import-examens-simple", component: SimpleExamensImportComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },
 
             { path: "attendance", component: AttendanceComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'enseignant'] } },
+            { path: "attendance/:id", component: AttendanceComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'enseignant'] } },
 
             { path: "etudiants", component: EtudiantsComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },
             { path: "add-student", component: AddStudentComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },

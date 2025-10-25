@@ -112,8 +112,20 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     console.log('🎯 AttendanceComponent initialisé');
     
-    // Récupérer les paramètres de l'URL
-    this.route.queryParams.subscribe(params => {
+    // Récupérer l'ID de l'examen depuis les paramètres de route
+    this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
+      const examenId = params['id'];
+      if (examenId) {
+        this.examId = +examenId;
+        console.log('🔍 ID d\'examen trouvé dans l\'URL:', this.examId);
+        
+        // Auto-sélectionner la configuration si un ID d'examen est fourni
+        this.autoSelectConfigurationForExamen(this.examId);
+      }
+    });
+    
+    // Récupérer les paramètres de l'URL (query params)
+    this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
       if (params['date']) this.filtersForm.patchValue({ date: params['date'] });
       if (params['hour1']) this.filtersForm.patchValue({ hour1: params['hour1'] });
       if (params['hour2']) this.filtersForm.patchValue({ hour2: params['hour2'] });
@@ -122,9 +134,6 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       if (params['group_id']) this.filtersForm.patchValue({ group_id: params['group_id'] });
       if (params['option_id']) this.filtersForm.patchValue({ option_id: params['option_id'] });
       if (params['ville_id']) this.filtersForm.patchValue({ ville_id: params['ville_id'] });
-      
-      // Note: L'auto-configuration sera déclenchée après le chargement des données d'attendance
-      // quand nous aurons l'ID de l'examen depuis les données de l'API
       
       // Charger les données d'attendance
       this.loadAttendance();
@@ -161,9 +170,10 @@ export class AttendanceComponent implements OnInit, OnDestroy {
           this.biostarConfigStatus = 'success';
           this.biostarConfigMessage = `Configuration Biostar chargée pour la ville: ${response.data.ville?.name || 'Inconnue'}`;
           
+          // Une seule notification de succès
           this.notificationService.success(
-            'Configuration chargée', 
-            this.biostarConfigMessage
+            'Configuration Biostar', 
+            `Configuration sélectionnée pour la ville: ${response.data.ville?.name || 'Inconnue'}`
           );
           
           // Récupérer les données de pointage depuis Biostar
@@ -176,9 +186,10 @@ export class AttendanceComponent implements OnInit, OnDestroy {
           this.biostarConfigStatus = 'error';
           this.biostarConfigMessage = 'Aucune configuration Biostar trouvée pour la ville de cet examen. Les données de pointage ne seront pas disponibles.';
           
-          this.notificationService.warning(
-            'Configuration manquante', 
-            this.biostarConfigMessage
+          // Une seule notification d'erreur
+          this.notificationService.error(
+            'Configuration Biostar', 
+            'La configuration n\'existe pas pour cette ville'
           );
         }
       });
@@ -221,21 +232,12 @@ export class AttendanceComponent implements OnInit, OnDestroy {
           
           // Intégrer les données de pointage avec les étudiants
           this.integrateBiostarDataWithStudents(response.data);
-          
-          this.notificationService.success(
-            'Données de pointage chargées', 
-            `${response.data.total_punches} pointage(s) récupéré(s) depuis Biostar`
-          );
         } else {
           console.warn('⚠️ Réponse Biostar sans succès ou sans données:', response);
         }
       },
       error: (error) => {
         console.error('❌ Erreur lors de la récupération des données Biostar:', error);
-        this.notificationService.warning(
-          'Données de pointage indisponibles', 
-          'Impossible de récupérer les données de pointage depuis Biostar. Vérifiez la configuration.'
-        );
       }
     });
   }
@@ -374,7 +376,12 @@ export class AttendanceComponent implements OnInit, OnDestroy {
           // Auto-sélectionner la configuration si un examen est trouvé
           if (this.examId) {
             console.log('🔍 ID d\'examen trouvé dans les données:', this.examId);
-            this.autoSelectConfigurationForExamen(this.examId);
+            // Vérifier si l'ID n'était pas déjà défini depuis l'URL
+            const wasIdFromUrl = this.route.snapshot.params['id'];
+            if (!wasIdFromUrl) {
+              // L'ID vient de l'API, déclencher l'auto-configuration
+              this.autoSelectConfigurationForExamen(this.examId);
+            }
           } else {
             console.log('⚠️ Aucun ID d\'examen trouvé dans les données de l\'API');
             // Ne pas afficher d'alerte d'erreur si aucun examen n'est trouvé
@@ -415,6 +422,14 @@ export class AttendanceComponent implements OnInit, OnDestroy {
               this.examSalle = err.error.examen.salle?.name || 'N/A';
               this.examTolerance = err.error.examen.tolerance || 15;
               this.examId = err.error.examen.id || null;
+              
+              // Si un examen est trouvé mais aucun étudiant, essayer l'auto-configuration
+              if (this.examId) {
+                const wasIdFromUrl = this.route.snapshot.params['id'];
+                if (!wasIdFromUrl) {
+                  this.autoSelectConfigurationForExamen(this.examId);
+                }
+              }
             }
             
             // Initialiser le filtrage avec une liste vide
@@ -425,8 +440,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
             
             this.loading = false;
             
-            // Afficher le message spécifique de l'API
-            this.notificationService.info('Information', err.error.message);
+            // Pas de notification supplémentaire - le message d'erreur est déjà géré par l'API
           } else {
             // Vraie erreur de chargement
             this.error = 'Erreur lors du chargement des données d\'attendance';
@@ -435,6 +449,8 @@ export class AttendanceComponent implements OnInit, OnDestroy {
             this.lastRefreshTime = new Date();
             
             this.loading = false;
+            
+            // Pas de notification supplémentaire - l'erreur est déjà affichée dans l'interface
           }
         }
       });
@@ -949,12 +965,21 @@ export class AttendanceComponent implements OnInit, OnDestroy {
    */
   exportAttendanceList(format: 'csv' | 'excel'): void {
     if (this.students.length === 0) {
-      this.notificationService.error('Aucune donnée à exporter', 'Aucun étudiant trouvé pour l\'exportation');
+      this.notificationService.error(
+        'Aucune donnée à exporter', 
+        'Aucun étudiant trouvé pour l\'exportation. Vérifiez que des étudiants sont présents pour cet examen.'
+      );
       return;
     }
 
     this.isExporting = true;
     this.exportFormat = format;
+
+    // Afficher une notification d'information pendant l'export
+    this.notificationService.info(
+      'Export en cours', 
+      `Préparation de l'export ${format.toUpperCase()} pour ${this.students.length} étudiant(s)...`
+    );
 
     try {
       // S'assurer que la logique de tolérance est appliquée
@@ -972,10 +997,16 @@ export class AttendanceComponent implements OnInit, OnDestroy {
         this.createExcelFile(exportData);
       }
       
-      this.notificationService.success('Export réussi', `La liste de suivi a été exportée en ${format.toUpperCase()} avec succès`);
+      this.notificationService.success(
+        'Export réussi', 
+        `La liste de suivi a été exportée en ${format.toUpperCase()} avec succès. ${this.totalStudents} étudiant(s) exporté(s) : ${this.presents} présent(s), ${this.getLateStudentsCount()} en retard, ${this.absents} absent(s).`
+      );
     } catch (error) {
       console.error('Erreur lors de l\'export:', error);
-      this.notificationService.error('Erreur d\'export', 'Une erreur est survenue lors de l\'exportation');
+      this.notificationService.error(
+        'Erreur d\'export', 
+        'Une erreur est survenue lors de l\'exportation. Vérifiez les données et réessayez.'
+      );
     } finally {
       this.isExporting = false;
       this.exportFormat = null;
@@ -1293,7 +1324,10 @@ export class AttendanceComponent implements OnInit, OnDestroy {
    */
   createAbsencesForAbsentStudents(): void {
     if (!this.examenId) {
-      this.notificationService.error('Erreur', 'ID de l\'examen manquant');
+      this.notificationService.error(
+        'ID de l\'examen manquant', 
+        'Impossible de créer les absences car l\'ID de l\'examen n\'est pas disponible. Veuillez recharger la page.'
+      );
       return;
     }
 
@@ -1307,11 +1341,20 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       }));
 
     if (etudiantsAbsents.length === 0) {
-      this.notificationService.info('Information', 'Aucun étudiant absent ou en retard trouvé');
+      this.notificationService.info(
+        'Aucune absence à créer', 
+        'Tous les étudiants sont présents. Aucune absence ne peut être créée pour cet examen.'
+      );
       return;
     }
 
     this.isCreatingAbsences = true;
+
+    // Afficher une notification d'information pendant la création
+    this.notificationService.info(
+      'Création des absences', 
+      `Création de ${etudiantsAbsents.length} absence(s) en cours...`
+    );
 
     const request: CreateAbsencesFromAttendanceRequest = {
       examen_id: this.examenId,
@@ -1324,9 +1367,13 @@ export class AttendanceComponent implements OnInit, OnDestroy {
         next: (response) => {
           console.log('✅ Absences créées avec succès:', response);
           
+          const absencesCreees = response.data.statistiques.absences_creees || 0;
+          const absentsCount = etudiantsAbsents.filter(e => e.status === 'absent').length;
+          const retardsCount = etudiantsAbsents.filter(e => e.status === 'en retard').length;
+          
           this.notificationService.success(
-            'Absences créées', 
-            `${response.data.statistiques.absences_creees} absence(s) créée(s) avec succès`
+            'Absences créées avec succès', 
+            `${absencesCreees} absence(s) créée(s) : ${absentsCount} absent(s) et ${retardsCount} en retard.`
           );
 
           // Fermer le dialogue
@@ -1338,8 +1385,8 @@ export class AttendanceComponent implements OnInit, OnDestroy {
         error: (err) => {
           console.error('❌ Erreur lors de la création des absences:', err);
           this.notificationService.error(
-            'Erreur de création', 
-            'Une erreur est survenue lors de la création des absences'
+            'Erreur lors de la création des absences', 
+            'Une erreur est survenue lors de la création des absences. Vérifiez les données et réessayez.'
           );
         },
         complete: () => {
@@ -1402,12 +1449,24 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     const absentStudents = this.getAbsentAndLateStudents();
     
     if (absentStudents.length === 0) {
-      this.notificationService.warning('Aucune absence', 'Aucun étudiant absent ou en retard trouvé pour l\'exportation');
+      this.notificationService.warning(
+        'Aucune absence à exporter', 
+        'Tous les étudiants sont présents. Aucune absence ne peut être exportée pour cet examen.'
+      );
       return;
     }
 
     this.isExporting = true;
     this.exportFormat = format;
+
+    // Afficher une notification d'information pendant l'export
+    const absentsCount = absentStudents.filter(s => s.status === 'absent').length;
+    const retardsCount = absentStudents.filter(s => s.status === 'en retard').length;
+    
+    this.notificationService.info(
+      'Export des absences en cours', 
+      `Préparation de l'export ${format.toUpperCase()} pour ${absentStudents.length} absence(s) : ${absentsCount} absent(s) et ${retardsCount} en retard...`
+    );
 
     try {
       // Préparer les données pour l'export des absences
@@ -1422,10 +1481,16 @@ export class AttendanceComponent implements OnInit, OnDestroy {
         this.createAbsencesExcelFile(exportData);
       }
       
-      this.notificationService.success('Export des absences réussi', `La liste des absences a été exportée en ${format.toUpperCase()} avec succès`);
+      this.notificationService.success(
+        'Export des absences réussi', 
+        `La liste des absences a été exportée en ${format.toUpperCase()} avec succès. ${absentStudents.length} absence(s) exportée(s) : ${absentsCount} absent(s) et ${retardsCount} en retard.`
+      );
     } catch (error) {
       console.error('Erreur lors de l\'export des absences:', error);
-      this.notificationService.error('Erreur d\'export', 'Une erreur est survenue lors de l\'exportation des absences');
+      this.notificationService.error(
+        'Erreur d\'export des absences', 
+        'Une erreur est survenue lors de l\'exportation des absences. Vérifiez les données et réessayez.'
+      );
     } finally {
       this.isExporting = false;
       this.exportFormat = null;
