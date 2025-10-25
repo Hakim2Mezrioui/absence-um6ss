@@ -266,28 +266,6 @@
       </div>
     </div>
 
-    <!-- Message d'information sur la logique -->
-    <div class="bg-blue-50 border-l-4 border-blue-400 rounded-lg p-4 mb-6">
-      <div class="flex items-start">
-        <div class="flex-shrink-0">
-          <span class="material-icons text-blue-500 text-xl">info</span>
-        </div>
-        <div class="ml-3 flex-1">
-          <h3 class="text-sm font-semibold text-blue-900 mb-1">Règles de calcul des présences</h3>
-          <div class="text-sm text-blue-700 space-y-1">
-            <p><strong class="font-semibold text-green-700">✅ Présent:</strong> Étudiant a pointé (Face ID) avant le début du cours</p>
-            <p><strong class="font-semibold text-yellow-700">⏰ En retard:</strong> Étudiant a pointé après le début du cours (tolérance {{ formatTolerance() }} min)</p>
-            <p><strong class="font-semibold text-red-700">❌ Absent:</strong> Aucun pointage enregistré</p>
-            <p class="mt-2 pt-2 border-t border-blue-200">
-              <span class="inline-flex items-center gap-1 font-medium">
-                <span class="material-icons text-xs">lightbulb</span>
-                Si un étudiant a fait le Face ID, il ne peut PAS être absent !
-              </span>
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- État de chargement -->
     <div *ngIf="loading" class="flex justify-center items-center py-12">

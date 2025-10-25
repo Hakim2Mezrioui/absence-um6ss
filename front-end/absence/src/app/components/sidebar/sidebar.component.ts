@@ -390,6 +390,13 @@ export class SidebarComponent implements OnInit {
       roles: ['super-admin', 'admin', 'scolarite']
     },
     {
+      label: 'Gestion des utilisateurs',
+      icon: 'admin_panel_settings',
+      route: '/user-management',
+      tooltip: 'Gestion complète des utilisateurs et rôles',
+      roles: ['super-admin']
+    },
+    {
       label: 'Configuration',
       icon: 'settings',
       route: '/configuration',

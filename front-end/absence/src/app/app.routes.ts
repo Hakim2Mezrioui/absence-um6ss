@@ -34,6 +34,7 @@ import { SimpleStudentImportComponent } from './components/simple-import/simple-
 import { SimpleCoursImportComponent } from './components/simple-cours-import/simple-cours-import.component';
 import { SimpleExamensImportComponent } from './components/simple-examens-import/simple-examens-import.component';
 import { GroupsComponent } from './components/groups/groups.component';
+import { UserManagementComponent } from './components/user-management/user-management.component';
 
 export const routes: Routes = [
     {path: "", redirectTo: "login", pathMatch: "full"},
@@ -89,6 +90,9 @@ export const routes: Routes = [
 
             // Configuration: super-admin only
             { path: "configuration", component: ConfigurationComponent, canActivate: [RoleGuard], data: { roles: ['super-admin'] } },
+
+            // Gestion des utilisateurs: super-admin only
+            { path: "user-management", component: UserManagementComponent, canActivate: [RoleGuard], data: { roles: ['super-admin'] } },
 
             // Enseignants list: admins and above
             { path: "enseignants", component: EnseignantsComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin'] } },

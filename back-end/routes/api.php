@@ -25,6 +25,7 @@ use App\Http\Controllers\StatisticController;
 use App\Http\Controllers\AbsenceAutoController;
 use App\Http\Controllers\AttendanceStateController;
 use App\Http\Controllers\EnseignantController;
+use App\Http\Controllers\UserManagementController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -155,6 +156,17 @@ Route::apiResource('promotions', PromotionController::class);
 Route::post('enseignants-with-user', [EnseignantController::class, 'storeWithUser']);
 Route::put('enseignants-with-user/{id}', [EnseignantController::class, 'updateWithUser']);
 Route::apiResource('enseignants', EnseignantController::class);
+
+// Gestion des utilisateurs - Accès restreint aux super admins uniquement
+Route::middleware(['auth:sanctum', 'super.admin'])->group(function () {
+    // Routes CRUD pour la gestion des utilisateurs
+    Route::get('user-management/form-options', [UserManagementController::class, 'getFormOptions']);
+    Route::apiResource('user-management', UserManagementController::class);
+    
+    // Routes supplémentaires pour la gestion des utilisateurs
+    Route::put('user-management/{id}/role', [UserManagementController::class, 'updateRole']);
+    Route::get('user-management/statistics', [UserManagementController::class, 'getStatistics']);
+    Route::get('user-management/search', [UserManagementController::class, 'search']);
 });
 
 // Public routes for students
@@ -277,3 +289,4 @@ Route::get('options/search', [OptionController::class, 'search']);
 Route::get('options/etablissement/{etablissementId}', [OptionController::class, 'getByEtablissement']);
 Route::get('options/{id}/statistics', [OptionController::class, 'getStatistics']);
 Route::get('options/popular', [OptionController::class, 'getPopularOptions']);
+});
