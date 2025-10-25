@@ -11,13 +11,14 @@ class Examen extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title', 'date', 'heure_debut', 'heure_fin', 'heure_debut_poigntage', 'annee_universitaire', 'tolerance', 'option_id', 'salle_id', 'promotion_id', 'type_examen_id', 'etablissement_id', 'group_id', 'ville_id'];
+    protected $fillable = ['title', 'date', 'heure_debut', 'heure_fin', 'heure_debut_poigntage', 'annee_universitaire', 'tolerance', 'option_id', 'salle_id', 'promotion_id', 'type_examen_id', 'etablissement_id', 'group_id', 'ville_id', 'archived_at'];
 
     protected $casts = [
         'date' => 'date',
         'heure_debut' => 'datetime',
         'heure_fin' => 'datetime',
         'heure_debut_poigntage' => 'datetime',
+        'archived_at' => 'datetime',
     ];
 
     // Accessors pour formater les heures

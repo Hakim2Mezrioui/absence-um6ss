@@ -35,6 +35,7 @@ import { SimpleCoursImportComponent } from './components/simple-cours-import/sim
 import { SimpleExamensImportComponent } from './components/simple-examens-import/simple-examens-import.component';
 import { GroupsComponent } from './components/groups/groups.component';
 import { UserManagementComponent } from './components/user-management/user-management.component';
+import { ExamensArchivedComponent } from './components/examens-archived/examens-archived.component';
 
 export const routes: Routes = [
     {path: "", redirectTo: "login", pathMatch: "full"},
@@ -56,6 +57,7 @@ export const routes: Routes = [
 
             // Super-admin and admin and scolarite access; enseignant only to cours-related
             { path: "examens", component: ExamensComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },
+            { path: "examens-archived", component: ExamensArchivedComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },
             { path: "add-examen", component: AddExamenComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },
             { path: "edit-examen/:id", component: EditExamenComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },
             { path: "import-examens", component: ImportExamensComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },

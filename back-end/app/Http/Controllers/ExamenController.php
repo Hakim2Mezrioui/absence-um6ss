@@ -27,7 +27,8 @@ class ExamenController extends Controller
         $size = max(1, min(100, (int) $size)); // Limit size between 1 and 100
         $page = max(1, (int) $page);
 
-        $query = Examen::with(['etablissement', 'promotion', 'typeExamen', 'salle', 'option', 'group', 'ville']);
+        $query = Examen::with(['etablissement', 'promotion', 'typeExamen', 'salle', 'option', 'group', 'ville'])
+                        ->whereNull('archived_at'); // Exclure les examens archivés
 
         // Apply filters
         $this->applyFilters($query, $etablissement_id, $promotion_id, $salle_id, $group_id, $ville_id, $searchValue, $date);
@@ -379,6 +380,126 @@ class ExamenController extends Controller
 
         // Return a success response
         return response()->json(['message' => 'Examen deleted successfully'], 200);
+    }
+
+    /**
+     * Archiver un examen
+     */
+    public function archive($id) {
+        // Find the Examen by id
+        $examen = Examen::find($id);
+
+        if (empty($examen)) {
+            return response()->json(['message' => 'Examen not found'], 404);
+        }
+
+        // Vérifier que l'examen est bien passé
+        if (!$examen->isEnPasse()) {
+            return response()->json(['message' => 'Seuls les examens passés peuvent être archivés'], 400);
+        }
+
+        // Marquer l'examen comme archivé
+        $examen->update(['archived_at' => now()]);
+
+        // Return a success response
+        return response()->json(['message' => 'Examen archivé avec succès'], 200);
+    }
+
+    /**
+     * Désarchiver un examen (super-admin et admin uniquement)
+     */
+    public function unarchive($id) {
+        // Vérifier les permissions de l'utilisateur
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['message' => 'Non authentifié'], 401);
+        }
+
+        // Charger la relation role
+        $user->load('role');
+
+        // Vérifier si l'utilisateur est super-admin ou admin via la relation
+        $userRole = $user->role ? $user->role->name : null;
+        
+        // Normaliser le rôle pour la comparaison (enlever espaces, tirets, majuscules)
+        $normalizedRole = $userRole ? strtolower(str_replace([' ', '-', '_'], '', $userRole)) : null;
+        $allowedRoles = ['superadmin', 'admin'];
+        
+        if (!$normalizedRole || !in_array($normalizedRole, $allowedRoles)) {
+            return response()->json(['message' => 'Accès refusé. Seuls les super-admin et admin peuvent désarchiver des examens.'], 403);
+        }
+
+        // Find the Examen by id
+        $examen = Examen::find($id);
+
+        if (empty($examen)) {
+            return response()->json(['message' => 'Examen not found'], 404);
+        }
+
+        // Vérifier que l'examen est bien archivé
+        if (is_null($examen->archived_at)) {
+            return response()->json(['message' => 'Cet examen n\'est pas archivé'], 400);
+        }
+
+        // Désarchiver l'examen (mettre archived_at à null)
+        $examen->update(['archived_at' => null]);
+
+        // Return a success response
+        return response()->json(['message' => 'Examen désarchivé avec succès'], 200);
+    }
+
+    /**
+     * Récupérer les examens archivés
+     */
+    public function archived(Request $request) {
+        // Get query parameters with defaults
+        $size = $request->query('size', 10);
+        $page = $request->query('page', 1); 
+        $etablissement_id = $request->query("etablissement_id", null);
+        $promotion_id = $request->query("promotion_id", null);
+        $salle_id = $request->query("salle_id", null);
+        $group_id = $request->query("group_id", null);
+        $ville_id = $request->query("ville_id", null);
+        $searchValue = $request->query("searchValue", "");
+        $date = $request->query("date", "");
+
+        // Validate pagination parameters
+        $size = max(1, min(100, (int) $size)); // Limit size between 1 and 100
+        $page = max(1, (int) $page);
+
+        $query = Examen::with(['etablissement', 'promotion', 'typeExamen', 'salle', 'option', 'group', 'ville'])
+                        ->whereNotNull('archived_at'); // Seulement les examens archivés
+
+        // Apply filters
+        $this->applyFilters($query, $etablissement_id, $promotion_id, $salle_id, $group_id, $ville_id, $searchValue, $date);
+
+        // Get total count before pagination
+        $total = $query->count();
+
+        // Calculate pagination
+        $totalPages = ceil($total / $size);
+        $currentPage = min($page, $totalPages > 0 ? $totalPages : 1);
+
+        // Get paginated results
+        $examens = $query->orderBy('archived_at', 'desc')
+                        ->offset(($currentPage - 1) * $size)
+                        ->limit($size)
+                        ->get();
+
+        // Calculer le statut temporel pour chaque examen
+        $examens->each(function ($examen) {
+            $examen->statut_temporel = $this->calculateStatutTemporel($examen);
+        });
+
+        return response()->json([
+            "data" => $examens,
+            "current_page" => $currentPage,
+            "per_page" => $size,
+            "total" => $total,
+            "last_page" => $totalPages,
+            "has_next_page" => $currentPage < $totalPages,
+            "has_prev_page" => $currentPage > 1
+        ]);
     }
 
     /**

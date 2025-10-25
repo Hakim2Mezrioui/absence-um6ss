@@ -126,6 +126,11 @@ Route::get('/examens/etablissements', [ExamenController::class, 'getEtablissemen
 Route::get('/examens/promotions', [ExamenController::class, 'getPromotions']);
 Route::get('/examens/salles', [ExamenController::class, 'getSalles']);
 Route::get('/examens/filter-options', [ExamenController::class, 'getFilterOptions']);
+Route::get('/examens/archived', [ExamenController::class, 'archived']);
+Route::patch('/examens/{id}/archive', [ExamenController::class, 'archive']);
+
+// Route pour désarchiver un examen (super-admin et admin uniquement)
+Route::patch('/examens/{id}/unarchive', [ExamenController::class, 'unarchive'])->middleware('auth:sanctum');
 
 // Routes spécifiques pour les établissements AVANT la ressource
 Route::get('etablissements/statistics', [EtablissementController::class, 'getStatistics']);

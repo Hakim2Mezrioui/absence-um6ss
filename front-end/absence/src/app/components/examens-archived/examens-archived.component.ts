@@ -5,19 +5,16 @@ import { HttpClientModule } from '@angular/common/http';
 import { RouterModule, Router } from '@angular/router';
 import { ExamensService, Examen, ExamenResponse, ExamenFilters } from '../../services/examens.service';
 import { NotificationService } from '../../services/notification.service';
-
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
-import { TypesExamenService, TypeExamen } from '../../services/types-examen.service';
 
 @Component({
-  selector: 'app-examens',
+  selector: 'app-examens-archived',
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule, HttpClientModule, RouterModule],
-  templateUrl: './examens.component.html',
-  styleUrl: './examens.component.css'
+  templateUrl: './examens-archived.component.html',
+  styleUrl: './examens-archived.component.css'
 })
-
-export class ExamensComponent implements OnInit, OnDestroy {
+export class ExamensArchivedComponent implements OnInit, OnDestroy {
   examens: Examen[] = [];
   loading = false;
   error = '';
@@ -39,9 +36,9 @@ export class ExamensComponent implements OnInit, OnDestroy {
   promotions: any[] = [];
   salles: any[] = [];
   options: any[] = [];
-  typesExamen: TypeExamen[] = [];
   
-
+  // Permissions
+  canUnarchive = false;
   
   private destroy$ = new Subject<void>();
 
@@ -49,7 +46,6 @@ export class ExamensComponent implements OnInit, OnDestroy {
     private examensService: ExamensService,
     private notificationService: NotificationService,
     private fb: FormBuilder,
-    private typesExamenService: TypesExamenService,
     private router: Router
   ) {
     this.filtersForm = this.fb.group({
@@ -61,15 +57,11 @@ export class ExamensComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    console.log('🎯 ExamensComponent initialisé');
+    console.log('🎯 ExamensArchivedComponent initialisé');
     
-    // Test de navigation - charger des données de test d'abord
-    this.loadTestData();
-    
-    // Puis essayer de charger les vraies données
-    this.loadExamens();
+    this.checkPermissions();
+    this.loadArchivedExamens();
     this.loadFilterOptions();
-    this.loadTypesExamen();
     
     // Setup search debounce
     this.filtersForm.valueChanges
@@ -80,7 +72,7 @@ export class ExamensComponent implements OnInit, OnDestroy {
       )
       .subscribe(() => {
         this.currentPage = 1;
-        this.loadExamens();
+        this.loadArchivedExamens();
       });
   }
 
@@ -89,164 +81,58 @@ export class ExamensComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  // Naviguer vers la page d'ajout d'examen
-  openAddModal(): void {
-    this.router.navigate(['/add-examen']);
-  }
-
-  // Naviguer vers la page de modification d'examen
-  openEditModal(examen: Examen): void {
-    this.router.navigate(['/edit-examen', examen.id]);
-  }
-
-  // Naviguer vers la page de suivi des présences
-  openAttendanceModal(examen: Examen): void {
-    console.log('🎯 openAttendanceModal appelé pour l\'examen:', examen);
+  // Vérifier les permissions de l'utilisateur
+  checkPermissions(): void {
+    // Récupérer le rôle utilisateur depuis le localStorage (comme dans les guards)
+    const userRole = localStorage.getItem('userRole');
     
-    // Construire les paramètres de requête pour l'API d'attendance
-    const queryParams: any = {
-      date: examen.date,
-      hour1: examen.heure_debut,
-      hour2: examen.heure_fin
-    };
-
-    // Ajouter les autres paramètres si disponibles
-    if (examen.promotion_id) queryParams.promotion_id = examen.promotion_id;
-    if (examen.etablissement_id) queryParams.etablissement_id = examen.etablissement_id;
-    if (examen.option?.id) queryParams.option_id = examen.option.id;
-    if (examen.group_id) queryParams.group_id = examen.group_id;
-    if (examen.ville_id) queryParams.ville_id = examen.ville_id;
-    
-    console.log('📋 Paramètres de navigation:', queryParams);
-    console.log('🔄 Navigation vers /attendance avec ID:', examen.id);
-    
-    // Naviguer vers la page d'attendance avec l'ID de l'examen et les paramètres
-    this.router.navigate(['/attendance', examen.id], { queryParams });
+    if (userRole) {
+      // Vérifier si l'utilisateur est super-admin ou admin
+      this.canUnarchive = userRole === 'super-admin' || userRole === 'admin';
+    } else {
+      this.canUnarchive = false;
+    }
   }
 
-  openImportModal(): void {
-    this.router.navigate(['/import-examens-simple']);
+  // Naviguer vers la page d'examens actifs
+  goToActiveExamens(): void {
+    this.router.navigate(['/examens']);
   }
 
-  // Naviguer vers la page des examens archivés
-  openArchivedExamens(): void {
-    this.router.navigate(['/examens-archived']);
-  }
-
-  // Charger des données de test pour vérifier la navigation
-  loadTestData(): void {
-    console.log('📊 Chargement des données de test');
-    this.examens = [
-      {
-        id: 1,
-        title: 'Examen de Test - Mathématiques',
-        date: '2024-01-15',
-        heure_debut: '09:00:00',
-        heure_fin: '11:00:00',
-        heure_debut_poigntage: '08:30:00',
-        tolerance: 15,
-        salle_id: 1,
-        promotion_id: 1,
-        type_examen_id: 1,
-        etablissement_id: 1,
-        group_id: 1,
-        ville_id: 1,
-        annee_universitaire: '2023-2024',
-        statut_temporel: 'futur',
-        created_at: '2024-01-01',
-        updated_at: '2024-01-01',
-        etablissement: { id: 1, name: 'Université Test' },
-        promotion: { id: 1, name: 'L1' },
-        type_examen: { id: 1, name: 'Contrôle' },
-        salle: { id: 1, name: 'Salle A1' },
-        option: { id: 1, name: 'Informatique' },
-        group: { id: 1, name: 'Groupe 1' },
-        ville: { id: 1, name: 'Rabat' }
-      }
-    ];
-    this.total = 1;
-    this.currentPage = 1;
-    this.lastPage = 1;
-    console.log('✅ Données de test chargées:', this.examens);
-  }
-
-  // Supprimer un examen
-  deleteExamen(examen: Examen): void {
+  // Désarchiver un examen
+  unarchiveExamen(examen: Examen): void {
     // Import dynamique pour compat SSR (évite document is not defined)
     import('sweetalert2').then(({ default: Swal }) => {
       Swal.fire({
-        title: 'Supprimer cet examen ?',
-        text: `"${examen.title}" sera définitivement supprimé.`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Oui, supprimer',
-        cancelButtonText: 'Annuler',
-        confirmButtonColor: '#dc2626',
-        cancelButtonColor: '#6b7280',
-        reverseButtons: true
-      }).then((result) => {
-        if (result.isConfirmed) {
-          this.examensService.deleteExamen(examen.id)
-            .pipe(takeUntil(this.destroy$))
-            .subscribe({
-              next: () => {
-                Swal.fire({
-                  title: 'Supprimé',
-                  text: 'Examen supprimé avec succès',
-                  icon: 'success',
-                  timer: 1500,
-                  showConfirmButton: false
-                });
-                this.loadExamens();
-              },
-              error: (err) => {
-                console.error('Error deleting examen:', err);
-                Swal.fire({
-                  title: 'Erreur',
-                  text: 'Erreur lors de la suppression de l\'examen',
-                  icon: 'error'
-                });
-              }
-            });
-        }
-      });
-    });
-  }
-
-  // Archiver un examen
-  archiveExamen(examen: Examen): void {
-    // Import dynamique pour compat SSR (évite document is not defined)
-    import('sweetalert2').then(({ default: Swal }) => {
-      Swal.fire({
-        title: 'Archiver cet examen ?',
-        text: `"${examen.title}" sera archivé et ne sera plus visible dans la liste principale.`,
+        title: 'Désarchiver cet examen ?',
+        text: `"${examen.title}" sera restauré dans la liste des examens actifs.`,
         icon: 'question',
         showCancelButton: true,
-        confirmButtonText: 'Oui, archiver',
+        confirmButtonText: 'Oui, désarchiver',
         cancelButtonText: 'Annuler',
-        confirmButtonColor: '#f59e0b',
+        confirmButtonColor: '#10b981',
         cancelButtonColor: '#6b7280',
         reverseButtons: true
       }).then((result) => {
         if (result.isConfirmed) {
-          this.examensService.archiveExamen(examen.id)
+          this.examensService.unarchiveExamen(examen.id)
             .pipe(takeUntil(this.destroy$))
             .subscribe({
               next: () => {
                 Swal.fire({
-                  title: 'Archivé',
-                  text: 'Examen archivé avec succès',
+                  title: 'Désarchivé',
+                  text: 'Examen désarchivé avec succès',
                   icon: 'success',
                   timer: 1500,
                   showConfirmButton: false
                 });
-                this.loadExamens();
+                this.loadArchivedExamens();
               },
               error: (err) => {
-                console.error('Error archiving examen:', err);
+                console.error('Error unarchiving examen:', err);
                 Swal.fire({
                   title: 'Erreur',
-                  text: 'Erreur lors de l\'archivage de l\'examen',
+                  text: 'Erreur lors du désarchivage de l\'examen',
                   icon: 'error'
                 });
               }
@@ -256,8 +142,9 @@ export class ExamensComponent implements OnInit, OnDestroy {
     });
   }
 
-  loadExamens(): void {
-    console.log('🔄 Tentative de chargement des examens depuis l\'API');
+  // Charger les examens archivés
+  loadArchivedExamens(): void {
+    console.log('🔄 Chargement des examens archivés');
     this.loading = true;
     this.error = '';
 
@@ -278,11 +165,11 @@ export class ExamensComponent implements OnInit, OnDestroy {
 
     console.log('📋 Filtres appliqués:', filters);
 
-    this.examensService.getExamens(filters)
+    this.examensService.getArchivedExamens(filters)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: ExamenResponse) => {
-          console.log('✅ Données reçues de l\'API:', response);
+          console.log('✅ Examens archivés reçus:', response);
           this.examens = response.data;
           
           // S'assurer que le statut temporel est calculé pour chaque examen
@@ -298,12 +185,9 @@ export class ExamensComponent implements OnInit, OnDestroy {
           this.loading = false;
         },
         error: (err) => {
-          console.error('❌ Erreur lors du chargement des examens:', err);
-          this.error = 'Erreur lors du chargement des examens';
+          console.error('❌ Erreur lors du chargement des examens archivés:', err);
+          this.error = 'Erreur lors du chargement des examens archivés';
           this.loading = false;
-          
-          // En cas d'erreur, garder les données de test
-          console.log('🔄 Utilisation des données de test en cas d\'erreur API');
         }
       });
   }
@@ -312,26 +196,26 @@ export class ExamensComponent implements OnInit, OnDestroy {
     const target = event.target as HTMLInputElement;
     this.searchValue = target.value;
     this.currentPage = 1;
-    this.loadExamens();
+    this.loadArchivedExamens();
   }
 
   onPageChange(page: number): void {
     this.currentPage = page;
-    this.loadExamens();
+    this.loadArchivedExamens();
   }
 
   onPerPageChange(event: Event): void {
     const target = event.target as HTMLSelectElement;
     this.perPage = parseInt(target.value);
     this.currentPage = 1;
-    this.loadExamens();
+    this.loadArchivedExamens();
   }
 
   clearFilters(): void {
     this.filtersForm.reset();
     this.searchValue = '';
     this.currentPage = 1;
-    this.loadExamens();
+    this.loadArchivedExamens();
   }
 
   getPageNumbers(): number[] {
@@ -474,29 +358,9 @@ export class ExamensComponent implements OnInit, OnDestroy {
           this.promotions = response.promotions || [];
           this.salles = response.salles || [];
           this.options = response.options || [];
-          this.typesExamen = response.typesExamen || [];
         },
         error: (err) => {
           console.error('Error loading filter options:', err);
-        }
-      });
-  }
-
-  // Méthode pour charger les types d'examen
-  loadTypesExamen(): void {
-    console.log('🔍 loadTypesExamen() - Démarrage du chargement');
-    // Utiliser getTypesExamenPaginated qui fonctionne au lieu de getAllTypesExamen
-    this.typesExamenService.getTypesExamenPaginated(1, 100) // Charger jusqu'à 100 types
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response: any) => {
-          console.log('✅ Types d\'examen chargés avec succès (paginated):', response);
-          this.typesExamen = response.data || [];
-          console.log('🔍 typesExamen mis à jour:', this.typesExamen);
-        },
-        error: (err) => {
-          console.error('❌ Erreur lors du chargement des types d\'examen:', err);
-          this.typesExamen = [];
         }
       });
   }

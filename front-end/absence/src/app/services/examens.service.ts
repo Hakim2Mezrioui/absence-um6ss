@@ -21,6 +21,7 @@ export interface Examen {
   statut_temporel: 'passé' | 'en_cours' | 'futur';
   created_at: string;
   updated_at: string;
+  archived_at?: string;
   option?: {
     id: number;
     name: string;
@@ -110,6 +111,27 @@ export class ExamensService {
 
   deleteExamen(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  archiveExamen(id: number): Observable<void> {
+    return this.http.patch<void>(`${this.apiUrl}/${id}/archive`, {});
+  }
+
+  unarchiveExamen(id: number): Observable<void> {
+    return this.http.patch<void>(`${this.apiUrl}/${id}/unarchive`, {});
+  }
+
+  getArchivedExamens(filters: ExamenFilters = {}): Observable<ExamenResponse> {
+    let params = new HttpParams();
+    
+    Object.keys(filters).forEach(key => {
+      const value = filters[key as keyof ExamenFilters];
+      if (value !== undefined && value !== null && value !== '') {
+        params = params.set(key, value.toString());
+      }
+    });
+
+    return this.http.get<ExamenResponse>(`${this.apiUrl}/archived`, { params });
   }
 
   // Méthode pour récupérer tous les types d'examen
