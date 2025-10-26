@@ -225,13 +225,38 @@ export class AuthService {
     return user ? user.etablissement_id : 0;
   }
 
+  /**
+   * Vérifier si l'utilisateur peut ajouter/modifier/supprimer
+   * Le technicien (ID 5) ne peut que consulter
+   */
+  canEdit(): boolean {
+    if (!this.isBrowser()) return false;
+    const userRole = localStorage.getItem('userRole');
+    // Le technicien ne peut que consulter (lecture seule)
+    return userRole !== 'technicien';
+  }
+
+  /**
+   * Obtenir le nom du rôle de l'utilisateur
+   */
+  getUserRoleName(): string {
+    const user = this.getCurrentUser();
+    if (user) {
+      return this.getRoleNameById(user.role_id);
+    }
+    return 'user';
+  }
+
   private getRoleNameById(roleId: number): string {
     // Mapping des IDs de rôles vers les noms de rôles
+    // Note: Ce mapping doit correspondre à la structure réelle de la table roles
     const roleMapping: { [key: number]: string } = {
       1: 'super-admin',
-      2: 'admin', 
-      3: 'scolarite',
-      4: 'user'
+      2: 'admin',
+      3: 'scolarite',    // ID 3: Scolarité
+      4: 'doyen',       // ID 4: Doyen
+      5: 'technicien',  // ID 5: Technicien SI
+      6: 'enseignant'   // ID 6: Enseignant
     };
     
     return roleMapping[roleId] || 'user';

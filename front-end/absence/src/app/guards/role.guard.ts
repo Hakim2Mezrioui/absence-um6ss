@@ -14,9 +14,10 @@ export class RoleGuard implements CanActivate {
     switch (idNum) {
       case 1: return 'super-admin';
       case 2: return 'admin';
-      case 3: return 'scolarite';
-      case 4: return 'doyen';
-      case 6: return 'enseignant';
+      case 3: return 'scolarite';   // ID 3: Scolarité
+      case 4: return 'doyen';       // ID 4: Doyen
+      case 5: return 'technicien';  // ID 5: Technicien SI
+      case 6: return 'enseignant';  // ID 6: Enseignant
       default: return null;
     }
   }

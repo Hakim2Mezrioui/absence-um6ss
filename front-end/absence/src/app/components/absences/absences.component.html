@@ -29,6 +29,7 @@
             </button>
             
             <button 
+              *ngIf="authService.canEdit()"
               mat-raised-button
               color="primary"
               class="flex items-center gap-2 px-4 py-2 rounded-lg"

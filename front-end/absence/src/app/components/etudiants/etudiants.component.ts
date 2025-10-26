@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angul
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 import { Router } from '@angular/router';
 import { EtudiantsService, Etudiant, EtudiantFilters, FilterOptions } from '../../services/etudiants.service';
+import { AuthService } from '../../services/auth.service';
 
 // Angular Material Imports
 import { MatTableModule } from '@angular/material/table';
@@ -111,7 +112,8 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
     private etudiantsService: EtudiantsService,
     private fb: FormBuilder,
     private router: Router,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    public authService: AuthService
   ) {
     this.filtersForm = this.fb.group({
       promotion_id: [''],

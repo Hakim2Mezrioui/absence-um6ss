@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { Router } from '@angular/router';
 import { RattrapageService, Etudiant, Rattrapage } from '../../services/rattrapage.service';
 import { NotificationService } from '../../services/notification.service';
+import { AuthService } from '../../services/auth.service';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 
 // Angular Material imports
@@ -98,6 +99,7 @@ export class RattrapageComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private notificationService = inject(NotificationService);
   private cdr = inject(ChangeDetectorRef);
+  public authService = inject(AuthService);
   
   // Data
   etudiants: EtudiantWithSelection[] = [];

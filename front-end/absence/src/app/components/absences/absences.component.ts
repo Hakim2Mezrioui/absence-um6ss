@@ -10,6 +10,7 @@ import {
   AbsenceStatistics,
   AbsenceFilters
 } from '../../services/absence.service';
+import { AuthService } from '../../services/auth.service';
 
 // Angular Material Imports
 import { MatButtonModule } from '@angular/material/button';
@@ -97,7 +98,8 @@ export class AbsencesComponent implements OnInit, OnDestroy {
   constructor(
     private absenceService: AbsenceService,
     private fb: FormBuilder,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    public authService: AuthService
   ) {
     this.initializeFilters();
   }

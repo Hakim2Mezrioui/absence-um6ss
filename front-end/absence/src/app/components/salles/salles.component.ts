@@ -17,6 +17,7 @@ import { MatChipsModule } from '@angular/material/chips';
 // Services et interfaces
 import { SallesService, Salle, CreateSalleRequest } from '../../services/salles.service';
 import { VilleService, Ville } from '../../services/ville.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-salles',
@@ -84,7 +85,8 @@ export class SallesComponent implements OnInit, OnDestroy {
     private sallesService: SallesService,
     private villeService: VilleService,
     private fb: FormBuilder,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    public authService: AuthService
   ) {
     this.initializeForm();
     this.setupSearchDebounce();

@@ -9,9 +9,18 @@ export class NavigationService {
 
   /**
    * Rediriger vers le dashboard après connexion réussie
+   * Pour le technicien, rediriger vers les examens
    */
   navigateToDashboard(): void {
-    this.router.navigate(['/dashboard']);
+    const userRole = localStorage.getItem('userRole');
+    
+    // Si le technicien, rediriger vers examens
+    if (userRole === 'technicien') {
+      this.router.navigate(['/examens']);
+    } else {
+      // Sinon rediriger vers dashboard
+      this.router.navigate(['/dashboard']);
+    }
   }
 
   /**

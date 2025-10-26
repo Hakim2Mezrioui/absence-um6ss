@@ -39,7 +39,7 @@ export class CoursComponent implements OnInit {
   constructor(
     private coursService: CoursService,
     public router: Router,
-    private authService: AuthService
+    public authService: AuthService
   ) {}
 
   ngOnInit() {

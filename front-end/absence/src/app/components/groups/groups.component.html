@@ -7,6 +7,7 @@
         <p class="text-sm text-gray-600 mt-1">Gestion des groupes d'étudiants</p>
       </div>
       <button 
+        *ngIf="authService.canEdit()"
         (click)="openAddDialog()"
         class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
         <mat-icon>add</mat-icon>

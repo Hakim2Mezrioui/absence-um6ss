@@ -5,6 +5,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { RouterModule, Router } from '@angular/router';
 import { ExamensService, Examen, ExamenResponse, ExamenFilters } from '../../services/examens.service';
 import { NotificationService } from '../../services/notification.service';
+import { AuthService } from '../../services/auth.service';
 
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 import { TypesExamenService, TypeExamen } from '../../services/types-examen.service';
@@ -50,7 +51,8 @@ export class ExamensComponent implements OnInit, OnDestroy {
     private notificationService: NotificationService,
     private fb: FormBuilder,
     private typesExamenService: TypesExamenService,
-    private router: Router
+    private router: Router,
+    public authService: AuthService
   ) {
     this.filtersForm = this.fb.group({
       etablissement_id: [''],

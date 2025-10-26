@@ -9,6 +9,7 @@
         </div>
         <div class="flex gap-3">
           <button 
+            *ngIf="authService.canEdit()"
             (click)="openAddDialog()"
             class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center gap-2"
             [disabled]="loading">

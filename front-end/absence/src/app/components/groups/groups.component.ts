@@ -16,6 +16,7 @@ import { MatChipsModule } from '@angular/material/chips';
 
 // Services et interfaces
 import { GroupsService, Group } from '../../services/groups.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-groups',
@@ -77,7 +78,8 @@ export class GroupsComponent implements OnInit, OnDestroy {
   constructor(
     private groupsService: GroupsService,
     private fb: FormBuilder,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    public authService: AuthService
   ) {
     this.initializeForm();
     this.setupSearchDebounce();
