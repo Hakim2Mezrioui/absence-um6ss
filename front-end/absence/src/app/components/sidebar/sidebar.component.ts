@@ -228,7 +228,7 @@ export class SidebarComponent implements OnInit {
       1: 'super-admin',
       2: 'admin', 
       3: 'scolarite',
-      4: 'enseignant',
+      4: 'doyen',
       6: 'enseignant'
     };
     
@@ -241,7 +241,8 @@ export class SidebarComponent implements OnInit {
       1: 'Accès complet au système',
       2: 'Gestion administrative',
       3: 'Gestion scolaire',
-      4: 'Accès utilisateur standard'
+      4: 'Gestion de la faculté',
+      6: 'Accès enseignants'
     };
     
     return descriptions[roleId] || 'Accès standard';
@@ -262,6 +263,8 @@ export class SidebarComponent implements OnInit {
       return 'admin_panel_settings';
     } else if (roleLower.includes('scolarite') || roleLower.includes('scolarité')) {
       return 'school';
+    } else if (roleLower.includes('doyen')) {
+      return 'account_circle';
     } else if (roleLower.includes('prof') || roleLower.includes('enseignant') || roleLower.includes('teacher')) {
       return 'school';
     } else if (roleLower.includes('etudiant') || roleLower.includes('student') || roleLower.includes('élève')) {
@@ -316,7 +319,7 @@ export class SidebarComponent implements OnInit {
       icon: 'dashboard',
       route: '/dashboard',
       tooltip: 'Vue d\'ensemble du système',
-      roles: ['super-admin', 'admin', 'scolarite', 'enseignant']
+      roles: ['super-admin', 'admin', 'scolarite', 'enseignant', 'doyen']
     },
     {
       label: 'Examens',
@@ -324,14 +327,14 @@ export class SidebarComponent implements OnInit {
       route: '/examens',
       badge: '',
       tooltip: 'Gestion des examens',
-      roles: ['super-admin', 'admin', 'scolarite']
+      roles: ['super-admin', 'admin', 'scolarite', 'doyen']
     },
     {
       label: 'Cours',
       icon: 'class',
       route: '/cours',
       tooltip: 'Gestion des cours',
-      roles: ['super-admin', 'admin', 'scolarite', 'enseignant']
+      roles: ['super-admin', 'admin', 'scolarite', 'enseignant', 'doyen']
     },
     {
       label: 'Enseignants',
@@ -345,21 +348,21 @@ export class SidebarComponent implements OnInit {
       icon: 'people',
       route: '/etudiants',
       tooltip: 'Gestion des étudiants',
-      roles: ['super-admin', 'admin', 'scolarite']
+      roles: ['super-admin', 'admin', 'scolarite', 'doyen']
     },
     {
       label: 'Groupes',
       icon: 'groups',
       route: '/groups',
       tooltip: 'Gestion des groupes d\'étudiants',
-      roles: ['super-admin', 'admin', 'scolarite']
+      roles: ['super-admin', 'admin', 'scolarite', 'doyen']
     },
     {
       label: 'Absences',
       icon: 'event_busy',
       route: '/absences',
       tooltip: 'Suivi des absences',
-      roles: ['super-admin', 'admin', 'scolarite']
+      roles: ['super-admin', 'admin', 'scolarite', 'doyen']
     },
     {
       label: 'Promotions',
@@ -380,14 +383,14 @@ export class SidebarComponent implements OnInit {
       icon: 'meeting_room',
       route: '/salles',
       tooltip: 'Gestion des salles',
-      roles: ['super-admin', 'admin', 'scolarite']
+      roles: ['super-admin', 'admin', 'scolarite', 'doyen']
     },
     {
       label: 'Rattrapages',
       icon: 'event_note',
       route: '/rattrapages',
       tooltip: 'Gestion des rattrapages',
-      roles: ['super-admin', 'admin', 'scolarite']
+      roles: ['super-admin', 'admin', 'scolarite', 'doyen']
     },
     {
       label: 'Gestion des utilisateurs',

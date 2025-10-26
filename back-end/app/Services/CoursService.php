@@ -199,11 +199,11 @@ class CoursService
     }
 
     /**
-     * Get available salles for course
+     * Get available salles for course (filtered by user context)
      */
     public function getAvailableSalles(int $jourSemaine, string $heureDebut, string $heureFin): Collection
     {
-        $salles = \App\Models\Salle::all();
+        $salles = \App\Models\Salle::with(['etablissement', 'ville'])->get();
         $availableSalles = collect();
 
         foreach ($salles as $salle) {

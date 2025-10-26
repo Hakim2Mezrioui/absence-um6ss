@@ -15,7 +15,7 @@ export class RoleGuard implements CanActivate {
       case 1: return 'super-admin';
       case 2: return 'admin';
       case 3: return 'scolarite';
-      case 4: return 'enseignant';
+      case 4: return 'doyen';
       case 6: return 'enseignant';
       default: return null;
     }

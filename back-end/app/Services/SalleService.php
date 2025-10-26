@@ -16,12 +16,11 @@ class SalleService
     }
 
     /**
-     * Get all salles (without user context filtering for frontend filtering)
+     * Get all salles (filtered by user context: ville_id and etablissement_id)
      */
     public function getAllSalles(): Collection
     {
-        return Salle::withoutGlobalScope(\App\Scopes\UserContextScope::class)
-            ->with(['etablissement', 'ville'])
+        return Salle::with(['etablissement', 'ville'])
             ->orderBy('name')
             ->get();
     }

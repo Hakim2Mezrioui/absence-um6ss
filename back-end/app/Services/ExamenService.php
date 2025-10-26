@@ -194,12 +194,12 @@ class ExamenService
     }
 
     /**
-     * Get available salles for exam
+     * Get available salles for exam (filtered by user context)
      */
     public function getAvailableSalles(string $date, string $heureDebut, string $heureFin): Collection
     {
-        // Get all salles
-        $salles = \App\Models\Salle::all();
+        // Get all salles filtered by user context
+        $salles = \App\Models\Salle::with(['etablissement', 'ville'])->get();
         $availableSalles = collect();
 
         foreach ($salles as $salle) {

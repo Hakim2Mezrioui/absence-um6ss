@@ -426,9 +426,7 @@ class CoursController extends Controller
                 ->get();
 
             // Récupérer les salles avec toutes les informations nécessaires
-            // Utiliser withoutGlobalScope pour éviter les restrictions du UserContextScope
-            $salles = \App\Models\Salle::withoutGlobalScope(\App\Scopes\UserContextScope::class)
-                ->select('id', 'name', 'etablissement_id', 'ville_id', 'batiment', 'etage', 'capacite', 'description')
+            $salles = \App\Models\Salle::select('id', 'name', 'etablissement_id', 'ville_id', 'batiment', 'etage', 'capacite', 'description')
                 ->with(['etablissement:id,name', 'ville:id,name'])
                 ->orderBy('name')
                 ->get();

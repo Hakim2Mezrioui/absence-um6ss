@@ -525,7 +525,7 @@ class ExamenController extends Controller
      */
     public function getSalles()
     {
-        $salles = \App\Models\Salle::withoutGlobalScope(\App\Scopes\UserContextScope::class)->select('id', 'name', 'etage', 'batiment', 'etablissement_id', 'ville_id')->get();
+        $salles = \App\Models\Salle::select('id', 'name', 'etage', 'batiment', 'etablissement_id', 'ville_id')->get();
         return response()->json(['salles' => $salles]);
     }
 
@@ -536,7 +536,7 @@ class ExamenController extends Controller
     {
         $etablissements = \App\Models\Etablissement::select('id', 'name')->get();
         $promotions = \App\Models\Promotion::withoutGlobalScope(\App\Scopes\UserContextScope::class)->select('id', 'name')->get();
-        $salles = \App\Models\Salle::withoutGlobalScope(\App\Scopes\UserContextScope::class)->select('id', 'name', 'etage', 'batiment', 'etablissement_id', 'ville_id')->get();
+        $salles = \App\Models\Salle::select('id', 'name', 'etage', 'batiment', 'etablissement_id', 'ville_id')->get();
         $options = \App\Models\Option::select('id', 'name')->get();
         $groups = \App\Models\Group::select('id', 'title')->get();
         $villes = \App\Models\Ville::select('id', 'name')->get();
