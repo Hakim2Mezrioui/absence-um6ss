@@ -196,8 +196,19 @@ export class EtudiantsService extends BaseApiService {
   /**
    * Créer un nouvel étudiant
    */
-  createEtudiant(etudiant: Partial<Etudiant>): Observable<{ response: Etudiant }> {
-    return this.postWithContext<{ response: Etudiant }>('etudiants', etudiant);
+  createEtudiant(formData: FormData): Observable<{ response: Etudiant }> {
+    // Add user context filters manually since we can't use postWithContext with FormData
+    const userContextFilters = this.userContextService.getFilterParams();
+    
+    // Add context filters to form data
+    if (userContextFilters.etablissement_id) {
+      formData.append('etablissement_id', userContextFilters.etablissement_id.toString());
+    }
+    if (userContextFilters.ville_id) {
+      formData.append('ville_id', userContextFilters.ville_id.toString());
+    }
+    
+    return this.http.post<{ response: Etudiant }>(`${this.API_URL}/etudiants`, formData);
   }
 
   /**

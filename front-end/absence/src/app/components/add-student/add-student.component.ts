@@ -47,6 +47,10 @@ export class AddStudentComponent implements OnInit, OnDestroy {
   error = '';
   success = '';
 
+  // Photo upload
+  selectedPhoto: File | null = null;
+  photoPreview: string | null = null;
+
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -100,6 +104,51 @@ export class AddStudentComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Gérer la sélection de photo
+   */
+  onPhotoSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      
+      // Validation de la taille (2MB max)
+      const maxSize = 2 * 1024 * 1024; // 2MB en bytes
+      if (file.size > maxSize) {
+        this.error = 'La photo est trop volumineuse. Taille maximale : 2MB.';
+        input.value = '';
+        return;
+      }
+      
+      // Validation du format
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        this.error = 'Format de fichier non supporté. Utilisez JPG, PNG ou WEBP.';
+        input.value = '';
+        return;
+      }
+      
+      this.selectedPhoto = file;
+      
+      // Créer une preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        this.photoPreview = e.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+      
+      this.error = '';
+    }
+  }
+
+  /**
+   * Supprimer la photo sélectionnée
+   */
+  removePhoto(): void {
+    this.selectedPhoto = null;
+    this.photoPreview = null;
+  }
+
+  /**
    * Soumettre le formulaire
    */
   onSubmit(): void {
@@ -112,13 +161,31 @@ export class AddStudentComponent implements OnInit, OnDestroy {
     this.error = '';
     this.success = '';
 
-    const studentData: Partial<Etudiant> = {
-      ...this.studentForm.value,
-      // Générer un mot de passe par défaut ou laisser l'API le gérer
-      password: 'defaultPassword123' // Peut être modifié côté backend
-    };
+    // Créer FormData pour gérer l'upload de la photo
+    const formData = new FormData();
+    
+    // Ajouter les données du formulaire
+    formData.append('first_name', this.studentForm.get('first_name')?.value);
+    formData.append('last_name', this.studentForm.get('last_name')?.value);
+    formData.append('email', this.studentForm.get('email')?.value);
+    formData.append('matricule', this.studentForm.get('matricule')?.value);
+    formData.append('password', 'defaultPassword123'); // Générer un mot de passe par défaut
+    formData.append('ville_id', this.studentForm.get('ville_id')?.value);
+    formData.append('etablissement_id', this.studentForm.get('etablissement_id')?.value);
+    formData.append('promotion_id', this.studentForm.get('promotion_id')?.value);
+    formData.append('group_id', this.studentForm.get('group_id')?.value);
+    
+    const optionId = this.studentForm.get('option_id')?.value;
+    if (optionId) {
+      formData.append('option_id', optionId);
+    }
+    
+    // Ajouter la photo si sélectionnée
+    if (this.selectedPhoto) {
+      formData.append('photo', this.selectedPhoto);
+    }
 
-    this.etudiantsService.createEtudiant(studentData)
+    this.etudiantsService.createEtudiant(formData)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
@@ -177,6 +244,8 @@ export class AddStudentComponent implements OnInit, OnDestroy {
     this.studentForm.reset();
     this.error = '';
     this.success = '';
+    this.selectedPhoto = null;
+    this.photoPreview = null;
   }
 
   /**

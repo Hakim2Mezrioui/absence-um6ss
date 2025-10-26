@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
@@ -95,7 +95,10 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
   showDeleteModal = false;
   showImportModal = false;
   showDetailsModal = false;
+  showPhotoModal = false;
   selectedEtudiant: Etudiant | null = null;
+  selectedPhotoUrl: string | null = null;
+  selectedStudentForPhoto: Etudiant | null = null;
 
   // Table
   displayedColumns: string[] = [
@@ -782,6 +785,34 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
     const lastName = etudiant.last_name ? etudiant.last_name.charAt(0) : '';
     return (firstName + lastName).toUpperCase();
   }
+
+  /**
+   * Obtenir l'URL de la photo de l'étudiant
+   */
+  getPhotoUrl(etudiant: Etudiant): string | null {
+    if (etudiant.photo) {
+      let url: string;
+      
+      // Gérer différents formats de chemins possibles
+      if (etudiant.photo.startsWith('http')) {
+        // URL absolue déjà complète
+        url = etudiant.photo;
+      } else if (etudiant.photo.startsWith('/storage/') || etudiant.photo.startsWith('storage/')) {
+        const path = etudiant.photo.startsWith('/') ? etudiant.photo : '/' + etudiant.photo;
+        url = `http://127.0.0.1:8000${path}`;
+      } else if (etudiant.photo.startsWith('photos/')) {
+        url = `http://127.0.0.1:8000/storage/${etudiant.photo}`;
+      } else if (etudiant.photo.startsWith('/images/') || etudiant.photo.startsWith('images/')) {
+        const path = etudiant.photo.startsWith('/') ? etudiant.photo : '/' + etudiant.photo;
+        url = `http://127.0.0.1:8000${path}`;
+      } else {
+        url = `http://127.0.0.1:8000/storage/${etudiant.photo}`;
+      }
+      
+      return url;
+    }
+    return null;
+  }
   /**
    * Vérifier si un étudiant est sélectionné
    */
@@ -823,6 +854,12 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
   viewEtudiantDetails(etudiant?: Etudiant): void {
     const studentToView = etudiant || this.selectedEtudiant;
     if (studentToView) {
+      // Fermer d'abord le modal de photo si ouvert
+      if (this.showPhotoModal) {
+        this.showPhotoModal = false;
+        this.selectedPhotoUrl = null;
+      }
+      
       this.selectedEtudiant = studentToView;
       this.showDetailsModal = true;
       console.log('Affichage des détails pour:', studentToView);
@@ -835,6 +872,78 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
   closeDetailsModal(): void {
     this.showDetailsModal = false;
     this.selectedEtudiant = null;
+  }
+
+  /**
+   * Ouvrir le modal de photo agrandie
+   */
+  openPhotoModal(etudiant: Etudiant, event?: Event): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    
+    const photoUrl = this.getPhotoUrl(etudiant);
+    
+    if (!photoUrl) {
+      console.log('Aucune photo disponible pour cet étudiant');
+      return;
+    }
+    
+    // Fermer tous les modals
+    this.showDetailsModal = false;
+    this.showDeleteModal = false;
+    this.showAddModal = false;
+    this.showEditModal = false;
+    this.showImportModal = false;
+    
+    // Mettre les valeurs et ouvrir le modal
+    this.selectedStudentForPhoto = etudiant;
+    this.selectedPhotoUrl = photoUrl;
+    this.showPhotoModal = true;
+    
+    console.log('Modal photo ouvert:', {
+      showPhotoModal: this.showPhotoModal,
+      photoUrl: this.selectedPhotoUrl,
+      etudiant: etudiant.matricule
+    });
+    
+    // Forcer la détection de changement
+    this.cdr.detectChanges();
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Fermer le modal de photo
+   */
+  closePhotoModal(): void {
+    this.showPhotoModal = false;
+    this.selectedPhotoUrl = null;
+    this.selectedStudentForPhoto = null;
+  }
+
+  /**
+   * Gérer la touche Escape pour fermer le modal
+   */
+  @HostListener('document:keydown.escape', ['$event'])
+  onEscapeKey(event: KeyboardEvent): void {
+    if (this.showPhotoModal) {
+      this.closePhotoModal();
+    }
+  }
+
+  /**
+   * Gérer l'erreur de chargement d'image
+   */
+  onImageError(url: string): void {
+    console.error('Erreur de chargement de l\'image:', url);
+  }
+
+  /**
+   * Vérifier si un étudiant a une photo
+   */
+  hasPhoto(etudiant: Etudiant): boolean {
+    return !!this.getPhotoUrl(etudiant);
   }
 
   /**

@@ -280,8 +280,24 @@
         <div class="p-6 border-b border-gray-200">
           <div class="flex items-start justify-between">
             <div class="flex items-center gap-3">
-              <div class="w-12 h-12 bg-blue-600 text-white rounded-lg flex items-center justify-center font-bold text-sm">
-                {{ getInitials(etudiant) }}
+              <!-- Avatar avec photo ou initiales -->
+              <div 
+                *ngIf="hasPhoto(etudiant)"
+                class="w-12 h-12 rounded-lg overflow-hidden flex items-center justify-center font-bold text-sm shadow-sm border-2 border-gray-200 bg-blue-600 transition-all duration-200 cursor-pointer hover:shadow-lg hover:scale-105"
+                (click)="openPhotoModal(etudiant, $event)">
+                <img 
+                     [src]="getPhotoUrl(etudiant)" 
+                     [alt]="getFullName(etudiant)"
+                     class="w-full h-full object-cover">
+              </div>
+              
+              <!-- Initiales si pas de photo -->
+              <div 
+                *ngIf="!hasPhoto(etudiant)"
+                class="w-12 h-12 rounded-lg overflow-hidden flex items-center justify-center font-bold text-sm shadow-sm border-2 border-gray-200 bg-blue-600">
+                <div class="w-full h-full text-white flex items-center justify-center">
+                  {{ getInitials(etudiant) }}
+                </div>
               </div>
               <div>
                 <h3 class="font-semibold text-gray-900">{{ getFullName(etudiant) }}</h3>
@@ -435,8 +451,24 @@
                 </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
-                  <div class="w-10 h-10 bg-blue-600 text-white rounded-lg flex items-center justify-center font-bold text-sm mr-4">
-                        {{ getInitials(etudiant) }}
+                  <!-- Avatar avec photo ou initiales -->
+                  <div 
+                    *ngIf="hasPhoto(etudiant)"
+                    class="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center font-bold text-sm mr-4 shadow-sm border-2 border-gray-200 bg-blue-600 transition-all duration-200 cursor-pointer hover:shadow-lg hover:scale-105"
+                    (click)="openPhotoModal(etudiant, $event)">
+                    <img 
+                         [src]="getPhotoUrl(etudiant)" 
+                         [alt]="getFullName(etudiant)"
+                         class="w-full h-full object-cover">
+                  </div>
+                  
+                  <!-- Initiales si pas de photo -->
+                  <div 
+                    *ngIf="!hasPhoto(etudiant)"
+                    class="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center font-bold text-sm mr-4 shadow-sm border-2 border-gray-200 bg-blue-600">
+                    <div class="w-full h-full text-white flex items-center justify-center">
+                      {{ getInitials(etudiant) }}
+                    </div>
                   </div>
                   <div>
                     <div class="text-sm font-medium text-gray-900">{{ getFullName(etudiant) }}</div>
@@ -547,6 +579,40 @@
     </div>
 
   </div>
+
+  <!-- Modal de photo agrandie -->
+  <div *ngIf="showPhotoModal && selectedPhotoUrl" 
+       style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; background-color: rgba(0, 0, 0, 0.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 999999; display: flex; align-items: center; justify-content: center; padding: 20px;"
+       (click)="closePhotoModal()">
+    
+    <!-- Bouton fermer -->
+    <button
+      (click)="closePhotoModal(); $event.stopPropagation()"
+      style="position: absolute; top: 25px; right: 25px; width: 45px; height: 45px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); z-index: 1000000; transition: all 0.3s ease; font-weight: bold; padding: 0; margin: 0;"
+      type="button"
+      title="Fermer">
+      <mat-icon style="font-size: 24px; color: #1f2937; width: 24px; height: 24px; line-height: 1; display: flex; align-items: center; justify-content: center;">close</mat-icon>
+    </button>
+    <style>
+      button:hover {
+        background: rgba(255, 255, 255, 1) !important;
+        transform: scale(1.1) !important;
+        box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4) !important;
+      }
+      button:active {
+        transform: scale(0.95) !important;
+      }
+    </style>
+    
+    <!-- Image agrandie -->
+    <img 
+      [src]="selectedPhotoUrl!" 
+      alt="Photo agrandie"
+      style="max-width: 90vw; max-height: 85vh; object-fit: contain; border-radius: 12px; box-shadow: 0 25px 80px rgba(0,0,0,0.7); background: white; padding: 20px; cursor: pointer; z-index: 1000000;"
+      (click)="$event.stopPropagation()"
+      (error)="onImageError(selectedPhotoUrl!)">
+  </div>
+
 </div>
 
 <!-- Modal de détails d'étudiant -->
@@ -736,8 +802,7 @@
               <span>Supprimer</span>
             </button>
           </div>
+          </div>
         </div>
-      </div>
   </div>
 </div>
-

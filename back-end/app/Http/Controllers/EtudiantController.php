@@ -721,6 +721,7 @@ class EtudiantController extends Controller
             'ville_id' => 'required|exists:villes,id',
             'group_id' => 'required|exists:groups,id',
             'option_id' => 'nullable|exists:options,id', // Optionnel - toutes les écoles n'utilisent pas les options
+            'photo' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048', // 2MB max
         ]);
 
         // Create a new Etudiant
@@ -737,13 +738,23 @@ class EtudiantController extends Controller
             'option_id' => $request->input('option_id'), // Peut être null
         ]);
 
-        if ($request->hasFile("photo")) {
-            $photo = $request->file("photo");
-            $photoName = $etudiant->matricule . "." . $photo->getClientOriginalExtension();
-            $photo->move(public_path("/images"), $photoName);
-
-            // Mettre à jour l'étudiant avec le chemin de la photo
-            $etudiant->update(['photo' => "/images/" . $photoName]);
+        // Handle photo upload
+        if ($request->hasFile('photo')) {
+            $photo = $request->file('photo');
+            $extension = $photo->getClientOriginalExtension();
+            $photoName = $etudiant->matricule . '_' . time() . '.' . $extension;
+            
+            // Ensure the photos directory exists
+            $photosPath = storage_path('app/public/photos');
+            if (!file_exists($photosPath)) {
+                mkdir($photosPath, 0755, true);
+            }
+            
+            // Move the photo to storage/app/public/photos
+            $photo->move($photosPath, $photoName);
+            
+            // Update the student with the photo path
+            $etudiant->update(['photo' => 'photos/' . $photoName]);
         }
 
         // Return the newly created Etudiant with relations as a JSON response
@@ -814,12 +825,40 @@ class EtudiantController extends Controller
             'ville_id' => 'sometimes|required|exists:villes,id',
             'group_id' => 'sometimes|required|exists:groups,id',
             'option_id' => 'sometimes|nullable|exists:options,id', // Optionnel - toutes les écoles n'utilisent pas les options
+            'photo' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048', // 2MB max
         ]);
 
         // Find the Etudiant by ID
         $etudiant = Etudiant::find($id);
         if (!$etudiant) {
             return response()->json(['message' => 'Etudiant not found'], 404);
+        }
+
+        // Handle photo upload
+        if ($request->hasFile('photo')) {
+            // Delete old photo if exists
+            if ($etudiant->photo) {
+                $oldPhotoPath = storage_path('app/public/' . $etudiant->photo);
+                if (file_exists($oldPhotoPath)) {
+                    unlink($oldPhotoPath);
+                }
+            }
+            
+            $photo = $request->file('photo');
+            $extension = $photo->getClientOriginalExtension();
+            $photoName = $etudiant->matricule . '_' . time() . '.' . $extension;
+            
+            // Ensure the photos directory exists
+            $photosPath = storage_path('app/public/photos');
+            if (!file_exists($photosPath)) {
+                mkdir($photosPath, 0755, true);
+            }
+            
+            // Move the photo to storage/app/public/photos
+            $photo->move($photosPath, $photoName);
+            
+            // Update the student with the new photo path
+            $etudiant->update(['photo' => 'photos/' . $photoName]);
         }
 
         // Update the Etudiant with the new data
