@@ -49,6 +49,11 @@ export class EditEtudiantComponent implements OnInit, OnDestroy {
   studentId: number | null = null;
   currentStudent: Etudiant | null = null;
 
+  // Photo upload
+  selectedPhoto: File | null = null;
+  photoPreview: string | null = null;
+  currentPhotoUrl: string | null = null;
+
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -103,6 +108,7 @@ export class EditEtudiantComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (student) => {
           this.currentStudent = student;
+          this.currentPhotoUrl = this.getPhotoUrl(student);
           this.populateForm(student);
           this.loading = false;
         },
@@ -118,6 +124,71 @@ export class EditEtudiantComponent implements OnInit, OnDestroy {
           this.loading = false;
         }
       });
+  }
+
+  /**
+   * Gérer la sélection de photo
+   */
+  onPhotoSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      
+      // Validation de la taille (2MB max)
+      const maxSize = 2 * 1024 * 1024;
+      if (file.size > maxSize) {
+        this.error = 'La photo est trop volumineuse. Taille maximale : 2MB.';
+        input.value = '';
+        return;
+      }
+      
+      // Validation du format
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        this.error = 'Format de fichier non supporté. Utilisez JPG, PNG ou WEBP.';
+        input.value = '';
+        return;
+      }
+      
+      this.selectedPhoto = file;
+      
+      // Créer une preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        this.photoPreview = e.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+      
+      this.error = '';
+    }
+  }
+
+  /**
+   * Supprimer la photo sélectionnée
+   */
+  removePhoto(): void {
+    this.selectedPhoto = null;
+    this.photoPreview = null;
+    this.currentPhotoUrl = null;
+  }
+
+  /**
+   * Obtenir l'URL de la photo actuelle
+   */
+  getPhotoUrl(etudiant: Etudiant): string | null {
+    if (etudiant.photo) {
+      if (etudiant.photo.startsWith('http')) {
+        return etudiant.photo;
+      } else if (etudiant.photo.startsWith('/storage/') || etudiant.photo.startsWith('storage/')) {
+        const path = etudiant.photo.startsWith('/') ? etudiant.photo : '/' + etudiant.photo;
+        return `http://127.0.0.1:8000${path}`;
+      } else if (etudiant.photo.startsWith('photos/')) {
+        return `http://127.0.0.1:8000/storage/${etudiant.photo}`;
+      } else {
+        return `http://127.0.0.1:8000/storage/${etudiant.photo}`;
+      }
+    }
+    return null;
   }
 
   /**
@@ -172,19 +243,29 @@ export class EditEtudiantComponent implements OnInit, OnDestroy {
     this.error = '';
     this.success = '';
 
-    const studentData: Partial<Etudiant> = {
-      first_name: this.studentForm.get('first_name')?.value,
-      last_name: this.studentForm.get('last_name')?.value,
-      email: this.studentForm.get('email')?.value,
-      // matricule exclu car non modifiable
-      ville_id: this.studentForm.get('ville_id')?.value,
-      etablissement_id: this.studentForm.get('etablissement_id')?.value,
-      promotion_id: this.studentForm.get('promotion_id')?.value,
-      group_id: this.studentForm.get('group_id')?.value,
-      option_id: this.studentForm.get('option_id')?.value || null
-    };
+    // Créer FormData pour gérer l'upload de la photo
+    const formData = new FormData();
+    
+    // Ajouter les données du formulaire
+    formData.append('first_name', this.studentForm.get('first_name')?.value);
+    formData.append('last_name', this.studentForm.get('last_name')?.value);
+    formData.append('email', this.studentForm.get('email')?.value);
+    formData.append('ville_id', this.studentForm.get('ville_id')?.value);
+    formData.append('etablissement_id', this.studentForm.get('etablissement_id')?.value);
+    formData.append('promotion_id', this.studentForm.get('promotion_id')?.value);
+    formData.append('group_id', this.studentForm.get('group_id')?.value);
+    
+    const optionId = this.studentForm.get('option_id')?.value;
+    if (optionId) {
+      formData.append('option_id', optionId);
+    }
+    
+    // Ajouter la photo si sélectionnée
+    if (this.selectedPhoto) {
+      formData.append('photo', this.selectedPhoto);
+    }
 
-    this.etudiantsService.updateEtudiant(this.studentId, studentData)
+    this.etudiantsService.updateEtudiant(this.studentId, formData)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {

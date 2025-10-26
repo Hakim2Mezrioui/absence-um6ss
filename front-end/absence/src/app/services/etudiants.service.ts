@@ -214,8 +214,27 @@ export class EtudiantsService extends BaseApiService {
   /**
    * Mettre à jour un étudiant
    */
-  updateEtudiant(id: number, etudiant: Partial<Etudiant>): Observable<Etudiant> {
-    return this.putWithContext<Etudiant>(`etudiants/${id}`, etudiant);
+  updateEtudiant(id: number, etudiant: Partial<Etudiant>): Observable<Etudiant>;
+  updateEtudiant(id: number, formData: FormData): Observable<Etudiant>;
+  updateEtudiant(id: number, data: Partial<Etudiant> | FormData): Observable<Etudiant> {
+    if (data instanceof FormData) {
+      // Add user context filters manually since we can't use putWithContext with FormData
+      const userContextFilters = this.userContextService.getFilterParams();
+      
+      // Add context filters to form data
+      if (userContextFilters.etablissement_id) {
+        data.append('etablissement_id', userContextFilters.etablissement_id.toString());
+      }
+      if (userContextFilters.ville_id) {
+        data.append('ville_id', userContextFilters.ville_id.toString());
+      }
+      
+      return this.http.post<{ response: Etudiant }>(`${this.API_URL}/etudiants/${id}?_method=PUT`, data).pipe(
+        map(response => response.response)
+      );
+    } else {
+      return this.putWithContext<Etudiant>(`etudiants/${id}`, data);
+    }
   }
 
   /**
