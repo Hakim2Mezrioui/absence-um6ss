@@ -339,7 +339,7 @@
                 </svg>
               </button>
               <button 
-                *ngIf="authService.canEdit()"
+                *ngIf="authService.canEdit() && examen.statut_temporel !== 'passé'"
                 class="action-button text-blue-600 hover:text-blue-900 p-2 rounded-md hover:bg-blue-50 transition-colors"
                 (click)="openEditModal(examen)"
                 title="Modifier"

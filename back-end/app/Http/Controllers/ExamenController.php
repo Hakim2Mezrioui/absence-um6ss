@@ -215,6 +215,14 @@ class ExamenController extends Controller
             return response()->json(['message' => 'Examen not found'], 404);
         }
 
+        // Vérifier si l'examen est dans le passé
+        if ($examen->isEnPasse()) {
+            return response()->json([
+                'message' => 'Impossible de modifier un examen passé',
+                'error' => 'PAST_EXAMEN_MODIFICATION_FORBIDDEN'
+            ], 403);
+        }
+
         // Update the Examen with the new data
         $payload = $request->only(['title', 'date', 'heure_debut_poigntage', 'heure_debut', 'heure_fin', 'tolerance', 'option_id', 'salle_id', 'promotion_id', 'type_examen_id', 'etablissement_id', 'group_id', 'ville_id']);
         $examen->update($payload);

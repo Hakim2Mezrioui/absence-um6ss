@@ -566,8 +566,21 @@ export class EditExamenComponent implements OnInit, OnDestroy {
             this.router.navigate(['/examens']);
           },
           error: (err) => {
-            this.error = 'Erreur lors de la modification de l\'examen';
             console.error('Error updating examen:', err);
+            
+            // Vérifier si l'erreur est due à une tentative de modification d'un examen passé
+            if (err.status === 403 && err.error?.error === 'PAST_EXAMEN_MODIFICATION_FORBIDDEN') {
+              this.error = 'Impossible de modifier un examen passé';
+              this.notificationService.error('Accès refusé', 'Impossible de modifier un examen passé');
+              // Rediriger vers la liste des examens après un court délai
+              setTimeout(() => {
+                this.router.navigate(['/examens']);
+              }, 2000);
+            } else {
+              this.error = err.error?.message || 'Erreur lors de la modification de l\'examen';
+              this.notificationService.error('Erreur', this.error);
+            }
+            
             this.loading = false;
           }
         });
