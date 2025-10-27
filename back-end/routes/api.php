@@ -143,6 +143,9 @@ Route::apiResource('examens', ExamenController::class);
 // Routes pour les cours
 Route::get("/cours/{coursId}/attendance", [CoursController::class, "fetchCoursAttendance"]);
 Route::get('/cours/filter-options', [CoursController::class, 'getFilterOptions']);
+Route::get('/cours/archived', [CoursController::class, 'archived']);
+Route::patch('/cours/{id}/archive', [CoursController::class, 'archive']);
+Route::patch('/cours/{id}/unarchive', [CoursController::class, 'unarchive']);
 Route::get('/cours', [CoursController::class, 'index']);
 Route::get('/cours/{id}', [CoursController::class, 'show']);
 Route::post('/cours', [CoursController::class, 'store']);

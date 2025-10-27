@@ -23,7 +23,8 @@ class Cours extends Model
         'type_cours_id',
         'salle_id',
         'option_id',
-        'ville_id'
+        'ville_id',
+        'archived_at'
     ];
 
     protected $casts = [
@@ -32,6 +33,7 @@ class Cours extends Model
         'heure_debut' => 'datetime:H:i',
         'heure_fin' => 'datetime:H:i',
         'tolerance' => 'datetime:H:i',
+        'archived_at' => 'datetime',
     ];
 
     /**

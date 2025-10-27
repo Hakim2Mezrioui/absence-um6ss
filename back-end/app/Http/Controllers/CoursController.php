@@ -38,7 +38,8 @@ class CoursController extends Controller
         $searchValue = $request->query('searchValue', '');
         $date = $request->query('date');
 
-        $query = Cours::with(['etablissement', 'promotion', 'type_cours', 'salle', 'option', 'groups', 'ville']);
+        $query = Cours::with(['etablissement', 'promotion', 'type_cours', 'salle', 'option', 'groups', 'ville'])
+                        ->whereNull('archived_at'); // Exclure les cours archivés
 
         // Appliquer le filtrage par contexte utilisateur
         $userContext = $this->userContextService->getUserContext();
@@ -164,6 +165,17 @@ class CoursController extends Controller
         $cours = Cours::find($id);
         if (!$cours) {
             return response()->json(['message' => 'Cours non trouvé'], 404);
+        }
+
+        // Vérifier si le cours est dans le passé
+        $coursDate = new \DateTime($cours->date);
+        $aujourdhui = new \DateTime();
+        
+        if ($coursDate < $aujourdhui) {
+            return response()->json([
+                'message' => 'Impossible de modifier un cours passé',
+                'error' => 'PAST_COURS_MODIFICATION_FORBIDDEN'
+            ], 403);
         }
 
         $validatedData = $request->validate([
@@ -403,6 +415,16 @@ class CoursController extends Controller
         $cours = Cours::find($id);
         if (!$cours) {
             return response()->json(['message' => 'Cours non trouvé'], 404);
+        }
+
+        // Vérifier si le cours est passé
+        $coursDate = new \DateTime($cours->date);
+        $aujourdhui = new \DateTime();
+        
+        if ($coursDate < $aujourdhui) {
+            return response()->json([
+                'message' => 'Les cours passés ne peuvent pas être supprimés. Veuillez les archiver à la place.'
+            ], 400);
         }
 
         $cours->delete();
@@ -828,5 +850,185 @@ class CoursController extends Controller
         // Aucun match trouvé
         \Log::warning("Aucun match trouvé pour le matricule: '$matricule'");
         return null;
+    }
+
+    /**
+     * Archiver un cours (super-admin, admin, doyen uniquement)
+     */
+    public function archive($id)
+    {
+        // Vérifier les permissions de l'utilisateur
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['message' => 'Non authentifié'], 401);
+        }
+
+        // Charger la relation role
+        $user->load('role');
+
+        // Vérifier si l'utilisateur est super-admin, admin ou doyen via la relation
+        $userRole = $user->role ? $user->role->name : null;
+        
+        // Normaliser le rôle pour la comparaison (enlever espaces, tirets, majuscules)
+        $normalizedRole = $userRole ? strtolower(str_replace([' ', '-', '_'], '', $userRole)) : null;
+        $allowedRoles = ['superadmin', 'admin', 'doyen'];
+        
+        if (!$normalizedRole || !in_array($normalizedRole, $allowedRoles)) {
+            return response()->json(['message' => 'Accès refusé. Seuls les super-admin, admin et doyen peuvent archiver des cours.'], 403);
+        }
+
+        // Find the Cours by id
+        $cours = Cours::find($id);
+
+        if (empty($cours)) {
+            return response()->json(['message' => 'Cours non trouvé'], 404);
+        }
+
+        // Vérifier que le cours n'est pas déjà archivé
+        if (!is_null($cours->archived_at)) {
+            return response()->json(['message' => 'Ce cours est déjà archivé'], 400);
+        }
+
+        // Vérifier que le cours est passé
+        $coursDate = new \DateTime($cours->date);
+        $aujourdhui = new \DateTime();
+        
+        if ($coursDate >= $aujourdhui) {
+            return response()->json(['message' => 'Seuls les cours passés peuvent être archivés'], 400);
+        }
+
+        // Marquer le cours comme archivé
+        $cours->update(['archived_at' => now()]);
+
+        // Return a success response
+        return response()->json(['message' => 'Cours archivé avec succès'], 200);
+    }
+
+    /**
+     * Désarchiver un cours (super-admin et admin uniquement)
+     */
+    public function unarchive($id)
+    {
+        // Vérifier les permissions de l'utilisateur
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['message' => 'Non authentifié'], 401);
+        }
+
+        // Charger la relation role
+        $user->load('role');
+
+        // Vérifier si l'utilisateur est super-admin ou admin via la relation
+        $userRole = $user->role ? $user->role->name : null;
+        
+        // Normaliser le rôle pour la comparaison (enlever espaces, tirets, majuscules)
+        $normalizedRole = $userRole ? strtolower(str_replace([' ', '-', '_'], '', $userRole)) : null;
+        $allowedRoles = ['superadmin', 'admin'];
+        
+        if (!$normalizedRole || !in_array($normalizedRole, $allowedRoles)) {
+            return response()->json(['message' => 'Accès refusé. Seuls les super-admin et admin peuvent désarchiver des cours.'], 403);
+        }
+
+        // Find the Cours by id
+        $cours = Cours::find($id);
+
+        if (empty($cours)) {
+            return response()->json(['message' => 'Cours non trouvé'], 404);
+        }
+
+        // Vérifier que le cours est bien archivé
+        if (is_null($cours->archived_at)) {
+            return response()->json(['message' => 'Ce cours n\'est pas archivé'], 400);
+        }
+
+        // Désarchiver le cours (mettre archived_at à null)
+        $cours->update(['archived_at' => null]);
+
+        // Return a success response
+        return response()->json(['message' => 'Cours désarchivé avec succès'], 200);
+    }
+
+    /**
+     * Récupérer les cours archivés
+     */
+    public function archived(Request $request)
+    {
+        // Get query parameters with defaults
+        $size = $request->query('size', 10);
+        $page = $request->query('page', 1);
+        $etablissement_id = $request->query('etablissement_id');
+        $promotion_id = $request->query('promotion_id');
+        $salle_id = $request->query('salle_id');
+        $type_cours_id = $request->query('type_cours_id');
+        $group_id = $request->query('group_id');
+        $ville_id = $request->query('ville_id');
+        $searchValue = $request->query('searchValue', '');
+        $date = $request->query('date');
+
+        $query = Cours::with(['etablissement', 'promotion', 'type_cours', 'salle', 'option', 'groups', 'ville'])
+                        ->whereNotNull('archived_at'); // Seulement les cours archivés
+
+        // Appliquer le filtrage par contexte utilisateur
+        $userContext = $this->userContextService->getUserContext();
+        
+        // Si l'utilisateur n'est pas super-admin, appliquer les filtres de contexte
+        if (!$this->userContextService->isSuperAdmin()) {
+            if ($userContext['ville_id']) {
+                $query->where('ville_id', $userContext['ville_id']);
+            }
+            if ($userContext['etablissement_id']) {
+                $query->where('etablissement_id', $userContext['etablissement_id']);
+            }
+        }
+
+        // Appliquer les filtres
+        if (!empty($etablissement_id)) {
+            $query->where('etablissement_id', $etablissement_id);
+        }
+
+        if (!empty($promotion_id)) {
+            $query->where('promotion_id', $promotion_id);
+        }
+
+        if (!empty($salle_id)) {
+            $query->where('salle_id', $salle_id);
+        }
+
+        if (!empty($type_cours_id)) {
+            $query->where('type_cours_id', $type_cours_id);
+        }
+
+        if (!empty($group_id)) {
+            $query->whereHas('groups', function($q) use ($group_id) {
+                $q->where('groups.id', $group_id);
+            });
+        }
+
+        if (!empty($ville_id)) {
+            $query->where('ville_id', $ville_id);
+        }
+
+        if (!empty($searchValue)) {
+            $query->where('name', 'LIKE', "%{$searchValue}%");
+        }
+
+        if (!empty($date)) {
+            $query->whereDate('date', $date);
+        }
+
+        // Obtenir le total des résultats avant la pagination
+        $total = $query->count();
+
+        // Appliquer la pagination et trier par date d'archivage décroissante
+        $cours = $query->orderBy('archived_at', 'desc')
+                      ->paginate($size, ['*'], 'page', $page);
+
+        return response()->json([
+            'data' => $cours->items(),
+            'current_page' => $cours->currentPage(),
+            'last_page' => $cours->lastPage(),
+            'per_page' => $cours->perPage(),
+            'total' => $cours->total()
+        ]);
     }
 }

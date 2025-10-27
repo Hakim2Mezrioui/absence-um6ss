@@ -36,6 +36,7 @@ import { SimpleExamensImportComponent } from './components/simple-examens-import
 import { GroupsComponent } from './components/groups/groups.component';
 import { UserManagementComponent } from './components/user-management/user-management.component';
 import { ExamensArchivedComponent } from './components/examens-archived/examens-archived.component';
+import { CoursArchivedComponent } from './components/cours-archived/cours-archived.component';
 
 export const routes: Routes = [
     {path: "", redirectTo: "login", pathMatch: "full"},
@@ -84,6 +85,7 @@ export const routes: Routes = [
 
             // Cours: scolarite and enseignant (and admins, super-admin)
             { path: "cours", component: CoursComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'enseignant', 'doyen', 'technicien'] } },
+            { path: "cours-archived", component: CoursArchivedComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien'] } },
             { path: "add-cours", component: AddCoursComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen'] } },
             { path: "edit-cours/:id", component: EditCoursComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen'] } },
             { path: "import-cours", component: ImportCoursComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen'] } },

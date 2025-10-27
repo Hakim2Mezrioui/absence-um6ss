@@ -4,34 +4,16 @@
     <div class="mb-8">
       <div class="flex items-center justify-between">
         <div>
-          <h1 class="text-3xl font-bold text-gray-900">Gestion des Cours</h1>
-          <p class="mt-2 text-gray-600">Consultez et gérez tous les cours de votre établissement</p>
+          <h1 class="text-3xl font-bold text-gray-900">Cours Archivés</h1>
+          <p class="mt-2 text-gray-600">Consultez les cours archivés de votre établissement</p>
         </div>
         <div class="flex gap-3">
           <button 
-            (click)="openArchivedCours()"
-            class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center gap-2"
-          >
-            <span class="material-icons">archive</span>
-            Cours archivés
-          </button>
-          <div>
-            <button 
-              *ngIf="authService.canEdit()"
-              class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center gap-2"
-              (click)="importCoursSimple()"
-            >
-              <span class="material-icons">upload_file</span>
-              Importer des cours
-            </button>
-          </div>
-          <button 
-            *ngIf="authService.canEdit()"
-            (click)="addCours()"
+            (click)="goToActiveCours()"
             class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center gap-2"
           >
-            <span class="material-icons">add</span>
-            Ajouter un cours
+            <span class="material-icons">arrow_back</span>
+            Retour aux cours actifs
           </button>
         </div>
       </div>
@@ -49,25 +31,24 @@
         </button>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <form [formGroup]="filtersForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- Search -->
         <div class="lg:col-span-2">
           <label class="block text-sm font-medium text-gray-700 mb-2">Recherche</label>
           <input
             type="text"
-            [(ngModel)]="filters.searchValue"
-            (keyup.enter)="onSearch()"
             placeholder="Rechercher par nom de cours..."
+            [value]="searchValue"
+            (input)="onSearchChange($event)"
             class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          />
+          >
         </div>
 
         <!-- Établissement -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Établissement</label>
           <select
-            [(ngModel)]="filters.etablissement_id"
-            (change)="onFilterChange()"
+            formControlName="etablissement_id"
             class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">Tous</option>
@@ -81,8 +62,7 @@
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Promotion</label>
           <select
-            [(ngModel)]="filters.promotion_id"
-            (change)="onFilterChange()"
+            formControlName="promotion_id"
             class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">Toutes</option>
@@ -96,8 +76,7 @@
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Ville</label>
           <select
-            [(ngModel)]="filters.ville_id"
-            (change)="onFilterChange()"
+            formControlName="ville_id"
             class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">Toutes</option>
@@ -111,8 +90,7 @@
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Groupe</label>
           <select
-            [(ngModel)]="filters.group_id"
-            (change)="onFilterChange()"
+            formControlName="group_id"
             class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">Tous</option>
@@ -126,8 +104,7 @@
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Type de cours</label>
           <select
-            [(ngModel)]="filters.type_cours_id"
-            (change)="onFilterChange()"
+            formControlName="type_cours_id"
             class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">Tous</option>
@@ -141,8 +118,7 @@
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Salle</label>
           <select
-            [(ngModel)]="filters.salle_id"
-            (change)="onFilterChange()"
+            formControlName="salle_id"
             class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">Toutes</option>
@@ -157,27 +133,26 @@
           <label class="block text-sm font-medium text-gray-700 mb-2">Date</label>
           <input
             type="date"
-            [(ngModel)]="filters.date"
-            (change)="onFilterChange()"
+            formControlName="date"
             class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
         </div>
-      </div>
+      </form>
     </div>
 
     <!-- Results Header -->
     <div class="flex items-center justify-between mb-4">
       <div class="flex items-center space-x-4">
         <span class="text-sm text-gray-700">
-          Affichage de {{ (currentPage - 1) * itemsPerPage + 1 }} à {{ getMinValue(currentPage * itemsPerPage, totalItems) }} sur {{ totalItems }} résultats
+          Affichage de {{ (currentPage - 1) * perPage + 1 }} à {{ getMathMin(currentPage * perPage, total) }} sur {{ total }} résultats
         </span>
       </div>
       
       <div class="flex items-center space-x-2">
         <label class="text-sm text-gray-700">Par page:</label>
         <select
-          [(ngModel)]="itemsPerPage"
-          (change)="onItemsPerPageChange()"
+          [value]="perPage"
+          (change)="onPerPageChange($event)"
           class="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="5">5</option>
@@ -203,14 +178,6 @@
         </div>
         <div class="ml-3">
           <p class="text-sm text-red-800">{{ error }}</p>
-          <div *ngIf="error.includes('Session expirée') || error.includes('Accès refusé')" class="mt-2">
-            <button 
-              (click)="router.navigate(['/login'])"
-              class="text-sm bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded transition-colors"
-            >
-              Se reconnecter
-            </button>
-          </div>
         </div>
       </div>
     </div>
@@ -222,8 +189,11 @@
         <div class="p-6 border-b border-gray-100">
           <div class="flex items-start justify-between mb-3">
             <h3 class="text-lg font-semibold text-gray-900 line-clamp-2">{{ coursItem.name }}</h3>
-            <div class="flex flex-col items-end gap-1">
-              <span class="status-badge inline-flex items-center px-3 py-1 rounded-full text-xs font-medium flex-shrink-0" 
+            <div class="flex flex-col items-end space-y-1">
+              <span class="status-badge inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ml-2 flex-shrink-0 bg-gray-100 text-gray-800">
+                Archivé
+              </span>
+              <span class="status-badge inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ml-2 flex-shrink-0" 
                     [ngClass]="{
                       'bg-red-100 text-red-800': coursItem.statut_temporel === 'passé',
                       'bg-green-100 text-green-800': coursItem.statut_temporel === 'en_cours',
@@ -232,9 +202,6 @@
                     }">
                 {{ getStatusText(coursItem.statut_temporel || '') }}
               </span>
-              <div class="text-xs text-gray-500 text-right">
-                {{ getStatusDetails(coursItem) }}
-              </div>
             </div>
           </div>
           
@@ -329,24 +296,11 @@
             </div>
           </div>
 
-          <!-- Option -->
-          <div class="flex items-center space-x-3">
-            <div class="flex-shrink-0">
-              <svg class="h-5 w-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-              </svg>
-            </div>
-            <div>
-              <div class="text-sm font-medium text-gray-900">Option</div>
-              <div class="text-sm text-gray-600">{{ coursItem.option?.name || 'N/A' }}</div>
-            </div>
-          </div>
-
           <!-- Groupe -->
           <div class="flex items-center space-x-3">
             <div class="flex-shrink-0">
               <svg class="h-5 w-5 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M9 20H4v-2a3 3 0 015.356-1.857M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a3 3 0 11-6 0 3 3 0 016 0zM9 10a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M17 20H2v-2a3 3 0 015.356-1.857M17 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
             </div>
             <div>
@@ -386,46 +340,18 @@
         <div class="px-6 py-4 bg-gray-50 border-t border-gray-100">
           <div class="flex items-center justify-between">
             <div class="text-xs text-gray-500">
-              Créé le {{ coursItem.created_at | date:'dd/MM/yyyy' }}
+              Archivé le {{ coursItem.archived_at ? formatDate(coursItem.archived_at) : 'N/A' }}
             </div>
             <div class="flex space-x-2">
+              <!-- Bouton de désarchivage pour les super-admin et admin -->
               <button 
-                class="action-button text-green-600 hover:text-green-900 p-2 rounded-md hover:bg-green-50 transition-colors"
-                (click)="viewCoursAttendance(coursItem)"
-                title="Vérifier les absences"
+                *ngIf="canUnarchive"
+                class="action-button text-emerald-600 hover:text-emerald-900 p-2 rounded-md hover:bg-emerald-50 transition-colors"
+                (click)="unarchiveCours(coursItem)"
+                title="Désarchiver le cours"
               >
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </button>
-              <button 
-                *ngIf="coursItem.statut_temporel === 'passé' && authService.canEdit()"
-                class="action-button text-purple-600 hover:text-purple-900 p-2 rounded-md hover:bg-purple-50 transition-colors"
-                (click)="archiveCours(coursItem)"
-                title="Archiver"
-              >
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                </svg>
-              </button>
-              <button 
-                *ngIf="coursItem.statut_temporel !== 'passé'"
-                class="action-button text-blue-600 hover:text-blue-900 p-2 rounded-md hover:bg-blue-50 transition-colors"
-                (click)="editCours(coursItem)"
-                title="Modifier"
-              >
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-              </button>
-              <button 
-                *ngIf="coursItem.statut_temporel !== 'passé'"
-                class="action-button delete text-red-600 hover:text-red-900 p-2 rounded-md hover:bg-red-50 transition-colors"
-                (click)="deleteCours(coursItem)"
-                title="Supprimer"
-              >
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                 </svg>
               </button>
             </div>
@@ -438,22 +364,22 @@
     <div *ngIf="cours.length === 0 && !loading && !error" class="text-center py-12">
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
         <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8l4-4m0 0l4 4m-4-4v12m-4-4h8" />
         </svg>
-        <h3 class="mt-4 text-lg font-medium text-gray-900">Aucun cours trouvé</h3>
-        <p class="mt-2 text-sm text-gray-500">Aucun cours ne correspond à vos critères de recherche.</p>
+        <h3 class="mt-4 text-lg font-medium text-gray-900">Aucun cours archivé</h3>
+        <p class="mt-2 text-sm text-gray-500">Aucun cours archivé ne correspond à vos critères de recherche.</p>
         <button 
-          (click)="addCours()"
+          (click)="goToActiveCours()"
           class="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center gap-2 mx-auto"
         >
-          <span class="material-icons">add</span>
-          Ajouter le premier cours
+          <span class="material-icons">arrow_back</span>
+          Retour aux cours actifs
         </button>
       </div>
     </div>
 
     <!-- Pagination -->
-    <div *ngIf="totalPages > 1" class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+    <div *ngIf="!loading && !error && lastPage > 1" class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 rounded-lg shadow-sm border border-gray-200">
       <div class="flex-1 flex justify-between sm:hidden">
         <button
           (click)="onPageChange(currentPage - 1)"
@@ -464,7 +390,7 @@
         </button>
         <button
           (click)="onPageChange(currentPage + 1)"
-          [disabled]="currentPage === totalPages"
+          [disabled]="currentPage === lastPage"
           class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Suivant
@@ -473,42 +399,42 @@
       <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
         <div>
           <p class="text-sm text-gray-700">
-            Affichage de
-            <span class="font-medium">{{ (currentPage - 1) * itemsPerPage + 1 }}</span>
-            à
-            <span class="font-medium">{{ getMinValue(currentPage * itemsPerPage, totalItems) }}</span>
-            sur
-            <span class="font-medium">{{ totalItems }}</span>
-            résultats
+            Affichage de <span class="font-medium">{{ (currentPage - 1) * perPage + 1 }}</span> à 
+            <span class="font-medium">{{ getMathMin(currentPage * perPage, total) }}</span> sur 
+            <span class="font-medium">{{ total }}</span> résultats
           </p>
         </div>
         <div>
           <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+            <!-- Previous Page -->
             <button
               (click)="onPageChange(currentPage - 1)"
               [disabled]="currentPage === 1"
-              class="relative inline-flex items-center px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span class="sr-only">Précédent</span>
               <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
               </svg>
             </button>
-            
-            <button
-              *ngFor="let page of getPageNumbers()"
-              (click)="onPageChange(page)"
-              [class]="page === currentPage 
-                ? 'relative inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md z-10 bg-blue-50 border-blue-500 text-blue-600'
-                : 'relative inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md bg-white border-gray-300 text-gray-500 hover:bg-gray-50'"
-            >
-              {{ page }}
-            </button>
-            
+
+            <!-- Page Numbers -->
+            <ng-container *ngFor="let page of getPageNumbers()">
+              <button
+                (click)="onPageChange(page)"
+                [class]="page === currentPage 
+                  ? 'relative inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md z-10 bg-blue-50 border-blue-500 text-blue-600'
+                  : 'relative inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md bg-white border-gray-300 text-gray-500 hover:bg-gray-50'"
+              >
+                {{ page }}
+              </button>
+            </ng-container>
+
+            <!-- Next Page -->
             <button
               (click)="onPageChange(currentPage + 1)"
-              [disabled]="currentPage === totalPages"
-              class="relative inline-flex items-center px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              [disabled]="currentPage === lastPage"
+              class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span class="sr-only">Suivant</span>
               <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -520,5 +446,5 @@
       </div>
     </div>
   </div>
-
 </div>
+

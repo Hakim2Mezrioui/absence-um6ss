@@ -20,6 +20,7 @@ export interface Cours {
   ville_id?: number;
   annee_universitaire: string;
   statut_temporel?: 'passé' | 'en_cours' | 'futur'; // Calculé côté frontend
+  archived_at?: string;
   created_at: string;
   updated_at: string;
   etablissement?: {
@@ -216,6 +217,39 @@ export class CoursService extends BaseApiService {
       ville_id: villeId,
       etablissement_id: etablissementId
     });
+  }
+
+  /**
+   * Récupère les cours archivés
+   */
+  getArchivedCours(filters: CoursFilters = {}): Observable<CoursResponse> {
+    let params = new HttpParams();
+    
+    Object.keys(filters).forEach(key => {
+      const value = filters[key as keyof CoursFilters];
+      if (value !== undefined && value !== null && value !== '') {
+        params = params.set(key, value.toString());
+      }
+    });
+
+    // Add user context filters automatically
+    params = this.addUserContextFilters(params);
+
+    return this.http.get<CoursResponse>(`${this.API_URL}/cours/archived`, { params });
+  }
+
+  /**
+   * Archive un cours
+   */
+  archiveCours(id: number): Observable<any> {
+    return this.http.patch<any>(`${this.API_URL}/cours/${id}/archive`, {});
+  }
+
+  /**
+   * Désarchive un cours
+   */
+  unarchiveCours(id: number): Observable<any> {
+    return this.http.patch<any>(`${this.API_URL}/cours/${id}/unarchive`, {});
   }
 
 }

@@ -185,11 +185,65 @@ export class CoursComponent implements OnInit {
           this.loadCours();
         },
         error: (error) => {
-          this.error = 'Erreur lors de la suppression du cours';
+          if (error.status === 400) {
+            this.error = error.error.message || 'Les cours passés ne peuvent pas être supprimés. Veuillez les archiver à la place.';
+          } else {
+            this.error = 'Erreur lors de la suppression du cours';
+          }
           console.error('Erreur:', error);
         }
       });
     }
+  }
+
+  // Naviguer vers la page des cours archivés
+  openArchivedCours(): void {
+    this.router.navigate(['/cours-archived']);
+  }
+
+  // Archiver un cours
+  archiveCours(cours: Cours): void {
+    // Import dynamique pour compat SSR (évite document is not defined)
+    import('sweetalert2').then(({ default: Swal }) => {
+      Swal.fire({
+        title: 'Archiver le cours ?',
+        text: `Voulez-vous archiver le cours "${cours.name}" ?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Oui, archiver',
+        cancelButtonText: 'Annuler'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.loading = true;
+          this.error = '';
+
+          this.coursService.archiveCours(cours.id).subscribe({
+            next: () => {
+              Swal.fire({
+                title: 'Cours archivé !',
+                text: 'Le cours a été archivé avec succès.',
+                icon: 'success',
+                confirmButtonText: 'OK'
+              });
+              this.loading = false;
+              this.loadCours();
+            },
+            error: (error) => {
+              console.error('Erreur lors de l\'archivage:', error);
+              Swal.fire({
+                title: 'Erreur',
+                text: error.error?.message || 'Erreur lors de l\'archivage du cours',
+                icon: 'error',
+                confirmButtonText: 'OK'
+              });
+              this.loading = false;
+            }
+          });
+        }
+      });
+    });
   }
 
 
