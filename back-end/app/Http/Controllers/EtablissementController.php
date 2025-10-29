@@ -21,17 +21,14 @@ class EtablissementController extends Controller
         $villeId = $request->get('ville_id');
         
         // Construction de la requête
-        $query = Etablissement::with('ville');
+        $query = Etablissement::query();
         
         // Filtre par recherche (nom de l'établissement)
         if ($searchValue) {
             $query->where('name', 'LIKE', '%' . $searchValue . '%');
         }
         
-        // Filtre par ville
-        if ($villeId) {
-            $query->where('ville_id', $villeId);
-        }
+        // Note: ville_id no longer exists on etablissements; filter is ignored
         
         // Pagination
         $etablissements = $query->paginate($size, ['*'], 'page', $page);
@@ -58,17 +55,14 @@ class EtablissementController extends Controller
         $villeId = $request->get('ville_id');
         
         // Construction de la requête
-        $query = Etablissement::with('ville');
+        $query = Etablissement::query();
         
         // Filtre par recherche (nom de l'établissement)
         if ($searchValue) {
             $query->where('name', 'LIKE', '%' . $searchValue . '%');
         }
         
-        // Filtre par ville
-        if ($villeId) {
-            $query->where('ville_id', $villeId);
-        }
+        // Note: ville_id no longer exists on etablissements; filter is ignored
         
         $etablissements = $query->get();
         
@@ -93,7 +87,7 @@ class EtablissementController extends Controller
      */
     public function show($id)
     {
-        $etablissement = Etablissement::with('ville')->find($id);
+        $etablissement = Etablissement::find($id);
         if (!$etablissement) {
             return response()->json(["message" => "Etablissement not found", "status" => 404], 404);
         }
@@ -114,11 +108,10 @@ class EtablissementController extends Controller
         // Validate the request input
         $request->validate([
             'name' => 'required|string|max:255',
-            'ville_id' => 'required|exists:villes,id',
         ]);
 
         // Create a new Etablissement
-        $etablissement = Etablissement::create($request->all());
+        $etablissement = Etablissement::create($request->only(['name']));
 
         // Return the newly created Etablissement as a JSON response
         return response()->json($etablissement, 201);
@@ -128,17 +121,16 @@ class EtablissementController extends Controller
         // Validate the request input
         $request->validate([
             'name' => 'sometimes|required|string|max:255',
-            'ville_id' => 'sometimes|required|exists:villes,id',
         ]);
 
         // Find the Etablissement by id
-        $etablissement = Etablissement::with('ville')->find($id);
+        $etablissement = Etablissement::find($id);
         if (!$etablissement) {
             return response()->json(['message' => 'Etablissement not found'], 404);
         }
 
         // Update the Etablissement with the new data
-        $etablissement->update($request->only(['name', 'ville_id']));
+        $etablissement->update($request->only(['name']));
 
         // Return the updated Etablissement as a JSON response
         return response()->json($etablissement, 200);
@@ -169,21 +161,18 @@ class EtablissementController extends Controller
         $villeId = $request->get('ville_id');
         
         // Construction de la requête de base
-        $query = Etablissement::with('ville');
+        $query = Etablissement::query();
         
         // Filtre par recherche
         if ($searchValue) {
             $query->where('name', 'LIKE', '%' . $searchValue . '%');
         }
         
-        // Filtre par ville
-        if ($villeId) {
-            $query->where('ville_id', $villeId);
-        }
+        // Note: ville_id no longer exists on etablissements; filter is ignored
         
         // Statistiques globales
         $totalEtablissements = $query->count();
-        $villesUniques = $query->distinct('ville_id')->count('ville_id');
+        $villesUniques = 0; // Not applicable without ville_id on etablissements
         
         // Compter les étudiants (si la relation existe)
         $totalEtudiants = 0;

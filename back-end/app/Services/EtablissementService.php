@@ -17,7 +17,7 @@ class EtablissementService
      */
     public function getAllEtablissements(): Collection
     {
-        return Etablissement::with(['ville'])->get();
+        return Etablissement::query()->get();
     }
 
     /**
@@ -25,7 +25,7 @@ class EtablissementService
      */
     public function getEtablissementById(int $id): ?Etablissement
     {
-        return Etablissement::with(['ville'])->find($id);
+        return Etablissement::find($id);
     }
 
     /**
@@ -64,10 +64,7 @@ class EtablissementService
     /**
      * Get establishments by ville
      */
-    public function getEtablissementsByVille(int $villeId): Collection
-    {
-        return Etablissement::where('ville_id', $villeId)->get();
-    }
+    // Removed: etablissements no longer have ville_id
 
     /**
      * Get establishment statistics
@@ -109,7 +106,6 @@ class EtablissementService
     public function getEtablissementWithDetails(int $etablissementId): ?Etablissement
     {
         return Etablissement::with([
-            'ville',
             'etudiants' => function ($query) {
                 $query->with(['group', 'promotion', 'faculte']);
             },
@@ -131,8 +127,6 @@ class EtablissementService
     public function searchEtablissements(string $query): Collection
     {
         return Etablissement::where('name', 'LIKE', "%{$query}%")
-                           ->orWhere('description', 'LIKE', "%{$query}%")
-                           ->with(['ville'])
                            ->get();
     }
 
@@ -141,8 +135,7 @@ class EtablissementService
      */
     public function getEtablissementsWithStudentCount(): Collection
     {
-        return Etablissement::with(['ville'])
-                           ->withCount('etudiants')
+        return Etablissement::withCount('etudiants')
                            ->get();
     }
 
@@ -151,8 +144,7 @@ class EtablissementService
      */
     public function getEtablissementsWithCourseCount(): Collection
     {
-        return Etablissement::with(['ville'])
-                           ->withCount('cours')
+        return Etablissement::withCount('cours')
                            ->get();
     }
 
@@ -161,8 +153,7 @@ class EtablissementService
      */
     public function getEtablissementsWithExamCount(): Collection
     {
-        return Etablissement::with(['ville'])
-                           ->withCount('examens')
+        return Etablissement::withCount('examens')
                            ->get();
     }
 
@@ -171,8 +162,7 @@ class EtablissementService
      */
     public function getEtablissementsWithGroupCount(): Collection
     {
-        return Etablissement::with(['ville'])
-                           ->withCount('groups')
+        return Etablissement::withCount('groups')
                            ->get();
     }
 
@@ -187,14 +177,12 @@ class EtablissementService
         $totalExamens = Examen::count();
         $totalGroups = Group::count();
 
-        $etablissementsWithCounts = Etablissement::with(['ville'])
-                                                ->withCount(['etudiants', 'cours', 'examens', 'groups'])
+        $etablissementsWithCounts = Etablissement::withCount(['etudiants', 'cours', 'examens', 'groups'])
                                                 ->get()
                                                 ->map(function ($etablissement) {
                                                     return [
                                                         'id' => $etablissement->id,
                                                         'name' => $etablissement->name,
-                                                        'ville' => $etablissement->ville->name ?? 'N/A',
                                                         'etudiants_count' => $etablissement->etudiants_count,
                                                         'cours_count' => $etablissement->cours_count,
                                                         'examens_count' => $etablissement->examens_count,
@@ -254,13 +242,7 @@ class EtablissementService
     /**
      * Get establishments by region/ville
      */
-    public function getEtablissementsByRegion(int $villeId): Collection
-    {
-        return Etablissement::where('ville_id', $villeId)
-                           ->with(['ville'])
-                           ->withCount(['etudiants', 'cours', 'examens', 'groups'])
-                           ->get();
-    }
+    // Removed: etablissements no longer have ville_id
 
     /**
      * Get establishment capacity information

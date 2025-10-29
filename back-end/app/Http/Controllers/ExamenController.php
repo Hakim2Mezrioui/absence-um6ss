@@ -27,7 +27,7 @@ class ExamenController extends Controller
         $size = max(1, min(100, (int) $size)); // Limit size between 1 and 100
         $page = max(1, (int) $page);
 
-        $query = Examen::with(['etablissement', 'promotion', 'typeExamen', 'salle', 'option', 'group', 'ville'])
+        $query = Examen::with(['etablissement', 'promotion', 'typeExamen', 'salle', 'salles', 'option', 'group', 'ville'])
                         ->whereNull('archived_at'); // Exclure les examens archivés
 
         // Apply filters
@@ -121,7 +121,7 @@ class ExamenController extends Controller
     }
 
     function show($id) {
-        $examen = Examen::with(['etablissement', 'promotion', 'typeExamen', 'salle'])->find($id);
+        $examen = Examen::with(['etablissement', 'promotion', 'typeExamen', 'salle', 'salles', 'option', 'group', 'ville'])->find($id);
         if (!$examen) {
             return response()->json(["message" => "Examen not found", "status" => 404], 404);
         }
@@ -142,7 +142,9 @@ class ExamenController extends Controller
             'heure_fin' => 'required',
             'tolerance' => 'nullable|integer|min:0|max:60',
             'option_id' => 'nullable|exists:options,id',
-            'salle_id' => 'required|exists:salles,id',
+            'salle_id' => 'nullable|exists:salles,id', // Déprécié mais gardé pour compatibilité
+            'salles_ids' => 'nullable|array',
+            'salles_ids.*' => 'exists:salles,id',
             'promotion_id' => 'required|exists:promotions,id',
             'type_examen_id' => 'required|exists:types_examen,id',
             'etablissement_id' => 'required|exists:etablissements,id',
@@ -151,15 +153,24 @@ class ExamenController extends Controller
             'all_groups' => 'nullable|boolean',
         ];
 
-        // If not all groups, require a specific group_id; otherwise allow nullable
+        // Validation : au moins une salle doit être fournie (salle_id ou salles_ids)
+        if (empty($request->salles_ids) && empty($request->salle_id)) {
+            return response()->json(['message' => 'Au moins une salle doit être sélectionnée (salle_id ou salles_ids)'], 422);
+        }
+
+        // If not all groups, require a specific group_id; otherwise allow nullable (fallback "Tous" si null et all_groups absent)
         if (!$request->boolean('all_groups')) {
-            $rules['group_id'] = 'required|exists:groups,id';
+            $rules['group_id'] = 'nullable|exists:groups,id'; // Permettre null pour fallback "Tous"
         } else {
             $rules['group_id'] = 'nullable|exists:groups,id';
         }
 
         // Validate the request input
         $request->validate($rules);
+
+        // Si group_id est null et all_groups n'est pas défini, interpréter comme "Tous"
+        $group_id = $request->group_id;
+        $all_groups = $request->boolean('all_groups') || ($group_id === null);
 
         // Create a new Examen
         $examen = Examen::create([
@@ -170,14 +181,25 @@ class ExamenController extends Controller
             'heure_fin' => $request->heure_fin,
             'tolerance' => $request->tolerance ?? 15,
             'option_id' => $request->option_id,
-            'salle_id' => $request->salle_id,
+            'salle_id' => $request->salle_id ?? ($request->salles_ids[0] ?? null), // Garder salle_id pour compatibilité
             'promotion_id' => $request->promotion_id,
             'type_examen_id' => $request->type_examen_id,
             'etablissement_id' => $request->etablissement_id,
             'annee_universitaire' => $request->annee_universitaire,
-            'group_id' => $request->group_id,
+            'group_id' => $all_groups ? null : $group_id,
             'ville_id' => $request->ville_id,
         ]);
+
+        // Synchroniser les salles multiples si salles_ids est fourni
+        if (!empty($request->salles_ids)) {
+            $examen->salles()->sync($request->salles_ids);
+        } elseif ($request->salle_id) {
+            // Si seulement salle_id est fourni, créer l'association dans le pivot aussi
+            $examen->salles()->sync([$request->salle_id]);
+        }
+
+        // Charger les relations pour la réponse
+        $examen->load(['salles', 'salle']);
 
         // Return the newly created Examen as a JSON response
         return response()->json(['response' => $examen], 201);
@@ -193,7 +215,9 @@ class ExamenController extends Controller
             'heure_fin' => 'required',
             'tolerance' => 'nullable|integer|min:0|max:60',
             'option_id' => 'nullable|exists:options,id',
-            'salle_id' => 'required|exists:salles,id',
+            'salle_id' => 'nullable|exists:salles,id', // Déprécié mais gardé pour compatibilité
+            'salles_ids' => 'nullable|array',
+            'salles_ids.*' => 'exists:salles,id',
             'promotion_id' => 'required|exists:promotions,id',
             'type_examen_id' => 'required|exists:types_examen,id',
             'etablissement_id' => 'required|exists:etablissements,id',
@@ -201,8 +225,14 @@ class ExamenController extends Controller
             'all_groups' => 'nullable|boolean',
         ];
 
+        // Validation : au moins une salle doit être fournie (salle_id ou salles_ids)
+        if (empty($request->salles_ids) && empty($request->salle_id)) {
+            return response()->json(['message' => 'Au moins une salle doit être sélectionnée (salle_id ou salles_ids)'], 422);
+        }
+
+        // If not all groups, require a specific group_id; otherwise allow nullable (fallback "Tous" si null et all_groups absent)
         if (!$request->boolean('all_groups')) {
-            $rules['group_id'] = 'required|exists:groups,id';
+            $rules['group_id'] = 'nullable|exists:groups,id'; // Permettre null pour fallback "Tous"
         } else {
             $rules['group_id'] = 'nullable|exists:groups,id';
         }
@@ -223,9 +253,33 @@ class ExamenController extends Controller
             ], 403);
         }
 
+        // Si group_id est null et all_groups n'est pas défini, interpréter comme "Tous"
+        $group_id = $request->group_id;
+        $all_groups = $request->boolean('all_groups') || ($group_id === null);
+
         // Update the Examen with the new data
-        $payload = $request->only(['title', 'date', 'heure_debut_poigntage', 'heure_debut', 'heure_fin', 'tolerance', 'option_id', 'salle_id', 'promotion_id', 'type_examen_id', 'etablissement_id', 'group_id', 'ville_id']);
+        $payload = $request->only(['title', 'date', 'heure_debut_poigntage', 'heure_debut', 'heure_fin', 'tolerance', 'option_id', 'salle_id', 'promotion_id', 'type_examen_id', 'etablissement_id', 'ville_id']);
+        
+        // Mettre à jour group_id selon all_groups
+        $payload['group_id'] = $all_groups ? null : $group_id;
+        
+        // Si salle_id n'est pas dans le payload mais salles_ids est fourni, utiliser la première salle pour salle_id (compatibilité)
+        if (!isset($payload['salle_id']) && !empty($request->salles_ids)) {
+            $payload['salle_id'] = $request->salles_ids[0];
+        }
+        
         $examen->update($payload);
+
+        // Synchroniser les salles multiples si salles_ids est fourni
+        if (!empty($request->salles_ids)) {
+            $examen->salles()->sync($request->salles_ids);
+        } elseif ($request->salle_id) {
+            // Si seulement salle_id est fourni, synchroniser le pivot aussi
+            $examen->salles()->sync([$request->salle_id]);
+        }
+
+        // Charger les relations pour la réponse
+        $examen->load(['salles', 'salle']);
 
         // Return the updated Examen as a JSON response
         return response()->json($examen, 200);
@@ -475,7 +529,7 @@ class ExamenController extends Controller
         $size = max(1, min(100, (int) $size)); // Limit size between 1 and 100
         $page = max(1, (int) $page);
 
-        $query = Examen::with(['etablissement', 'promotion', 'typeExamen', 'salle', 'option', 'group', 'ville'])
+        $query = Examen::with(['etablissement', 'promotion', 'typeExamen', 'salle', 'salles', 'option', 'group', 'ville'])
                         ->whereNotNull('archived_at'); // Seulement les examens archivés
 
         // Apply filters

@@ -58,14 +58,14 @@ export class EtablissementsComponent implements OnInit, OnDestroy {
 
   // Filtres et recherche
   searchValue = '';
-  selectedVille: number | string = '';
+  // Removed: selectedVille filtering on etablissements
   searchResults: number | null = null;
   searchFocused = false;
   selectFocused = false;
 
   // États pour les modales
   nameFocused = false;
-  villeFocused = false;
+  // Removed: villeFocused
 
   // États
   loading = false;
@@ -112,8 +112,7 @@ export class EtablissementsComponent implements OnInit, OnDestroy {
 
   private initializeForm(): void {
     this.etablissementForm = this.fb.group({
-      name: ['', [Validators.required, Validators.minLength(2)]],
-      ville_id: ['', [Validators.required]]
+      name: ['', [Validators.required, Validators.minLength(2)]]
     });
   }
 
@@ -131,7 +130,6 @@ export class EtablissementsComponent implements OnInit, OnDestroy {
   }
 
   private loadInitialData(): void {
-    this.loadVilles();
     this.loadEtablissements();
   }
 
@@ -175,11 +173,7 @@ export class EtablissementsComponent implements OnInit, OnDestroy {
       );
     }
 
-    // Filtre par ville
-    if (this.selectedVille && this.selectedVille !== '') {
-      const villeId = Number(this.selectedVille);
-      filtered = filtered.filter(etab => etab.ville_id === villeId);
-    }
+    // Removed: filtre par ville (etablissements no longer carry ville_id)
 
     // Calculer les totaux
     this.totalEtablissements = filtered.length;
@@ -209,7 +203,7 @@ export class EtablissementsComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (response) => {
           console.log('✅ Villes chargées:', response);
-          this.villes = response.villes || [];
+    this.villes = response.villes || [];
         },
         error: (error) => {
           console.error('❌ Erreur lors du chargement des villes:', error);
@@ -220,12 +214,7 @@ export class EtablissementsComponent implements OnInit, OnDestroy {
 
   private calculateStatistics(): void {
     // Calculer le nombre de villes uniques depuis tous les établissements
-    const villesUniques = new Set(
-      this.allEtablissements
-        .filter(e => e.ville_id)
-        .map(e => e.ville_id)
-    );
-    this.uniqueVilles = villesUniques.size;
+    this.uniqueVilles = 0;
   }
 
   // ===== RECHERCHE ET FILTRES =====
@@ -242,7 +231,7 @@ export class EtablissementsComponent implements OnInit, OnDestroy {
 
   clearFilters(): void {
     this.searchValue = '';
-    this.selectedVille = '';
+    // Removed: selectedVille reset
     this.searchResults = null;
     this.currentPage = 1;
     this.applyFiltersAndPagination();
@@ -256,19 +245,18 @@ export class EtablissementsComponent implements OnInit, OnDestroy {
   }
 
   clearVilleFilter(): void {
-    this.selectedVille = '';
+    // Removed: selectedVille reset
     this.currentPage = 1;
     this.applyFiltersAndPagination();
   }
 
   hasActiveFilters(): boolean {
-    return this.searchValue.trim() !== '' || this.selectedVille !== '';
+    return this.searchValue.trim() !== '';
   }
 
   getActiveFiltersCount(): number {
     let count = 0;
     if (this.searchValue.trim() !== '') count++;
-    if (this.selectedVille !== '') count++;
     return count;
   }
 
@@ -278,13 +266,11 @@ export class EtablissementsComponent implements OnInit, OnDestroy {
   }
 
   getSelectedVilleName(): string {
-    if (!this.selectedVille) return '';
-    const ville = this.villes.find(v => v.id === Number(this.selectedVille));
-    return ville ? ville.name : '';
+    return '';
   }
 
   getEtablissementsCountByVille(villeId: number): number {
-    return this.allEtablissements.filter(e => e.ville_id === villeId).length;
+    return 0;
   }
 
   trackByVille(index: number, ville: Ville): number {
@@ -359,8 +345,7 @@ export class EtablissementsComponent implements OnInit, OnDestroy {
     this.isEditMode = true;
     this.selectedEtablissement = etablissement;
     this.etablissementForm.patchValue({
-      name: etablissement.name,
-      ville_id: etablissement.ville_id
+      name: etablissement.name
     });
     this.showDialog = true;
   }
@@ -399,8 +384,7 @@ export class EtablissementsComponent implements OnInit, OnDestroy {
 
     this.dialogLoading = true;
     const formData: CreateEtablissementRequest = {
-      name: this.etablissementForm.value.name.trim(),
-      ville_id: Number(this.etablissementForm.value.ville_id)
+      name: this.etablissementForm.value.name.trim()
     };
 
     const operation = this.isEditMode

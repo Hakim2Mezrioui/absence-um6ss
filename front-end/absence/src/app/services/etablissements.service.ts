@@ -6,7 +6,6 @@ import { Observable } from 'rxjs';
 export interface Etablissement {
   id: number;
   name: string;
-  ville_id: number;
   created_at: string;
   updated_at: string;
   
@@ -39,13 +38,11 @@ export interface EtablissementResponse {
 // Interface pour les filtres de recherche
 export interface EtablissementFilters {
   searchValue?: string;
-  ville_id?: number;
 }
 
 // Interface pour créer/modifier un établissement
 export interface CreateEtablissementRequest {
   name: string;
-  ville_id: number;
 }
 
 @Injectable({
@@ -71,9 +68,6 @@ export class EtablissementsService {
 
     if (filters.searchValue) {
       params = params.set('searchValue', filters.searchValue);
-    }
-    if (filters.ville_id) {
-      params = params.set('ville_id', filters.ville_id.toString());
     }
 
     return this.http.get<EtablissementResponse>(this.baseUrl, { params });
@@ -132,9 +126,7 @@ export class EtablissementsService {
   /**
    * Récupérer les établissements par ville
    */
-  getEtablissementsByVille(villeId: number): Observable<{ etablissements: Etablissement[]; status: number }> {
-    return this.http.get<{ etablissements: Etablissement[]; status: number }>(`${this.baseUrl}/ville/${villeId}`);
-  }
+  // Removed: filter by ville on etablissements is no longer supported
 
   /**
    * Tester la connectivité avec l'API

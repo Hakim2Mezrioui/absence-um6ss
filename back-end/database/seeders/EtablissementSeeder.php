@@ -14,22 +14,18 @@ class EtablissementSeeder extends Seeder
     {
         \App\Models\Etablissement::create([
             'name' => 'FACULTÉ MOHAMMED VI DE MÉDECINE UM6SS',
-            'ville_id' => 1 // Casablanca
         ]);
         
         \App\Models\Etablissement::create([
             'name' => 'FACULTÉ MOHAMMED VI DE MÉDECINE DENTAIRE UM6SS',
-            'ville_id' => 1 // Casablanca
         ]);
         
         \App\Models\Etablissement::create([
             'name' => 'FACULTÉ MOHAMMED VI DE PHARMACIE UM6SS',
-            'ville_id' => 1 // Casablanca
         ]);
         
         \App\Models\Etablissement::create([
             'name' => 'FACULTÉ MOHAMMED VI DES SCIENCES INFIRMIÈRES ET PROFESSIONS DE LA SANTÉ UM6SS',
-            'ville_id' => 1 // Casablanca
         ]);
     }
 }

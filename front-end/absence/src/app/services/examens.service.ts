@@ -38,6 +38,10 @@ export interface Examen {
     id: number;
     name: string;
   };
+  salles?: {
+    id: number;
+    name: string;
+  }[];
   type_examen?: {
     id: number;
     name: string;

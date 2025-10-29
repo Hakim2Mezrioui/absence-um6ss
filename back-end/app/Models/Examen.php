@@ -15,9 +15,7 @@ class Examen extends Model
 
     protected $casts = [
         'date' => 'date',
-        'heure_debut' => 'datetime',
-        'heure_fin' => 'datetime',
-        'heure_debut_poigntage' => 'datetime',
+        // Garder les heures en chaîne pour éviter des dates implicites
         'archived_at' => 'datetime',
     ];
 
@@ -67,6 +65,11 @@ class Examen extends Model
         return $this->belongsTo(Salle::class);
     }
 
+    public function salles()
+    {
+        return $this->belongsToMany(Salle::class, 'examen_salle');
+    }
+
     public function option()
     {
         return $this->belongsTo(Option::class);
@@ -87,13 +90,13 @@ class Examen extends Model
      */
     public function isEnCours(): bool
     {
-        $now = Carbon::now();
-        $examenDate = Carbon::parse($this->date);
-        $heureDebut = Carbon::parse($this->heure_debut);
-        $heureFin = Carbon::parse($this->heure_fin);
+        $tz = 'Africa/Casablanca';
+        $now = Carbon::now($tz);
+        $dateString = $this->date instanceof Carbon ? $this->date->format('Y-m-d') : (string) $this->date;
+        $debut = Carbon::createFromFormat('Y-m-d H:i:s', $dateString . ' ' . $this->heure_debut, $tz);
+        $fin = Carbon::createFromFormat('Y-m-d H:i:s', $dateString . ' ' . $this->heure_fin, $tz);
 
-        return $now->isSameDay($examenDate) && 
-               $now->between($heureDebut, $heureFin);
+        return $now->greaterThanOrEqualTo($debut) && $now->lessThan($fin);
     }
 
     /**
@@ -101,12 +104,12 @@ class Examen extends Model
      */
     public function isEnPasse(): bool
     {
-        $now = Carbon::now();
-        $examenDate = Carbon::parse($this->date);
-        $heureFin = Carbon::parse($this->heure_fin);
+        $tz = 'Africa/Casablanca';
+        $now = Carbon::now($tz);
+        $dateString = $this->date instanceof Carbon ? $this->date->format('Y-m-d') : (string) $this->date;
+        $fin = Carbon::createFromFormat('Y-m-d H:i:s', $dateString . ' ' . $this->heure_fin, $tz);
 
-        return $now->isAfter($examenDate) || 
-               ($now->isSameDay($examenDate) && $now->isAfter($heureFin));
+        return $now->greaterThan($fin);
     }
 
     /**
@@ -114,12 +117,12 @@ class Examen extends Model
      */
     public function isFutur(): bool
     {
-        $now = Carbon::now();
-        $examenDate = Carbon::parse($this->date);
-        $heureDebut = Carbon::parse($this->heure_debut);
+        $tz = 'Africa/Casablanca';
+        $now = Carbon::now($tz);
+        $dateString = $this->date instanceof Carbon ? $this->date->format('Y-m-d') : (string) $this->date;
+        $debut = Carbon::createFromFormat('Y-m-d H:i:s', $dateString . ' ' . $this->heure_debut, $tz);
 
-        return $now->isBefore($examenDate) || 
-               ($now->isSameDay($examenDate) && $now->isBefore($heureDebut));
+        return $now->lessThan($debut);
     }
 
     /**
