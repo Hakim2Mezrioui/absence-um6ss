@@ -112,10 +112,7 @@ class EtudiantController extends Controller
         $heureDebutPointage = $examen ? $examen->heure_debut_poigntage : null;
         $salle = $examen && $examen->salle ? $examen->salle->name : null;
         
-        // Format date and time for SQL Server compatibility
-        $formattedDate = date('Y-m-d', strtotime($date));
-        $formattedTime1 = date('H:i:s', strtotime($heure1));
-        $formattedTime2 = date('H:i:s', strtotime($heure2));
+        // La fenêtre temporelle Biostar sera calculée plus bas avec un offset serveur (-60 min)
         $promotion_id = $request->input("promotion_id", null);
         $etablissement_id = $request->input("etablissement_id", null);
         $ville_id = $request->input("ville_id", null);
@@ -149,15 +146,68 @@ class EtudiantController extends Controller
                 $pdo = new PDO($config['dsn'], $config['username'], $config['password']);
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-            // Déterminer l'heure de référence pour la comparaison
+            // Déterminer l'heure de début réelle à utiliser (pointage si défini sinon heure1)
             $heureReference = $heureDebutPointage ? $heureDebutPointage : $heure1;
-            $formattedTimeRef = date('H:i:s', strtotime($heureReference));
-            
-            // Execute the query using PDO with proper date formatting
-            // Utiliser l'heure de référence pour la comparaison
-            $sql = "SELECT * FROM punchlog WHERE CAST(bsevtdt AS date) = CAST(:date AS date) AND CAST(bsevtdt AS time) BETWEEN CAST(:heure1 AS time) AND CAST(:heure2 AS time) AND devnm NOT LIKE 'TOUR%' AND devnm NOT LIKE 'ACCES HCK%'";
+
+            // Normaliser date (peut venir en ISO "YYYY-MM-DDTHH:mm:ssZ") en "Y-m-d"
+            try {
+                $normalizedDate = (new \DateTime($date))->format('Y-m-d');
+            } catch (\Exception $e) {
+                $normalizedDate = date('Y-m-d', strtotime($date));
+            }
+
+            // Fonction utilitaire pour normaliser l'heure en "H:i:s"
+            $normalizeTime = function ($t) {
+                if (empty($t)) return '00:00:00';
+                // Cas ISO complet
+                if (strpos($t, 'T') !== false || strpos($t, 'Z') !== false || strpos($t, '+') !== false) {
+                    try {
+                        return (new \DateTime($t))->format('H:i:s');
+                    } catch (\Exception $e) {
+                        // continue
+                    }
+                }
+                // Si format HH:MM, ajouter :00
+                if (preg_match('/^\d{2}:\d{2}$/', $t)) {
+                    return $t . ':00';
+                }
+                // Si déjà HH:MM:SS, le retourner tel quel, sinon tenter un parse
+                if (preg_match('/^\d{2}:\d{2}:\d{2}$/', $t)) {
+                    return $t;
+                }
+                return date('H:i:s', strtotime($t));
+            };
+
+            $hourRefWithSec = $normalizeTime($heureReference);
+            $hour2WithSec   = $normalizeTime($heure2);
+
+            // Construire la fenêtre datetime côté client avec la date normalisée
+            $startClientDt  = new \DateTime("{$normalizedDate} {$hourRefWithSec}");
+            $endClientDt    = new \DateTime("{$normalizedDate} {$hour2WithSec}");
+
+            // Le serveur Biostar est décalé de -60 minutes (serveur en retard d'1h)
+            $offsetMinutes = -60; // adapter si nécessaire
+            $startServerDt = (clone $startClientDt)->modify("{$offsetMinutes} minutes");
+            $endServerDt   = (clone $endClientDt)->modify("{$offsetMinutes} minutes");
+
+            // Si la fenêtre passe minuit côté serveur, étendre la date de fin
+            if ($endServerDt < $startServerDt) {
+                $endServerDt->modify('+1 day');
+            }
+
+            $startDt = $startServerDt->format('Y-m-d H:i:s');
+            $endDt   = $endServerDt->format('Y-m-d H:i:s');
+
+            // Requête optimisée: fenêtre datetime continue et filtres device
+            $sql = "
+                SELECT *
+                FROM punchlog
+                WHERE bsevtdt BETWEEN :start_dt AND :end_dt
+                  AND devnm NOT LIKE 'TOUR%'
+                  AND devnm NOT LIKE 'ACCES HCK%'
+            ";
             $stmt = $pdo->prepare($sql);
-            $stmt->execute(['date' => $formattedDate, 'heure1' => $formattedTimeRef, 'heure2' => $formattedTime2]);
+            $stmt->execute(['start_dt' => $startDt, 'end_dt' => $endDt]);
 
             // Fetch the results
             $biostarResults = $stmt->fetchAll(PDO::FETCH_ASSOC);
