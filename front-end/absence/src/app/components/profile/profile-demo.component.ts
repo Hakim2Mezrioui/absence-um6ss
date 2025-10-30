@@ -8,7 +8,7 @@ import { ProfileComponent } from './profile.component';
   template: `
     <div class="demo-container">
       <h1>Démonstration du Composant Profil</h1>
-      <p>Ce composant utilise l'API <code>127.0.0.1:8000/users/{{id}}</code> pour récupérer les informations utilisateur.</p>
+      <p>Ce composant utilise l'API <code>10.0.244.100:8000/users/{{id}}</code> pour récupérer les informations utilisateur.</p>
       <app-profile></app-profile>
     </div>
   `,

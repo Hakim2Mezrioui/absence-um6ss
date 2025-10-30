@@ -134,12 +134,37 @@ class EtudiantController extends Controller
             // Si le client ne fournit pas group_id ou option_id, on n'applique PAS ces filtres
         }
 
+        try {
+            $normalizedDate = (new \DateTime($date))->format('Y-m-d');
+        } catch (\Exception $e) {
+            $normalizedDate = date('Y-m-d', strtotime($date));
+        }
+
         // Initialize variables
         $biostarResults = [];
         $localStudents = collect();
+        // Décalage horaire Biostar par défaut: -60 min (serveur en retard d'1h)
+        // Exception: si l'examen est à Rabat, ne pas appliquer de décalage
+        $offsetMinutes = -60;
+        if ($examen && $examen->ville && isset($examen->ville->name)) {
+            if (strtolower(trim($examen->ville->name)) === 'rabat') {
+                $offsetMinutes = 0;
+            }
+        }
 
-        // Get connection configuration from database
-        $config = $this->configurationService->getConnectionConfig();
+
+        // Get connection configuration from database based on examen ville if available
+        if ($examen && !empty($examen->ville_id)) {
+            $config = $this->configurationService->getConnectionConfigForVille($examen->ville_id);
+            \Log::info('Configuration sélectionnée par ville examen', [
+                'examen_id' => $examen->id,
+                'ville_id' => $examen->ville_id,
+                'has_config' => is_array($config) && isset($config['dsn'])
+            ]);
+        } else {
+            $config = $this->configurationService->getConnectionConfig();
+            \Log::info('Configuration par défaut utilisée (aucune ville examen)');
+        }
         
         if (is_array($config) && isset($config['dsn'])) {
             try {
@@ -148,13 +173,6 @@ class EtudiantController extends Controller
 
             // Déterminer l'heure de début réelle à utiliser (pointage si défini sinon heure1)
             $heureReference = $heureDebutPointage ? $heureDebutPointage : $heure1;
-
-            // Normaliser date (peut venir en ISO "YYYY-MM-DDTHH:mm:ssZ") en "Y-m-d"
-            try {
-                $normalizedDate = (new \DateTime($date))->format('Y-m-d');
-            } catch (\Exception $e) {
-                $normalizedDate = date('Y-m-d', strtotime($date));
-            }
 
             // Fonction utilitaire pour normaliser l'heure en "H:i:s"
             $normalizeTime = function ($t) {
@@ -186,7 +204,6 @@ class EtudiantController extends Controller
             $endClientDt    = new \DateTime("{$normalizedDate} {$hour2WithSec}");
 
             // Le serveur Biostar est décalé de -60 minutes (serveur en retard d'1h)
-            $offsetMinutes = -60; // adapter si nécessaire
             $startServerDt = (clone $startClientDt)->modify("{$offsetMinutes} minutes");
             $endServerDt   = (clone $endClientDt)->modify("{$offsetMinutes} minutes");
 
@@ -229,6 +246,10 @@ class EtudiantController extends Controller
             $biostarResults = [];
         }
         
+        // return response()->json([
+        //     "biostarResults" => $biostarResults,
+        //     "status" => 200
+        // ]);
         // Fetch students from the local database with relations
         $query = Etudiant::with(['ville', 'group', 'option', 'etablissement', 'promotion']);
 
@@ -351,46 +372,56 @@ class EtudiantController extends Controller
             // ici biostarResults ca marche bien
 
             // Prepare the final response with attendance status
-            $studentsWithAttendance = $localStudents->map(function ($student) use ($presentStudentMatricules, $biostarResults, $heureDebutPointage, $heure1, $examen) {
+            $studentsWithAttendance = $localStudents->map(function ($student) use ($presentStudentMatricules, $biostarResults, $heureDebutPointage, $heure1, $examen, $normalizedDate, $offsetMinutes) {
                 $punchTime = $this->getPunchTime($student->matricule, $biostarResults);
                 $status = 'absent';
                 
                 if ($punchTime) {
-                    // Convertir l'heure de pointage en format comparable
-                    $punchTimeFormatted = date('H:i:s', strtotime($punchTime['time']));
-                    $heureDebutExamen = date('H:i:s', strtotime($heure1));
-                    $heureDebutPointageFormatted = $heureDebutPointage ? date('H:i:s', strtotime($heureDebutPointage)) : $heureDebutExamen;
-                    
-                    // Calculer la tolérance (par défaut 15 minutes si pas définie)
-                    $tolerance = $examen ? $examen->tolerance : 15;
-                    $toleranceMinutes = is_numeric($tolerance) ? $tolerance : 15;
-                    
-                    // Calculer l'heure limite avec tolérance
-                    $heureLimite = date('H:i:s', strtotime($heureDebutExamen . ' + ' . $toleranceMinutes . ' minutes'));
-                    
-                    // Logique de statut améliorée
-                    if ($punchTimeFormatted >= $heureDebutPointageFormatted && $punchTimeFormatted < $heureDebutExamen) {
-                        // Entre heure début pointage et heure début = Présent
-                        $status = 'présent';
-                    } elseif ($punchTimeFormatted >= $heureDebutExamen && $punchTimeFormatted <= $heureLimite) {
-                        // Entre heure début et limite de tolérance = En retard
-                        $status = 'en retard';
-                    } elseif ($punchTimeFormatted > $heureLimite) {
-                        // Après la limite de tolérance = Absent
-                        $status = 'absent';
+                    // Normaliser les datetimes sur la même date d'examen
+                    $punchDt = new \DateTime($punchTime['time']);
+                    $effectivePunchDt = clone $punchDt;
+                    $offsetCorrection = $offsetMinutes !== 0 ? -1 * $offsetMinutes : 0;
+                    if ($offsetCorrection !== 0) {
+                        $effectivePunchDt->modify(($offsetCorrection > 0 ? '+' : '') . $offsetCorrection . ' minutes');
+                    }
+                    $examStartTime = date('H:i:s', strtotime($heure1));
+                    $examStartDt = new \DateTime("{$normalizedDate} {$examStartTime}");
+                    $pointageStartTime = $heureDebutPointage ? date('H:i:s', strtotime($heureDebutPointage)) : $examStartTime;
+                    $pointageStartDt = new \DateTime("{$normalizedDate} {$pointageStartTime}");
+
+                    // Tolérance (par défaut 15 minutes si non définie)
+                    $toleranceRaw = $examen ? $examen->tolerance : 15;
+                    if ($toleranceRaw === null || $toleranceRaw === '') {
+                        $toleranceMinutes = 15;
+                    } elseif (is_numeric($toleranceRaw)) {
+                        $toleranceMinutes = (int) $toleranceRaw;
                     } else {
-                        // Avant l'heure de début de pointage = Absent
+                        $digits = preg_replace('/[^0-9]/', '', (string) $toleranceRaw);
+                        $toleranceMinutes = $digits !== '' ? (int) $digits : 15;
+                    }
+
+                    $limitDt = (clone $examStartDt)->modify("+{$toleranceMinutes} minutes");
+
+                    // Logique de statut
+                    if ($effectivePunchDt >= $pointageStartDt && $effectivePunchDt < $examStartDt) {
+                        $status = 'présent';
+                    } elseif ($effectivePunchDt >= $examStartDt && $effectivePunchDt <= $limitDt) {
+                        $status = 'en retard';
+                    } else {
                         $status = 'absent';
                     }
-                    
-                    // Debug log pour tracer le calcul
+
+                    $punchTime['adjusted_time'] = $effectivePunchDt->format('Y-m-d H:i:s');
+
+                    // Debug log
                     \Log::info("Calcul statut pour étudiant {$student->matricule}:", [
                         'punch_time' => $punchTime['time'],
-                        'punch_time_formatted' => $punchTimeFormatted,
-                        'heure_debut_pointage' => $heureDebutPointageFormatted,
-                        'heure_debut_examen' => $heureDebutExamen,
+                        'punch_dt' => $punchDt->format('Y-m-d H:i:s'),
+                        'punch_dt_adjusted' => $effectivePunchDt->format('Y-m-d H:i:s'),
+                        'pointage_start_dt' => $pointageStartDt->format('Y-m-d H:i:s'),
+                        'exam_start_dt' => $examStartDt->format('Y-m-d H:i:s'),
                         'tolerance_minutes' => $toleranceMinutes,
-                        'heure_limite' => $heureLimite,
+                        'limit_dt' => $limitDt->format('Y-m-d H:i:s'),
                         'status_calculé' => $status
                     ]);
                 }
@@ -483,65 +514,88 @@ class EtudiantController extends Controller
      */
     private function getPunchTime($matricule, $biostarResults)
     {
-        // Stratégie 1: Correspondance exacte
-        $studentPunch = collect($biostarResults)->firstWhere('user_id', $matricule);
-        if ($studentPunch) {
+        // Utilitaires de sélection du dernier pointage
+        $getTimestamp = function ($punch) {
+            $raw = $punch['bsevtdt'] ?? ($punch['punch_time'] ?? null);
+            return $raw ? strtotime($raw) : null;
+        };
+        $pickLatest = function ($collection) use ($getTimestamp) {
+            $sorted = $collection
+                ->filter(function ($p) use ($getTimestamp) { return $getTimestamp($p) !== null; })
+                ->sortBy(function ($p) use ($getTimestamp) { return $getTimestamp($p); });
+            return $sorted->last();
+        };
+
+        // Stratégie 1: Correspondance exacte (dernier pointage)
+        $matches = collect($biostarResults)->filter(function ($punch) use ($matricule) {
+            return isset($punch['user_id']) && $punch['user_id'] == $matricule;
+        });
+        if ($matches->isNotEmpty()) {
+            $studentPunch = $pickLatest($matches);
             return [
                 'time' => $studentPunch['bsevtdt'] ?? $studentPunch['punch_time'],
                 'device' => $studentPunch['devnm'] ?? $studentPunch['device'] ?? $studentPunch['device_name'] ?? 'Inconnu'
             ];
         }
-        
+
         // Stratégie 2: Supprimer les zéros de début (ex: "000123" → "123")
         $matriculeTrimmed = ltrim($matricule, '0');
         if ($matriculeTrimmed !== $matricule && !empty($matriculeTrimmed)) {
-            $studentPunch = collect($biostarResults)->firstWhere('user_id', $matriculeTrimmed);
-            if ($studentPunch) {
+            $matches = collect($biostarResults)->filter(function ($punch) use ($matriculeTrimmed) {
+                return isset($punch['user_id']) && $punch['user_id'] == $matriculeTrimmed;
+            });
+            if ($matches->isNotEmpty()) {
                 \Log::info("Match trouvé avec suppression des zéros: '$matricule' → '$matriculeTrimmed'");
+                $studentPunch = $pickLatest($matches);
                 return [
                     'time' => $studentPunch['bsevtdt'] ?? $studentPunch['punch_time'],
                     'device' => $studentPunch['devnm'] ?? $studentPunch['device'] ?? $studentPunch['device_name'] ?? 'Inconnu'
                 ];
             }
         }
-        
+
         // Stratégie 3: Ajouter des zéros de début (ex: "123" → "000123")
         $matriculePadded = str_pad($matricule, 6, '0', STR_PAD_LEFT);
         if ($matriculePadded !== $matricule) {
-            $studentPunch = collect($biostarResults)->firstWhere('user_id', $matriculePadded);
-            if ($studentPunch) {
+            $matches = collect($biostarResults)->filter(function ($punch) use ($matriculePadded) {
+                return isset($punch['user_id']) && $punch['user_id'] == $matriculePadded;
+            });
+            if ($matches->isNotEmpty()) {
                 \Log::info("Match trouvé avec ajout de zéros: '$matricule' → '$matriculePadded'");
+                $studentPunch = $pickLatest($matches);
                 return [
                     'time' => $studentPunch['bsevtdt'] ?? $studentPunch['punch_time'],
                     'device' => $studentPunch['devnm'] ?? $studentPunch['device'] ?? $studentPunch['device_name'] ?? 'Inconnu'
                 ];
             }
         }
-        
+
         // Stratégie 4: Recherche partielle (contient le matricule)
-        $studentPunch = collect($biostarResults)->first(function ($punch) use ($matricule) {
-            return strpos($punch['user_id'], $matricule) !== false;
+        $matches = collect($biostarResults)->filter(function ($punch) use ($matricule) {
+            return isset($punch['user_id']) && strpos($punch['user_id'], $matricule) !== false;
         });
-        if ($studentPunch) {
-            \Log::info("Match trouvé avec recherche partielle: '$matricule' contenu dans '{$studentPunch['user_id']}'");
+        if ($matches->isNotEmpty()) {
+            $studentPunch = $pickLatest($matches);
+            \Log::info("Match trouvé avec recherche partielle (dernier conservé): '$matricule'");
             return [
                 'time' => $studentPunch['bsevtdt'] ?? $studentPunch['punch_time'],
                 'device' => $studentPunch['devnm'] ?? $studentPunch['device'] ?? $studentPunch['device_name'] ?? 'Inconnu'
             ];
         }
-        
+
         // Stratégie 5: Recherche inverse (le matricule contient le user_id)
-        $studentPunch = collect($biostarResults)->first(function ($punch) use ($matricule) {
-            return strpos($matricule, $punch['user_id']) !== false;
+        $matches = collect($biostarResults)->filter(function ($punch) use ($matricule) {
+            return isset($punch['user_id']) && strpos($matricule, $punch['user_id']) !== false;
         });
-        if ($studentPunch) {
-            \Log::info("Match trouvé avec recherche inverse: '{$studentPunch['user_id']}' contenu dans '$matricule'");
+        if ($matches->isNotEmpty()) {
+            $studentPunch = $pickLatest($matches);
+            \Log::info("Match trouvé avec recherche inverse (dernier conservé)");
             return [
                 'time' => $studentPunch['bsevtdt'] ?? $studentPunch['punch_time'],
                 'device' => $studentPunch['devnm'] ?? $studentPunch['device'] ?? $studentPunch['device_name'] ?? 'Inconnu'
             ];
         }
-        
+
         // Aucun match trouvé
         \Log::warning("Aucun match trouvé pour le matricule: '$matricule'");
         return null;

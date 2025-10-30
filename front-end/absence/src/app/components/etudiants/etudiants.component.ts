@@ -261,7 +261,7 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
           console.error('Erreur lors du chargement des étudiants:', err);
           
           if (err.status === 0) {
-            this.error = 'Impossible de se connecter à l\'API. Vérifiez que Laravel est démarré sur http://127.0.0.1:8000';
+            this.error = 'Impossible de se connecter à l\'API. Vérifiez que Laravel est démarré sur http://10.0.244.100:8000';
           } else if (err.status === 404) {
             this.error = 'Endpoint API non trouvé. Vérifiez la route /api/etudiants dans Laravel';
           } else if (err.status === 500) {
@@ -799,14 +799,14 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
         url = etudiant.photo;
       } else if (etudiant.photo.startsWith('/storage/') || etudiant.photo.startsWith('storage/')) {
         const path = etudiant.photo.startsWith('/') ? etudiant.photo : '/' + etudiant.photo;
-        url = `http://127.0.0.1:8000${path}`;
+        url = `http://10.0.244.100:8000${path}`;
       } else if (etudiant.photo.startsWith('photos/')) {
-        url = `http://127.0.0.1:8000/storage/${etudiant.photo}`;
+        url = `http://10.0.244.100:8000/storage/${etudiant.photo}`;
       } else if (etudiant.photo.startsWith('/images/') || etudiant.photo.startsWith('images/')) {
         const path = etudiant.photo.startsWith('/') ? etudiant.photo : '/' + etudiant.photo;
-        url = `http://127.0.0.1:8000${path}`;
+        url = `http://10.0.244.100:8000${path}`;
       } else {
-        url = `http://127.0.0.1:8000/storage/${etudiant.photo}`;
+        url = `http://10.0.244.100:8000/storage/${etudiant.photo}`;
       }
       
       return url;

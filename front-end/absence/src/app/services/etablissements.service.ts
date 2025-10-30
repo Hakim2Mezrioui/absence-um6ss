@@ -49,8 +49,8 @@ export interface CreateEtablissementRequest {
   providedIn: 'root'
 })
 export class EtablissementsService {
-  private baseUrl = 'http://127.0.0.1:8000/api/etablissements';
-  private villesUrl = 'http://127.0.0.1:8000/api/villes';
+  private baseUrl = 'http://10.0.244.100:8000/api/etablissements';
+  private villesUrl = 'http://10.0.244.100:8000/api/villes';
 
   constructor(private http: HttpClient) { }
 

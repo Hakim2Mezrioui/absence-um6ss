@@ -84,7 +84,7 @@ export interface TypeCours {
   providedIn: 'root'
 })
 export class CoursService extends BaseApiService {
-  private typesCoursUrl = 'http://127.0.0.1:8000/api/types-cours';
+  private typesCoursUrl = 'http://10.0.244.100:8000/api/types-cours';
 
   constructor(http: HttpClient, userContextService: UserContextService) {
     super(http, userContextService);

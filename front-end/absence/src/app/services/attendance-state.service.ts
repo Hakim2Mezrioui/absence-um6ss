@@ -38,7 +38,7 @@ export interface AttendanceStateInfo {
   providedIn: 'root'
 })
 export class AttendanceStateService {
-  private apiUrl = 'http://127.0.0.1:8000/api/attendance-states';
+  private apiUrl = 'http://10.0.244.100:8000/api/attendance-states';
 
   constructor(private http: HttpClient) { }
 

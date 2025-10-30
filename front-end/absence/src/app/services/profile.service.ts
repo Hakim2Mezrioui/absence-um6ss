@@ -85,7 +85,7 @@ export interface ProfileUpdateData {
   providedIn: 'root'
 })
 export class ProfileService {
-  private readonly API_URL = 'http://127.0.0.1:8000/api';
+  private readonly API_URL = 'http://10.0.244.100:8000/api';
   private readonly PROFILE_ENDPOINT = `${this.API_URL}/users`;
   
   private currentUserSubject = new BehaviorSubject<UserProfile | null>(null);
