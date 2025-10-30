@@ -402,7 +402,7 @@
                   {{ student.status }}
                 </span>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ student.punch_time ? formatDateTime(student.punch_time.time) : 'N/A' }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ student.punch_time ? formatPunchForDisplay(student.punch_time.time) : 'N/A' }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ student.punch_time ? student.punch_time.device : 'N/A' }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <div class="flex items-center space-x-2">
@@ -500,7 +500,7 @@
                   <div>
                     <span class="text-sm text-gray-600">Heure de pointage:</span>
                     <span class="ml-2 text-sm text-gray-900">
-                      {{ selectedStudent.punch_time ? formatDateTime(selectedStudent.punch_time.time) : 'N/A' }}
+                      {{ selectedStudent.punch_time ? formatPunchForDisplay(selectedStudent.punch_time.time) : 'N/A' }}
                     </span>
                   </div>
                   <div>

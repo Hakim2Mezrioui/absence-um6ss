@@ -72,6 +72,9 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
   
   // Lettres de l'alphabet pour la sélection
   alphabetLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+
+  // Offset configurable appliqué aux heures de pointage Biostar (en minutes)
+  biostarTimeOffsetMinutes: number = 60;
   
   // Options pour les filtres
   statusOptions = [
@@ -223,31 +226,46 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
 
     console.log('🔄 Intégration des données Biostar avec les étudiants');
 
-    // Créer un map des pointages par student_id
-    const punchMap = new Map();
+    const normalize = (v: any) => (v === null || v === undefined) ? '' : String(v).trim().toUpperCase();
+
+    // Créer un map des pointages par clés possibles (user_id, bsevtc, user_name)
+    const punchMap = new Map<string, any[]>();
     biostarData.punches.forEach((punch: any) => {
-      if (!punchMap.has(punch.student_id)) {
-        punchMap.set(punch.student_id, []);
+      const candidateKeys = [
+        normalize(punch.student_id ?? punch.user_id),
+        normalize(punch.bsevtc),
+        normalize(punch.user_name)
+      ].filter(k => !!k);
+
+      for (const key of candidateKeys) {
+        if (!punchMap.has(key)) punchMap.set(key, []);
+        punchMap.get(key)!.push(punch);
       }
-      punchMap.get(punch.student_id).push(punch);
     });
 
     // Mettre à jour les étudiants avec leurs données de pointage
     this.students.forEach(student => {
-      const studentPunches = punchMap.get(student.matricule);
+      const key = normalize(student.matricule);
+      const studentPunches = punchMap.get(key);
       if (studentPunches && studentPunches.length > 0) {
-        // Prendre le premier pointage (le plus tôt)
+        // Trier par date et prendre le plus tôt
+        studentPunches.sort((a: any, b: any) => {
+          const at = new Date(a.bsevtdt || a.punch_time).getTime();
+          const bt = new Date(b.bsevtdt || b.punch_time).getTime();
+          return at - bt;
+        });
         const firstPunch = studentPunches[0];
+
+        const rawTime: string = firstPunch.punch_time || firstPunch.bsevtdt;
+        const punchTimeDate = this.parseStudentPunchTime(rawTime);
+
         student.punch_time = {
-          time: firstPunch.punch_time,
+          time: punchTimeDate.toISOString(),
           device: firstPunch.device || firstPunch.device_name || 'Inconnu'
         };
         
-        // Recalculer le statut avec les nouvelles données
-        if (student.punch_time) {
-          const punchTime = new Date(student.punch_time.time);
-          student.status = this.calculateStudentStatus(punchTime);
-        }
+        // Recalculer le statut avec la date ajustée
+        student.status = this.calculateStudentStatus(punchTimeDate);
       }
     });
 
@@ -527,24 +545,22 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     if (punchTimeString.includes('T') && (punchTimeString.includes('Z') || punchTimeString.includes('+'))) {
       const date = new Date(punchTimeString);
       console.log('📅 Parsed ISO punch time:', date.toLocaleString());
-      return date;
+      return this.applyBiostarOffset(date);
     }
     
     // Si c'est au format DD/MM/YYYY HH:MM:SS (format français)
     if (punchTimeString.includes('/') && punchTimeString.includes(' ')) {
-      // Format: "18/10/2025 15:39:08"
       const [datePart, timePart] = punchTimeString.split(' ');
       const [day, month, year] = datePart.split('/').map(Number);
       const [hours, minutes, seconds] = timePart.split(':').map(Number);
       
       const date = new Date(year, month - 1, day, hours, minutes, seconds || 0, 0);
       console.log('📅 Parsed French date/time:', date.toLocaleString());
-      return date;
+      return this.applyBiostarOffset(date);
     }
     
     // Si c'est au format YYYY-MM-DD HH:MM:SS.microseconds (format SQL Server)
-    if (punchTimeString.match(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+$/)) {
-      // Format: "2025-10-18 15:39:08.0000000"
+    if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+$/.test(punchTimeString)) {
       const [datePart, timePart] = punchTimeString.split(' ');
       const [year, month, day] = datePart.split('-').map(Number);
       const [timeOnly] = timePart.split('.');
@@ -552,27 +568,44 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
       
       const date = new Date(year, month - 1, day, hours, minutes, seconds, 0);
       console.log('📅 Parsed SQL Server date/time:', date.toLocaleString());
-      return date;
+      return this.applyBiostarOffset(date);
+    }
+
+    // Si c'est au format YYYY-MM-DD HH:MM:SS (sans microsecondes)
+    if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(punchTimeString)) {
+      const [datePart, timePart] = punchTimeString.split(' ');
+      const [year, month, day] = datePart.split('-').map(Number);
+      const [hours, minutes, seconds] = timePart.split(':').map(Number);
+      const date = new Date(year, month - 1, day, hours, minutes, seconds, 0);
+      return this.applyBiostarOffset(date);
     }
     
     // Si c'est juste une heure HH:MM ou HH:MM:SS
     if (punchTimeString.includes(':') && !punchTimeString.includes('/')) {
       const [hours, minutes, seconds] = punchTimeString.split(':').map(Number);
       const date = new Date();
-      date.setHours(hours, minutes, seconds || 0, 0);
+      date.setHours(hours, minutes, (seconds || 0), 0);
       console.log('⏰ Parsed time only:', date.toLocaleString());
-      return date;
+      return this.applyBiostarOffset(date);
     }
     
     // Fallback: essayer de parser comme date générique
     const date = new Date(punchTimeString);
     if (!isNaN(date.getTime())) {
       console.log('📅 Parsed fallback punch time:', date.toLocaleString());
-      return date;
+      return this.applyBiostarOffset(date);
     }
     
     console.error('❌ Impossible de parser l\'heure de pointage:', punchTimeString);
-    return new Date();
+    return this.applyBiostarOffset(new Date());
+  }
+
+  private applyBiostarOffset(date: Date): Date {
+    if (!date || isNaN(date.getTime())) return date;
+    const adjusted = new Date(date);
+    const offset = Number(this.biostarTimeOffsetMinutes) || 0;
+    adjusted.setMinutes(adjusted.getMinutes() + offset);
+    return adjusted;
   }
 
   /**
@@ -1037,6 +1070,13 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     const MM = date.getUTCMinutes().toString().padStart(2, '0');
     const SS = date.getUTCSeconds().toString().padStart(2, '0');
     return `${dd}/${mm}/${yyyy} ${HH}:${MM}:${SS}`;
+  }
+
+  // Affichage des heures de pointage avec offset Biostar appliqué
+  public formatPunchForDisplay(raw: string): string {
+    if (!raw) return 'N/A';
+    const dt = this.parseStudentPunchTime(raw);
+    return dt.toLocaleString('fr-FR');
   }
 
   /**
