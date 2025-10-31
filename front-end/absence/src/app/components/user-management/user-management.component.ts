@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { CookieService } from 'ngx-cookie-service';
+import { HttpClient } from '@angular/common/http';
 
 interface User {
   id: number;
@@ -106,40 +105,23 @@ export class UserManagementComponent implements OnInit {
     confirm_password: ''
   };
   
-  private apiUrl = 'http://localhost:8000/api';
-  private authToken = '';
+  private apiUrl = 'http://10.0.244.100:8000/api';
 
   constructor(
-    private http: HttpClient,
-    private cookieService: CookieService
+    private http: HttpClient
   ) {}
 
   ngOnInit(): void {
-    this.loadAuthToken();
     this.loadFormOptions();
   }
 
-  private loadAuthToken(): void {
-    this.authToken = this.cookieService.get('auth_token') || 
-                    localStorage.getItem('auth_token') || 
-                    sessionStorage.getItem('auth_token') || '';
-  }
-
-  private getHeaders(): HttpHeaders {
-    return new HttpHeaders({
-      'Authorization': `Bearer ${this.authToken}`,
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
-    });
-  }
+  // Token headers are attached globally by the TokenInterceptor
 
   loadUsers(): void {
     this.isLoading = true;
     
     // Charger tous les utilisateurs sans pagination côté serveur
-    this.http.get<any>(`${this.apiUrl}/user-management?per_page=1000`, {
-      headers: this.getHeaders()
-    }).subscribe({
+    this.http.get<any>(`${this.apiUrl}/user-management?per_page=1000`).subscribe({
       next: (response) => {
         this.allUsers = response.data.data;
         this.applyFilters(); // Appliquer les filtres côté frontend
@@ -207,9 +189,7 @@ export class UserManagementComponent implements OnInit {
   }
 
   loadFormOptions(): void {
-    this.http.get<any>(`${this.apiUrl}/user-management/form-options`, {
-      headers: this.getHeaders()
-    }).subscribe({
+    this.http.get<any>(`${this.apiUrl}/user-management/form-options`).subscribe({
       next: (response) => {
         this.formOptions = response.data;
         // Charger les utilisateurs après avoir chargé les options
@@ -314,9 +294,7 @@ export class UserManagementComponent implements OnInit {
     }
 
     this.isLoading = true;
-    this.http.post<any>(`${this.apiUrl}/user-management`, createData, {
-      headers: this.getHeaders()
-    }).subscribe({
+    this.http.post<any>(`${this.apiUrl}/user-management`, createData).subscribe({
       next: (response) => {
         this.successMessage = 'Utilisateur créé avec succès';
         this.closeModals();
@@ -347,9 +325,7 @@ export class UserManagementComponent implements OnInit {
     }
 
     this.isLoading = true;
-    this.http.put<any>(`${this.apiUrl}/user-management/${this.selectedUser.id}`, updateData, {
-      headers: this.getHeaders()
-    }).subscribe({
+    this.http.put<any>(`${this.apiUrl}/user-management/${this.selectedUser.id}`, updateData).subscribe({
       next: (response) => {
         this.successMessage = 'Utilisateur mis à jour avec succès';
         this.closeModals();
@@ -368,9 +344,7 @@ export class UserManagementComponent implements OnInit {
     if (!this.selectedUser) return;
 
     this.isLoading = true;
-    this.http.delete<any>(`${this.apiUrl}/user-management/${this.selectedUser.id}`, {
-      headers: this.getHeaders()
-    }).subscribe({
+    this.http.delete<any>(`${this.apiUrl}/user-management/${this.selectedUser.id}`).subscribe({
       next: (response) => {
         this.successMessage = 'Utilisateur supprimé avec succès';
         this.closeModals();
@@ -391,8 +365,6 @@ export class UserManagementComponent implements OnInit {
     this.isLoading = true;
     this.http.put<any>(`${this.apiUrl}/user-management/${this.selectedUser.id}`, {
       password: this.passwordForm.new_password
-    }, {
-      headers: this.getHeaders()
     }).subscribe({
       next: (response) => {
         this.successMessage = 'Mot de passe modifié avec succès';
