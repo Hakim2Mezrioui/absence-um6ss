@@ -323,30 +323,41 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
       );
     }
     
-    // Filtres spécifiques
-    const formValue = this.filtersForm.value;
-    
-    if (formValue.promotion_id) {
-      filtered = filtered.filter(student => student.promotion_id === formValue.promotion_id);
+    // Filtres spécifiques (coercition en nombres pour éviter les mismatches string/number)
+    const formValue = this.filtersForm.value as any;
+    const promotionId = this.toNumberOrNull(formValue.promotion_id);
+    const groupId = this.toNumberOrNull(formValue.group_id);
+    const villeId = this.toNumberOrNull(formValue.ville_id);
+    const etablissementId = this.toNumberOrNull(formValue.etablissement_id);
+    const optionId = this.toNumberOrNull(formValue.option_id);
+
+    if (promotionId !== null) {
+      filtered = filtered.filter(student => Number(student.promotion_id) === promotionId);
     }
     
-    if (formValue.group_id) {
-      filtered = filtered.filter(student => student.group_id === formValue.group_id);
+    if (groupId !== null) {
+      filtered = filtered.filter(student => Number(student.group_id) === groupId);
     }
     
-    if (formValue.ville_id) {
-      filtered = filtered.filter(student => student.ville_id === formValue.ville_id);
+    if (villeId !== null) {
+      filtered = filtered.filter(student => Number(student.ville_id) === villeId);
     }
     
-    if (formValue.etablissement_id) {
-      filtered = filtered.filter(student => student.etablissement_id === formValue.etablissement_id);
+    if (etablissementId !== null) {
+      filtered = filtered.filter(student => Number(student.etablissement_id) === etablissementId);
     }
     
-    if (formValue.option_id) {
-      filtered = filtered.filter(student => student.option_id === formValue.option_id);
+    if (optionId !== null) {
+      filtered = filtered.filter(student => Number(student.option_id) === optionId);
     }
     
     return filtered;
+  }
+
+  private toNumberOrNull(value: any): number | null {
+    if (value === undefined || value === null || value === '') return null;
+    const n = Number(value);
+    return Number.isNaN(n) ? null : n;
   }
 
   /**
