@@ -127,10 +127,7 @@ class StatisticController extends Controller
      */
     private function getVilleStatistics(): array
     {
-        $villes = Ville::withCount([
-            'etudiants',
-            'etablissements'
-        ])->get();
+        $villes = DB::table('villes')->select('id', 'name')->get();
 
         $statistics = [];
         foreach ($villes as $ville) {
@@ -139,13 +136,14 @@ class StatisticController extends Controller
                 ->distinct('group_id')
                 ->count('group_id');
             
+            $nombreEtudiants = Etudiant::where('ville_id', $ville->id)->count();
+
             $statistics[] = [
                 'ville_id' => $ville->id,
                 'ville_name' => $ville->name,
-                'nombre_etudiants' => $ville->etudiants_count,
+                'nombre_etudiants' => $nombreEtudiants,
                 'nombre_groups' => $nombreGroups,
-                'nombre_etablissements' => $ville->etablissements_count,
-                'pourcentage_etudiants' => $this->calculatePercentage($ville->etudiants_count, Etudiant::count()),
+                'pourcentage_etudiants' => $this->calculatePercentage($nombreEtudiants, Etudiant::count()),
                 'pourcentage_groups' => $this->calculatePercentage($nombreGroups, Group::count()),
             ];
         }
@@ -253,29 +251,19 @@ class StatisticController extends Controller
     {
         $totalEtablissements = Etablissement::count();
         
-        // Établissements par ville
-        $etablissementsParVille = Etablissement::select('villes.name as ville_name', DB::raw('count(*) as count'))
-            ->join('villes', 'etablissements.ville_id', '=', 'villes.id')
-            ->groupBy('villes.id', 'villes.name')
-            ->orderBy('count', 'desc')
-            ->get();
-
         // Capacité des établissements (nombre d'étudiants)
         $capaciteEtablissements = Etablissement::select(
                 'etablissements.name as etablissement_name',
-                'villes.name as ville_name',
                 DB::raw('count(etudiants.id) as nombre_etudiants'),
                 DB::raw('count(distinct etudiants.group_id) as nombre_groups')
             )
             ->leftJoin('etudiants', 'etablissements.id', '=', 'etudiants.etablissement_id')
-            ->leftJoin('villes', 'etablissements.ville_id', '=', 'villes.id')
-            ->groupBy('etablissements.id', 'etablissements.name', 'villes.name')
+            ->groupBy('etablissements.id', 'etablissements.name')
             ->orderBy('nombre_etudiants', 'desc')
             ->get();
 
         return [
             'total' => $totalEtablissements,
-            'par_ville' => $etablissementsParVille,
             'capacite_detaille' => $capaciteEtablissements,
         ];
     }
@@ -460,11 +448,9 @@ class StatisticController extends Controller
         $densiteEtudiants = Ville::select(
                 'villes.name as ville_name',
                 DB::raw('count(etudiants.id) as nombre_etudiants'),
-                DB::raw('count(distinct etudiants.group_id) as nombre_groups'),
-                DB::raw('count(etablissements.id) as nombre_etablissements')
+                DB::raw('count(distinct etudiants.group_id) as nombre_groups')
             )
             ->leftJoin('etudiants', 'villes.id', '=', 'etudiants.ville_id')
-            ->leftJoin('etablissements', 'villes.id', '=', 'etablissements.ville_id')
             ->groupBy('villes.id', 'villes.name')
             ->orderBy('nombre_etudiants', 'desc')
             ->get();

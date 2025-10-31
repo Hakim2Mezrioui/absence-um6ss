@@ -25,11 +25,5 @@ class Ville extends Model
         return $this->hasMany(Group::class);
     }
 
-    /**
-     * Get the etablissements for the ville.
-     */
-    public function etablissements(): HasMany
-    {
-        return $this->hasMany(Etablissement::class);
-    }
+    // Relation vers etablissements supprimée: plus de FK ville_id sur etablissements
 }
