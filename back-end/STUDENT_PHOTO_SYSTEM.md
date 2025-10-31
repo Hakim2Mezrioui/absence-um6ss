@@ -112,7 +112,7 @@ Met à jour un étudiant avec une nouvelle photo optionnelle.
 
 Les photos sont accessibles via :
 ```
-http://127.0.0.1:8000/storage/photos/{matricule}_{timestamp}.{ext}
+http://10.0.244.100:8000/storage/photos/{matricule}_{timestamp}.{ext}
 ```
 
 Le chemin stocké en base de données est :

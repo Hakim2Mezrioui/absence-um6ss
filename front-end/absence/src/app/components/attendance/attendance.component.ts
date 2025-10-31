@@ -172,6 +172,10 @@ export class AttendanceComponent implements OnInit, OnDestroy {
           // Mettre à jour l'état de succès avec le nom de la ville
           this.biostarConfigStatus = 'success';
           this.biostarConfigMessage = `Configuration Biostar chargée pour la ville: ${response.data.ville?.name || 'Inconnue'}`;
+
+          // Ajuster l'offset d'affichage selon la ville (Rabat => pas d'ajout d'heure)
+          const villeName = (response.data.ville?.name || '').toString().trim().toLowerCase();
+          this.biostarTimeOffsetMinutes = villeName === 'rabat' ? 0 : 60;
           
           // Une seule notification de succès
           this.notificationService.success(
@@ -377,6 +381,12 @@ export class AttendanceComponent implements OnInit, OnDestroy {
           this.examTolerance = response.tolerance || 15;
           this.examId = response.examen_id || null;
           this.examData = response.examen || null;
+
+          // Ajuster l'offset d'affichage selon la ville de l'examen (Rabat => 0, sinon 60)
+          const villeName = (this.examData?.ville?.name || '').toString().trim().toLowerCase();
+          if (villeName) {
+            this.biostarTimeOffsetMinutes = villeName === 'rabat' ? 0 : 60;
+          }
           
           // Debug: Vérifier les données de l'examen
           console.log('🔍 Données de l\'examen:', this.examData);

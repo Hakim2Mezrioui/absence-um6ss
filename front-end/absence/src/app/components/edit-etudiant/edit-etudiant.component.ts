@@ -181,11 +181,11 @@ export class EditEtudiantComponent implements OnInit, OnDestroy {
         return etudiant.photo;
       } else if (etudiant.photo.startsWith('/storage/') || etudiant.photo.startsWith('storage/')) {
         const path = etudiant.photo.startsWith('/') ? etudiant.photo : '/' + etudiant.photo;
-        return `http://127.0.0.1:8000${path}`;
+        return `http://10.0.244.100:8000${path}`;
       } else if (etudiant.photo.startsWith('photos/')) {
-        return `http://127.0.0.1:8000/storage/${etudiant.photo}`;
+        return `http://10.0.244.100:8000/storage/${etudiant.photo}`;
       } else {
-        return `http://127.0.0.1:8000/storage/${etudiant.photo}`;
+        return `http://10.0.244.100:8000/storage/${etudiant.photo}`;
       }
     }
     return null;

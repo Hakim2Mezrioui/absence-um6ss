@@ -64,7 +64,7 @@ export interface DisponibiliteRequest {
   providedIn: 'root'
 })
 export class SallesService {
-  private baseUrl = 'http://127.0.0.1:8000/api/salles';
+  private baseUrl = 'http://10.0.244.100:8000/api/salles';
 
   constructor(private http: HttpClient) { }
 
@@ -143,6 +143,6 @@ export class SallesService {
    * Récupérer tous les établissements pour les formulaires
    */
   getEtablissements(): Observable<{etablissements: any[]; status: string}> {
-    return this.http.get<{etablissements: any[]; status: string}>('http://127.0.0.1:8000/api/etablissements');
+    return this.http.get<{etablissements: any[]; status: string}>('http://10.0.244.100:8000/api/etablissements');
   }
 }

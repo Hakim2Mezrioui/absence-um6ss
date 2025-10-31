@@ -193,7 +193,7 @@ export interface FilterOptions {
   providedIn: 'root'
 })
 export class DashboardService {
-  private readonly API_URL = 'http://127.0.0.1:8000/api';
+  private readonly API_URL = 'http://10.0.244.100:8000/api';
   private readonly STATISTICS_ENDPOINT = `${this.API_URL}/statistics`;
 
   constructor(private http: HttpClient) {}

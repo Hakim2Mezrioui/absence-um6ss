@@ -23,7 +23,7 @@ export interface VilleResponse {
   providedIn: 'root'
 })
 export class VilleService {
-  private readonly API_URL = 'http://127.0.0.1:8000/api';
+  private readonly API_URL = 'http://10.0.244.100:8000/api';
 
   constructor(
     private http: HttpClient,

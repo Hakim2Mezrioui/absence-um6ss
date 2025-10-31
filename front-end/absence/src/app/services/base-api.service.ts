@@ -7,7 +7,7 @@ import { UserContextService } from './user-context.service';
   providedIn: 'root'
 })
 export class BaseApiService {
-  protected readonly API_URL = 'http://127.0.0.1:8000/api';
+  protected readonly API_URL = 'http://10.0.244.100:8000/api';
 
   constructor(
     protected http: HttpClient,

@@ -83,8 +83,8 @@ export interface TypeExamen {
   providedIn: 'root'
 })
 export class ExamensService {
-  private apiUrl = 'http://127.0.0.1:8000/api/examens';
-  private typesExamenUrl = 'http://127.0.0.1:8000/api/types-examen';
+  private apiUrl = 'http://10.0.244.100:8000/api/examens';
+  private typesExamenUrl = 'http://10.0.244.100:8000/api/types-examen';
 
   constructor(private http: HttpClient) { }
 

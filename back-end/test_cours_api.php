@@ -1,7 +1,7 @@
 <?php
 
 // Test de l'API pour créer un cours
-$url = 'http://127.0.0.1:8000/api/cours';
+$url = 'http://10.0.244.100:8000/api/cours';
 $data = [
     'name' => 'Mathématiques - Analyse 1',
     'date' => '2024-01-15',
