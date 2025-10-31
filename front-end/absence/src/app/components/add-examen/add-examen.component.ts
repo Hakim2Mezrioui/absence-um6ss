@@ -125,12 +125,11 @@ export class AddExamenComponent implements OnInit, OnDestroy {
     if (this.currentUser) {
       // Déterminer le rôle utilisateur
       this.isSuperAdmin = this.currentUser.role_id === 1; // Super Admin
-      // Les rôles qui doivent avoir les champs pré-remplis et non modifiables
-      // role_id 2 = Admin, role_id 3 = Scolarité, role_id 4 = Doyen, role_id 6 = Enseignant
-      this.isAdminEtablissement = [2, 3, 4, 6].includes(this.currentUser.role_id);
+      // Seuls les Admins (role_id = 2) avec un établissement attribué sont bloqués
+      this.isAdminEtablissement = this.currentUser.role_id === 2 && !!this.currentUser.etablissement_id;
       
       // Déterminer si les champs doivent être désactivés
-      this.villeFieldDisabled = this.isAdminEtablissement;
+      this.villeFieldDisabled = this.isAdminEtablissement; // conserver le comportement existant si souhaité
       this.etablissementFieldDisabled = this.isAdminEtablissement;
       
       // Pré-remplir les champs pour les utilisateurs non-super-admin

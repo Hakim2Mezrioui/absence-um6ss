@@ -133,6 +133,14 @@ class ExamenController extends Controller
     }
 
     public function store(Request $request) {
+        // Enforce établissement for admin users with assigned établissement
+        $authUser = auth()->user();
+        if ($authUser && (int)($authUser->role_id) === 2 && !empty($authUser->etablissement_id)) {
+            $request->merge([
+                'etablissement_id' => $authUser->etablissement_id,
+            ]);
+        }
+
         // Build validation rules to support "Tous les groupes"
         $rules = [
             'title' => 'required|string|max:255',
@@ -206,6 +214,14 @@ class ExamenController extends Controller
     }
 
     public function update(Request $request, $id) {
+        // Enforce établissement for admin users with assigned établissement
+        $authUser = auth()->user();
+        if ($authUser && (int)($authUser->role_id) === 2 && !empty($authUser->etablissement_id)) {
+            $request->merge([
+                'etablissement_id' => $authUser->etablissement_id,
+            ]);
+        }
+
         // Build validation rules to support "Tous les groupes"
         $rules = [
             'title' => 'required|string|max:255',
