@@ -8,12 +8,12 @@
 }
 
 .overflow-y-auto::-webkit-scrollbar-thumb {
-  background: #4b5563;
+  background: #cbd5e1;
   border-radius: 2px;
 }
 
 .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-  background: #6b7280;
+  background: #94a3b8;
 }
 
 /* ===== ANIMATIONS PERSONNALISÉES ===== */

@@ -121,21 +121,16 @@ tbody tr:hover {
 }
 
 /* Responsive grid pour les cards */
-@media (max-width: 640px) {
-  .examens-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (min-width: 641px) and (max-width: 1024px) {
-  .examens-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 1025px) {
+/* 2 colonnes jusqu'à 1650px, puis 3 colonnes au-delà */
+@media (min-width: 1650px) {
   .examens-grid {
     grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1649px) {
+  .examens-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 

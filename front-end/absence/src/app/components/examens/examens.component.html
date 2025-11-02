@@ -159,7 +159,7 @@
     </div>
 
     <!-- Examens Cards -->
-    <div *ngIf="!loading && !error" class="examens-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div *ngIf="!loading && !error" class="examens-grid grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
       <div *ngFor="let examen of examens" class="examens-card bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden">
         <!-- Header de la card avec titre et statut -->
         <div class="p-6 border-b border-gray-100">
