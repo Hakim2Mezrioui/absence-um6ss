@@ -118,7 +118,7 @@ export interface AttendanceResponse {
   providedIn: 'root'
 })
 export class AttendanceService {
-  private apiUrl = `${environment.apiUrl}/etudiants/attendance`;
+  private readonly apiUrl = `${environment.apiUrl}/etudiants/attendance`;
 
   constructor(private http: HttpClient) {}
 

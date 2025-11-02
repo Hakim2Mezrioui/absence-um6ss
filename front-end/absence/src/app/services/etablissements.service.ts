@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 // Interface pour un établissement
 export interface Etablissement {
@@ -49,8 +50,8 @@ export interface CreateEtablissementRequest {
   providedIn: 'root'
 })
 export class EtablissementsService {
-  private baseUrl = 'http://10.0.244.100:8000/api/etablissements';
-  private villesUrl = 'http://10.0.244.100:8000/api/villes';
+  private readonly baseUrl = `${environment.apiUrl}/etablissements`;
+  private readonly villesUrl = `${environment.apiUrl}/villes`;
 
   constructor(private http: HttpClient) { }
 

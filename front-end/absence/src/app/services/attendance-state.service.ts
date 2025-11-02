@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface AttendanceState {
   etudiant_id: number;
@@ -38,7 +39,7 @@ export interface AttendanceStateInfo {
   providedIn: 'root'
 })
 export class AttendanceStateService {
-  private apiUrl = 'http://10.0.244.100:8000/api/attendance-states';
+  private readonly apiUrl = `${environment.apiUrl}/attendance-states`;
 
   constructor(private http: HttpClient) { }
 

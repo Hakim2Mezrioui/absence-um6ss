@@ -60,7 +60,7 @@ export interface RattrapageAttendanceData {
   providedIn: 'root'
 })
 export class RattrapageExportService {
-  private apiUrl = `${environment.apiUrl}/rattrapages`;
+  private readonly apiUrl = `${environment.apiUrl}/rattrapages`;
 
   constructor(private http: HttpClient) {}
 

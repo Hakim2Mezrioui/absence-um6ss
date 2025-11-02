@@ -4,6 +4,7 @@ import { Observable, BehaviorSubject } from 'rxjs';
 import { tap, catchError, map } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { AuthService } from './auth.service';
+import { environment } from '../../environments/environment';
 
 export interface UserProfile {
   id: number;
@@ -85,7 +86,7 @@ export interface ProfileUpdateData {
   providedIn: 'root'
 })
 export class ProfileService {
-  private readonly API_URL = 'http://10.0.244.100:8000/api';
+  private readonly API_URL = environment.apiUrl;
   private readonly PROFILE_ENDPOINT = `${this.API_URL}/users`;
   
   private currentUserSubject = new BehaviorSubject<UserProfile | null>(null);

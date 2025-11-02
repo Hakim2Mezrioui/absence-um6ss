@@ -5,6 +5,7 @@ import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 import { Router } from '@angular/router';
 import { EtudiantsService, Etudiant, EtudiantFilters, FilterOptions } from '../../services/etudiants.service';
 import { AuthService } from '../../services/auth.service';
+import { environment } from '../../../environments/environment';
 
 // Angular Material Imports
 import { MatTableModule } from '@angular/material/table';
@@ -261,7 +262,7 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
           console.error('Erreur lors du chargement des étudiants:', err);
           
           if (err.status === 0) {
-            this.error = 'Impossible de se connecter à l\'API. Vérifiez que Laravel est démarré sur http://10.0.244.100:8000';
+            this.error = `Impossible de se connecter à l'API. Vérifiez que Laravel est démarré sur ${environment.baseUrl}`;
           } else if (err.status === 404) {
             this.error = 'Endpoint API non trouvé. Vérifiez la route /api/etudiants dans Laravel';
           } else if (err.status === 500) {
@@ -810,14 +811,14 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
         url = etudiant.photo;
       } else if (etudiant.photo.startsWith('/storage/') || etudiant.photo.startsWith('storage/')) {
         const path = etudiant.photo.startsWith('/') ? etudiant.photo : '/' + etudiant.photo;
-        url = `http://10.0.244.100:8000${path}`;
+        url = `${environment.baseUrl}${path}`;
       } else if (etudiant.photo.startsWith('photos/')) {
-        url = `http://10.0.244.100:8000/storage/${etudiant.photo}`;
+        url = `${environment.baseUrl}/storage/${etudiant.photo}`;
       } else if (etudiant.photo.startsWith('/images/') || etudiant.photo.startsWith('images/')) {
         const path = etudiant.photo.startsWith('/') ? etudiant.photo : '/' + etudiant.photo;
-        url = `http://10.0.244.100:8000${path}`;
+        url = `${environment.baseUrl}${path}`;
       } else {
-        url = `http://10.0.244.100:8000/storage/${etudiant.photo}`;
+        url = `${environment.baseUrl}/storage/${etudiant.photo}`;
       }
       
       return url;

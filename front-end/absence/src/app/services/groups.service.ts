@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface Group {
   id: number;
@@ -49,7 +50,7 @@ export interface GroupCreateResponse {
   providedIn: 'root'
 })
 export class GroupsService {
-  private apiUrl = 'http://10.0.244.100:8000/api/groups';
+  private readonly apiUrl = `${environment.apiUrl}/groups`;
 
   constructor(private http: HttpClient) { }
 

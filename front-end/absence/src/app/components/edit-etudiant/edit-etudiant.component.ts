@@ -5,6 +5,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { Location } from '@angular/common';
 import { EtudiantsService, Etudiant, FilterOptions } from '../../services/etudiants.service';
+import { environment } from '../../../environments/environment';
 
 // Angular Material Imports
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -181,11 +182,11 @@ export class EditEtudiantComponent implements OnInit, OnDestroy {
         return etudiant.photo;
       } else if (etudiant.photo.startsWith('/storage/') || etudiant.photo.startsWith('storage/')) {
         const path = etudiant.photo.startsWith('/') ? etudiant.photo : '/' + etudiant.photo;
-        return `http://10.0.244.100:8000${path}`;
+        return `${environment.baseUrl}${path}`;
       } else if (etudiant.photo.startsWith('photos/')) {
-        return `http://10.0.244.100:8000/storage/${etudiant.photo}`;
+        return `${environment.baseUrl}/storage/${etudiant.photo}`;
       } else {
-        return `http://10.0.244.100:8000/storage/${etudiant.photo}`;
+        return `${environment.baseUrl}/storage/${etudiant.photo}`;
       }
     }
     return null;

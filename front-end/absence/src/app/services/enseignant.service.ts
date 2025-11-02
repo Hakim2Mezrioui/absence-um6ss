@@ -17,9 +17,12 @@ export interface Enseignant {
 
 @Injectable({ providedIn: 'root' })
 export class EnseignantService {
-  private baseUrl = `${environment.apiUrl}/enseignants`;
+  private readonly baseUrl = `${environment.apiUrl}/enseignants`;
 
-  constructor(private http: HttpClient, private auth: AuthService) {}
+  constructor(
+    private http: HttpClient,
+    private auth: AuthService
+  ) {}
 
   private getAuthHeaders(): { headers: HttpHeaders } {
     const token = this.auth.getToken();

@@ -6,6 +6,7 @@ import { CookieService } from './cookie.service';
 import { isPlatformBrowser } from '@angular/common';
 import { StartupService } from './startup.service';
 import { UserContextService } from './user-context.service';
+import { environment } from '../../environments/environment';
 
 // Interfaces pour les types de données
 export interface LoginRequest {
@@ -41,7 +42,7 @@ export interface Authorisation {
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly API_URL = 'http://10.0.244.100:8000/api';
+  private readonly API_URL = environment.apiUrl;
   private readonly LOGIN_ENDPOINT = `${this.API_URL}/login`;
   private platformId = inject(PLATFORM_ID);
 

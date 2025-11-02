@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface TypeExamen {
   id: number;
@@ -19,7 +20,7 @@ export interface TypeExamenResponse {
   providedIn: 'root'
 })
 export class TypesExamenService {
-  private apiUrl = 'http://10.0.244.100:8000/api/types-examen';
+  private readonly apiUrl = `${environment.apiUrl}/types-examen`;
 
   constructor(private http: HttpClient) { }
 

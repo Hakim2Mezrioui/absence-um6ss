@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 // Interface pour la salle
 export interface Salle {
@@ -64,7 +65,7 @@ export interface DisponibiliteRequest {
   providedIn: 'root'
 })
 export class SallesService {
-  private baseUrl = 'http://10.0.244.100:8000/api/salles';
+  private readonly baseUrl = `${environment.apiUrl}/salles`;
 
   constructor(private http: HttpClient) { }
 
@@ -143,6 +144,6 @@ export class SallesService {
    * Récupérer tous les établissements pour les formulaires
    */
   getEtablissements(): Observable<{etablissements: any[]; status: string}> {
-    return this.http.get<{etablissements: any[]; status: string}>('http://10.0.244.100:8000/api/etablissements');
+    return this.http.get<{etablissements: any[]; status: string}>(`${environment.apiUrl}/etablissements`);
   }
 }

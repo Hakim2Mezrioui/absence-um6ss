@@ -90,7 +90,7 @@ export interface AbsenceStatisticsResponse {
   providedIn: 'root'
 })
 export class AbsenceAutoService {
-  private apiUrl = `${environment.apiUrl}/absences/auto`;
+  private readonly apiUrl = `${environment.apiUrl}/absences/auto`;
 
   constructor(private http: HttpClient) {}
 

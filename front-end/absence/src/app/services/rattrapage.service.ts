@@ -45,7 +45,7 @@ export interface ApiResponse<T> {
 })
 export class RattrapageService {
   private http = inject(HttpClient);
-  private apiUrl = environment.apiUrl;
+  private readonly apiUrl = environment.apiUrl;
 
   // Etudiants
   getEtudiants(page: number = 1, perPage: number = 20, filters?: any): Observable<{

@@ -28,7 +28,7 @@ export interface ConnectionConfig {
   providedIn: 'root'
 })
 export class ConfigurationAutoService {
-  private apiUrl = `${environment.apiUrl}/configuration`;
+  private readonly apiUrl = `${environment.apiUrl}/configuration`;
   private currentConfigurationSubject = new BehaviorSubject<Configuration | null>(null);
   private currentConnectionConfigSubject = new BehaviorSubject<ConnectionConfig | null>(null);
 

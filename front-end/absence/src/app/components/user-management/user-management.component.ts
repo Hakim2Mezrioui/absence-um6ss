@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 interface User {
   id: number;
@@ -105,11 +106,9 @@ export class UserManagementComponent implements OnInit {
     confirm_password: ''
   };
   
-  private apiUrl = 'http://10.0.244.100:8000/api';
+  private readonly apiUrl = environment.apiUrl;
 
-  constructor(
-    private http: HttpClient
-  ) {}
+  constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
     this.loadFormOptions();

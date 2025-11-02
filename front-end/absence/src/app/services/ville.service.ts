@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { AuthService } from './auth.service';
+import { environment } from '../../environments/environment';
 
 export interface Ville {
   id: number;
@@ -23,7 +24,7 @@ export interface VilleResponse {
   providedIn: 'root'
 })
 export class VilleService {
-  private readonly API_URL = 'http://10.0.244.100:8000/api';
+  private readonly API_URL = environment.apiUrl;
 
   constructor(
     private http: HttpClient,

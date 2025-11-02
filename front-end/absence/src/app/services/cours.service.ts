@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { BaseApiService } from './base-api.service';
 import { UserContextService } from './user-context.service';
+import { environment } from '../../environments/environment';
 
 export interface Cours {
   id: number;
@@ -84,7 +85,7 @@ export interface TypeCours {
   providedIn: 'root'
 })
 export class CoursService extends BaseApiService {
-  private typesCoursUrl = 'http://10.0.244.100:8000/api/types-cours';
+  private readonly typesCoursUrl = `${environment.apiUrl}/types-cours`;
 
   constructor(http: HttpClient, userContextService: UserContextService) {
     super(http, userContextService);

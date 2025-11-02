@@ -36,7 +36,7 @@ export interface BiostarAttendanceResponse {
   providedIn: 'root'
 })
 export class BiostarAttendanceService {
-  private apiUrl = `${environment.apiUrl}/biostar-attendance`;
+  private readonly apiUrl = `${environment.apiUrl}/biostar-attendance`;
 
   constructor(private http: HttpClient) {}
 
