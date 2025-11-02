@@ -290,7 +290,16 @@
                   <div class="text-sm text-gray-600 space-y-1">
                     <div>Date: {{ formatDate(absence.examen?.date || '') }}</div>
                     <div>Horaires: {{ formatTime(absence.examen?.heure_debut || '') }} - {{ formatTime(absence.examen?.heure_fin || '') }}</div>
-                    <div *ngIf="absence.examen?.salle?.name">Salle: {{ absence.examen.salle?.name }}</div>
+                    <div *ngIf="absence.examen">
+                      <div *ngIf="getExamSalles(absence.examen).length > 0">
+                        <div class="font-medium">Salle<span *ngIf="getExamSalles(absence.examen).length > 1">s</span>:</div>
+                        <div class="flex flex-wrap gap-1 mt-1">
+                          <span *ngFor="let salle of getExamSalles(absence.examen)" class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-teal-100 text-teal-800 border border-teal-200">
+                            {{ salle.name }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

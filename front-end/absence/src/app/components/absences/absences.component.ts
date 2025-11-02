@@ -291,6 +291,22 @@ export class AbsencesComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Obtenir toutes les salles d'un examen (support pour salles multiples)
+   */
+  getExamSalles(examen: any): { id: number; name: string }[] {
+    // Priorité au tableau salles[] si disponible
+    if (examen?.salles && examen.salles.length > 0) {
+      return examen.salles;
+    }
+    // Fallback sur salle unique pour compatibilité avec les anciens examens
+    if (examen?.salle) {
+      return [examen.salle];
+    }
+    // Aucune salle trouvée
+    return [];
+  }
+
+  /**
    * Formater la date et l'heure
    */
   formatDateTime(dateString: string): string {

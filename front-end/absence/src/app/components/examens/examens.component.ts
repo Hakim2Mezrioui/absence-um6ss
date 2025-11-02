@@ -397,6 +397,20 @@ export class ExamensComponent implements OnInit, OnDestroy {
     return title ? title : 'Tous';
   }
 
+  // Obtenir toutes les salles d'un examen (support pour salles multiples)
+  getSalles(examen: Examen): { id: number; name: string }[] {
+    // Priorité au tableau salles[] si disponible
+    if (examen.salles && examen.salles.length > 0) {
+      return examen.salles;
+    }
+    // Fallback sur salle unique pour compatibilité avec les anciens examens
+    if (examen.salle) {
+      return [examen.salle];
+    }
+    // Aucune salle trouvée
+    return [];
+  }
+
   // Méthode pour calculer la durée de l'examen
   calculateDuration(heureDebut: string, heureFin: string): string {
     if (!heureDebut || !heureFin) return '';

@@ -270,6 +270,20 @@ export class ExamensArchivedComponent implements OnInit, OnDestroy {
     return Math.min(a, b);
   }
 
+  // Obtenir toutes les salles d'un examen (support pour salles multiples)
+  getSalles(examen: Examen): { id: number; name: string }[] {
+    // Priorité au tableau salles[] si disponible
+    if (examen.salles && examen.salles.length > 0) {
+      return examen.salles;
+    }
+    // Fallback sur salle unique pour compatibilité avec les anciens examens
+    if (examen.salle) {
+      return [examen.salle];
+    }
+    // Aucune salle trouvée
+    return [];
+  }
+
   // Libellé du groupe à afficher pour une card d'examen
   getGroupLabel(examen: Examen): string {
     // Certaines APIs renvoient group.title, d'autres group.name

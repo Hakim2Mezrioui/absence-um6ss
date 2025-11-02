@@ -377,7 +377,19 @@ export class AttendanceComponent implements OnInit, OnDestroy {
           this.examPunchStartTime = response.heure_debut_poigntage || '';
           this.examStartTime = response.heure_debut;
           this.examEndTime = response.heure_fin;
-          this.examSalle = response.salle || 'N/A';
+          // Gérer les salles multiples depuis response.examen si disponible
+          if (response.examen) {
+            const examen = response.examen;
+            if (examen.salles && examen.salles.length > 0) {
+              this.examSalle = examen.salles.map((s: any) => s.name).join(', ');
+            } else if (examen.salle?.name) {
+              this.examSalle = examen.salle.name;
+            } else {
+              this.examSalle = response.salle || 'N/A';
+            }
+          } else {
+            this.examSalle = response.salle || 'N/A';
+          }
           this.examTolerance = response.tolerance || 15;
           this.examId = response.examen_id || null;
           this.examData = response.examen || null;
@@ -446,7 +458,15 @@ export class AttendanceComponent implements OnInit, OnDestroy {
               this.examPunchStartTime = err.error.examen.heure_debut_poigntage || '';
               this.examStartTime = err.error.examen.heure_debut || '';
               this.examEndTime = err.error.examen.heure_fin || '';
-              this.examSalle = err.error.examen.salle?.name || 'N/A';
+              // Gérer les salles multiples
+              const examen = err.error.examen;
+              if (examen.salles && examen.salles.length > 0) {
+                this.examSalle = examen.salles.map((s: any) => s.name).join(', ');
+              } else if (examen.salle?.name) {
+                this.examSalle = examen.salle.name;
+              } else {
+                this.examSalle = 'N/A';
+              }
               this.examTolerance = err.error.examen.tolerance || 15;
               this.examId = err.error.examen.id || null;
               

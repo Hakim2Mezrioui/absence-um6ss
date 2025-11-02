@@ -84,6 +84,10 @@ export interface AttendanceResponse {
       id: number;
       name: string;
     };
+    salles?: {
+      id: number;
+      name: string;
+    }[];
     promotion?: {
       id: number;
       name: string;
