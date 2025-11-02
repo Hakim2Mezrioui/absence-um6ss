@@ -29,6 +29,7 @@ export class AddExamenComponent implements OnInit, OnDestroy {
   salles: any[] = [];
   allSalles: any[] = []; // Garder une copie de toutes les salles
   filteredSalles: any[] = [];
+  selectedSalles: any[] = [];
   options: any[] = [];
   groups: any[] = [];
   villes: any[] = [];
@@ -40,6 +41,7 @@ export class AddExamenComponent implements OnInit, OnDestroy {
   showAddSalleModal = false;
   newSalleForm: FormGroup;
   salleDropdownOpen = false;
+  multiSallesOpen: boolean = false;
   
   // User context and role management
   currentUser: User | null = null;
@@ -78,8 +80,9 @@ export class AddExamenComponent implements OnInit, OnDestroy {
       etablissement_id: ['', Validators.required],
       promotion_id: ['', Validators.required],
       option_id: [''],
-      salle_id: ['', Validators.required],
-      group_id: ['', Validators.required],
+      salle_id: [''], // Déprécié, gardé pour compatibilité
+      salles_ids: [[], Validators.required], // Au moins une salle requise
+      group_id: [''], // Permet null pour "Tous"
       ville_id: ['', Validators.required],
       annee_universitaire: ['', Validators.required],
       all_groups: [false]
@@ -387,11 +390,17 @@ export class AddExamenComponent implements OnInit, OnDestroy {
       // Mettre à jour les salles filtrées
       this.updateFilteredSalles();
       
-      // Réinitialiser la sélection de salle si elle n'appartient pas au nouvel établissement/ville
-      const currentSalleId = this.examenForm.get('salle_id')?.value;
-      if (currentSalleId && !this.salles.find(s => s.id === currentSalleId)) {
-        this.examenForm.patchValue({ salle_id: '' });
-        console.log('🔄 Sélection de salle réinitialisée');
+      // Réinitialiser la sélection de salles si elles n'appartiennent pas au nouvel établissement/ville
+      const currentSallesIds = this.examenForm.get('salles_ids')?.value || [];
+      if (currentSallesIds.length > 0) {
+        const validSalles = currentSallesIds.filter((id: any) => 
+          this.salles.find(s => s.id === id)
+        );
+        if (validSalles.length !== currentSallesIds.length) {
+          this.examenForm.patchValue({ salles_ids: validSalles });
+          this.selectedSalles = this.salles.filter(s => validSalles.includes(s.id));
+          console.log('🔄 Sélection de salles réinitialisée');
+        }
       }
     }
   }
@@ -635,6 +644,39 @@ export class AddExamenComponent implements OnInit, OnDestroy {
     this.closeSalleDropdown();
   }
 
+  toggleSalleSelection(salle: any): void {
+    const index = this.selectedSalles.findIndex(s => s.id === salle.id);
+    if (index >= 0) {
+      // Désélectionner
+      this.selectedSalles.splice(index, 1);
+    } else {
+      // Sélectionner
+      this.selectedSalles.push(salle);
+    }
+    // Mettre à jour le formulaire
+    const sallesIds = this.selectedSalles.map(s => s.id);
+    this.examenForm.patchValue({ salles_ids: sallesIds });
+    // Garder salle_id pour compatibilité (première salle)
+    if (sallesIds.length > 0) {
+      this.examenForm.patchValue({ salle_id: sallesIds[0] });
+    }
+  }
+
+  isSalleSelected(salle: any): boolean {
+    return this.selectedSalles.some(s => s.id === salle.id);
+  }
+
+  removeSalle(salle: any): void {
+    this.selectedSalles = this.selectedSalles.filter(s => s.id !== salle.id);
+    const sallesIds = this.selectedSalles.map(s => s.id);
+    this.examenForm.patchValue({ salles_ids: sallesIds });
+    if (sallesIds.length > 0) {
+      this.examenForm.patchValue({ salle_id: sallesIds[0] });
+    } else {
+      this.examenForm.patchValue({ salle_id: '' });
+    }
+  }
+
   getSalleName(id: number | string): string {
     const numericId = Number(id);
     const found = (this.salles || []).find((s: any) => Number(s?.id) === numericId);
@@ -673,7 +715,16 @@ export class AddExamenComponent implements OnInit, OnDestroy {
             this.allSalles = [created, ...this.allSalles];
             this.salles = [created, ...this.salles];
             this.updateFilteredSalles();
-            this.examenForm.patchValue({ salle_id: created.id });
+            // Ajouter à la sélection multiple
+            if (!this.isSalleSelected(created)) {
+              this.selectedSalles.push(created);
+            }
+            const sallesIds = this.selectedSalles.map(s => s.id);
+            this.examenForm.patchValue({ salles_ids: sallesIds });
+            // Garder salle_id pour compatibilité
+            if (sallesIds.length > 0) {
+              this.examenForm.patchValue({ salle_id: sallesIds[0] });
+            }
             this.notificationService.success('Salle créée', 'La salle a été ajoutée et sélectionnée');
           } else {
             this.notificationService.success('Salle créée', 'La salle a été créée mais n\'est pas visible pour cet établissement');
@@ -722,9 +773,20 @@ export class AddExamenComponent implements OnInit, OnDestroy {
         console.log('🔒 Établissement ID inclus depuis le champ désactivé:', formData.etablissement_id);
       }
       
-      if (formData.group_id === 'ALL') {
+      // Gérer les salles multiples
+      if (formData.salles_ids && formData.salles_ids.length > 0) {
+        // Conversion en nombres si nécessaire
+        formData.salles_ids = formData.salles_ids.map((id: any) => parseInt(id));
+      } else if (formData.salle_id) {
+        // Fallback sur salle_id si salles_ids vide
+        formData.salles_ids = [parseInt(formData.salle_id)];
+      }
+      
+      if (formData.group_id === 'ALL' || formData.group_id === '' || formData.group_id === null) {
         formData.all_groups = true;
         formData.group_id = null;
+      } else if (formData.group_id) {
+        formData.group_id = parseInt(formData.group_id);
       }
       
       // Validation de la date et heure
