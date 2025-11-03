@@ -276,4 +276,41 @@ class BiostarAttendanceController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get Biostar devices (requires ville_id to resolve connection)
+     */
+    public function getDevices(Request $request): JsonResponse
+    {
+        try {
+            $villeId = $request->get('ville_id');
+            if (!$villeId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Ville ID is required'
+                ], 400);
+            }
+
+            $configResult = $this->configurationService->getConnectionConfigForVille($villeId);
+            if (isset($configResult['error'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Configuration not found for ville'
+                ], 404);
+            }
+
+            $devices = $this->biostarAttendanceService->getDevices($configResult);
+
+            return response()->json([
+                'success' => true,
+                'devices' => $devices,
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error retrieving devices: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

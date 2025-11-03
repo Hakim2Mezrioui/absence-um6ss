@@ -40,6 +40,9 @@ class SalleController extends Controller
             'etablissement_id' => 'required|exists:etablissements,id',
             'capacite' => 'nullable|integer|min:1',
             'description' => 'nullable|string|max:500',
+            'devices' => 'required|array|min:1',
+            'devices.*.devid' => 'required',
+            'devices.*.devnm' => 'required|string',
         ]);
 
         $salle = $this->salleService->createSalle($request->all());
@@ -83,6 +86,9 @@ class SalleController extends Controller
             'etablissement_id' => 'required|exists:etablissements,id',
             'capacite' => 'nullable|integer|min:1',
             'description' => 'nullable|string|max:500',
+            'devices' => 'required|array|min:1',
+            'devices.*.devid' => 'required',
+            'devices.*.devnm' => 'required|string',
         ]);
 
         $salle = $this->salleService->updateSalle($id, $request->all());

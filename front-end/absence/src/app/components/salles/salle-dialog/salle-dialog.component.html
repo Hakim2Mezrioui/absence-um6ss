@@ -54,6 +54,67 @@
         </mat-error>
       </mat-form-field>
 
+      <!-- Devices Biostar (obligatoire) -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Devices Biostar</mat-label>
+        <div class="devices-container" [class.disabled]="!villeControl?.value">
+          <!-- Search input -->
+          <mat-form-field appearance="outline" class="search-field" *ngIf="villeControl?.value && !devicesLoading">
+            <input matInput 
+                   type="text" 
+                   placeholder="Rechercher un device..." 
+                   [value]="deviceSearch"
+                   (input)="onSearchInput($any($event.target).value)">
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+
+          <!-- Loading state -->
+          <div *ngIf="devicesLoading" class="devices-loading">
+            <mat-icon>hourglass_empty</mat-icon>
+            <span>Chargement des devices...</span>
+          </div>
+
+          <!-- Error state -->
+          <div *ngIf="devicesError && !devicesLoading" class="devices-error">
+            <mat-icon>error_outline</mat-icon>
+            <span>{{ devicesError }}</span>
+          </div>
+
+          <!-- Empty state -->
+          <div *ngIf="!devicesLoading && !devicesError && biostarDevices.length === 0 && villeControl?.value" class="devices-empty">
+            <mat-icon>info_outline</mat-icon>
+            <span>Aucun device disponible pour cette ville</span>
+          </div>
+
+          <!-- No city selected -->
+          <div *ngIf="!villeControl?.value" class="devices-empty">
+            <mat-icon>location_off</mat-icon>
+            <span>Sélectionnez d'abord une ville</span>
+          </div>
+
+          <!-- Devices checkbox list -->
+          <div *ngIf="!devicesLoading && !devicesError && villeControl?.value" class="devices-list">
+            <mat-checkbox 
+              *ngFor="let device of filteredBiostarDevices" 
+              [checked]="isDeviceSelected(device)"
+              (change)="toggleDevice(device)"
+              class="device-checkbox">
+              <span>{{ device.devnm }}</span> <span class="device-id">(ID: {{ device.devid }})</span>
+            </mat-checkbox>
+            
+            <div *ngIf="filteredBiostarDevices.length === 0 && deviceSearch.trim()" class="devices-no-match">
+              <mat-icon>search_off</mat-icon>
+              <span>Aucun device trouvé pour "{{ deviceSearch }}"</span>
+            </div>
+          </div>
+        </div>
+        <mat-icon matSuffix>devices</mat-icon>
+        <mat-hint>Sélectionnez les devices autorisés pour cette salle</mat-hint>
+        <mat-error *ngIf="devicesControl?.hasError('required') && devicesControl?.touched">
+          Au moins un device est obligatoire
+        </mat-error>
+      </mat-form-field>
+
       <!-- Bâtiment et Étage -->
       <div class="form-row">
         <mat-form-field appearance="outline">

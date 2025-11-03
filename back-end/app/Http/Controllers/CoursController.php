@@ -565,6 +565,66 @@ class CoursController extends Controller
                 $biostarResults = [];
             }
             
+            // Filtrer par devices autorisés de la salle (si définis)
+            if ($cours && $cours->salle && is_array($cours->salle->devices) && count($cours->salle->devices) > 0) {
+                $beforeCount = is_array($biostarResults) ? count($biostarResults) : 0;
+                $allowedDeviceIds = [];
+                $allowedDeviceNames = [];
+                
+                foreach ($cours->salle->devices as $d) {
+                    if (is_array($d)) {
+                        // Extraire devid et devnm
+                        if (isset($d['devid'])) {
+                            $allowedDeviceIds[] = (string)$d['devid'];
+                        }
+                        if (isset($d['devnm'])) {
+                            $allowedDeviceNames[] = (string)$d['devnm'];
+                        }
+                    }
+                }
+                
+                // Normaliser les noms pour comparaison case-insensitive
+                $allowedDeviceNames = array_map(function($name) {
+                    return strtolower(trim((string)$name));
+                }, $allowedDeviceNames);
+                
+                $allowedDeviceIds = array_values(array_unique(array_filter($allowedDeviceIds)));
+                $allowedDeviceNames = array_values(array_unique(array_filter($allowedDeviceNames)));
+                
+                if (!empty($allowedDeviceIds) || !empty($allowedDeviceNames)) {
+                    $biostarResults = array_values(array_filter($biostarResults, function($row) use ($allowedDeviceIds, $allowedDeviceNames) {
+                        // Match par devid (prioritaire)
+                        if (!empty($allowedDeviceIds)) {
+                            $punchDevId = isset($row['devid']) ? (string)$row['devid'] : null;
+                            if ($punchDevId && in_array($punchDevId, $allowedDeviceIds, true)) {
+                                return true;
+                            }
+                        }
+                        // Match par nom (fallback) - punchlog utilise devnm (pas devmam)
+                        if (!empty($allowedDeviceNames)) {
+                            $punchName = $row['devnm'] ?? ($row['device_name'] ?? ($row['name'] ?? null));
+                            if ($punchName) {
+                                $normalizedPunchName = strtolower(trim((string)$punchName));
+                                if (in_array($normalizedPunchName, $allowedDeviceNames, true)) {
+                                    return true;
+                                }
+                            }
+                        }
+                        return false;
+                    }));
+                    $afterCount = count($biostarResults);
+                    \Log::info('Biostar device filtering applied (cours)', [
+                        'allowed_device_ids' => $allowedDeviceIds,
+                        'allowed_device_names' => $allowedDeviceNames,
+                        'before' => $beforeCount,
+                        'after' => $afterCount,
+                        'ignored' => max(0, $beforeCount - $afterCount),
+                        'cours_id' => $cours->id,
+                        'sample_punchlog_devices' => array_slice(array_unique(array_column(array_slice($biostarResults, 0, 10), 'devnm')), 0, 5)
+                    ]);
+                }
+            }
+            
             // Fetch students from the local database with relations
             $query = \App\Models\Etudiant::with(['ville', 'group', 'option', 'etablissement', 'promotion']);
             
@@ -793,7 +853,7 @@ class CoursController extends Controller
         if ($studentPunch) {
             return [
                 'time' => $studentPunch['bsevtdt'],
-                'device' => $studentPunch['devnm']
+                'device' => ($studentPunch['devnm'] ?? ($studentPunch['device_name'] ?? ($studentPunch['name'] ?? 'Inconnu')))
             ];
         }
         
@@ -805,7 +865,7 @@ class CoursController extends Controller
                 \Log::info("Match trouvé avec suppression des zéros: '$matricule' → '$matriculeTrimmed'");
                 return [
                     'time' => $studentPunch['bsevtdt'],
-                    'device' => $studentPunch['devnm']
+                    'device' => ($studentPunch['devnm'] ?? ($studentPunch['device_name'] ?? ($studentPunch['name'] ?? 'Inconnu')))
                 ];
             }
         }
@@ -818,7 +878,7 @@ class CoursController extends Controller
                 \Log::info("Match trouvé avec ajout de zéros: '$matricule' → '$matriculePadded'");
                 return [
                     'time' => $studentPunch['bsevtdt'],
-                    'device' => $studentPunch['devnm']
+                    'device' => ($studentPunch['devnm'] ?? ($studentPunch['device_name'] ?? ($studentPunch['name'] ?? 'Inconnu')))
                 ];
             }
         }
@@ -831,7 +891,7 @@ class CoursController extends Controller
             \Log::info("Match trouvé avec recherche partielle: '$matricule' contenu dans '{$studentPunch['user_id']}'");
             return [
                 'time' => $studentPunch['bsevtdt'],
-                'device' => $studentPunch['devnm']
+                'device' => ($studentPunch['devnm'] ?? ($studentPunch['device_name'] ?? ($studentPunch['name'] ?? 'Inconnu')))
             ];
         }
         
@@ -843,7 +903,7 @@ class CoursController extends Controller
             \Log::info("Match trouvé avec recherche inverse: '{$studentPunch['user_id']}' contenu dans '$matricule'");
             return [
                 'time' => $studentPunch['bsevtdt'],
-                'device' => $studentPunch['devnm']
+                'device' => ($studentPunch['devnm'] ?? ($studentPunch['device_name'] ?? ($studentPunch['name'] ?? 'Inconnu')))
             ];
         }
         

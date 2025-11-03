@@ -103,7 +103,7 @@ class EtudiantController extends Controller
         $heure2 = $request->input('hour2', '10:00'); // Default end time if not provided
         
         // Récupérer l'heure de début de pointage et la salle depuis l'examen correspondant
-        $examen = \App\Models\Examen::with(['salle', 'promotion', 'etablissement', 'ville', 'typeExamen', 'option'])
+        $examen = \App\Models\Examen::with(['salle', 'salles', 'promotion', 'etablissement', 'ville', 'typeExamen', 'option'])
             ->where('date', $date)
             ->where('heure_debut', $heure1)
             ->where('heure_fin', $heure2)
@@ -229,6 +229,85 @@ class EtudiantController extends Controller
             // Fetch the results
             $biostarResults = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
+            // Filtrer par devices autorisés de la/les salle(s) s'ils sont définis
+            if ($examen) {
+                $beforeCount = is_array($biostarResults) ? count($biostarResults) : 0;
+                $allowedDeviceIds = [];
+                $allowedDeviceNames = [];
+                
+                // Priorité: relation 'salles' si présente (multi-salles), sinon 'salle'
+                if (method_exists($examen, 'salles') && $examen->relationLoaded('salles') && $examen->salles && $examen->salles->isNotEmpty()) {
+                    foreach ($examen->salles as $salle) {
+                        if (is_array($salle->devices)) {
+                            foreach ($salle->devices as $d) {
+                                if (is_array($d)) {
+                                    // Extraire devid et devnm
+                                    if (isset($d['devid'])) {
+                                        $allowedDeviceIds[] = (string)$d['devid'];
+                                    }
+                                    if (isset($d['devnm'])) {
+                                        $allowedDeviceNames[] = (string)$d['devnm'];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } elseif ($examen->salle && is_array($examen->salle->devices)) {
+                    foreach ($examen->salle->devices as $d) {
+                        if (is_array($d)) {
+                            // Extraire devid et devnm
+                            if (isset($d['devid'])) {
+                                $allowedDeviceIds[] = (string)$d['devid'];
+                            }
+                            if (isset($d['devnm'])) {
+                                $allowedDeviceNames[] = (string)$d['devnm'];
+                            }
+                        }
+                    }
+                }
+                
+                // Normaliser les noms pour comparaison case-insensitive
+                $allowedDeviceNames = array_map(function($name) {
+                    return strtolower(trim((string)$name));
+                }, $allowedDeviceNames);
+                
+                $allowedDeviceIds = array_values(array_unique(array_filter($allowedDeviceIds)));
+                $allowedDeviceNames = array_values(array_unique(array_filter($allowedDeviceNames)));
+                
+                if (!empty($allowedDeviceIds) || !empty($allowedDeviceNames)) {
+                    $biostarResults = array_values(array_filter($biostarResults, function($row) use ($allowedDeviceIds, $allowedDeviceNames) {
+                        // Match par devid (prioritaire)
+                        if (!empty($allowedDeviceIds)) {
+                            $punchDevId = isset($row['devid']) ? (string)$row['devid'] : null;
+                            if ($punchDevId && in_array($punchDevId, $allowedDeviceIds, true)) {
+                                return true;
+                            }
+                        }
+                        // Match par nom (fallback) - punchlog utilise devnm (pas devmam)
+                        if (!empty($allowedDeviceNames)) {
+                            $punchName = $row['devnm'] ?? ($row['device_name'] ?? ($row['name'] ?? null));
+                            if ($punchName) {
+                                $normalizedPunchName = strtolower(trim((string)$punchName));
+                                if (in_array($normalizedPunchName, $allowedDeviceNames, true)) {
+                                    return true;
+                                }
+                            }
+                        }
+                        return false;
+                    }));
+                    $afterCount = count($biostarResults);
+                    \Log::info('Biostar device filtering applied (examen)', [
+                        'allowed_device_ids' => $allowedDeviceIds,
+                        'allowed_device_names' => $allowedDeviceNames,
+                        'before' => $beforeCount,
+                        'after' => $afterCount,
+                        'ignored' => max(0, $beforeCount - $afterCount),
+                        'examen_id' => $examen->id,
+                        'sample_punchlog_devices' => array_slice(array_unique(array_column(array_slice($biostarResults, 0, 10), 'devnm')), 0, 5)
+                    ]);
+                }
+            }
+
             // Debug: Log des résultats Biostar
             \Log::info("Résultats Biostar récupérés:", [
                 'nombre_pointages' => count($biostarResults),
@@ -534,7 +613,7 @@ class EtudiantController extends Controller
             $studentPunch = $pickLatest($matches);
             return [
                 'time' => $studentPunch['bsevtdt'] ?? $studentPunch['punch_time'],
-                'device' => $studentPunch['devnm'] ?? $studentPunch['device'] ?? $studentPunch['device_name'] ?? 'Inconnu'
+                'device' => ($studentPunch['devnm'] ?? ($studentPunch['device'] ?? ($studentPunch['device_name'] ?? ($studentPunch['name'] ?? 'Inconnu'))))
             ];
         }
 
@@ -549,7 +628,7 @@ class EtudiantController extends Controller
                 $studentPunch = $pickLatest($matches);
                 return [
                     'time' => $studentPunch['bsevtdt'] ?? $studentPunch['punch_time'],
-                    'device' => $studentPunch['devnm'] ?? $studentPunch['device'] ?? $studentPunch['device_name'] ?? 'Inconnu'
+                    'device' => ($studentPunch['devnm'] ?? ($studentPunch['device'] ?? ($studentPunch['device_name'] ?? ($studentPunch['name'] ?? 'Inconnu'))))
                 ];
             }
         }
@@ -565,7 +644,7 @@ class EtudiantController extends Controller
                 $studentPunch = $pickLatest($matches);
                 return [
                     'time' => $studentPunch['bsevtdt'] ?? $studentPunch['punch_time'],
-                    'device' => $studentPunch['devnm'] ?? $studentPunch['device'] ?? $studentPunch['device_name'] ?? 'Inconnu'
+                    'device' => ($studentPunch['devnm'] ?? ($studentPunch['device'] ?? ($studentPunch['device_name'] ?? ($studentPunch['name'] ?? 'Inconnu'))))
                 ];
             }
         }
@@ -579,7 +658,7 @@ class EtudiantController extends Controller
             \Log::info("Match trouvé avec recherche partielle (dernier conservé): '$matricule'");
             return [
                 'time' => $studentPunch['bsevtdt'] ?? $studentPunch['punch_time'],
-                'device' => $studentPunch['devnm'] ?? $studentPunch['device'] ?? $studentPunch['device_name'] ?? 'Inconnu'
+                'device' => ($studentPunch['devnm'] ?? ($studentPunch['device'] ?? ($studentPunch['device_name'] ?? ($studentPunch['name'] ?? 'Inconnu'))))
             ];
         }
 
@@ -592,7 +671,7 @@ class EtudiantController extends Controller
             \Log::info("Match trouvé avec recherche inverse (dernier conservé)");
             return [
                 'time' => $studentPunch['bsevtdt'] ?? $studentPunch['punch_time'],
-                'device' => $studentPunch['devnm'] ?? $studentPunch['device'] ?? $studentPunch['device_name'] ?? 'Inconnu'
+                'device' => ($studentPunch['devnm'] ?? ($studentPunch['device'] ?? ($studentPunch['device_name'] ?? ($studentPunch['name'] ?? 'Inconnu'))))
             ];
         }
 

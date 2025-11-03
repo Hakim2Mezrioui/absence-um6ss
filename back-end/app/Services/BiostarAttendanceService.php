@@ -14,8 +14,12 @@ class BiostarAttendanceService
     public function getAttendanceData($config, $date, $startTime = null, $endTime = null, $studentIds = null)
     {
         try {
-            // Create PDO connection
-            $pdo = new PDO($config['dsn'], $config['username'], $config['password']);
+            // Create PDO connection with defensive DSN (LoginTimeout) if possible
+            $dsn = $config['dsn'];
+            if (strpos($dsn, 'LoginTimeout=') === false) {
+                $dsn .= (str_contains($dsn, ';') ? '' : ';') . 'LoginTimeout=3';
+            }
+            $pdo = new PDO($dsn, $config['username'], $config['password']);
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
             // Build query
@@ -86,7 +90,7 @@ class BiostarAttendanceService
             ];
 
         } catch (PDOException $e) {
-            throw new \Exception('Database error: ' . $e->getMessage());
+            throw new \Exception('Database error while fetching attendance: ' . $e->getMessage());
         } catch (\Exception $e) {
             throw new \Exception('Error retrieving attendance data: ' . $e->getMessage());
         }
@@ -98,7 +102,11 @@ class BiostarAttendanceService
     public function testConnection($config)
     {
         try {
-            $pdo = new PDO($config['dsn'], $config['username'], $config['password']);
+            $dsn = $config['dsn'];
+            if (strpos($dsn, 'LoginTimeout=') === false) {
+                $dsn .= (str_contains($dsn, ';') ? '' : ';') . 'LoginTimeout=3';
+            }
+            $pdo = new PDO($dsn, $config['username'], $config['password']);
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
             // Test query
@@ -142,7 +150,11 @@ class BiostarAttendanceService
     public function getStatistics($config, $date)
     {
         try {
-            $pdo = new PDO($config['dsn'], $config['username'], $config['password']);
+            $dsn = $config['dsn'];
+            if (strpos($dsn, 'LoginTimeout=') === false) {
+                $dsn .= (str_contains($dsn, ';') ? '' : ';') . 'LoginTimeout=3';
+            }
+            $pdo = new PDO($dsn, $config['username'], $config['password']);
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
             // Get total punches for the date
@@ -188,7 +200,11 @@ class BiostarAttendanceService
     public function getPunchDataForStudents($config, $studentIds, $date, $startTime = null, $endTime = null)
     {
         try {
-            $pdo = new PDO($config['dsn'], $config['username'], $config['password']);
+            $dsn = $config['dsn'];
+            if (strpos($dsn, 'LoginTimeout=') === false) {
+                $dsn .= (str_contains($dsn, ';') ? '' : ';') . 'LoginTimeout=3';
+            }
+            $pdo = new PDO($dsn, $config['username'], $config['password']);
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
             if (empty($studentIds)) {
@@ -240,6 +256,35 @@ class BiostarAttendanceService
             throw new \Exception('Database error: ' . $e->getMessage());
         } catch (\Exception $e) {
             throw new \Exception('Error retrieving punch data: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Get devices list (devid, devnm) from Biostar
+     */
+    public function getDevices($config)
+    {
+        try {
+            $pdo = new PDO($config['dsn'], $config['username'], $config['password']);
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+            // Biostar device table uses columns: id (as devid), name (as devnm)
+            // punchlog table uses: devid, devmam
+            $stmt = $pdo->query("SELECT id, name FROM device WHERE name IS NOT NULL ORDER BY name");
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            return array_map(function($row) {
+                return [
+                    'devid' => $row['id'], // map 'id' to 'devid' for frontend consistency
+                    // map 'name' to 'devnm' to keep frontend contract stable
+                    'devnm' => $row['name'],
+                ];
+            }, $rows);
+
+        } catch (PDOException $e) {
+            throw new \Exception('Database error: ' . $e->getMessage());
+        } catch (\Exception $e) {
+            throw new \Exception('Error retrieving devices: ' . $e->getMessage());
         }
     }
 }

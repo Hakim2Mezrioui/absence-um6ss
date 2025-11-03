@@ -210,6 +210,12 @@ Route::get('posts/search', [PostController::class, 'search']);
 Route::get('posts/all', [PostController::class, 'getAll']);
 Route::apiResource('posts', PostController::class);
 
+// Biostar devices & healthcheck (protected)
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('biostar/devices', [BiostarAttendanceController::class, 'getDevices']);
+    Route::get('biostar/health', [BiostarAttendanceController::class, 'testConnection']);
+});
+
 // TypeCours routes - Routes spécifiques AVANT la ressource
 Route::get('types-cours/search', [TypeCoursController::class, 'search']);
 Route::get('types-cours/all', [TypeCoursController::class, 'getAll']);

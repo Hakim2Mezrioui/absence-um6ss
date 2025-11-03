@@ -13,6 +13,7 @@ export interface Salle {
   ville_id: number;
   capacite?: number;
   description?: string;
+  devices?: { devid: string | number; devnm: string }[];
   created_at?: string;
   updated_at?: string;
   etablissement?: {
@@ -42,6 +43,7 @@ export interface CreateSalleRequest {
   ville_id: number;
   capacite?: number;
   description?: string;
+  devices?: { devid: string | number; devnm: string }[];
 }
 
 // Interface pour les filtres de recherche

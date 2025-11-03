@@ -16,6 +16,7 @@ import { MatChipsModule } from '@angular/material/chips';
 
 // Services et interfaces
 import { SallesService, Salle, CreateSalleRequest } from '../../services/salles.service';
+import { BiostarService, BiostarDevice } from '../../services/biostar.service';
 import { VilleService, Ville } from '../../services/ville.service';
 import { AuthService } from '../../services/auth.service';
 
@@ -74,6 +75,11 @@ export class SallesComponent implements OnInit, OnDestroy {
 
   // Form
   salleForm!: FormGroup;
+  biostarDevices: BiostarDevice[] = [];
+  filteredBiostarDevices: BiostarDevice[] = [];
+  devicesLoading = false;
+  devicesError: string | null = null;
+  deviceSearch = '';
 
   // Utilitaires
   Math = Math;
@@ -86,7 +92,8 @@ export class SallesComponent implements OnInit, OnDestroy {
     private villeService: VilleService,
     private fb: FormBuilder,
     private snackBar: MatSnackBar,
-    public authService: AuthService
+    public authService: AuthService,
+    private biostarService: BiostarService
   ) {
     this.initializeForm();
     this.setupSearchDebounce();
@@ -112,8 +119,25 @@ export class SallesComponent implements OnInit, OnDestroy {
       batiment: ['', [Validators.required]],
       etage: ['', [Validators.required]],
       capacite: [''],
-      description: ['']
+      description: [''],
+      devices: [[], [Validators.required]]
     });
+
+    // Charger devices quand la ville change
+    this.salleForm.get('ville_id')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((villeId) => {
+        if (villeId) {
+          this.loadBiostarDevices(Number(villeId));
+        } else {
+          this.biostarDevices = [];
+          this.filteredBiostarDevices = [];
+          this.deviceSearch = '';
+          this.salleForm.get('devices')?.setValue([]);
+          this.devicesError = null;
+          this.devicesLoading = false;
+        }
+      });
   }
 
   private setupSearchDebounce(): void {
@@ -364,9 +388,15 @@ export class SallesComponent implements OnInit, OnDestroy {
       batiment: salle.batiment,
       etage: salle.etage,
       capacite: salle.capacite || '',
-      description: salle.description || ''
+      description: salle.description || '',
+      devices: salle.devices || []
     });
     this.showDialog = true;
+    // Charger les devices si une ville est déjà définie en mode édition
+    const villeId = this.salleForm.get('ville_id')?.value;
+    if (villeId) {
+      this.loadBiostarDevices(Number(villeId));
+    }
   }
 
   closeDialog(): void {
@@ -409,7 +439,8 @@ export class SallesComponent implements OnInit, OnDestroy {
       batiment: this.salleForm.value.batiment.trim(),
       etage: Number(this.salleForm.value.etage),
       capacite: this.salleForm.value.capacite ? Number(this.salleForm.value.capacite) : undefined,
-      description: this.salleForm.value.description ? this.salleForm.value.description.trim() : undefined
+      description: this.salleForm.value.description ? this.salleForm.value.description.trim() : undefined,
+      devices: (this.salleForm.value.devices || [])
     };
 
     const operation = this.isEditMode
@@ -505,5 +536,66 @@ export class SallesComponent implements OnInit, OnDestroy {
       duration: 5000,
       panelClass: ['error-snackbar']
     });
+  }
+
+  private loadBiostarDevices(villeId: number): void {
+    this.devicesLoading = true;
+    this.devicesError = null;
+    this.biostarService.getDevices(villeId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.biostarDevices = res.devices || [];
+          this.filterDevices(); // Initialiser la liste filtrée
+          this.devicesLoading = false;
+          if (res.devices && res.devices.length === 0) {
+            this.devicesError = 'Aucun device disponible pour cette ville.';
+          }
+        },
+        error: (err) => {
+          console.error('Erreur lors du chargement des devices:', err);
+          this.biostarDevices = [];
+          this.filteredBiostarDevices = [];
+          this.devicesLoading = false;
+          this.devicesError = err.error?.message || 'Impossible de charger les devices pour cette ville. Vérifiez la configuration Biostar.';
+        }
+      });
+  }
+
+  onSearchInput(value: string): void {
+    this.deviceSearch = value || '';
+    this.filterDevices(); // Filtrer à chaque changement
+  }
+
+  filterDevices(): void {
+    const term = (this.deviceSearch || '').toLowerCase().trim();
+    if (!term) {
+      this.filteredBiostarDevices = [...this.biostarDevices];
+    } else {
+      this.filteredBiostarDevices = this.biostarDevices.filter(d => {
+        const nameMatch = (d.devnm || '').toLowerCase().includes(term);
+        const idMatch = String(d.devid).toLowerCase().includes(term);
+        return nameMatch || idMatch;
+      });
+    }
+  }
+
+  isDeviceSelected(device: BiostarDevice): boolean {
+    const selected = this.salleForm.get('devices')?.value || [];
+    return selected.some((d: BiostarDevice) => d.devid === device.devid);
+  }
+
+  toggleDevice(device: BiostarDevice): void {
+    const selected = [...(this.salleForm.get('devices')?.value || [])];
+    const index = selected.findIndex((d: BiostarDevice) => d.devid === device.devid);
+    
+    if (index >= 0) {
+      selected.splice(index, 1);
+    } else {
+      selected.push(device);
+    }
+    
+    this.salleForm.get('devices')?.setValue(selected);
+    this.salleForm.get('devices')?.markAsTouched();
   }
 }
