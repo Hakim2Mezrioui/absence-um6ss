@@ -10,6 +10,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { SallesService, CreateSalleRequest, Salle } from '../../services/salles.service';
 import { AuthService, User } from '../../services/auth.service';
 import { UserContextService, UserContext } from '../../services/user-context.service';
+import { BiostarService, BiostarDevice, BiostarDeviceGroup } from '../../services/biostar.service';
 
 @Component({
   selector: 'app-add-examen',
@@ -43,6 +44,21 @@ export class AddExamenComponent implements OnInit, OnDestroy {
   salleDropdownOpen = false;
   multiSallesOpen: boolean = false;
   
+  // Biostar device selection state
+  allBiostarDevices: BiostarDevice[] = [];
+  biostarDevices: BiostarDevice[] = [];
+  filteredBiostarDevices: BiostarDevice[] = [];
+  devicesLoading = false;
+  devicesError: string | null = null;
+  deviceSearch = '';
+  
+  deviceGroups: BiostarDeviceGroup[] = [];
+  filteredDeviceGroups: BiostarDeviceGroup[] = [];
+  groupsLoading = false;
+  groupsError: string | null = null;
+  selectedGroupIds: number[] = [];
+  deviceGroupSearch = '';
+  
   // User context and role management
   currentUser: User | null = null;
   userContext: UserContext | null = null;
@@ -67,7 +83,8 @@ export class AddExamenComponent implements OnInit, OnDestroy {
     private router: Router,
     private sallesService: SallesService,
     private authService: AuthService,
-    private userContextService: UserContextService
+    private userContextService: UserContextService,
+    private biostarService: BiostarService
   ) {
     this.examenForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(3)]],
@@ -95,7 +112,8 @@ export class AddExamenComponent implements OnInit, OnDestroy {
       capacite: [null],
       description: [''],
       etablissement_id: [null, Validators.required],
-      ville_id: [null, Validators.required]
+      ville_id: [null, Validators.required],
+      devices: [[], Validators.required]
     });
   }
 
@@ -618,13 +636,177 @@ export class AddExamenComponent implements OnInit, OnDestroy {
       capacite: null,
       description: '',
       etablissement_id: etabId,
-      ville_id: villeId
+      ville_id: villeId,
+      devices: []
     });
+    this.resetBiostarUi();
     this.showAddSalleModal = true;
+    
+    // Subscribe to ville_id changes to load devices
+    this.newSalleForm.get('ville_id')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((villeId) => {
+        this.onNewSalleVilleChange(villeId);
+      });
+    
+    // Load devices if ville is already set
+    if (villeId) {
+      this.onNewSalleVilleChange(villeId);
+    }
   }
 
   closeAddSalleModal(): void {
     this.showAddSalleModal = false;
+    this.resetBiostarUi();
+  }
+  
+  // Biostar device selection methods
+  onNewSalleVilleChange(villeId: number | null): void {
+    if (!villeId) {
+      this.resetBiostarUi();
+      return;
+    }
+    this.loadDeviceGroupsAndDevices(Number(villeId));
+  }
+  
+  private resetBiostarUi(): void {
+    this.allBiostarDevices = [];
+    this.biostarDevices = [];
+    this.filteredBiostarDevices = [];
+    this.deviceSearch = '';
+    this.devicesLoading = false;
+    this.devicesError = null;
+    
+    this.deviceGroups = [];
+    this.filteredDeviceGroups = [];
+    this.groupsLoading = false;
+    this.groupsError = null;
+    this.selectedGroupIds = [];
+    this.deviceGroupSearch = '';
+    
+    this.newSalleForm.get('devices')?.setValue([]);
+  }
+  
+  private loadDeviceGroupsAndDevices(villeId: number): void {
+    this.groupsLoading = true;
+    this.groupsError = null;
+    this.biostarService.getDeviceGroups(villeId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.deviceGroups = res.groups || [];
+          this.filterGroups();
+          this.groupsLoading = false;
+          this.loadAllDevices(villeId);
+        },
+        error: (err) => {
+          console.error('Erreur lors du chargement des groupes de devices:', err);
+          this.deviceGroups = [];
+          this.filteredDeviceGroups = [];
+          this.groupsLoading = false;
+          this.groupsError = err.error?.message || 'Impossible de charger les groupes de devices.';
+          this.loadAllDevices(villeId);
+        }
+      });
+  }
+  
+  private loadAllDevices(villeId: number): void {
+    this.devicesLoading = true;
+    this.devicesError = null;
+    this.biostarService.getDevices(villeId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.allBiostarDevices = res.devices || [];
+          this.applyGroupFilter();
+          this.filterDevices();
+          this.devicesLoading = false;
+          if ((res.devices || []).length === 0) {
+            this.devicesError = 'Aucun device disponible pour cette ville.';
+          }
+        },
+        error: (err) => {
+          console.error('Erreur lors du chargement des devices:', err);
+          this.allBiostarDevices = [];
+          this.biostarDevices = [];
+          this.filteredBiostarDevices = [];
+          this.devicesLoading = false;
+          this.devicesError = err.error?.message || 'Impossible de charger les devices.';
+        }
+      });
+  }
+  
+  onGroupSearchInput(value: string): void {
+    this.deviceGroupSearch = value || '';
+    this.filterGroups();
+  }
+  
+  private filterGroups(): void {
+    const term = (this.deviceGroupSearch || '').toLowerCase().trim();
+    if (!term) {
+      this.filteredDeviceGroups = [...this.deviceGroups];
+    } else {
+      this.filteredDeviceGroups = this.deviceGroups.filter(g => (g.name || '').toLowerCase().includes(term));
+    }
+  }
+  
+  onToggleGroup(groupId: number): void {
+    const set = new Set(this.selectedGroupIds);
+    if (set.has(groupId)) {
+      set.delete(groupId);
+    } else {
+      set.add(groupId);
+    }
+    this.selectedGroupIds = Array.from(set);
+    this.applyGroupFilter();
+    this.filterDevices();
+  }
+  
+  private applyGroupFilter(): void {
+    if (!this.selectedGroupIds || this.selectedGroupIds.length === 0) {
+      this.biostarDevices = [...this.allBiostarDevices];
+      return;
+    }
+    const set = new Set(this.selectedGroupIds.map(id => Number(id)));
+    this.biostarDevices = this.allBiostarDevices.filter(d => d.device_group_id != null && set.has(Number(d.device_group_id)));
+  }
+  
+  onDeviceSearchInput(value: string): void {
+    this.deviceSearch = value || '';
+    this.filterDevices();
+  }
+  
+  private filterDevices(): void {
+    const term = (this.deviceSearch || '').toLowerCase().trim();
+    if (!term) {
+      this.filteredBiostarDevices = [...this.biostarDevices];
+    } else {
+      this.filteredBiostarDevices = this.biostarDevices.filter(d => {
+        const nameMatch = (d.devnm || '').toLowerCase().includes(term);
+        const idMatch = String(d.devid).toLowerCase().includes(term);
+        return nameMatch || idMatch;
+      });
+    }
+  }
+  
+  isDeviceSelected(device: BiostarDevice): boolean {
+    const selected = this.newSalleForm.get('devices')?.value || [];
+    return selected.some((d: BiostarDevice) => d.devid === device.devid);
+  }
+  
+  toggleDevice(device: BiostarDevice): void {
+    const control = this.newSalleForm.get('devices');
+    const selected: BiostarDevice[] = [...(control?.value || [])];
+    const index = selected.findIndex(d => d.devid === device.devid);
+    
+    if (index >= 0) {
+      selected.splice(index, 1);
+    } else {
+      selected.push(device);
+    }
+    
+    control?.setValue(selected);
+    control?.markAsTouched();
   }
 
   toggleSalleDropdown(): void {
@@ -695,7 +877,11 @@ export class AddExamenComponent implements OnInit, OnDestroy {
       etablissement_id: Number(this.newSalleForm.value.etablissement_id),
       ville_id: Number(this.newSalleForm.value.ville_id),
       capacite: this.newSalleForm.value.capacite ? Number(this.newSalleForm.value.capacite) : undefined,
-      description: this.newSalleForm.value.description || undefined
+      description: this.newSalleForm.value.description || undefined,
+      devices: (this.newSalleForm.value.devices || []).map((d: BiostarDevice) => ({
+        devid: d.devid,
+        devnm: d.devnm
+      }))
     };
 
     this.loading = true;

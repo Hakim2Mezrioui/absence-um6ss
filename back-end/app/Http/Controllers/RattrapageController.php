@@ -695,7 +695,7 @@ class RattrapageController extends Controller
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
             // Execute the query using PDO with proper date formatting
-            $sql = "SELECT * FROM punchlog WHERE CAST(bsevtdt AS date) = CAST(:date AS date) AND CAST(bsevtdt AS time) BETWEEN CAST(:heure1 AS time) AND CAST(:heure2 AS time) AND devnm NOT LIKE 'TOUR%' AND devnm NOT LIKE 'ACCES HCK%'";
+            $sql = "SELECT * FROM punchlog WHERE CAST(devdt AS date) = CAST(:date AS date) AND CAST(devdt AS time) BETWEEN CAST(:heure1 AS time) AND CAST(:heure2 AS time) AND devnm NOT LIKE 'TOUR%' AND devnm NOT LIKE 'ACCES HCK%'";
             $stmt = $pdo->prepare($sql);
             $stmt->execute(['date' => $formattedDate, 'heure1' => $formattedTime1, 'heure2' => $formattedTime2]);
 
@@ -720,7 +720,7 @@ class RattrapageController extends Controller
         foreach ($biostarResults as $punch) {
             if ($punch['user_id'] == $matricule) {
                 return [
-                    'time' => $punch['bsevtdt'],
+                    'time' => $punch['devdt'],
                     'device' => $punch['devnm'],
                     'event_type' => $punch['event_type'] ?? 'punch'
                 ];

@@ -219,7 +219,7 @@ class EtudiantController extends Controller
             $sql = "
                 SELECT *
                 FROM punchlog
-                WHERE bsevtdt BETWEEN :start_dt AND :end_dt
+                WHERE devdt BETWEEN :start_dt AND :end_dt
                   AND devnm NOT LIKE 'TOUR%'
                   AND devnm NOT LIKE 'ACCES HCK%'
             ";
@@ -595,7 +595,7 @@ class EtudiantController extends Controller
     {
         // Utilitaires de sélection du dernier pointage
         $getTimestamp = function ($punch) {
-            $raw = $punch['bsevtdt'] ?? ($punch['punch_time'] ?? null);
+            $raw = $punch['devdt'] ?? ($punch['punch_time'] ?? null);
             return $raw ? strtotime($raw) : null;
         };
         $pickLatest = function ($collection) use ($getTimestamp) {
@@ -612,7 +612,7 @@ class EtudiantController extends Controller
         if ($matches->isNotEmpty()) {
             $studentPunch = $pickLatest($matches);
             return [
-                'time' => $studentPunch['bsevtdt'] ?? $studentPunch['punch_time'],
+                'time' => $studentPunch['devdt'] ?? $studentPunch['punch_time'],
                 'device' => ($studentPunch['devnm'] ?? ($studentPunch['device'] ?? ($studentPunch['device_name'] ?? ($studentPunch['name'] ?? 'Inconnu'))))
             ];
         }
@@ -627,7 +627,7 @@ class EtudiantController extends Controller
                 \Log::info("Match trouvé avec suppression des zéros: '$matricule' → '$matriculeTrimmed'");
                 $studentPunch = $pickLatest($matches);
                 return [
-                    'time' => $studentPunch['bsevtdt'] ?? $studentPunch['punch_time'],
+                    'time' => $studentPunch['devdt'] ?? $studentPunch['punch_time'],
                     'device' => ($studentPunch['devnm'] ?? ($studentPunch['device'] ?? ($studentPunch['device_name'] ?? ($studentPunch['name'] ?? 'Inconnu'))))
                 ];
             }
@@ -643,7 +643,7 @@ class EtudiantController extends Controller
                 \Log::info("Match trouvé avec ajout de zéros: '$matricule' → '$matriculePadded'");
                 $studentPunch = $pickLatest($matches);
                 return [
-                    'time' => $studentPunch['bsevtdt'] ?? $studentPunch['punch_time'],
+                    'time' => $studentPunch['devdt'] ?? $studentPunch['punch_time'],
                     'device' => ($studentPunch['devnm'] ?? ($studentPunch['device'] ?? ($studentPunch['device_name'] ?? ($studentPunch['name'] ?? 'Inconnu'))))
                 ];
             }
@@ -657,7 +657,7 @@ class EtudiantController extends Controller
             $studentPunch = $pickLatest($matches);
             \Log::info("Match trouvé avec recherche partielle (dernier conservé): '$matricule'");
             return [
-                'time' => $studentPunch['bsevtdt'] ?? $studentPunch['punch_time'],
+                'time' => $studentPunch['devdt'] ?? $studentPunch['punch_time'],
                 'device' => ($studentPunch['devnm'] ?? ($studentPunch['device'] ?? ($studentPunch['device_name'] ?? ($studentPunch['name'] ?? 'Inconnu'))))
             ];
         }
@@ -670,7 +670,7 @@ class EtudiantController extends Controller
             $studentPunch = $pickLatest($matches);
             \Log::info("Match trouvé avec recherche inverse (dernier conservé)");
             return [
-                'time' => $studentPunch['bsevtdt'] ?? $studentPunch['punch_time'],
+                'time' => $studentPunch['devdt'] ?? $studentPunch['punch_time'],
                 'device' => ($studentPunch['devnm'] ?? ($studentPunch['device'] ?? ($studentPunch['device_name'] ?? ($studentPunch['name'] ?? 'Inconnu'))))
             ];
         }

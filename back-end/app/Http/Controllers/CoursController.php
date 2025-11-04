@@ -554,7 +554,7 @@ class CoursController extends Controller
                 $formattedTimeRef = date('H:i:s', strtotime($heureDebutPointage));
 
                 // Execute the query using PDO with proper date formatting
-                $sql = "SELECT * FROM punchlog WHERE CAST(bsevtdt AS date) = CAST(:date AS date) AND CAST(bsevtdt AS time) BETWEEN CAST(:heure1 AS time) AND CAST(:heure2 AS time) AND devnm NOT LIKE 'TOUR%' AND devnm NOT LIKE 'ACCES HCK%'";
+                $sql = "SELECT * FROM punchlog WHERE CAST(devdt AS date) = CAST(:date AS date) AND CAST(devdt AS time) BETWEEN CAST(:heure1 AS time) AND CAST(:heure2 AS time) AND devnm NOT LIKE 'TOUR%' AND devnm NOT LIKE 'ACCES HCK%'";
                 $stmt = $pdo->prepare($sql);
                 $stmt->execute(['date' => $formattedDate, 'heure1' => $formattedTimeRef, 'heure2' => $formattedTime2]);
                 
@@ -852,7 +852,7 @@ class CoursController extends Controller
         $studentPunch = collect($biostarResults)->firstWhere('user_id', $matricule);
         if ($studentPunch) {
             return [
-                'time' => $studentPunch['bsevtdt'],
+                'time' => $studentPunch['devdt'],
                 'device' => ($studentPunch['devnm'] ?? ($studentPunch['device_name'] ?? ($studentPunch['name'] ?? 'Inconnu')))
             ];
         }
@@ -864,7 +864,7 @@ class CoursController extends Controller
             if ($studentPunch) {
                 \Log::info("Match trouvé avec suppression des zéros: '$matricule' → '$matriculeTrimmed'");
                 return [
-                    'time' => $studentPunch['bsevtdt'],
+                    'time' => $studentPunch['devdt'],
                     'device' => ($studentPunch['devnm'] ?? ($studentPunch['device_name'] ?? ($studentPunch['name'] ?? 'Inconnu')))
                 ];
             }
@@ -877,7 +877,7 @@ class CoursController extends Controller
             if ($studentPunch) {
                 \Log::info("Match trouvé avec ajout de zéros: '$matricule' → '$matriculePadded'");
                 return [
-                    'time' => $studentPunch['bsevtdt'],
+                    'time' => $studentPunch['devdt'],
                     'device' => ($studentPunch['devnm'] ?? ($studentPunch['device_name'] ?? ($studentPunch['name'] ?? 'Inconnu')))
                 ];
             }
@@ -890,7 +890,7 @@ class CoursController extends Controller
         if ($studentPunch) {
             \Log::info("Match trouvé avec recherche partielle: '$matricule' contenu dans '{$studentPunch['user_id']}'");
             return [
-                'time' => $studentPunch['bsevtdt'],
+                'time' => $studentPunch['devdt'],
                 'device' => ($studentPunch['devnm'] ?? ($studentPunch['device_name'] ?? ($studentPunch['name'] ?? 'Inconnu')))
             ];
         }
@@ -902,7 +902,7 @@ class CoursController extends Controller
         if ($studentPunch) {
             \Log::info("Match trouvé avec recherche inverse: '{$studentPunch['user_id']}' contenu dans '$matricule'");
             return [
-                'time' => $studentPunch['bsevtdt'],
+                'time' => $studentPunch['devdt'],
                 'device' => ($studentPunch['devnm'] ?? ($studentPunch['device_name'] ?? ($studentPunch['name'] ?? 'Inconnu')))
             ];
         }

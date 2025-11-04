@@ -321,6 +321,9 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     // Mettre à jour les étudiants filtrés
     this.filteredStudents = [...this.students];
     
+    // Réappliquer le tri actuel si un tri est actif
+    this.applyCurrentSort();
+    
     console.log(`✅ Données Biostar intégrées avec succès - ${matchedStudents}/${this.students.length} étudiants correspondants`);
     console.log('📊 Statistiques finales:', {
       total: this.totalStudents,
@@ -592,11 +595,23 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       this.sortDirection = 'asc';
     }
     
+    this.applyCurrentSort();
+  }
+
+  /**
+   * Applique le tri actuel (sortColumn + sortDirection) sans modifier l'état du tri
+   * Utilisé pour réappliquer le tri après un rafraîchissement automatique
+   */
+  applyCurrentSort(): void {
+    if (!this.sortColumn || !this.filteredStudents || this.filteredStudents.length === 0) {
+      return;
+    }
+    
     this.filteredStudents.sort((a, b) => {
       let valueA: any;
       let valueB: any;
       
-      switch (column) {
+      switch (this.sortColumn) {
         case 'name':
           valueA = `${a.last_name} ${a.first_name}`.toLowerCase();
           valueB = `${b.last_name} ${b.first_name}`.toLowerCase();
@@ -739,6 +754,9 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     }
     
     this.filteredStudents = filtered;
+    
+    // Réappliquer le tri actuel si un tri est actif
+    this.applyCurrentSort();
   }
 
   clearSearch(): void {
@@ -813,6 +831,9 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     
     // Mettre à jour les étudiants filtrés
     this.filteredStudents = [...this.students];
+    
+    // Réappliquer le tri actuel si un tri est actif
+    this.applyCurrentSort();
   }
 
   /**
