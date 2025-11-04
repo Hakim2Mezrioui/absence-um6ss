@@ -58,6 +58,31 @@
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Devices Biostar</mat-label>
         <div class="devices-container" [class.disabled]="!villeControl?.value">
+          <!-- Groups prefilter -->
+          <div *ngIf="villeControl?.value" class="mb-2">
+            <div class="text-sm text-gray-600 mb-1">Filtrer par groupe (optionnel)</div>
+            <div *ngIf="groupsLoading" class="devices-loading"><mat-icon>hourglass_empty</mat-icon><span>Chargement des groupes...</span></div>
+            <div *ngIf="groupsError && !groupsLoading" class="devices-error"><mat-icon>error_outline</mat-icon><span>{{ groupsError }}</span></div>
+            <div *ngIf="!groupsLoading && !groupsError && deviceGroups.length > 0" class="mb-2">
+              <mat-form-field appearance="outline" class="search-field">
+                <input matInput type="text" placeholder="Rechercher un groupe..." [value]="deviceGroupSearch" (input)="onGroupSearchInput($any($event.target).value)">
+                <mat-icon matSuffix>search</mat-icon>
+              </mat-form-field>
+              <div class="devices-list">
+                <mat-checkbox 
+                  *ngFor="let g of filteredDeviceGroups"
+                  [checked]="selectedGroupIds.includes(g.id)"
+                  (change)="onToggleGroup(g.id)"
+                  class="device-checkbox">
+                  <span>{{ g.name }}</span>
+                </mat-checkbox>
+                <div *ngIf="filteredDeviceGroups.length === 0 && deviceGroupSearch.trim()" class="devices-no-match">
+                  <mat-icon>search_off</mat-icon>
+                  <span>Aucun groupe trouvé pour "{{ deviceGroupSearch }}"</span>
+                </div>
+              </div>
+            </div>
+          </div>
           <!-- Search input -->
           <mat-form-field appearance="outline" class="search-field" *ngIf="villeControl?.value && !devicesLoading">
             <input matInput 

@@ -213,6 +213,7 @@ Route::apiResource('posts', PostController::class);
 // Biostar devices & healthcheck (protected)
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('biostar/devices', [BiostarAttendanceController::class, 'getDevices']);
+    Route::get('biostar/device-groups', [BiostarAttendanceController::class, 'getDeviceGroups']);
     Route::get('biostar/health', [BiostarAttendanceController::class, 'testConnection']);
 });
 

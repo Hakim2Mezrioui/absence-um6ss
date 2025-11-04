@@ -284,6 +284,7 @@ class BiostarAttendanceController extends Controller
     {
         try {
             $villeId = $request->get('ville_id');
+            $groupIds = $request->get('device_group_ids'); // optional array
             if (!$villeId) {
                 return response()->json([
                     'success' => false,
@@ -299,7 +300,10 @@ class BiostarAttendanceController extends Controller
                 ], 404);
             }
 
-            $devices = $this->biostarAttendanceService->getDevices($configResult);
+            // Normalize group ids to array of ints if provided
+            $groupIds = is_array($groupIds) ? array_values(array_filter(array_map('intval', $groupIds))) : null;
+
+            $devices = $this->biostarAttendanceService->getDevices($configResult, $groupIds);
 
             return response()->json([
                 'success' => true,
@@ -310,6 +314,43 @@ class BiostarAttendanceController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error retrieving devices: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get Biostar device groups (requires ville_id to resolve connection)
+     */
+    public function getDeviceGroups(Request $request): JsonResponse
+    {
+        try {
+            $villeId = $request->get('ville_id');
+            if (!$villeId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Ville ID is required'
+                ], 400);
+            }
+
+            $configResult = $this->configurationService->getConnectionConfigForVille($villeId);
+            if (isset($configResult['error'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Configuration not found for ville'
+                ], 404);
+            }
+
+            $groups = $this->biostarAttendanceService->getDeviceGroups($configResult);
+
+            return response()->json([
+                'success' => true,
+                'groups' => $groups,
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error retrieving device groups: ' . $e->getMessage()
             ], 500);
         }
     }

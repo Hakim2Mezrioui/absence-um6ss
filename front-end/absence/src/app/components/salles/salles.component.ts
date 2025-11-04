@@ -16,7 +16,7 @@ import { MatChipsModule } from '@angular/material/chips';
 
 // Services et interfaces
 import { SallesService, Salle, CreateSalleRequest } from '../../services/salles.service';
-import { BiostarService, BiostarDevice } from '../../services/biostar.service';
+import { BiostarService, BiostarDevice, BiostarDeviceGroup } from '../../services/biostar.service';
 import { VilleService, Ville } from '../../services/ville.service';
 import { AuthService } from '../../services/auth.service';
 
@@ -75,11 +75,19 @@ export class SallesComponent implements OnInit, OnDestroy {
 
   // Form
   salleForm!: FormGroup;
+  allBiostarDevices: BiostarDevice[] = [];
   biostarDevices: BiostarDevice[] = [];
   filteredBiostarDevices: BiostarDevice[] = [];
   devicesLoading = false;
   devicesError: string | null = null;
   deviceSearch = '';
+  // Device groups prefilter
+  deviceGroups: BiostarDeviceGroup[] = [];
+  filteredDeviceGroups: BiostarDeviceGroup[] = [];
+  groupsLoading = false;
+  groupsError: string | null = null;
+  selectedGroupIds: number[] = [];
+  deviceGroupSearch = '';
 
   // Utilitaires
   Math = Math;
@@ -128,7 +136,7 @@ export class SallesComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((villeId) => {
         if (villeId) {
-          this.loadBiostarDevices(Number(villeId));
+          this.loadDeviceGroupsAndDevices(Number(villeId));
         } else {
           this.biostarDevices = [];
           this.filteredBiostarDevices = [];
@@ -136,6 +144,12 @@ export class SallesComponent implements OnInit, OnDestroy {
           this.salleForm.get('devices')?.setValue([]);
           this.devicesError = null;
           this.devicesLoading = false;
+          this.deviceGroups = [];
+          this.filteredDeviceGroups = [];
+          this.groupsError = null;
+          this.groupsLoading = false;
+          this.selectedGroupIds = [];
+          this.deviceGroupSearch = '';
         }
       });
   }
@@ -395,7 +409,7 @@ export class SallesComponent implements OnInit, OnDestroy {
     // Charger les devices si une ville est déjà définie en mode édition
     const villeId = this.salleForm.get('ville_id')?.value;
     if (villeId) {
-      this.loadBiostarDevices(Number(villeId));
+          this.loadDeviceGroupsAndDevices(Number(villeId));
     }
   }
 
@@ -545,8 +559,9 @@ export class SallesComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res) => {
-          this.biostarDevices = res.devices || [];
-          this.filterDevices(); // Initialiser la liste filtrée
+          this.allBiostarDevices = res.devices || [];
+          this.applyGroupFilter();
+          this.filterDevices();
           this.devicesLoading = false;
           if (res.devices && res.devices.length === 0) {
             this.devicesError = 'Aucun device disponible pour cette ville.';
@@ -554,12 +569,83 @@ export class SallesComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           console.error('Erreur lors du chargement des devices:', err);
+          this.allBiostarDevices = [];
           this.biostarDevices = [];
           this.filteredBiostarDevices = [];
           this.devicesLoading = false;
           this.devicesError = err.error?.message || 'Impossible de charger les devices pour cette ville. Vérifiez la configuration Biostar.';
         }
       });
+  }
+
+  private loadDeviceGroupsAndDevices(villeId: number): void {
+    this.groupsLoading = true;
+    this.groupsError = null;
+    this.biostarService.getDeviceGroups(villeId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.deviceGroups = res.groups || [];
+          this.filterGroupList();
+          this.groupsLoading = false;
+          this.loadBiostarDevices(villeId);
+        },
+        error: (err) => {
+          console.error('Erreur lors du chargement des groupes de devices:', err);
+          this.deviceGroups = [];
+          this.filteredDeviceGroups = [];
+          this.groupsLoading = false;
+          this.groupsError = err.error?.message || 'Impossible de charger les groupes de devices pour cette ville.';
+          this.loadBiostarDevices(villeId);
+        }
+      });
+  }
+
+  onToggleGroup(groupId: number): void {
+    const set = new Set(this.selectedGroupIds);
+    if (set.has(groupId)) {
+      set.delete(groupId);
+    } else {
+      set.add(groupId);
+    }
+    this.selectedGroupIds = Array.from(set);
+    this.applyGroupFilter();
+    this.filterDevices();
+  }
+
+  onGroupsSelectionChange(selectedIds: number[]): void {
+    this.selectedGroupIds = selectedIds || [];
+    this.applyGroupFilter();
+    this.filterDevices();
+  }
+
+  onGroupsSelectionChangeEvent(event: Event): void {
+    const selectEl = event.target as HTMLSelectElement;
+    const ids = Array.from(selectEl.selectedOptions).map(option => Number(option.value));
+    this.onGroupsSelectionChange(ids);
+  }
+
+  onGroupSearchInput(value: string): void {
+    this.deviceGroupSearch = value || '';
+    this.filterGroupList();
+  }
+
+  private filterGroupList(): void {
+    const term = (this.deviceGroupSearch || '').toLowerCase().trim();
+    if (!term) {
+      this.filteredDeviceGroups = [...this.deviceGroups];
+    } else {
+      this.filteredDeviceGroups = this.deviceGroups.filter(g => (g.name || '').toLowerCase().includes(term));
+    }
+  }
+
+  private applyGroupFilter(): void {
+    if (!this.selectedGroupIds || this.selectedGroupIds.length === 0) {
+      this.biostarDevices = [...this.allBiostarDevices];
+      return;
+    }
+    const set = new Set(this.selectedGroupIds.map(id => Number(id)));
+    this.biostarDevices = this.allBiostarDevices.filter(d => (d as any).device_group_id != null && set.has(Number((d as any).device_group_id)));
   }
 
   onSearchInput(value: string): void {

@@ -260,24 +260,33 @@ class BiostarAttendanceService
     }
 
     /**
-     * Get devices list (devid, devnm) from Biostar
+     * Get devices list (devid, devnm) from Biostar, optionally filtered by device_group_ids
+     * @param array $config
+     * @param array<int>|null $deviceGroupIds
      */
-    public function getDevices($config)
+    public function getDevices($config, ?array $deviceGroupIds = null)
     {
         try {
             $pdo = new PDO($config['dsn'], $config['username'], $config['password']);
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-            // Biostar device table uses columns: id (as devid), name (as devnm)
-            // punchlog table uses: devid, devmam
-            $stmt = $pdo->query("SELECT id, name FROM device WHERE name IS NOT NULL ORDER BY name");
+            // Biostar device table: id (device id), name (device name), device_group_id (FK to devicegroup)
+            if ($deviceGroupIds && count($deviceGroupIds) > 0) {
+                // Build IN clause safely
+                $placeholders = implode(',', array_fill(0, count($deviceGroupIds), '?'));
+                $sql = "SELECT id, name, device_group_id FROM device WHERE name IS NOT NULL AND device_group_id IN ($placeholders) ORDER BY name";
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute(array_values($deviceGroupIds));
+            } else {
+                $stmt = $pdo->query("SELECT id, name, device_group_id FROM device WHERE name IS NOT NULL ORDER BY name");
+            }
             $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             return array_map(function($row) {
                 return [
-                    'devid' => $row['id'], // map 'id' to 'devid' for frontend consistency
-                    // map 'name' to 'devnm' to keep frontend contract stable
+                    'devid' => $row['id'],
                     'devnm' => $row['name'],
+                    'device_group_id' => isset($row['device_group_id']) ? (int)$row['device_group_id'] : null,
                 ];
             }, $rows);
 
@@ -285,6 +294,35 @@ class BiostarAttendanceService
             throw new \Exception('Database error: ' . $e->getMessage());
         } catch (\Exception $e) {
             throw new \Exception('Error retrieving devices: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Get device groups from Biostar
+     * Columns: id, name, depth, _parent_id
+     */
+    public function getDeviceGroups($config)
+    {
+        try {
+            $pdo = new PDO($config['dsn'], $config['username'], $config['password']);
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+            $stmt = $pdo->query("SELECT id, name, depth, _parent_id FROM devicegroup ORDER BY name");
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            return array_map(function($row) {
+                return [
+                    'id' => (int)$row['id'],
+                    'name' => $row['name'],
+                    'depth' => isset($row['depth']) ? (int)$row['depth'] : null,
+                    '_parent_id' => isset($row['_parent_id']) ? (int)$row['_parent_id'] : null,
+                ];
+            }, $rows);
+
+        } catch (PDOException $e) {
+            throw new \Exception('Database error: ' . $e->getMessage());
+        } catch (\Exception $e) {
+            throw new \Exception('Error retrieving device groups: ' . $e->getMessage());
         }
     }
 }
