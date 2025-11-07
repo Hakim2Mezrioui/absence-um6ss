@@ -338,6 +338,50 @@
   color: #9ca3af;
 }
 
+/* Auto-refresh indicator */
+.auto-refresh-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-top: 8px;
+}
+
+.auto-refresh-indicator .material-icons {
+  font-size: 16px;
+  color: #9ca3af;
+}
+
+.auto-refresh-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: #d1fae5;
+  color: #065f46;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  background: #10b981;
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
 /* ─────────────────────────────────────────────────────────────────────────
    🎯 SECTION ACTIONS FULL WIDTH (EN BAS)
    ───────────────────────────────────────────────────────────────────────── */

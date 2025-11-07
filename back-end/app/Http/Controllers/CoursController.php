@@ -38,7 +38,16 @@ class CoursController extends Controller
         $searchValue = $request->query('searchValue', '');
         $date = $request->query('date');
 
-        $query = Cours::with(['etablissement', 'promotion', 'type_cours', 'salle', 'option', 'groups', 'ville'])
+        // Charger les relations, avec salles en option (peut ne pas exister pour les anciens cours)
+        $relations = ['etablissement', 'promotion', 'type_cours', 'salle', 'option', 'groups', 'ville'];
+        // Ajouter salles seulement si la table existe
+        try {
+            \DB::select('SELECT 1 FROM cours_salle LIMIT 1');
+            $relations[] = 'salles';
+        } catch (\Exception $e) {
+            // Table n'existe pas encore, ignorer
+        }
+        $query = Cours::with($relations)
                         ->whereNull('archived_at'); // Exclure les cours archivés
 
         // Appliquer le filtrage par contexte utilisateur
@@ -110,7 +119,15 @@ class CoursController extends Controller
      */
     public function show($id)
     {
-        $cours = Cours::with(['etablissement', 'promotion', 'type_cours', 'salle', 'option', 'groups', 'ville'])->find($id);
+        // Charger les relations, avec salles en option
+        $relations = ['etablissement', 'promotion', 'type_cours', 'salle', 'option', 'groups', 'ville'];
+        try {
+            \DB::select('SELECT 1 FROM cours_salle LIMIT 1');
+            $relations[] = 'salles';
+        } catch (\Exception $e) {
+            // Table n'existe pas encore, ignorer
+        }
+        $cours = Cours::with($relations)->find($id);
         if (!$cours) {
             return response()->json(['message' => 'Cours non trouvé'], 404);
         }
@@ -133,7 +150,9 @@ class CoursController extends Controller
             'etablissement_id' => 'required|exists:etablissements,id',
             'promotion_id' => 'required|exists:promotions,id',
             'type_cours_id' => 'required|exists:types_cours,id',
-            'salle_id' => 'required|exists:salles,id',
+            'salle_id' => 'nullable|exists:salles,id', // Déprécié mais gardé pour compatibilité
+            'salles_ids' => 'nullable|array',
+            'salles_ids.*' => 'exists:salles,id',
             'option_id' => 'nullable|exists:options,id',
             'group_ids' => 'nullable|array',
             'group_ids.*' => 'exists:groups,id',
@@ -141,18 +160,43 @@ class CoursController extends Controller
             'annee_universitaire' => 'required|string|max:9'
         ]);
 
-        // Extract group_ids from validated data
+        // Validation : au moins une salle doit être fournie (salle_id ou salles_ids)
+        if (empty($validatedData['salles_ids']) && empty($validatedData['salle_id'])) {
+            return response()->json(['message' => 'Au moins une salle doit être sélectionnée (salle_id ou salles_ids)'], 422);
+        }
+
+        // Extract group_ids and salles_ids from validated data
         $groupIds = $validatedData['group_ids'] ?? [];
+        $sallesIds = $validatedData['salles_ids'] ?? [];
         unset($validatedData['group_ids']); // Remove from main data
+        unset($validatedData['salles_ids']); // Remove from main data
+        
+        // Si salles_ids est vide mais salle_id est fourni, utiliser salle_id
+        if (empty($sallesIds) && !empty($validatedData['salle_id'])) {
+            $sallesIds = [$validatedData['salle_id']];
+        }
+        
+        // Garder salle_id pour compatibilité (première salle)
+        if (empty($validatedData['salle_id']) && !empty($sallesIds)) {
+            $validatedData['salle_id'] = $sallesIds[0];
+        }
         
         $cours = Cours::create($validatedData);
+        
+        // Synchroniser les salles multiples si salles_ids est fourni
+        if (!empty($sallesIds)) {
+            $cours->salles()->sync($sallesIds);
+        } elseif ($validatedData['salle_id']) {
+            // Si seulement salle_id est fourni, créer l'association dans le pivot aussi
+            $cours->salles()->sync([$validatedData['salle_id']]);
+        }
         
         // Attach groups if provided
         if (!empty($groupIds)) {
             $cours->groups()->attach($groupIds);
         }
         
-        $cours->load(['etablissement', 'promotion', 'type_cours', 'salle', 'option', 'groups', 'ville']);
+        $cours->load(['etablissement', 'promotion', 'type_cours', 'salle', 'salles', 'option', 'groups', 'ville']);
 
         return response()->json(['message' => 'Cours ajouté avec succès', 'cours' => $cours], 201);
     }
@@ -168,14 +212,41 @@ class CoursController extends Controller
         }
 
         // Vérifier si le cours est dans le passé
+        // Un cours est passé seulement si sa date de fin (date + heure_fin) est dans le passé
         $coursDate = new \DateTime($cours->date);
         $aujourdhui = new \DateTime();
         
-        if ($coursDate < $aujourdhui) {
-            return response()->json([
-                'message' => 'Impossible de modifier un cours passé',
-                'error' => 'PAST_COURS_MODIFICATION_FORBIDDEN'
-            ], 403);
+        // Si le cours a une heure de fin, comparer avec la date + heure de fin
+        if ($cours->heure_fin) {
+            $heureFin = $cours->heure_fin;
+            // S'assurer que l'heure est au format H:i ou H:i:s
+            if (strlen($heureFin) <= 5) {
+                $heureFin .= ':00'; // Ajouter les secondes si nécessaire
+            }
+            $coursDateTimeFin = clone $coursDate;
+            $coursDateTimeFin->setTime(
+                (int)substr($heureFin, 0, 2),
+                (int)substr($heureFin, 3, 2),
+                (int)substr($heureFin, 6, 2) ?? 0
+            );
+            
+            if ($coursDateTimeFin < $aujourdhui) {
+                return response()->json([
+                    'message' => 'Impossible de modifier un cours passé',
+                    'error' => 'PAST_COURS_MODIFICATION_FORBIDDEN'
+                ], 403);
+            }
+        } else {
+            // Si pas d'heure de fin, comparer seulement la date (sans l'heure)
+            $coursDate->setTime(0, 0, 0);
+            $aujourdhui->setTime(0, 0, 0);
+            
+            if ($coursDate < $aujourdhui) {
+                return response()->json([
+                    'message' => 'Impossible de modifier un cours passé',
+                    'error' => 'PAST_COURS_MODIFICATION_FORBIDDEN'
+                ], 403);
+            }
         }
 
         $validatedData = $request->validate([
@@ -188,7 +259,9 @@ class CoursController extends Controller
             'etablissement_id' => 'sometimes|exists:etablissements,id',
             'promotion_id' => 'sometimes|exists:promotions,id',
             'type_cours_id' => 'sometimes|exists:types_cours,id',
-            'salle_id' => 'sometimes|exists:salles,id',
+            'salle_id' => 'nullable|exists:salles,id', // Déprécié mais gardé pour compatibilité
+            'salles_ids' => 'nullable|array',
+            'salles_ids.*' => 'exists:salles,id',
             'option_id' => 'nullable|exists:options,id',
             'group_ids' => 'nullable|array',
             'group_ids.*' => 'exists:groups,id',
@@ -196,18 +269,41 @@ class CoursController extends Controller
             'annee_universitaire' => 'sometimes|string|max:9'
         ]);
 
-        // Extract group_ids from validated data
+        // Extract group_ids and salles_ids from validated data
         $groupIds = $validatedData['group_ids'] ?? null;
+        $sallesIds = $validatedData['salles_ids'] ?? null;
         unset($validatedData['group_ids']); // Remove from main data
+        unset($validatedData['salles_ids']); // Remove from main data
+        
+        // Gérer les salles multiples
+        if (isset($sallesIds)) {
+            if (empty($sallesIds) && !empty($validatedData['salle_id'])) {
+                // Si salles_ids est vide mais salle_id est fourni, utiliser salle_id
+                $sallesIds = [$validatedData['salle_id']];
+            }
+            
+            // Garder salle_id pour compatibilité (première salle)
+            if (!empty($sallesIds)) {
+                $validatedData['salle_id'] = $sallesIds[0];
+            }
+        } elseif (isset($validatedData['salle_id']) && !empty($validatedData['salle_id'])) {
+            // Si seulement salle_id est fourni, l'utiliser pour salles_ids
+            $sallesIds = [$validatedData['salle_id']];
+        }
         
         $cours->update($validatedData);
+        
+        // Synchroniser les salles multiples si salles_ids est fourni
+        if (isset($sallesIds)) {
+            $cours->salles()->sync($sallesIds);
+        }
         
         // Sync groups if provided
         if (isset($groupIds)) {
             $cours->groups()->sync($groupIds);
         }
         
-        $cours->load(['etablissement', 'promotion', 'type_cours', 'salle', 'option', 'groups', 'ville']);
+        $cours->load(['etablissement', 'promotion', 'type_cours', 'salle', 'salles', 'option', 'groups', 'ville']);
 
         return response()->json(['message' => 'Cours mis à jour avec succès', 'cours' => $cours]);
     }
@@ -504,6 +600,7 @@ class CoursController extends Controller
                     'promotion', 
                     'type_cours', 
                     'salle', 
+                    'salles', 
                     'option', 
                     'groups' => function($query) {
                         $query->withoutGlobalScope(\App\Scopes\UserContextScope::class);
@@ -565,23 +662,64 @@ class CoursController extends Controller
                 $biostarResults = [];
             }
             
-            // Filtrer par devices autorisés de la salle (si définis)
-            if ($cours && $cours->salle && is_array($cours->salle->devices) && count($cours->salle->devices) > 0) {
-                $beforeCount = is_array($biostarResults) ? count($biostarResults) : 0;
-                $allowedDeviceIds = [];
-                $allowedDeviceNames = [];
-                
-                foreach ($cours->salle->devices as $d) {
-                    if (is_array($d)) {
-                        // Extraire devid et devnm
-                        if (isset($d['devid'])) {
-                            $allowedDeviceIds[] = (string)$d['devid'];
+            // Filtrer par devices autorisés de la/les salle(s) (si définis)
+            // Priorité: relation 'salles' si présente (multi-salles), sinon 'salle'
+            $allowedDeviceIds = [];
+            $allowedDeviceNames = [];
+            
+            // Vérifier si le cours a des salles
+            $hasSalles = false;
+            
+            if ($cours) {
+                if (method_exists($cours, 'salles') && $cours->relationLoaded('salles') && $cours->salles && $cours->salles->isNotEmpty()) {
+                    $hasSalles = true;
+                    // Multi-salles: collecter les devices de toutes les salles
+                    foreach ($cours->salles as $salle) {
+                        if (is_array($salle->devices)) {
+                            foreach ($salle->devices as $d) {
+                                if (is_array($d)) {
+                                    // Extraire devid et devnm
+                                    if (isset($d['devid'])) {
+                                        $allowedDeviceIds[] = (string)$d['devid'];
+                                    }
+                                    if (isset($d['devnm'])) {
+                                        $allowedDeviceNames[] = (string)$d['devnm'];
+                                    }
+                                }
+                            }
                         }
-                        if (isset($d['devnm'])) {
-                            $allowedDeviceNames[] = (string)$d['devnm'];
+                    }
+                } elseif ($cours->salle_id && $cours->salle) {
+                    $hasSalles = true;
+                    if (is_array($cours->salle->devices) && count($cours->salle->devices) > 0) {
+                        // Fallback sur salle unique
+                        foreach ($cours->salle->devices as $d) {
+                            if (is_array($d)) {
+                                // Extraire devid et devnm
+                                if (isset($d['devid'])) {
+                                    $allowedDeviceIds[] = (string)$d['devid'];
+                                }
+                                if (isset($d['devnm'])) {
+                                    $allowedDeviceNames[] = (string)$d['devnm'];
+                                }
+                            }
                         }
                     }
                 }
+            }
+            
+            // Si le cours a des salles mais aucun device assigné, rejeter tous les pointages
+            if ($hasSalles && empty($allowedDeviceIds) && empty($allowedDeviceNames)) {
+                // Le cours a des salles mais aucun device assigné
+                // On rejette tous les pointages
+                $biostarResults = [];
+                \Log::warning('CoursController: Cours a des salles mais aucun device assigné - tous les pointages sont rejetés', [
+                    'cours_id' => $cours->id,
+                    'salles_count' => method_exists($cours, 'salles') && $cours->relationLoaded('salles') ? $cours->salles->count() : 0,
+                    'salle_id' => $cours->salle_id
+                ]);
+            } elseif (!empty($allowedDeviceIds) || !empty($allowedDeviceNames)) {
+                $beforeCount = is_array($biostarResults) ? count($biostarResults) : 0;
                 
                 // Normaliser les noms pour comparaison case-insensitive
                 $allowedDeviceNames = array_map(function($name) {
@@ -591,8 +729,7 @@ class CoursController extends Controller
                 $allowedDeviceIds = array_values(array_unique(array_filter($allowedDeviceIds)));
                 $allowedDeviceNames = array_values(array_unique(array_filter($allowedDeviceNames)));
                 
-                if (!empty($allowedDeviceIds) || !empty($allowedDeviceNames)) {
-                    $biostarResults = array_values(array_filter($biostarResults, function($row) use ($allowedDeviceIds, $allowedDeviceNames) {
+                $biostarResults = array_values(array_filter($biostarResults, function($row) use ($allowedDeviceIds, $allowedDeviceNames) {
                         // Match par devid (prioritaire)
                         if (!empty($allowedDeviceIds)) {
                             $punchDevId = isset($row['devid']) ? (string)$row['devid'] : null;
@@ -620,9 +757,17 @@ class CoursController extends Controller
                         'after' => $afterCount,
                         'ignored' => max(0, $beforeCount - $afterCount),
                         'cours_id' => $cours->id,
-                        'sample_punchlog_devices' => array_slice(array_unique(array_column(array_slice($biostarResults, 0, 10), 'devnm')), 0, 5)
+                        'sample_punchlog_devices' => array_slice(array_unique(array_column(array_slice($biostarResults, 0, 10), 'devnm')), 0, 5),
+                        'filtered' => true
                     ]);
-                }
+            } else {
+                // Pas de filtrage - tous les pointages sont acceptés (cours sans salles)
+                \Log::info('Biostar device filtering NOT applied (cours)', [
+                    'cours_id' => $cours->id,
+                    'has_salles' => $hasSalles,
+                    'total_punches' => count($biostarResults),
+                    'filtered' => false
+                ]);
             }
             
             // Fetch students from the local database with relations
@@ -673,6 +818,7 @@ class CoursController extends Controller
                         'promotion' => $cours->promotion,
                         'type_cours' => $cours->type_cours,
                         'salle' => $cours->salle,
+                        'salles' => $cours->salles,
                         'option' => $cours->option,
                         'groups' => $cours->groups,
                         'ville' => $cours->ville
@@ -812,6 +958,7 @@ class CoursController extends Controller
                     'promotion' => $cours->promotion,
                     'type_cours' => $cours->type_cours,
                     'salle' => $cours->salle,
+                    'salles' => $cours->salles,
                     'option' => $cours->option,
                     'groups' => $cours->groups,
                     'ville' => $cours->ville
@@ -845,27 +992,46 @@ class CoursController extends Controller
 
     /**
      * Get punch time for a specific student with improved matching logic
+     * Prend le dernier pointage de l'étudiant
      */
     private function getPunchTime($matricule, $biostarResults)
     {
-        // Stratégie 1: Correspondance exacte
-        $studentPunch = collect($biostarResults)->firstWhere('user_id', $matricule);
-        if ($studentPunch) {
+        // Utilitaires de sélection du dernier pointage
+        $getTimestamp = function ($punch) {
+            $raw = $punch['devdt'] ?? ($punch['punch_time'] ?? null);
+            return $raw ? strtotime($raw) : null;
+        };
+        $pickLatest = function ($collection) use ($getTimestamp) {
+            $sorted = $collection
+                ->filter(function ($p) use ($getTimestamp) { return $getTimestamp($p) !== null; })
+                ->sortBy(function ($p) use ($getTimestamp) { return $getTimestamp($p); });
+            return $sorted->last();
+        };
+
+        // Stratégie 1: Correspondance exacte (dernier pointage)
+        $matches = collect($biostarResults)->filter(function ($punch) use ($matricule) {
+            return isset($punch['user_id']) && $punch['user_id'] == $matricule;
+        });
+        if ($matches->isNotEmpty()) {
+            $studentPunch = $pickLatest($matches);
             return [
-                'time' => $studentPunch['devdt'],
-                'device' => ($studentPunch['devnm'] ?? ($studentPunch['device_name'] ?? ($studentPunch['name'] ?? 'Inconnu')))
+                'time' => $studentPunch['devdt'] ?? $studentPunch['punch_time'],
+                'device' => ($studentPunch['devnm'] ?? ($studentPunch['device'] ?? ($studentPunch['device_name'] ?? ($studentPunch['name'] ?? 'Inconnu'))))
             ];
         }
         
         // Stratégie 2: Supprimer les zéros de début (ex: "000123" → "123")
         $matriculeTrimmed = ltrim($matricule, '0');
         if ($matriculeTrimmed !== $matricule && !empty($matriculeTrimmed)) {
-            $studentPunch = collect($biostarResults)->firstWhere('user_id', $matriculeTrimmed);
-            if ($studentPunch) {
+            $matches = collect($biostarResults)->filter(function ($punch) use ($matriculeTrimmed) {
+                return isset($punch['user_id']) && $punch['user_id'] == $matriculeTrimmed;
+            });
+            if ($matches->isNotEmpty()) {
+                $studentPunch = $pickLatest($matches);
                 \Log::info("Match trouvé avec suppression des zéros: '$matricule' → '$matriculeTrimmed'");
                 return [
-                    'time' => $studentPunch['devdt'],
-                    'device' => ($studentPunch['devnm'] ?? ($studentPunch['device_name'] ?? ($studentPunch['name'] ?? 'Inconnu')))
+                    'time' => $studentPunch['devdt'] ?? $studentPunch['punch_time'],
+                    'device' => ($studentPunch['devnm'] ?? ($studentPunch['device'] ?? ($studentPunch['device_name'] ?? ($studentPunch['name'] ?? 'Inconnu'))))
                 ];
             }
         }
@@ -873,37 +1039,42 @@ class CoursController extends Controller
         // Stratégie 3: Ajouter des zéros de début (ex: "123" → "000123")
         $matriculePadded = str_pad($matricule, 6, '0', STR_PAD_LEFT);
         if ($matriculePadded !== $matricule) {
-            $studentPunch = collect($biostarResults)->firstWhere('user_id', $matriculePadded);
-            if ($studentPunch) {
+            $matches = collect($biostarResults)->filter(function ($punch) use ($matriculePadded) {
+                return isset($punch['user_id']) && $punch['user_id'] == $matriculePadded;
+            });
+            if ($matches->isNotEmpty()) {
+                $studentPunch = $pickLatest($matches);
                 \Log::info("Match trouvé avec ajout de zéros: '$matricule' → '$matriculePadded'");
                 return [
-                    'time' => $studentPunch['devdt'],
-                    'device' => ($studentPunch['devnm'] ?? ($studentPunch['device_name'] ?? ($studentPunch['name'] ?? 'Inconnu')))
+                    'time' => $studentPunch['devdt'] ?? $studentPunch['punch_time'],
+                    'device' => ($studentPunch['devnm'] ?? ($studentPunch['device'] ?? ($studentPunch['device_name'] ?? ($studentPunch['name'] ?? 'Inconnu'))))
                 ];
             }
         }
         
         // Stratégie 4: Recherche partielle (contient le matricule)
-        $studentPunch = collect($biostarResults)->first(function ($punch) use ($matricule) {
-            return strpos($punch['user_id'], $matricule) !== false;
+        $matches = collect($biostarResults)->filter(function ($punch) use ($matricule) {
+            return isset($punch['user_id']) && strpos($punch['user_id'], $matricule) !== false;
         });
-        if ($studentPunch) {
-            \Log::info("Match trouvé avec recherche partielle: '$matricule' contenu dans '{$studentPunch['user_id']}'");
+        if ($matches->isNotEmpty()) {
+            $studentPunch = $pickLatest($matches);
+            \Log::info("Match trouvé avec recherche partielle (dernier conservé): '$matricule'");
             return [
-                'time' => $studentPunch['devdt'],
-                'device' => ($studentPunch['devnm'] ?? ($studentPunch['device_name'] ?? ($studentPunch['name'] ?? 'Inconnu')))
+                'time' => $studentPunch['devdt'] ?? $studentPunch['punch_time'],
+                'device' => ($studentPunch['devnm'] ?? ($studentPunch['device'] ?? ($studentPunch['device_name'] ?? ($studentPunch['name'] ?? 'Inconnu'))))
             ];
         }
         
         // Stratégie 5: Recherche inverse (le matricule contient le user_id)
-        $studentPunch = collect($biostarResults)->first(function ($punch) use ($matricule) {
-            return strpos($matricule, $punch['user_id']) !== false;
+        $matches = collect($biostarResults)->filter(function ($punch) use ($matricule) {
+            return isset($punch['user_id']) && strpos($matricule, $punch['user_id']) !== false;
         });
-        if ($studentPunch) {
-            \Log::info("Match trouvé avec recherche inverse: '{$studentPunch['user_id']}' contenu dans '$matricule'");
+        if ($matches->isNotEmpty()) {
+            $studentPunch = $pickLatest($matches);
+            \Log::info("Match trouvé avec recherche inverse (dernier conservé): '$matricule'");
             return [
-                'time' => $studentPunch['devdt'],
-                'device' => ($studentPunch['devnm'] ?? ($studentPunch['device_name'] ?? ($studentPunch['name'] ?? 'Inconnu')))
+                'time' => $studentPunch['devdt'] ?? $studentPunch['punch_time'],
+                'device' => ($studentPunch['devnm'] ?? ($studentPunch['device'] ?? ($studentPunch['device_name'] ?? ($studentPunch['name'] ?? 'Inconnu'))))
             ];
         }
         
@@ -1025,7 +1196,15 @@ class CoursController extends Controller
         $searchValue = $request->query('searchValue', '');
         $date = $request->query('date');
 
-        $query = Cours::with(['etablissement', 'promotion', 'type_cours', 'salle', 'option', 'groups', 'ville'])
+        // Charger les relations, avec salles en option
+        $relations = ['etablissement', 'promotion', 'type_cours', 'salle', 'option', 'groups', 'ville'];
+        try {
+            \DB::select('SELECT 1 FROM cours_salle LIMIT 1');
+            $relations[] = 'salles';
+        } catch (\Exception $e) {
+            // Table n'existe pas encore, ignorer
+        }
+        $query = Cours::with($relations)
                         ->whereNotNull('archived_at'); // Seulement les cours archivés
 
         // Appliquer le filtrage par contexte utilisateur

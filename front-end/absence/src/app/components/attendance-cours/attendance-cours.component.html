@@ -4,16 +4,25 @@
     <div class="header-elegant">
       <!-- Section Titre en Haut -->
       <div class="title-section">
-        <div class="title-wrapper">
-          <div class="icon-badge">
-            <span class="material-icons">fact_check</span>
+        <div class="title-wrapper flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="icon-badge">
+              <span class="material-icons">fact_check</span>
+            </div>
+            <div>
+              <h1 class="main-title">Suivi des Présences</h1>
+              <p class="subtitle">Cours</p>
+            </div>
           </div>
-          <div>
-            <h1 class="main-title">Suivi des Présences</h1>
-            <p class="subtitle">Cours</p>
+          <div class="auto-refresh-indicator flex items-center gap-2 text-sm text-gray-600">
+            <span class="material-icons">schedule</span>
+            <span>Dernière actualisation: {{ getTimeSinceLastRefresh() }}</span>
+            <span class="auto-refresh-badge relative inline-flex h-2 w-2">
+              <span class="pulse-dot inline-flex absolute inset-0 rounded-full bg-emerald-500"></span>
+            </span>
           </div>
         </div>
-        <p class="description">
+        <p class="description mt-2 flex items-center gap-2 text-gray-600">
           <span class="material-icons">info_outline</span>
           Consultez et gérez le statut de présence des étudiants pour ce cours
         </p>
@@ -156,8 +165,10 @@
         <div class="flex items-center gap-2 truncate">
           <span class="material-icons text-rose-500">meeting_room</span>
           <div class="min-w-0">
-            <div class="text-[11px] text-gray-500">Salle</div>
-            <div class="font-medium text-gray-900 truncate">{{ coursData.cours.salle?.name || 'N/A' }}</div>
+            <div class="text-[11px] text-gray-500">Salle{{ (coursData.cours.salles && coursData.cours.salles.length > 1) ? 's' : '' }}</div>
+            <div class="font-medium text-gray-900 truncate">
+              {{ getSallesNames() }}
+            </div>
           </div>
         </div>
         <div class="flex items-center gap-2 truncate">

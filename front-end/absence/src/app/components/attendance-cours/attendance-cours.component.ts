@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, interval } from 'rxjs';
 import * as XLSX from 'xlsx';
 
 import { CoursService, Cours } from '../../services/cours.service';
@@ -74,7 +74,16 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
   alphabetLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
   // Offset configurable appliqué aux heures de pointage Biostar (en minutes)
-  biostarTimeOffsetMinutes: number = 60;
+  biostarTimeOffsetMinutes: number = 0;
+  
+  // Propriétés pour l'actualisation automatique
+  autoRefreshInterval = 30000; // 30 secondes en millisecondes
+  lastRefreshTime: Date | null = null;
+  private autoRefreshStarted = false; // Flag pour éviter de démarrer plusieurs fois
+  
+  // Propriétés pour l'état de la configuration Biostar
+  biostarConfigStatus: 'loading' | 'success' | 'error' | 'none' = 'loading';
+  biostarConfigMessage: string = 'Initialisation de la configuration Biostar...';
   
   // Options pour les filtres
   statusOptions = [
@@ -124,10 +133,8 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
       this.coursId = +params['id'];
       if (this.coursId && !isNaN(this.coursId) && this.coursId > 0) {
-        // Auto-sélectionner la configuration pour ce cours
-        this.autoSelectConfigurationForCours();
-        
-        // Charger les données d'attendance
+        // Charger d'abord les données d'attendance (qui chargera coursData)
+        // Puis charger la configuration Biostar dans le callback de loadAttendanceData
         this.loadAttendanceData();
       } else {
         this.error = 'ID du cours invalide ou manquant';
@@ -150,24 +157,46 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
 
     console.log('🔄 Auto-sélection de la configuration pour le cours ID:', this.coursId);
     
+    // Mettre à jour l'état de chargement
+    this.biostarConfigStatus = 'loading';
+    this.biostarConfigMessage = 'Chargement de la configuration Biostar...';
+    
     this.configurationAutoService.autoSelectConfigurationForCours(this.coursId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
           console.log('✅ Configuration auto-sélectionnée avec succès:', response);
+          
+          // Mettre à jour l'état de succès avec le nom de la ville
+          this.biostarConfigStatus = 'success';
+          this.biostarConfigMessage = `Configuration Biostar chargée pour la ville: ${response.data.ville?.name || 'Inconnue'}`;
+
+          // Ajuster l'offset d'affichage selon la ville (Casablanca => +60 minutes, autres => 0)
+          const villeName = (response.data.ville?.name || '').toString().trim().toLowerCase();
+          this.biostarTimeOffsetMinutes = villeName === 'casablanca' || villeName === 'casa' ? 60 : 0;
+          
+          // Une seule notification de succès
           this.notificationService.success(
-            'Configuration chargée', 
-            `Configuration Biostar chargée pour la ville: ${response.data.ville?.name || 'Inconnue'}`
+            'Configuration Biostar', 
+            `Configuration sélectionnée pour la ville: ${response.data.ville?.name || 'Inconnue'}`
           );
           
-          // Récupérer les données de pointage depuis Biostar
-          this.loadBiostarAttendanceData();
+          // Récupérer les données de pointage depuis Biostar seulement si coursData est disponible
+          if (this.coursData?.cours) {
+            this.loadBiostarAttendanceData();
+          }
         },
         error: (error) => {
           console.warn('⚠️ Aucune configuration trouvée pour ce cours:', error);
-          this.notificationService.warning(
-            'Configuration manquante', 
-            'Aucune configuration Biostar trouvée pour la ville de ce cours. Les données de pointage ne seront pas disponibles.'
+          
+          // Mettre à jour l'état d'erreur
+          this.biostarConfigStatus = 'error';
+          this.biostarConfigMessage = 'Aucune configuration Biostar trouvée pour la ville de ce cours. Les données de pointage ne seront pas disponibles.';
+          
+          // Une seule notification d'erreur
+          this.notificationService.error(
+            'Configuration Biostar', 
+            'La configuration n\'existe pas pour cette ville'
           );
         }
       });
@@ -177,16 +206,23 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
    * Charger les données de pointage depuis Biostar
    */
   loadBiostarAttendanceData(): void {
-    if (!this.coursId || !this.coursData?.cours) return;
+    if (!this.coursId || !this.coursData?.cours) {
+      console.warn('⚠️ Impossible de charger les données Biostar: coursId ou coursData manquant');
+      return;
+    }
 
     console.log('🔄 Chargement des données de pointage depuis Biostar pour le cours:', this.coursId);
+    console.log('📊 Données du cours:', this.coursData.cours);
     
-    const request = {
-      cours_id: this.coursId,
-      date: this.coursData.cours.date,
-      start_time: this.coursData.cours.pointage_start_hour,
-      end_time: this.coursData.cours.heure_fin
-    };
+    // Récupérer les IDs des salles (salles multiples ou salle unique)
+    const sallesIds: number[] = [];
+    if (this.coursData.cours.salles && this.coursData.cours.salles.length > 0) {
+      sallesIds.push(...this.coursData.cours.salles.map((s: any) => s.id));
+    } else if (this.coursData.cours.salle_id) {
+      sallesIds.push(this.coursData.cours.salle_id);
+    }
+    
+    console.log('🏢 IDs des salles pour filtrer les devices:', sallesIds);
 
     this.biostarAttendanceService.syncCoursAttendanceWithBiostar(
       this.coursId,
@@ -202,9 +238,12 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
           // Intégrer les données de pointage avec les étudiants
           this.integrateBiostarDataWithStudents(response.data);
           
+          // Mettre à jour lastRefreshTime
+          this.lastRefreshTime = new Date();
+          
           this.notificationService.success(
             'Données de pointage chargées', 
-            `${response.data.total_punches} pointage(s) récupéré(s) depuis Biostar`
+            `${response.data.total_punches || 0} pointage(s) récupéré(s) depuis Biostar`
           );
         }
       },
@@ -225,7 +264,10 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     if (!biostarData.punches || !this.students) return;
 
     console.log('🔄 Intégration des données Biostar avec les étudiants');
+    console.log('📊 Données Biostar reçues:', biostarData);
+    console.log('👥 Étudiants locaux:', this.students.length);
 
+    // Normalisation simple (trim + uppercase)
     const normalize = (v: any) => (v === null || v === undefined) ? '' : String(v).trim().toUpperCase();
 
     // Créer un map des pointages par clés possibles (user_id, bsevtc, user_name)
@@ -243,45 +285,65 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
       }
     });
 
+    console.log('🗺️ Map des pointages créé:', punchMap.size, 'clés avec pointages');
+
     // Mettre à jour les étudiants avec leurs données de pointage
+    let matchedStudents = 0;
     this.students.forEach(student => {
       const key = normalize(student.matricule);
       const studentPunches = punchMap.get(key);
       if (studentPunches && studentPunches.length > 0) {
-        // Trier par date et prendre le plus tôt
+        matchedStudents++;
+
+        // Trier par date et prendre le plus récent (dernier)
         studentPunches.sort((a: any, b: any) => {
           const at = new Date(a.bsevtdt || a.punch_time).getTime();
           const bt = new Date(b.bsevtdt || b.punch_time).getTime();
           return at - bt;
         });
-        const firstPunch = studentPunches[0];
+        const lastPunch = studentPunches[studentPunches.length - 1];
 
-        const rawTime: string = firstPunch.punch_time || firstPunch.bsevtdt;
+        // Parser + appliquer offset
+        const rawTime: string = lastPunch.punch_time || lastPunch.bsevtdt;
         const punchTimeDate = this.parseStudentPunchTime(rawTime);
 
         student.punch_time = {
           time: punchTimeDate.toISOString(),
-          device: firstPunch.device || firstPunch.device_name || 'Inconnu'
+          device: lastPunch.devnm || lastPunch.device_name || lastPunch.device || 'Inconnu'
         };
         
         // Recalculer le statut avec la date ajustée
         student.status = this.calculateStudentStatus(punchTimeDate);
+        
+        console.log(`✅ Étudiant ${student.matricule} (${student.last_name} ${student.first_name}) - Statut: ${student.status}`);
+      } else {
+        console.log(`❌ Aucun pointage trouvé pour l'étudiant ${student.matricule} (${student.last_name} ${student.first_name})`);
       }
     });
 
     // Recalculer les statistiques
-    this.updateStatistics({
-      total_students: this.students.length,
-      presents: this.students.filter(s => s.status === 'présent').length,
-      absents: this.students.filter(s => s.status === 'absent').length,
-      lates: this.students.filter(s => s.status === 'en retard').length,
-      excused: this.students.filter(s => s.status === 'excusé').length
-    });
+    this.presents = this.students.filter(s => s.status === 'present' || s.status === 'présent').length;
+    this.absents = this.students.filter(s => s.status === 'absent').length;
+    this.lates = this.students.filter(s => s.status === 'late' || s.status === 'en retard').length;
+    this.excused = this.students.filter(s => s.status === 'excused' || s.status === 'excusé').length;
+    this.totalStudents = this.students.length;
 
     // Mettre à jour les étudiants filtrés
     this.filteredStudents = [...this.students];
     
-    console.log('✅ Données Biostar intégrées avec succès');
+    // Réappliquer le tri actuel si un tri est actif
+    if (this.sortConfig.column) {
+      this.applySorting();
+    }
+    
+    console.log(`✅ Données Biostar intégrées avec succès - ${matchedStudents}/${this.students.length} étudiants correspondants`);
+    console.log('📊 Statistiques finales:', {
+      total: this.totalStudents,
+      presents: this.presents,
+      absents: this.absents,
+      lates: this.lates,
+      excused: this.excused
+    });
   }
 
   /**
@@ -316,6 +378,18 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
           // Ne pas appeler updateStatistics ici car applyToleranceLogic() recalcule déjà les stats
           this.updatePromotionOptions();
           this.loading = false;
+          
+          // Mettre à jour lastRefreshTime
+          this.lastRefreshTime = new Date();
+          
+          // Auto-sélectionner la configuration Biostar après avoir chargé les données du cours
+          // Cela garantit que coursData est disponible avant de charger la configuration
+          this.autoSelectConfigurationForCours();
+          
+          // Démarrer l'actualisation automatique seulement si elle n'est pas déjà démarrée
+          if (!this.autoRefreshStarted) {
+            this.startAutoRefresh();
+          }
           
           // Debug temporaire pour la tolérance
           if (data.cours?.tolerance) {
@@ -480,7 +554,25 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
       
       if (student.punch_time && student.punch_time.time) {
         studentsWithPunchTime++;
-        const punchTime = this.parseStudentPunchTime(student.punch_time.time);
+        // Les données viennent déjà avec l'offset appliqué depuis integrateBiostarDataWithStudents
+        // Si c'est déjà un format ISO (avec offset appliqué), on l'utilise tel quel
+        // Sinon, on parse sans appliquer l'offset car il sera appliqué dans integrateBiostarDataWithStudents
+        let punchTime: Date;
+        if (student.punch_time.time.includes('T') && (student.punch_time.time.includes('Z') || student.punch_time.time.includes('+'))) {
+          // C'est déjà un format ISO avec offset appliqué depuis integrateBiostarDataWithStudents, utiliser tel quel
+          punchTime = new Date(student.punch_time.time);
+        } else {
+          // Parser sans appliquer l'offset (les données brutes de Biostar)
+          // L'offset sera appliqué dans integrateBiostarDataWithStudents
+          const rawDate = new Date(student.punch_time.time);
+          if (!isNaN(rawDate.getTime())) {
+            punchTime = rawDate;
+          } else {
+            // Si le parsing direct échoue, utiliser parseStudentPunchTime mais sans offset
+            // On va créer une version qui n'applique pas l'offset
+            punchTime = this.parseStudentPunchTimeWithoutOffset(student.punch_time.time);
+          }
+        }
         
         if (isNaN(punchTime.getTime())) {
           console.log(`❌ Étudiant ${index + 1}: Date invalide - ${student.punch_time.time}`);
@@ -544,8 +636,9 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     // Si c'est un timestamp ISO complet
     if (punchTimeString.includes('T') && (punchTimeString.includes('Z') || punchTimeString.includes('+'))) {
       const date = new Date(punchTimeString);
-      console.log('📅 Parsed ISO punch time:', date.toLocaleString());
-      return this.applyBiostarOffset(date);
+      console.log('📅 Parsed ISO punch time (offset déjà appliqué):', date.toLocaleString());
+      // Ne PAS réappliquer l'offset car la date ISO a déjà l'offset appliqué
+      return date; // Retourner directement sans réappliquer l'offset
     }
     
     // Si c'est au format DD/MM/YYYY HH:MM:SS (format français)
@@ -606,6 +699,71 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     const offset = Number(this.biostarTimeOffsetMinutes) || 0;
     adjusted.setMinutes(adjusted.getMinutes() + offset);
     return adjusted;
+  }
+
+  /**
+   * Parse l'heure de pointage sans appliquer l'offset (pour éviter le double ajout)
+   */
+  private parseStudentPunchTimeWithoutOffset(punchTimeString: string): Date {
+    console.log('🎯 Parsing student punch time WITHOUT offset:', punchTimeString);
+    
+    // Si c'est un timestamp ISO complet
+    if (punchTimeString.includes('T') && (punchTimeString.includes('Z') || punchTimeString.includes('+'))) {
+      const date = new Date(punchTimeString);
+      console.log('📅 Parsed ISO punch time (no offset):', date.toLocaleString());
+      return date;
+    }
+    
+    // Si c'est au format DD/MM/YYYY HH:MM:SS (format français)
+    if (punchTimeString.includes('/') && punchTimeString.includes(' ')) {
+      const [datePart, timePart] = punchTimeString.split(' ');
+      const [day, month, year] = datePart.split('/').map(Number);
+      const [hours, minutes, seconds] = timePart.split(':').map(Number);
+      
+      const date = new Date(year, month - 1, day, hours, minutes, seconds || 0, 0);
+      console.log('📅 Parsed French date/time (no offset):', date.toLocaleString());
+      return date;
+    }
+    
+    // Si c'est au format YYYY-MM-DD HH:MM:SS.microseconds (format SQL Server)
+    if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+$/.test(punchTimeString)) {
+      const [datePart, timePart] = punchTimeString.split(' ');
+      const [year, month, day] = datePart.split('-').map(Number);
+      const [timeOnly] = timePart.split('.');
+      const [hours, minutes, seconds] = timeOnly.split(':').map(Number);
+      
+      const date = new Date(year, month - 1, day, hours, minutes, seconds, 0);
+      console.log('📅 Parsed SQL Server date/time (no offset):', date.toLocaleString());
+      return date;
+    }
+
+    // Si c'est au format YYYY-MM-DD HH:MM:SS (sans microsecondes)
+    if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(punchTimeString)) {
+      const [datePart, timePart] = punchTimeString.split(' ');
+      const [year, month, day] = datePart.split('-').map(Number);
+      const [hours, minutes, seconds] = timePart.split(':').map(Number);
+      const date = new Date(year, month - 1, day, hours, minutes, seconds, 0);
+      return date;
+    }
+    
+    // Si c'est juste une heure HH:MM ou HH:MM:SS
+    if (punchTimeString.includes(':') && !punchTimeString.includes('/')) {
+      const [hours, minutes, seconds] = punchTimeString.split(':').map(Number);
+      const date = new Date();
+      date.setHours(hours, minutes, (seconds || 0), 0);
+      console.log('⏰ Parsed time only (no offset):', date.toLocaleString());
+      return date;
+    }
+    
+    // Fallback: essayer de parser comme date générique
+    const date = new Date(punchTimeString);
+    if (!isNaN(date.getTime())) {
+      console.log('📅 Parsed fallback punch time (no offset):', date.toLocaleString());
+      return date;
+    }
+    
+    console.error('❌ Impossible de parser l\'heure de pointage:', punchTimeString);
+    return new Date();
   }
 
   /**
@@ -1075,6 +1233,12 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
   // Affichage des heures de pointage avec offset Biostar appliqué
   public formatPunchForDisplay(raw: string): string {
     if (!raw) return 'N/A';
+    // Si c'est déjà un format ISO, utiliser tel quel (offset déjà appliqué)
+    if (raw.includes('T') && (raw.includes('Z') || raw.includes('+'))) {
+      const dt = new Date(raw);
+      return dt.toLocaleString('fr-FR');
+    }
+    // Sinon, parser et appliquer l'offset (données brutes de Biostar)
     const dt = this.parseStudentPunchTime(raw);
     return dt.toLocaleString('fr-FR');
   }
@@ -1118,6 +1282,63 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
   refreshData(): void {
     console.log('🔄 Actualisation des données...');
     this.loadAttendanceData();
+  }
+
+  /**
+   * Démarrer l'actualisation automatique
+   */
+  startAutoRefresh(): void {
+    // Éviter de démarrer plusieurs fois
+    if (this.autoRefreshStarted) {
+      console.log('⚠️ Actualisation automatique déjà démarrée');
+      return;
+    }
+
+    console.log('🔄 Démarrage de l\'actualisation automatique (toutes les 30s)');
+    this.autoRefreshStarted = true;
+    
+    interval(this.autoRefreshInterval)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        console.log('⏰ Actualisation automatique déclenchée');
+        this.loadAttendanceData();
+      });
+  }
+
+  /**
+   * Obtient le texte formaté du temps écoulé depuis la dernière actualisation
+   */
+  getTimeSinceLastRefresh(): string {
+    if (!this.lastRefreshTime) {
+      return 'Jamais';
+    }
+    
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - this.lastRefreshTime.getTime()) / 1000);
+    
+    if (diffInSeconds < 60) {
+      return `il y a ${diffInSeconds}s`;
+    } else {
+      const minutes = Math.floor(diffInSeconds / 60);
+      return `il y a ${minutes}min`;
+    }
+  }
+
+  /**
+   * Obtient la liste formatée des noms de salles
+   */
+  getSallesNames(): string {
+    if (!this.coursData?.cours) {
+      return 'N/A';
+    }
+
+    if (this.coursData.cours.salles && this.coursData.cours.salles.length > 0) {
+      return this.coursData.cours.salles.map((s: any) => s.name).join(', ');
+    } else if (this.coursData.cours.salle?.name) {
+      return this.coursData.cours.salle.name;
+    }
+
+    return 'N/A';
   }
 
 

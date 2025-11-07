@@ -69,6 +69,14 @@ class Cours extends Model
     }
 
     /**
+     * Get the salles that belong to the cours (many-to-many).
+     */
+    public function salles(): BelongsToMany
+    {
+        return $this->belongsToMany(Salle::class, 'cours_salle');
+    }
+
+    /**
      * Get the option that owns the cours.
      */
     public function option(): BelongsTo

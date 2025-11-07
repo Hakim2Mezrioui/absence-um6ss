@@ -8,6 +8,7 @@ import { NotificationService } from '../../services/notification.service';
 import { SallesService, CreateSalleRequest, Salle } from '../../services/salles.service';
 import { AuthService, User } from '../../services/auth.service';
 import { UserContextService, UserContext } from '../../services/user-context.service';
+import { BiostarService, BiostarDevice, BiostarDeviceGroup } from '../../services/biostar.service';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
@@ -45,7 +46,10 @@ export class AddCoursComponent implements OnInit, OnDestroy {
   etablissements: any[] = [];
   promotions: any[] = [];
   salles: any[] = [];
+  allSalles: any[] = []; // Garder une copie de toutes les salles
   filteredSalles: any[] = [];
+  selectedSalles: any[] = [];
+  multiSallesOpen: boolean = false;
   typesCours: any[] = [];
   options: any[] = [];
   groups: any[] = [];
@@ -64,6 +68,14 @@ export class AddCoursComponent implements OnInit, OnDestroy {
   newSalleForm: FormGroup;
   salleDropdownOpen = false;
   
+  // Biostar device selection state
+  allBiostarDevices: BiostarDevice[] = [];
+  biostarDevices: BiostarDevice[] = [];
+  filteredBiostarDevices: BiostarDevice[] = [];
+  devicesLoading = false;
+  devicesError: string | null = null;
+  deviceSearch = '';
+  
   // User context and role management
   currentUser: User | null = null;
   userContext: UserContext | null = null;
@@ -81,7 +93,8 @@ export class AddCoursComponent implements OnInit, OnDestroy {
     private router: Router,
     private sallesService: SallesService,
     private authService: AuthService,
-    private userContextService: UserContextService
+    private userContextService: UserContextService,
+    private biostarService: BiostarService
   ) {
     this.newSalleForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(2)]],
@@ -90,8 +103,20 @@ export class AddCoursComponent implements OnInit, OnDestroy {
       capacite: [null],
       description: [''],
       etablissement_id: [null, Validators.required],
-      ville_id: [null, Validators.required]
+      ville_id: [null, Validators.required],
+      devices: [[], Validators.required]
     });
+    
+    // Subscribe to ville_id changes to load devices
+    this.newSalleForm.get('ville_id')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((villeId) => {
+        if (villeId) {
+          this.onNewSalleVilleChange(villeId);
+        } else {
+          this.resetBiostarUi();
+        }
+      });
   }
 
   ngOnInit() {
@@ -215,6 +240,7 @@ export class AddCoursComponent implements OnInit, OnDestroy {
           this.etablissements = options.etablissements || [];
           this.promotions = options.promotions || [];
           this.salles = options.salles || [];
+          this.allSalles = [...this.salles]; // Garder une copie de toutes les salles
           
           // Filtrer les salles selon le rôle et l'établissement
           this.filterSallesByRoleAndEtablissement();
@@ -347,12 +373,15 @@ export class AddCoursComponent implements OnInit, OnDestroy {
     this.success = '';
 
     // Conversion des IDs en nombres et de la tolérance en format time
+    const sallesIds = this.selectedSalles.map(s => s.id);
+    
     const coursData = {
       ...this.cours,
       etablissement_id: Number(this.cours.etablissement_id),
       promotion_id: Number(this.cours.promotion_id),
       type_cours_id: Number(this.cours.type_cours_id),
-      salle_id: Number(this.cours.salle_id),
+      salle_id: sallesIds.length > 0 ? Number(sallesIds[0]) : Number(this.cours.salle_id), // Garder pour compatibilité
+      salles_ids: sallesIds.length > 0 ? sallesIds : (this.cours.salle_id ? [Number(this.cours.salle_id)] : []),
       option_id: this.cours.option_id ? Number(this.cours.option_id) : undefined,
       ville_id: Number(this.cours.ville_id),
       tolerance: this.formatToleranceToTime(this.toleranceMinutes),
@@ -437,9 +466,9 @@ export class AddCoursComponent implements OnInit, OnDestroy {
       return false;
     }
 
-    if (!this.cours.salle_id || this.cours.salle_id === 0) {
+    if ((!this.selectedSalles || this.selectedSalles.length === 0) && (!this.cours.salle_id || this.cours.salle_id === 0)) {
       console.log('❌ Validation échouée: salle manquante');
-      this.error = 'La salle est requise';
+      this.error = 'Au moins une salle est requise';
       return false;
     }
 
@@ -490,6 +519,7 @@ export class AddCoursComponent implements OnInit, OnDestroy {
       promotion_id: 0,
       type_cours_id: 0,
       salle_id: 0,
+      salles_ids: [],
       option_id: undefined,
       ville_id: 0,
       annee_universitaire: `${currentYear}-${currentYear + 1}`
@@ -578,6 +608,36 @@ export class AddCoursComponent implements OnInit, OnDestroy {
     this.salleSearchTerm = term || '';
     this.updateFilteredSalles();
   }
+  
+  toggleSalleSelection(salle: any): void {
+    const index = this.selectedSalles.findIndex(s => s.id === salle.id);
+    if (index >= 0) {
+      // Désélectionner
+      this.selectedSalles.splice(index, 1);
+    } else {
+      // Sélectionner
+      this.selectedSalles.push(salle);
+    }
+    // Mettre à jour le cours pour compatibilité
+    if (this.selectedSalles.length > 0) {
+      this.cours.salle_id = this.selectedSalles[0].id;
+    } else {
+      this.cours.salle_id = 0;
+    }
+  }
+
+  isSalleSelected(salle: any): boolean {
+    return this.selectedSalles.some(s => s.id === salle.id);
+  }
+
+  removeSalle(salle: any): void {
+    this.selectedSalles = this.selectedSalles.filter(s => s.id !== salle.id);
+    if (this.selectedSalles.length > 0) {
+      this.cours.salle_id = this.selectedSalles[0].id;
+    } else {
+      this.cours.salle_id = 0;
+    }
+  }
 
   updateFilteredSalles(): void {
     const term = this.salleSearchTerm.trim().toLowerCase();
@@ -585,28 +645,31 @@ export class AddCoursComponent implements OnInit, OnDestroy {
     const villeId = this.cours?.ville_id;
     
     // Filtrer d'abord par établissement et ville
-    let filteredByLocation = [...this.salles];
+    let filteredByLocation = [...this.allSalles];
     if (etablissementId && villeId) {
-      filteredByLocation = (this.salles || []).filter((s: any) => {
+      filteredByLocation = (this.allSalles || []).filter((s: any) => {
         return s?.etablissement_id == etablissementId && s?.ville_id == villeId;
       });
       console.log('🏢 Salles filtrées par établissement et ville (add-cours):', {
         etablissementId: etablissementId,
         villeId: villeId,
-        totalSalles: this.salles.length,
+        totalSalles: this.allSalles.length,
         sallesFiltrees: filteredByLocation.length
       });
     } else if (etablissementId) {
       // Si seulement l'établissement est sélectionné
-      filteredByLocation = (this.salles || []).filter((s: any) => {
+      filteredByLocation = (this.allSalles || []).filter((s: any) => {
         return s?.etablissement_id == etablissementId;
       });
       console.log('🏢 Salles filtrées par établissement seulement (add-cours):', {
         etablissementId: etablissementId,
-        totalSalles: this.salles.length,
+        totalSalles: this.allSalles.length,
         sallesFiltrees: filteredByLocation.length
       });
     }
+    
+    // Mettre à jour la liste des salles disponibles
+    this.salles = filteredByLocation;
     
     // Ensuite filtrer par terme de recherche
     if (!term) {
@@ -707,9 +770,15 @@ export class AddCoursComponent implements OnInit, OnDestroy {
       capacite: null,
       description: '',
       etablissement_id: etabId,
-      ville_id: villeId
+      ville_id: villeId,
+      devices: []
     });
     this.showAddSalleModal = true;
+    
+    // Load devices if ville is already set
+    if (villeId) {
+      this.onNewSalleVilleChange(villeId);
+    }
   }
 
   closeAddSalleModal(): void {
@@ -755,7 +824,11 @@ export class AddCoursComponent implements OnInit, OnDestroy {
       etablissement_id: Number(this.newSalleForm.value.etablissement_id),
       ville_id: Number(this.newSalleForm.value.ville_id),
       capacite: this.newSalleForm.value.capacite ? Number(this.newSalleForm.value.capacite) : undefined,
-      description: this.newSalleForm.value.description || undefined
+      description: this.newSalleForm.value.description || undefined,
+      devices: (this.newSalleForm.value.devices || []).map((d: BiostarDevice) => ({
+        devid: d.devid,
+        devnm: d.devnm
+      }))
     };
 
     this.loading = true;
@@ -764,9 +837,18 @@ export class AddCoursComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (res) => {
           const created: Salle = res.salle;
+          this.allSalles = [created, ...this.allSalles];
           this.salles = [created, ...this.salles];
           this.updateFilteredSalles();
-          this.cours.salle_id = created.id;
+          
+          // Ajouter à la sélection multiple
+          if (!this.isSalleSelected(created)) {
+            this.selectedSalles.push(created);
+          }
+          if (this.selectedSalles.length > 0) {
+            this.cours.salle_id = this.selectedSalles[0].id;
+          }
+          
           this.notificationService.success('Salle créée', 'La salle a été ajoutée et sélectionnée');
           this.closeAddSalleModal();
           this.loading = false;
@@ -777,5 +859,88 @@ export class AddCoursComponent implements OnInit, OnDestroy {
           this.loading = false;
         }
       });
+  }
+  
+  // Biostar device selection methods
+  onNewSalleVilleChange(villeId: number | null): void {
+    if (!villeId) {
+      this.resetBiostarUi();
+      return;
+    }
+    this.loadAllDevices(Number(villeId));
+  }
+  
+  private resetBiostarUi(): void {
+    this.allBiostarDevices = [];
+    this.biostarDevices = [];
+    this.filteredBiostarDevices = [];
+    this.deviceSearch = '';
+    this.devicesLoading = false;
+    this.devicesError = null;
+    this.newSalleForm.get('devices')?.setValue([]);
+  }
+  
+  private loadAllDevices(villeId: number): void {
+    this.devicesLoading = true;
+    this.devicesError = null;
+    this.biostarService.getDevices(villeId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.allBiostarDevices = res.devices || [];
+          this.biostarDevices = [...this.allBiostarDevices];
+          this.filterDevices();
+          this.devicesLoading = false;
+          if ((res.devices || []).length === 0) {
+            this.devicesError = 'Aucun device disponible pour cette ville.';
+          }
+        },
+        error: (err) => {
+          console.error('Erreur lors du chargement des devices:', err);
+          this.allBiostarDevices = [];
+          this.biostarDevices = [];
+          this.filteredBiostarDevices = [];
+          this.devicesLoading = false;
+          this.devicesError = err.error?.message || 'Impossible de charger les devices.';
+        }
+      });
+  }
+  
+  onDeviceSearchInput(value: string): void {
+    this.deviceSearch = value || '';
+    this.filterDevices();
+  }
+  
+  private filterDevices(): void {
+    const term = (this.deviceSearch || '').toLowerCase().trim();
+    if (!term) {
+      this.filteredBiostarDevices = [...this.biostarDevices];
+    } else {
+      this.filteredBiostarDevices = this.biostarDevices.filter(d => {
+        const nameMatch = (d.devnm || '').toLowerCase().includes(term);
+        const idMatch = String(d.devid).toLowerCase().includes(term);
+        return nameMatch || idMatch;
+      });
+    }
+  }
+  
+  isDeviceSelected(device: BiostarDevice): boolean {
+    const selected = this.newSalleForm.get('devices')?.value || [];
+    return selected.some((d: BiostarDevice) => d.devid === device.devid);
+  }
+  
+  toggleDevice(device: BiostarDevice): void {
+    const control = this.newSalleForm.get('devices');
+    const selected: BiostarDevice[] = [...(control?.value || [])];
+    const index = selected.findIndex(d => d.devid === device.devid);
+    
+    if (index >= 0) {
+      selected.splice(index, 1);
+    } else {
+      selected.push(device);
+    }
+    
+    control?.setValue(selected);
+    control?.markAsTouched();
   }
 }

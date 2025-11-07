@@ -60,13 +60,88 @@ class BiostarAttendanceController extends Controller
                 ], 404);
             }
 
+            // Récupérer les devices des salles du cours (salles multiples ou salle unique)
+            $allowedDeviceIds = [];
+            $allowedDeviceNames = [];
+            
+            // Charger les relations nécessaires
+            $cours->load(['salles', 'salle']);
+            
+            if (method_exists($cours, 'salles') && $cours->relationLoaded('salles') && $cours->salles && $cours->salles->isNotEmpty()) {
+                // Multi-salles: collecter les devices de toutes les salles
+                foreach ($cours->salles as $salle) {
+                    if (is_array($salle->devices)) {
+                        foreach ($salle->devices as $d) {
+                            if (is_array($d)) {
+                                // Extraire devid et devnm
+                                if (isset($d['devid'])) {
+                                    $allowedDeviceIds[] = (string)$d['devid'];
+                                }
+                                if (isset($d['devnm'])) {
+                                    $allowedDeviceNames[] = (string)$d['devnm'];
+                                }
+                            }
+                        }
+                    }
+                }
+            } elseif ($cours->salle && is_array($cours->salle->devices) && count($cours->salle->devices) > 0) {
+                // Fallback sur salle unique
+                foreach ($cours->salle->devices as $d) {
+                    if (is_array($d)) {
+                        // Extraire devid et devnm
+                        if (isset($d['devid'])) {
+                            $allowedDeviceIds[] = (string)$d['devid'];
+                        }
+                        if (isset($d['devnm'])) {
+                            $allowedDeviceNames[] = (string)$d['devnm'];
+                        }
+                    }
+                }
+            }
+            
+            // Normaliser et dédupliquer
+            $allowedDeviceIds = !empty($allowedDeviceIds) ? array_values(array_unique(array_filter($allowedDeviceIds))) : null;
+            $allowedDeviceNames = !empty($allowedDeviceNames) ? array_values(array_unique(array_filter($allowedDeviceNames))) : null;
+            
+            // Vérifier si le cours a des salles mais pas de devices assignés
+            $hasSalles = (method_exists($cours, 'salles') && $cours->relationLoaded('salles') && $cours->salles && $cours->salles->isNotEmpty()) 
+                        || ($cours->salle_id && $cours->salle);
+            
+            // Si le cours a des salles mais aucun device assigné, on doit rejeter tous les pointages
+            // Pour cela, on passe des tableaux vides (pas null) pour forcer le filtrage
+            if ($hasSalles && empty($allowedDeviceIds) && empty($allowedDeviceNames)) {
+                // Le cours a des salles mais aucun device assigné
+                // On force le filtrage en passant des tableaux vides (tous les pointages seront rejetés)
+                $allowedDeviceIds = [];
+                $allowedDeviceNames = [];
+                \Log::warning('BiostarAttendanceController: Cours a des salles mais aucun device assigné', [
+                    'cours_id' => $cours->id,
+                    'salles_count' => method_exists($cours, 'salles') && $cours->relationLoaded('salles') ? $cours->salles->count() : 0,
+                    'salle_id' => $cours->salle_id
+                ]);
+            }
+            
+            // Log pour déboguer
+            \Log::info('BiostarAttendanceController: Devices autorisés pour le cours', [
+                'cours_id' => $cours->id,
+                'allowed_device_ids' => $allowedDeviceIds,
+                'allowed_device_names' => $allowedDeviceNames,
+                'salles_count' => method_exists($cours, 'salles') && $cours->relationLoaded('salles') ? $cours->salles->count() : 0,
+                'salle_id' => $cours->salle_id,
+                'has_salles' => method_exists($cours, 'salles') && $cours->relationLoaded('salles') && $cours->salles && $cours->salles->isNotEmpty(),
+                'has_salle' => $cours->salle && is_array($cours->salle->devices) && count($cours->salle->devices) > 0,
+                'will_filter' => !empty($allowedDeviceIds) || !empty($allowedDeviceNames)
+            ]);
+
             // Get attendance data from Biostar
             $attendanceData = $this->biostarAttendanceService->getAttendanceData(
                 $configResult,
                 $date,
                 $startTime ?: $cours->pointage_start_hour,
                 $endTime ?: $cours->heure_fin,
-                $studentIds
+                $studentIds,
+                $allowedDeviceIds,
+                $allowedDeviceNames
             );
 
             return response()->json([

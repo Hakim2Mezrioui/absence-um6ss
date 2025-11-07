@@ -17,7 +17,9 @@ export interface CoursAttendanceData {
     promotion_id: number;
     type_cours_id: number;
     salle_id: number;
+    salles_ids?: number[]; // Pour la sélection multiple de salles
     option_id?: number;
+    ville_id?: number;
     statut_temporel?: 'passé' | 'en_cours' | 'futur';
     created_at: string;
     updated_at: string;
@@ -25,7 +27,14 @@ export interface CoursAttendanceData {
     promotion?: { id: number; name: string };
     type_cours?: { id: number; name: string };
     salle?: { id: number; name: string };
+    salles?: { // Relation many-to-many avec les salles
+      id: number;
+      name: string;
+      devices?: any[];
+    }[];
     option?: { id: number; name: string };
+    ville?: { id: number; name: string };
+    groups?: { id: number; name: string; title?: string }[];
   };
   students: StudentAttendance[];
   statistics: {

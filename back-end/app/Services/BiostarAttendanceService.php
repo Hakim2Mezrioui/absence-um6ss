@@ -11,7 +11,7 @@ class BiostarAttendanceService
     /**
      * Get attendance data from Biostar database
      */
-    public function getAttendanceData($config, $date, $startTime = null, $endTime = null, $studentIds = null)
+    public function getAttendanceData($config, $date, $startTime = null, $endTime = null, $studentIds = null, $allowedDeviceIds = null, $allowedDeviceNames = null)
     {
         try {
             // Create PDO connection with defensive DSN (LoginTimeout) if possible
@@ -22,52 +22,161 @@ class BiostarAttendanceService
             $pdo = new PDO($dsn, $config['username'], $config['password']);
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-            // Build query
-            $query = "SELECT 
-                        id,
-                        student_id,
-                        punch_time,
-                        device,
-                        device_name,
-                        location
-                      FROM punchlog 
-                      WHERE CAST(punch_time AS DATE) = ?";
-
-            $params = [$date];
-
-            // Add time filters if provided
+            // Formater la date au format YYYY-MM-DD (extraire juste la date du format ISO)
+            $formattedDate = date('Y-m-d', strtotime($date));
+            
+            // Formater les heures au format HH:MM:SS (extraire juste l'heure du format ISO)
+            $formattedStartTime = null;
+            $formattedEndTime = null;
+            
             if ($startTime) {
-                $query .= " AND CAST(punch_time AS TIME) >= ?";
-                $params[] = $startTime;
+                // Si c'est un format ISO, extraire l'heure, sinon utiliser tel quel
+                if (strpos($startTime, 'T') !== false) {
+                    $formattedStartTime = date('H:i:s', strtotime($startTime));
+                } else {
+                    // Si c'est déjà au format HH:MM ou HH:MM:SS, normaliser
+                    $formattedStartTime = date('H:i:s', strtotime($startTime));
+                }
+            }
+            
+            if ($endTime) {
+                // Si c'est un format ISO, extraire l'heure, sinon utiliser tel quel
+                if (strpos($endTime, 'T') !== false) {
+                    $formattedEndTime = date('H:i:s', strtotime($endTime));
+                } else {
+                    // Si c'est déjà au format HH:MM ou HH:MM:SS, normaliser
+                    $formattedEndTime = date('H:i:s', strtotime($endTime));
+                }
             }
 
-            if ($endTime) {
-                $query .= " AND CAST(punch_time AS TIME) <= ?";
-                $params[] = $endTime;
+            // Build query - utiliser les colonnes correctes de la table punchlog
+            $query = "SELECT 
+                        id,
+                        user_id,
+                        bsevtc,
+                        devdt,
+                        devid,
+                        devnm,
+                        bsevtdt,
+                        user_name
+                      FROM punchlog 
+                      WHERE CAST(devdt AS DATE) = ?";
+
+            $params = [$formattedDate];
+
+            // Add time filters if provided
+            if ($formattedStartTime) {
+                $query .= " AND CAST(devdt AS TIME) >= ?";
+                $params[] = $formattedStartTime;
+            }
+
+            if ($formattedEndTime) {
+                $query .= " AND CAST(devdt AS TIME) <= ?";
+                $params[] = $formattedEndTime;
             }
 
             // Add student IDs filter if provided
             if ($studentIds && is_array($studentIds) && count($studentIds) > 0) {
                 $placeholders = str_repeat('?,', count($studentIds) - 1) . '?';
-                $query .= " AND student_id IN ($placeholders)";
-                $params = array_merge($params, $studentIds);
+                $query .= " AND (user_id IN ($placeholders) OR bsevtc IN ($placeholders))";
+                $params = array_merge($params, $studentIds, $studentIds);
             }
 
-            $query .= " ORDER BY punch_time ASC";
+            $query .= " ORDER BY devdt ASC";
 
             $stmt = $pdo->prepare($query);
             $stmt->execute($params);
             $punches = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            // Process data
+            // Filtrer par devices autorisés si fournis
+            // Si des devices sont spécifiés, on filtre strictement
+            // Si des tableaux vides sont passés (cours avec salles mais sans devices), on rejette tous les pointages
+            // Si null est passé (pas de filtrage), on accepte tous les pointages
+            if ($allowedDeviceIds !== null || $allowedDeviceNames !== null) {
+                $beforeCount = count($punches);
+                
+                // Normaliser les noms pour comparaison case-insensitive
+                $normalizedDeviceNames = [];
+                if (!empty($allowedDeviceNames)) {
+                    $normalizedDeviceNames = array_map(function($name) {
+                        return strtolower(trim((string)$name));
+                    }, $allowedDeviceNames);
+                    $normalizedDeviceNames = array_values(array_unique(array_filter($normalizedDeviceNames)));
+                }
+                
+                $normalizedDeviceIds = [];
+                if (!empty($allowedDeviceIds)) {
+                    $normalizedDeviceIds = array_map(function($id) {
+                        return (string)$id;
+                    }, $allowedDeviceIds);
+                    $normalizedDeviceIds = array_values(array_unique(array_filter($normalizedDeviceIds)));
+                }
+                
+                $filteredPunches = [];
+                $rejectedPunches = [];
+                
+                foreach ($punches as $punch) {
+                    $matched = false;
+                    $punchDevId = isset($punch['devid']) ? (string)$punch['devid'] : null;
+                    $punchName = $punch['devnm'] ?? null;
+                    
+                    // Match par devid (prioritaire)
+                    if (!empty($normalizedDeviceIds) && $punchDevId) {
+                        if (in_array($punchDevId, $normalizedDeviceIds, true)) {
+                            $matched = true;
+                        }
+                    }
+                    
+                    // Match par nom (fallback) - seulement si pas déjà matché par devid
+                    if (!$matched && !empty($normalizedDeviceNames) && $punchName) {
+                        $normalizedPunchName = strtolower(trim((string)$punchName));
+                        if (in_array($normalizedPunchName, $normalizedDeviceNames, true)) {
+                            $matched = true;
+                        }
+                    }
+                    
+                    if ($matched) {
+                        $filteredPunches[] = $punch;
+                    } else {
+                        $rejectedPunches[] = [
+                            'devid' => $punchDevId,
+                            'devnm' => $punchName,
+                            'user_id' => $punch['user_id'] ?? $punch['bsevtc'] ?? null
+                        ];
+                    }
+                }
+                
+                $punches = $filteredPunches;
+                
+                $afterCount = count($punches);
+                \Log::info('Biostar device filtering applied (BiostarAttendanceService)', [
+                    'allowed_device_ids' => $normalizedDeviceIds,
+                    'allowed_device_names' => $normalizedDeviceNames,
+                    'before' => $beforeCount,
+                    'after' => $afterCount,
+                    'ignored' => max(0, $beforeCount - $afterCount),
+                    'rejected_samples' => array_slice($rejectedPunches, 0, 5), // Échantillon des pointages rejetés
+                    'accepted_samples' => array_slice(array_map(function($p) {
+                        return ['devid' => $p['devid'] ?? null, 'devnm' => $p['devnm'] ?? null];
+                    }, $punches), 0, 5) // Échantillon des pointages acceptés
+                ]);
+            }
+
+            // Process data - mapper les colonnes correctes
             $processedPunches = array_map(function($punch) {
                 return [
-                    'id' => (int)$punch['id'],
-                    'student_id' => $punch['student_id'],
-                    'punch_time' => $punch['punch_time'],
-                    'device' => $punch['device'],
-                    'device_name' => $punch['device_name'],
-                    'location' => $punch['location']
+                    'id' => isset($punch['id']) ? (int)$punch['id'] : null,
+                    'student_id' => $punch['user_id'] ?? $punch['bsevtc'] ?? null,
+                    'bsevtc' => $punch['bsevtc'] ?? null,
+                    'user_id' => $punch['user_id'] ?? null,
+                    'user_name' => $punch['user_name'] ?? null,
+                    'punch_time' => $punch['devdt'] ?? null,
+                    'bsevtdt' => $punch['bsevtdt'] ?? null,
+                    'device' => $punch['devid'] ?? null,
+                    'device_name' => $punch['devnm'] ?? null,
+                    'devnm' => $punch['devnm'] ?? null,
+                    'devid' => $punch['devid'] ?? null,
+                    'location' => null // Non disponible dans punchlog
                 ];
             }, $punches);
 
@@ -157,24 +266,27 @@ class BiostarAttendanceService
             $pdo = new PDO($dsn, $config['username'], $config['password']);
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
+            // Formater la date au format YYYY-MM-DD
+            $formattedDate = date('Y-m-d', strtotime($date));
+
             // Get total punches for the date
-            $stmt = $pdo->prepare("SELECT COUNT(*) as total_punches FROM punchlog WHERE CAST(punch_time AS DATE) = ?");
-            $stmt->execute([$date]);
+            $stmt = $pdo->prepare("SELECT COUNT(*) as total_punches FROM punchlog WHERE CAST(devdt AS DATE) = ?");
+            $stmt->execute([$formattedDate]);
             $totalPunches = $stmt->fetch(PDO::FETCH_ASSOC)['total_punches'];
 
             // Get unique students
-            $stmt = $pdo->prepare("SELECT COUNT(DISTINCT student_id) as unique_students FROM punchlog WHERE CAST(punch_time AS DATE) = ?");
-            $stmt->execute([$date]);
+            $stmt = $pdo->prepare("SELECT COUNT(DISTINCT COALESCE(user_id, bsevtc)) as unique_students FROM punchlog WHERE CAST(devdt AS DATE) = ?");
+            $stmt->execute([$formattedDate]);
             $uniqueStudents = $stmt->fetch(PDO::FETCH_ASSOC)['unique_students'];
 
             // Get devices used
-            $stmt = $pdo->prepare("SELECT DISTINCT device FROM punchlog WHERE CAST(punch_time AS DATE) = ? AND device IS NOT NULL");
-            $stmt->execute([$date]);
+            $stmt = $pdo->prepare("SELECT DISTINCT devnm FROM punchlog WHERE CAST(devdt AS DATE) = ? AND devnm IS NOT NULL");
+            $stmt->execute([$formattedDate]);
             $devices = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
             // Get time range
-            $stmt = $pdo->prepare("SELECT MIN(punch_time) as first_punch, MAX(punch_time) as last_punch FROM punchlog WHERE CAST(punch_time AS DATE) = ?");
-            $stmt->execute([$date]);
+            $stmt = $pdo->prepare("SELECT MIN(devdt) as first_punch, MAX(devdt) as last_punch FROM punchlog WHERE CAST(devdt AS DATE) = ?");
+            $stmt->execute([$formattedDate]);
             $timeRange = $stmt->fetch(PDO::FETCH_ASSOC);
 
             return [
@@ -211,31 +323,48 @@ class BiostarAttendanceService
                 return [];
             }
 
+            // Formater la date au format YYYY-MM-DD
+            $formattedDate = date('Y-m-d', strtotime($date));
+            
+            // Formater les heures au format HH:MM:SS
+            $formattedStartTime = null;
+            $formattedEndTime = null;
+            
+            if ($startTime) {
+                $formattedStartTime = date('H:i:s', strtotime($startTime));
+            }
+            
+            if ($endTime) {
+                $formattedEndTime = date('H:i:s', strtotime($endTime));
+            }
+
             $placeholders = str_repeat('?,', count($studentIds) - 1) . '?';
             $query = "SELECT 
                         id,
-                        student_id,
-                        punch_time,
-                        device,
-                        device_name,
-                        location
+                        user_id,
+                        bsevtc,
+                        devdt,
+                        devid,
+                        devnm,
+                        bsevtdt,
+                        user_name
                       FROM punchlog 
-                      WHERE CAST(punch_time AS DATE) = ?
-                      AND student_id IN ($placeholders)";
+                      WHERE CAST(devdt AS DATE) = ?
+                      AND (user_id IN ($placeholders) OR bsevtc IN ($placeholders))";
 
-            $params = array_merge([$date], $studentIds);
+            $params = array_merge([$formattedDate], $studentIds, $studentIds);
 
-            if ($startTime) {
-                $query .= " AND CAST(punch_time AS TIME) >= ?";
-                $params[] = $startTime;
+            if ($formattedStartTime) {
+                $query .= " AND CAST(devdt AS TIME) >= ?";
+                $params[] = $formattedStartTime;
             }
 
-            if ($endTime) {
-                $query .= " AND CAST(punch_time AS TIME) <= ?";
-                $params[] = $endTime;
+            if ($formattedEndTime) {
+                $query .= " AND CAST(devdt AS TIME) <= ?";
+                $params[] = $formattedEndTime;
             }
 
-            $query .= " ORDER BY punch_time ASC";
+            $query .= " ORDER BY devdt ASC";
 
             $stmt = $pdo->prepare($query);
             $stmt->execute($params);
@@ -243,12 +372,18 @@ class BiostarAttendanceService
 
             return array_map(function($punch) {
                 return [
-                    'id' => (int)$punch['id'],
-                    'student_id' => $punch['student_id'],
-                    'punch_time' => $punch['punch_time'],
-                    'device' => $punch['device'],
-                    'device_name' => $punch['device_name'],
-                    'location' => $punch['location']
+                    'id' => isset($punch['id']) ? (int)$punch['id'] : null,
+                    'student_id' => $punch['user_id'] ?? $punch['bsevtc'] ?? null,
+                    'bsevtc' => $punch['bsevtc'] ?? null,
+                    'user_id' => $punch['user_id'] ?? null,
+                    'user_name' => $punch['user_name'] ?? null,
+                    'punch_time' => $punch['devdt'] ?? null,
+                    'bsevtdt' => $punch['bsevtdt'] ?? null,
+                    'device' => $punch['devid'] ?? null,
+                    'device_name' => $punch['devnm'] ?? null,
+                    'devnm' => $punch['devnm'] ?? null,
+                    'devid' => $punch['devid'] ?? null,
+                    'location' => null // Non disponible dans punchlog
                 ];
             }, $punches);
 

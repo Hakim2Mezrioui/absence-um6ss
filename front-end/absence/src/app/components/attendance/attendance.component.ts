@@ -87,7 +87,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   biostarConfigMessage: string = 'Initialisation de la configuration Biostar...';
   
   // Offset configurable appliqué aux heures de pointage Biostar (en minutes)
-  biostarTimeOffsetMinutes: number = 60;
+  biostarTimeOffsetMinutes: number = 0;
   
   private destroy$ = new Subject<void>();
 
@@ -173,9 +173,9 @@ export class AttendanceComponent implements OnInit, OnDestroy {
           this.biostarConfigStatus = 'success';
           this.biostarConfigMessage = `Configuration Biostar chargée pour la ville: ${response.data.ville?.name || 'Inconnue'}`;
 
-          // Ajuster l'offset d'affichage selon la ville (Rabat => pas d'ajout d'heure)
+          // Ajuster l'offset d'affichage selon la ville (Casablanca => +60 minutes, autres => 0)
           const villeName = (response.data.ville?.name || '').toString().trim().toLowerCase();
-          this.biostarTimeOffsetMinutes = villeName === 'rabat' ? 0 : 60;
+          this.biostarTimeOffsetMinutes = villeName === 'casablanca' || villeName === 'casa' ? 60 : 0;
           
           // Une seule notification de succès
           this.notificationService.success(
@@ -287,21 +287,21 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       if (studentPunches && studentPunches.length > 0) {
         matchedStudents++;
 
-        // Trier par date et prendre le plus tôt
+        // Trier par date et prendre le plus récent (dernier)
         studentPunches.sort((a: any, b: any) => {
           const at = new Date(a.bsevtdt || a.punch_time).getTime();
           const bt = new Date(b.bsevtdt || b.punch_time).getTime();
           return at - bt;
         });
-        const firstPunch = studentPunches[0];
+        const lastPunch = studentPunches[studentPunches.length - 1];
 
         // Parser + appliquer offset
-        const rawTime: string = firstPunch.punch_time || firstPunch.bsevtdt;
+        const rawTime: string = lastPunch.punch_time || lastPunch.bsevtdt;
         const punchTimeDate = this.parseStudentPunchTime(rawTime);
 
         student.punch_time = {
           time: punchTimeDate.toISOString(),
-          device: firstPunch.device || firstPunch.device_name || firstPunch.devnm || 'Inconnu'
+          device: lastPunch.device || lastPunch.device_name || lastPunch.devnm || 'Inconnu'
         };
         
         // Recalculer le statut avec la date ajustée
@@ -397,10 +397,10 @@ export class AttendanceComponent implements OnInit, OnDestroy {
           this.examId = response.examen_id || null;
           this.examData = response.examen || null;
 
-          // Ajuster l'offset d'affichage selon la ville de l'examen (Rabat => 0, sinon 60)
+          // Ajuster l'offset d'affichage selon la ville de l'examen (Casablanca => +60 minutes, autres => 0)
           const villeName = (this.examData?.ville?.name || '').toString().trim().toLowerCase();
           if (villeName) {
-            this.biostarTimeOffsetMinutes = villeName === 'rabat' ? 0 : 60;
+            this.biostarTimeOffsetMinutes = villeName === 'casablanca' || villeName === 'casa' ? 60 : 0;
           }
           
           // Debug: Vérifier les données de l'examen
@@ -537,6 +537,12 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   // Affichage des heures de pointage avec offset Biostar appliqué
   public formatPunchForDisplay(raw: string): string {
     if (!raw) return 'N/A';
+    // Si c'est déjà un format ISO, utiliser tel quel (offset déjà appliqué)
+    if (raw.includes('T') && (raw.includes('Z') || raw.includes('+'))) {
+      const dt = new Date(raw);
+      return dt.toLocaleString('fr-FR');
+    }
+    // Sinon, parser et appliquer l'offset (données brutes de Biostar)
     const dt = this.parseStudentPunchTime(raw);
     return dt.toLocaleString('fr-FR');
   }
@@ -931,8 +937,9 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     // Si c'est un timestamp ISO complet
     if (punchTimeString.includes('T') && (punchTimeString.includes('Z') || punchTimeString.includes('+'))) {
       const date = new Date(punchTimeString);
-      console.log('📅 Parsed ISO punch time:', date.toLocaleString());
-      return this.applyBiostarOffset(date);
+      console.log('📅 Parsed ISO punch time (offset déjà appliqué):', date.toLocaleString());
+      // Ne PAS réappliquer l'offset car la date ISO a déjà l'offset appliqué
+      return date; // Retourner directement sans réappliquer l'offset
     }
     
     // Si c'est au format DD/MM/YYYY HH:MM:SS (format français)
