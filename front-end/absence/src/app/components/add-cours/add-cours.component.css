@@ -210,3 +210,17 @@
     max-height: 50vh;
   }
 }
+
+/* Styliser les placeholders en gris léger */
+input::placeholder,
+textarea::placeholder {
+  color: #9ca3af !important; /* gray-400 - gris léger */
+  opacity: 1; /* Assure que la couleur est visible */
+}
+
+/* Pour les inputs avec focus, garder le placeholder visible mais plus léger */
+input:focus::placeholder,
+textarea:focus::placeholder {
+  color: #d1d5db !important; /* gray-300 - encore plus léger en focus */
+  opacity: 0.8;
+}

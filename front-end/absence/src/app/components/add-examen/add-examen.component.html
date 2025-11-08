@@ -381,7 +381,7 @@
                   class="w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 bg-white hover:border-cyan-400 transition-all duration-200"
                 >
                   <option value="">Sélectionner une option (optionnel)</option>
-                  <option *ngFor="let option of options" [value]="option.id">
+                  <option *ngFor="let option of filteredOptions" [value]="option.id">
                     {{ option.name }}
                   </option>
                 </select>

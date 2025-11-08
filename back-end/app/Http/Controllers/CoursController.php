@@ -555,7 +555,7 @@ class CoursController extends Controller
                 ->get();
 
             // Récupérer les options
-            $options = \App\Models\Option::select('id', 'name')
+            $options = \App\Models\Option::select('id', 'name', 'etablissement_id')
                 ->orderBy('name')
                 ->get();
 

@@ -180,6 +180,19 @@
         </div>
       </div>
 
+      <!-- Groupes -->
+      <div class="mb-3">
+        <div class="flex items-center gap-2">
+          <span class="material-icons text-orange-500">groups</span>
+          <div class="min-w-0 flex-1">
+            <div class="text-[11px] text-gray-500">Groupe{{ (coursData.cours.groups && coursData.cours.groups.length > 1) ? 's' : '' }}</div>
+            <div class="font-medium text-gray-900 break-words">
+              {{ getGroupsNames() }}
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Badges horaires -->
       <div class="flex flex-wrap gap-2">
         <div class="inline-flex items-center gap-2 text-sm px-3 py-2 rounded-full bg-blue-50 text-blue-700 border border-blue-100">

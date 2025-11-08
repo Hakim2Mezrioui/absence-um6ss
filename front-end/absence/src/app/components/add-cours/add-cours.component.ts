@@ -52,11 +52,13 @@ export class AddCoursComponent implements OnInit, OnDestroy {
   multiSallesOpen: boolean = false;
   typesCours: any[] = [];
   options: any[] = [];
+  filteredOptions: any[] = [];
   groups: any[] = [];
   filteredGroups: any[] = [];
   selectedGroups: number[] = [];
   groupsDropdownOpen = false;
   groupSearchTerm = '';
+  allGroupsSelected = false;
   villes: any[] = [];
   salleSearchTerm = '';
 
@@ -248,12 +250,19 @@ export class AddCoursComponent implements OnInit, OnDestroy {
           this.updateFilteredSalles();
           this.typesCours = options.types_cours || [];
           this.options = options.options || [];
+          
+          // Filtrer les options : au début, afficher uniquement "Général"
+          this.updateFilteredOptions();
+          
           this.groups = options.groups || [];
-          this.filteredGroups = []; // Initialiser comme vide jusqu'à sélection ville/établissement
+          this.filteredGroups = this.groups || []; // Charger tous les groupes par défaut
           this.villes = options.villes || [];
           
           // Après le chargement des options, s'assurer que les champs sont bien pré-sélectionnés
           this.ensureFieldsArePreSelected();
+          
+          // Définir les valeurs par défaut
+          this.setDefaultValues();
         },
         error: (error) => {
           this.error = 'Erreur lors du chargement des options';
@@ -278,13 +287,76 @@ export class AddCoursComponent implements OnInit, OnDestroy {
         console.log('🏢 Établissement pré-sélectionné:', this.cours.etablissement_id);
       }
       
-      // Mettre à jour les groupes disponibles si ville et établissement sont définis
-      if (this.cours.ville_id && this.cours.etablissement_id) {
-        this.updateFilteredGroups();
+      // Mettre à jour les options filtrées si un établissement est pré-sélectionné
+      if (this.cours.etablissement_id) {
+        this.updateFilteredOptions();
       }
       
       console.log('🔒 Champs pré-sélectionnés et désactivés pour utilisateur non-super-admin');
     }
+  }
+
+  /**
+   * Définir les valeurs par défaut pour type_cours_id et option_id
+   */
+  setDefaultValues(): void {
+    // Définir type_cours_id par défaut (Cours Magistral)
+    const coursMagistral = this.typesCours.find(t => 
+      t.name?.toLowerCase().includes('magistral') || 
+      t.name?.toLowerCase().includes('cours magistral')
+    );
+    if (coursMagistral && !this.cours.type_cours_id) {
+      this.cours.type_cours_id = coursMagistral.id;
+      console.log('📚 Type de cours par défaut défini:', coursMagistral.name);
+    }
+    
+    // Définir option_id par défaut (Général) - mais seulement si "Général" est dans filteredOptions
+    const generalOption = this.filteredOptions.find(o => 
+      o.name?.toLowerCase().includes('général') || 
+      o.name?.toLowerCase().includes('general') ||
+      o.name?.toLowerCase().includes('generale')
+    );
+    if (generalOption && !this.cours.option_id) {
+      this.cours.option_id = generalOption.id;
+      console.log('📋 Option par défaut définie:', generalOption.name);
+    }
+  }
+
+  /**
+   * Mettre à jour les options filtrées selon l'établissement sélectionné
+   */
+  updateFilteredOptions(): void {
+    // Toujours inclure "Général" dans les options filtrées
+    const generalOption = this.options.find(o => 
+      o.name?.toLowerCase().includes('général') || 
+      o.name?.toLowerCase().includes('general') ||
+      o.name?.toLowerCase().includes('generale')
+    );
+    
+    if (this.cours.etablissement_id) {
+      // Si un établissement est sélectionné, afficher ses options + "Général"
+      const etablissementId = Number(this.cours.etablissement_id);
+      const etablissementOptions = this.options.filter((o: any) => 
+        Number(o.etablissement_id) === etablissementId
+      );
+      
+      // Combiner "Général" avec les options de l'établissement
+      this.filteredOptions = [];
+      if (generalOption) {
+        this.filteredOptions.push(generalOption);
+      }
+      // Ajouter les options de l'établissement (en excluant "Général" s'il est déjà inclus)
+      etablissementOptions.forEach((opt: any) => {
+        if (opt.id !== generalOption?.id) {
+          this.filteredOptions.push(opt);
+        }
+      });
+    } else {
+      // Si aucun établissement n'est sélectionné, afficher uniquement "Général"
+      this.filteredOptions = generalOption ? [generalOption] : [];
+    }
+    
+    console.log('📋 Options filtrées:', this.filteredOptions);
   }
 
   /**
@@ -592,6 +664,8 @@ export class AddCoursComponent implements OnInit, OnDestroy {
     this.updateFilteredGroups();
     // Mettre à jour la liste des salles disponibles
     this.updateFilteredSalles();
+    // Mettre à jour les options filtrées selon l'établissement
+    this.updateFilteredOptions();
   }
 
   /**
@@ -691,18 +765,24 @@ export class AddCoursComponent implements OnInit, OnDestroy {
   }
 
   updateFilteredGroups(): void {
-    // Filtrer d'abord par ville et établissement
+    // Charger tous les groupes sans nécessiter ville/établissement
     let availableGroups = this.groups || [];
     
-    if (this.cours.ville_id && this.cours.etablissement_id) {
-      // Charger les groupes filtrés par ville et établissement
-      this.loadGroupsByLocation(this.cours.ville_id, this.cours.etablissement_id);
-      return;
+    // Appliquer le filtre de recherche si nécessaire
+    const term = (this.groupSearchTerm || '').trim().toLowerCase();
+    if (!term) {
+      this.filteredGroups = availableGroups;
     } else {
-      // Si ville ou établissement non sélectionnés, vider la liste
-      this.filteredGroups = [];
-      return;
+      this.filteredGroups = availableGroups.filter((g: any) => {
+        const name = (g?.name || '').toString().toLowerCase();
+        return name.includes(term);
+      });
     }
+    
+    // Mettre à jour l'état du checkbox "Tous"
+    this.allGroupsSelected = this.areAllGroupsSelected();
+    
+    console.log('📊 Groupes filtrés finaux:', this.filteredGroups);
   }
 
   // Nouvelle méthode pour charger les groupes par ville et établissement
@@ -736,6 +816,10 @@ export class AddCoursComponent implements OnInit, OnDestroy {
 
   toggleGroupsDropdown(): void {
     this.groupsDropdownOpen = !this.groupsDropdownOpen;
+    if (this.groupsDropdownOpen) {
+      // Mettre à jour les groupes filtrés quand on ouvre le dropdown
+      this.updateFilteredGroups();
+    }
   }
 
   isGroupSelected(groupId: number): boolean {
@@ -749,6 +833,8 @@ export class AddCoursComponent implements OnInit, OnDestroy {
     } else {
       this.selectedGroups.push(groupId);
     }
+    // Mettre à jour l'état du checkbox "Tous"
+    this.allGroupsSelected = this.areAllGroupsSelected();
   }
 
   getGroupName(groupId: number): string {
@@ -758,6 +844,37 @@ export class AddCoursComponent implements OnInit, OnDestroy {
       group = this.groups.find(g => g.id === groupId);
     }
     return group ? group.name : 'Groupe inconnu';
+  }
+
+  /**
+   * Vérifier si tous les groupes filtrés sont sélectionnés
+   */
+  areAllGroupsSelected(): boolean {
+    return this.filteredGroups.length > 0 && 
+           this.filteredGroups.every(g => this.selectedGroups.includes(g.id));
+  }
+
+  /**
+   * Sélectionner ou désélectionner tous les groupes filtrés
+   */
+  toggleAllGroups(): void {
+    if (this.areAllGroupsSelected()) {
+      // Désélectionner tous les groupes filtrés
+      this.filteredGroups.forEach(g => {
+        const index = this.selectedGroups.indexOf(g.id);
+        if (index > -1) {
+          this.selectedGroups.splice(index, 1);
+        }
+      });
+    } else {
+      // Sélectionner tous les groupes filtrés
+      this.filteredGroups.forEach(g => {
+        if (!this.selectedGroups.includes(g.id)) {
+          this.selectedGroups.push(g.id);
+        }
+      });
+    }
+    this.allGroupsSelected = this.areAllGroupsSelected();
   }
 
   openAddSalleModal(): void {

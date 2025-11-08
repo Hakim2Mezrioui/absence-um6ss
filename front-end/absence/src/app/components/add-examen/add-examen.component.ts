@@ -32,6 +32,7 @@ export class AddExamenComponent implements OnInit, OnDestroy {
   filteredSalles: any[] = [];
   selectedSalles: any[] = [];
   options: any[] = [];
+  filteredOptions: any[] = [];
   groups: any[] = [];
   villes: any[] = [];
   typesExamen: TypeExamen[] = [];
@@ -249,6 +250,11 @@ export class AddExamenComponent implements OnInit, OnDestroy {
         console.log('🏢 Établissement pré-sélectionné:', this.examenForm.value.etablissement_id);
       }
       
+      // Mettre à jour les options filtrées si un établissement est pré-sélectionné
+      if (this.examenForm.value.etablissement_id) {
+        this.updateFilteredOptions();
+      }
+      
       // Réactiver les listeners après un délai plus long
       setTimeout(() => {
         this.isSettingFormValues = false;
@@ -342,6 +348,9 @@ export class AddExamenComponent implements OnInit, OnDestroy {
     const villeId = this.examenForm.get('ville_id')?.value;
     
     console.log('🔄 Changement détecté:', { etablissementId, villeId });
+    
+    // Mettre à jour les options filtrées selon l'établissement sélectionné
+    this.updateFilteredOptions();
     
     if (!etablissementId || !villeId) {
       console.log('⚠️ Établissement ou ville non sélectionné');
@@ -490,6 +499,12 @@ export class AddExamenComponent implements OnInit, OnDestroy {
           
           // Mettre à jour les salles filtrées après le filtrage initial
           this.updateFilteredSalles();
+          
+          // Mettre à jour les options filtrées selon l'établissement sélectionné
+          this.updateFilteredOptions();
+          
+          // Définir les valeurs par défaut après le chargement des options
+          this.setDefaultValues();
           
           // Marquer la fin de l'initialisation après un délai pour s'assurer que tout est configuré
           setTimeout(() => {
@@ -933,12 +948,86 @@ export class AddExamenComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (response: any) => {
           this.typesExamen = response.data || [];
+          // Définir les valeurs par défaut après le chargement des types d'examen
+          this.setDefaultValues();
         },
         error: (err) => {
           console.error('Error loading types examen:', err);
           this.error = 'Erreur lors du chargement des types d\'examen';
         }
       });
+  }
+
+  /**
+   * Mettre à jour les options filtrées selon l'établissement sélectionné
+   */
+  updateFilteredOptions(): void {
+    // Toujours inclure "Général" dans les options filtrées
+    const generalOption = this.options.find(o => 
+      o.name?.toLowerCase().includes('général') || 
+      o.name?.toLowerCase().includes('general') ||
+      o.name?.toLowerCase().includes('generale')
+    );
+    
+    const etablissementId = this.examenForm.get('etablissement_id')?.value;
+    
+    if (etablissementId) {
+      // Si un établissement est sélectionné, afficher ses options + "Général"
+      const etablissementIdNum = Number(etablissementId);
+      const etablissementOptions = this.options.filter((o: any) => 
+        Number(o.etablissement_id) === etablissementIdNum
+      );
+      
+      // Combiner "Général" avec les options de l'établissement
+      this.filteredOptions = [];
+      if (generalOption) {
+        this.filteredOptions.push(generalOption);
+      }
+      // Ajouter les options de l'établissement (en excluant "Général" s'il est déjà inclus)
+      etablissementOptions.forEach((opt: any) => {
+        if (opt.id !== generalOption?.id) {
+          this.filteredOptions.push(opt);
+        }
+      });
+    } else {
+      // Si aucun établissement n'est sélectionné, afficher uniquement "Général"
+      this.filteredOptions = generalOption ? [generalOption] : [];
+    }
+    
+    console.log('📋 Options filtrées:', this.filteredOptions);
+  }
+
+  /**
+   * Définir les valeurs par défaut pour option_id, group_id et type_examen_id
+   */
+  setDefaultValues(): void {
+    // Définir option_id par défaut (Général) - utiliser filteredOptions
+    const generalOption = this.filteredOptions.find(o => 
+      o.name?.toLowerCase().includes('général') || 
+      o.name?.toLowerCase().includes('general') ||
+      o.name?.toLowerCase().includes('generale')
+    );
+    if (generalOption && !this.examenForm.get('option_id')?.value) {
+      this.examenForm.patchValue({ option_id: generalOption.id });
+      console.log('📋 Option par défaut définie:', generalOption.name);
+    }
+    
+    // Définir group_id par défaut (Tous)
+    if (!this.examenForm.get('group_id')?.value) {
+      this.examenForm.patchValue({ group_id: 'ALL' });
+      console.log('👥 Groupe par défaut défini: Tous');
+    }
+    
+    // Définir type_examen_id par défaut (Contrôle continu)
+    const controleContinu = this.typesExamen.find(t => 
+      t.name?.toLowerCase().includes('contrôle continu') || 
+      t.name?.toLowerCase().includes('controle continu') ||
+      t.name?.toLowerCase().includes('cc')
+    );
+    if (controleContinu && !this.examenForm.get('type_examen_id')?.value) {
+      this.examenForm.patchValue({ type_examen_id: controleContinu.id });
+      console.log('📝 Type d\'examen par défaut défini:', controleContinu.name);
+    }
   }
 
   onSubmit(): void {

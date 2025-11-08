@@ -356,7 +356,7 @@
                   class="w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 bg-white hover:border-cyan-400 transition-all duration-200"
                 >
                   <option value="">Sélectionner une option (optionnel)</option>
-                  <option *ngFor="let option of options" [value]="option.id">
+                  <option *ngFor="let option of filteredOptions" [value]="option.id">
                     {{ option.name }}
                   </option>
                 </select>
@@ -473,28 +473,20 @@
                 <button 
                   type="button" 
                   (click)="toggleGroupsDropdown()" 
-                  [disabled]="!cours.ville_id || !cours.etablissement_id"
-                  [class]="(!cours.ville_id || !cours.etablissement_id) 
-                    ? 'w-full px-4 py-3 pl-12 text-left border-2 border-gray-200 rounded-xl shadow-sm bg-gray-100 cursor-not-allowed opacity-60'
-                    : 'w-full px-4 py-3 pl-12 text-left border-2 border-gray-300 rounded-xl shadow-sm bg-white hover:border-cyan-400 transition-all duration-200'"
+                  class="w-full px-4 py-3 pl-12 text-left border-2 border-gray-300 rounded-xl shadow-sm bg-white hover:border-cyan-400 transition-all duration-200"
                 >
-                  <span class="material-icons absolute left-4 top-1/2 -translate-y-1/2" 
-                        [class]="(!cours.ville_id || !cours.etablissement_id) ? 'text-gray-300' : 'text-gray-400'">groups</span>
-                  <span *ngIf="!cours.ville_id || !cours.etablissement_id" class="text-gray-400">
-                    Sélectionnez d'abord la ville et l'établissement
-                  </span>
-                  <span *ngIf="cours.ville_id && cours.etablissement_id && selectedGroups.length === 0" class="text-gray-700">
+                  <span class="material-icons absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">groups</span>
+                  <span *ngIf="selectedGroups.length === 0" class="text-gray-700">
                     Sélectionner des groupes
                   </span>
-                  <span *ngIf="cours.ville_id && cours.etablissement_id && selectedGroups.length > 0" class="text-gray-900">
+                  <span *ngIf="selectedGroups.length > 0" class="text-gray-900">
                     {{ selectedGroups.length }} groupe(s) sélectionné(s)
                   </span>
-                  <span class="material-icons absolute right-4 top-1/2 -translate-y-1/2" 
-                        [class]="(!cours.ville_id || !cours.etablissement_id) ? 'text-gray-300' : 'text-gray-500'">arrow_drop_down</span>
+                  <span class="material-icons absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">arrow_drop_down</span>
                 </button>
 
                 <!-- Groups dropdown -->
-                <div *ngIf="groupsDropdownOpen && cours.ville_id && cours.etablissement_id" class="absolute z-50 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+                <div *ngIf="groupsDropdownOpen" class="absolute z-50 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
                   <!-- Search -->
                   <div class="px-3 py-2 border-b border-gray-100 bg-gray-50">
                     <div class="relative">
@@ -506,6 +498,12 @@
                   <!-- Groups list -->
                   <div class="max-h-64 overflow-auto">
                     <ng-container *ngIf="filteredGroups.length; else noGroups">
+                      <!-- Checkbox "Tous" -->
+                      <label class="flex items-center px-4 py-2 hover:bg-cyan-50 cursor-pointer border-b border-gray-100 bg-gray-50 font-medium">
+                        <input type="checkbox" [checked]="areAllGroupsSelected()" (change)="toggleAllGroups()" class="mr-3 text-cyan-600 focus:ring-cyan-500 rounded">
+                        <span class="text-gray-900">Tous</span>
+                      </label>
+                      <!-- Liste des groupes -->
                       <label *ngFor="let group of filteredGroups" class="flex items-center px-4 py-2 hover:bg-cyan-50 cursor-pointer">
                         <input type="checkbox" [value]="group.id" [checked]="isGroupSelected(group.id)" (change)="toggleGroupSelection(group.id)" class="mr-3 text-cyan-600 focus:ring-cyan-500 rounded">
                         <span class="text-gray-900">{{ group.name }}</span>

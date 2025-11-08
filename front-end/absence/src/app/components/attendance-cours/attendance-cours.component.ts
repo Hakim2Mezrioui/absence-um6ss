@@ -1341,6 +1341,20 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     return 'N/A';
   }
 
+  /**
+   * Obtient la liste formatée des noms de groupes
+   */
+  getGroupsNames(): string {
+    if (!this.coursData?.cours) {
+      return 'N/A';
+    }
+
+    if (this.coursData.cours.groups && this.coursData.cours.groups.length > 0) {
+      return this.coursData.cours.groups.map((g: any) => g.title || g.name).join(', ');
+    }
+
+    return 'N/A';
+  }
 
   /**
    * Obtenir le statut traduit
