@@ -342,16 +342,34 @@
             </div>
           </div>
 
-          <!-- Groupe -->
+          <!-- Salles -->
+          <div class="flex items-start space-x-3">
+            <div class="flex-shrink-0 mt-0.5">
+              <span class="material-icons text-teal-500 text-lg">meeting_room</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-medium text-gray-900 mb-1">
+                {{ getSalles(coursItem).length > 1 ? 'Salles' : 'Salle' }}
+              </div>
+              <div *ngIf="getSalles(coursItem).length > 0" class="flex flex-wrap gap-1.5">
+                <span *ngFor="let salle of getSalles(coursItem)" class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-teal-100 text-teal-800 border border-teal-200">
+                  {{ salle.name }}
+                </span>
+              </div>
+              <div *ngIf="getSalles(coursItem).length === 0" class="text-sm text-gray-500">
+                N/A
+              </div>
+            </div>
+          </div>
+
+          <!-- Groupes -->
           <div class="flex items-center space-x-3">
             <div class="flex-shrink-0">
-              <svg class="h-5 w-5 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M9 20H4v-2a3 3 0 015.356-1.857M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a3 3 0 11-6 0 3 3 0 016 0zM9 10a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
+              <span class="material-icons text-orange-500 text-lg">groups</span>
             </div>
-            <div>
-              <div class="text-sm font-medium text-gray-900">Groupe</div>
-              <div class="text-sm text-gray-600">{{ getGroupsNames(coursItem.groups) || 'N/A' }}</div>
+            <div class="min-w-0 flex-1">
+              <div class="text-sm font-medium text-gray-900">Groupe{{ (coursItem.groups && coursItem.groups.length > 1) ? 's' : '' }}</div>
+              <div class="text-sm text-gray-600 break-words">{{ getGroupsNames(coursItem) }}</div>
             </div>
           </div>
 
@@ -365,19 +383,6 @@
             <div>
               <div class="text-sm font-medium text-gray-900">Ville</div>
               <div class="text-sm text-gray-600">{{ coursItem.ville?.name || 'N/A' }}</div>
-            </div>
-          </div>
-
-          <!-- Salle -->
-          <div class="flex items-center space-x-3">
-            <div class="flex-shrink-0">
-              <svg class="h-5 w-5 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-            </div>
-            <div>
-              <div class="text-sm font-medium text-gray-900">Salle</div>
-              <div class="text-sm text-gray-600">{{ coursItem.salle?.name || 'N/A' }}</div>
             </div>
           </div>
         </div>

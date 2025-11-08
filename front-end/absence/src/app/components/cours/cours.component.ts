@@ -341,10 +341,46 @@ export class CoursComponent implements OnInit {
     return pages;
   }
 
-  getGroupsNames(groups: any[] | undefined): string {
-    if (!groups || groups.length === 0) {
+  /**
+   * Obtient la liste des salles (pour l'affichage en tags)
+   */
+  getSalles(coursItem: Cours): { id: number; name: string }[] {
+    if (!coursItem) {
+      return [];
+    }
+
+    if (coursItem.salles && coursItem.salles.length > 0) {
+      return coursItem.salles.map((s: any) => ({ id: s.id, name: s.name }));
+    } else if (coursItem.salle?.name) {
+      return [{ id: coursItem.salle.id, name: coursItem.salle.name }];
+    }
+
+    return [];
+  }
+
+  /**
+   * Obtient la liste formatée des noms de salles (pour compatibilité)
+   */
+  getSallesNames(coursItem: Cours): string {
+    const salles = this.getSalles(coursItem);
+    if (salles.length === 0) {
       return 'N/A';
     }
-    return groups.map(group => group.name).join(', ');
+    return salles.map(s => s.name).join(', ');
+  }
+
+  /**
+   * Obtient la liste formatée des noms de groupes
+   */
+  getGroupsNames(coursItem: Cours): string {
+    if (!coursItem) {
+      return 'N/A';
+    }
+
+    if (coursItem.groups && coursItem.groups.length > 0) {
+      return coursItem.groups.map((g: any) => g.title || g.name).join(', ');
+    }
+
+    return 'N/A';
   }
 }
