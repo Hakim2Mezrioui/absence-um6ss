@@ -41,11 +41,20 @@
 
       <!-- Métadonnées principales -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-3">
-        <div class="flex items-center gap-2 truncate">
+        <div class="flex items-center gap-2 truncate" [title]="getAllSallesText()">
           <span class="material-icons text-rose-500">meeting_room</span>
           <div class="min-w-0">
-            <div class="text-[11px] text-gray-500">Salle</div>
-            <div class="font-medium text-gray-900 truncate">{{ examSalle || 'N/A' }}</div>
+            <div class="text-[11px] text-gray-500">Salle{{ getSalles().length > 1 ? 's' : '' }}</div>
+            <div class="font-medium text-gray-900 truncate">
+              <span *ngFor="let salle of getVisibleSalles(); let last = last">
+                {{ salle.name }}<span *ngIf="!last">, </span>
+              </span>
+              <span *ngIf="getRemainingSalles().length > 0" class="text-gray-500">
+                <span *ngIf="getVisibleSalles().length > 0">, </span>
+                +{{ getRemainingSalles().length }} autre{{ getRemainingSalles().length > 1 ? 's' : '' }}
+              </span>
+              <span *ngIf="getSalles().length === 0">N/A</span>
+            </div>
           </div>
         </div>
         <div class="flex items-center gap-2 truncate">

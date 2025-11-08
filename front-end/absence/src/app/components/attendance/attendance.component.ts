@@ -672,6 +672,54 @@ export class AttendanceComponent implements OnInit, OnDestroy {
    * - Si l'examen concerne tous les groupes, afficher "Tous"
    * - Sinon afficher le nom du groupe
    */
+  /**
+   * Obtient la liste des salles (pour l'affichage)
+   */
+  getSalles(): { id: number; name: string }[] {
+    if (!this.examData) {
+      return [];
+    }
+    
+    // Priorité au tableau salles[] si disponible
+    if (this.examData.salles && this.examData.salles.length > 0) {
+      return this.examData.salles.map((s: any) => ({ id: s.id, name: s.name }));
+    }
+    
+    // Fallback sur salle unique pour compatibilité
+    if (this.examData.salle) {
+      return [{ id: this.examData.salle.id, name: this.examData.salle.name }];
+    }
+    
+    return [];
+  }
+
+  /**
+   * Obtient les salles visibles (1 ou 2 premières)
+   */
+  getVisibleSalles(): { id: number; name: string }[] {
+    const salles = this.getSalles();
+    return salles.slice(0, 2);
+  }
+
+  /**
+   * Obtient les salles restantes (après les 2 premières)
+   */
+  getRemainingSalles(): { id: number; name: string }[] {
+    const salles = this.getSalles();
+    return salles.slice(2);
+  }
+
+  /**
+   * Obtient le texte de toutes les salles pour le tooltip
+   */
+  getAllSallesText(): string {
+    const salles = this.getSalles();
+    if (salles.length === 0) {
+      return 'N/A';
+    }
+    return salles.map(s => s.name).join(', ');
+  }
+
   getGroupDisplayName(): string {
     // 1) Afficher le titre du groupe renvoyé avec l'examen si disponible
     const examGroupTitle = this.examData?.group?.title;

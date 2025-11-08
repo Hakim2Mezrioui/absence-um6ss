@@ -528,6 +528,17 @@ class EtudiantController extends Controller
             // Préparer les informations complètes de l'examen
             $examenInfo = null;
             if ($examen) {
+                // Préparer les salles multiples
+                $salles = [];
+                if ($examen->relationLoaded('salles') && $examen->salles && $examen->salles->isNotEmpty()) {
+                    $salles = $examen->salles->map(function ($salle) {
+                        return [
+                            'id' => $salle->id,
+                            'name' => $salle->name,
+                        ];
+                    })->toArray();
+                }
+                
                 $examenInfo = [
                     'id' => $examen->id,
                     'date' => $examen->date,
@@ -539,6 +550,7 @@ class EtudiantController extends Controller
                         'id' => $examen->salle->id,
                         'name' => $examen->salle->name,
                     ] : null,
+                    'salles' => !empty($salles) ? $salles : null,
                     'promotion' => $examen->promotion ? [
                         'id' => $examen->promotion->id,
                         'name' => $examen->promotion->name,
