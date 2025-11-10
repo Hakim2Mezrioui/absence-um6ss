@@ -32,44 +32,72 @@ class BiostarAttendanceService
             
             \Log::info('BiostarAttendanceService: Connexion à Biostar réussie');
 
-            // Formater la date au format YYYY-MM-DD (extraire juste la date du format ISO)
-            $formattedDate = date('Y-m-d', strtotime($date));
+            // Normaliser la date
+            $normalizedDate = date('Y-m-d', strtotime($date));
             
-            // Formater les heures au format HH:MM:SS (extraire juste l'heure du format ISO)
-            $formattedStartTime = null;
-            $formattedEndTime = null;
-            
-            if ($startTime) {
-                // Si c'est un format ISO, extraire l'heure, sinon utiliser tel quel
-                if (strpos($startTime, 'T') !== false) {
-                    $formattedStartTime = date('H:i:s', strtotime($startTime));
-                } else {
-                    // Si c'est déjà au format HH:MM ou HH:MM:SS, normaliser
-                    $formattedStartTime = date('H:i:s', strtotime($startTime));
+            // Fonction pour normaliser les heures (comme dans CoursController et EtudiantController)
+            $normalizeTime = function($t) {
+                if (empty($t)) return '00:00:00';
+                // Cas ISO complet
+                if (strpos($t, 'T') !== false || strpos($t, 'Z') !== false || strpos($t, '+') !== false) {
+                    try {
+                        return (new \DateTime($t))->format('H:i:s');
+                    } catch (\Exception $e) {
+                        // continue
+                    }
                 }
+                // Si format HH:MM, ajouter :00
+                if (preg_match('/^\d{2}:\d{2}$/', $t)) {
+                    return $t . ':00';
+                }
+                // Si déjà HH:MM:SS, le retourner tel quel, sinon tenter un parse
+                if (preg_match('/^\d{2}:\d{2}:\d{2}$/', $t)) {
+                    return $t;
+                }
+                return date('H:i:s', strtotime($t));
+            };
+            
+            // Déterminer l'offset horaire (par défaut -60 min, sauf pour Rabat)
+            $offsetMinutes = -60;
+            if (isset($config['ville_id'])) {
+                // Si on a la ville_id, on pourrait vérifier, mais pour l'instant on garde -60 par défaut
+                // Cette logique peut être améliorée si nécessaire
             }
             
-            if ($endTime) {
-                // Si c'est un format ISO, extraire l'heure, sinon utiliser tel quel
-                if (strpos($endTime, 'T') !== false) {
-                    $formattedEndTime = date('H:i:s', strtotime($endTime));
-                } else {
-                    // Si c'est déjà au format HH:MM ou HH:MM:SS, normaliser
-                    $formattedEndTime = date('H:i:s', strtotime($endTime));
-                }
+            // Normaliser les heures
+            $hourStartWithSec = $startTime ? $normalizeTime($startTime) : '00:00:00';
+            $hourEndWithSec = $endTime ? $normalizeTime($endTime) : '23:59:59';
+            
+            // Construire la fenêtre datetime côté client avec la date normalisée
+            $startClientDt = new \DateTime("{$normalizedDate} {$hourStartWithSec}");
+            $endClientDt = new \DateTime("{$normalizedDate} {$hourEndWithSec}");
+            
+            // Le serveur Biostar est décalé de -60 minutes (serveur en retard d'1h)
+            $startServerDt = (clone $startClientDt)->modify("{$offsetMinutes} minutes");
+            $endServerDt = (clone $endClientDt)->modify("{$offsetMinutes} minutes");
+            
+            // Si la fenêtre passe minuit côté serveur, étendre la date de fin
+            if ($endServerDt < $startServerDt) {
+                $endServerDt->modify('+1 day');
             }
-
-            // Test : vérifier s'il y a des pointages pour cette date (sans filtre horaire)
-            $testStmt = $pdo->prepare("SELECT COUNT(*) as total FROM punchlog WHERE CAST(devdt AS DATE) = CAST(? AS DATE)");
-            $testStmt->execute([$formattedDate]);
-            $testResult = $testStmt->fetch(PDO::FETCH_ASSOC);
-            \Log::info('BiostarAttendanceService: Test - Pointages pour la date (sans filtre horaire)', [
-                'date' => $formattedDate,
-                'total_punches_for_date' => $testResult['total'] ?? 0
+            
+            $startDtFormatted = $startServerDt->format('Y-m-d H:i:s');
+            $endDtFormatted = $endServerDt->format('Y-m-d H:i:s');
+            
+            \Log::info('BiostarAttendanceService: Paramètres de requête Biostar', [
+                'normalized_date' => $normalizedDate,
+                'start_time' => $startTime,
+                'end_time' => $endTime,
+                'hour_start_with_sec' => $hourStartWithSec,
+                'hour_end_with_sec' => $hourEndWithSec,
+                'offset_minutes' => $offsetMinutes,
+                'start_client_dt' => $startClientDt->format('Y-m-d H:i:s'),
+                'end_client_dt' => $endClientDt->format('Y-m-d H:i:s'),
+                'start_server_dt' => $startDtFormatted,
+                'end_server_dt' => $endDtFormatted
             ]);
 
-            // Build query - utiliser les colonnes correctes de la table punchlog
-            // Utiliser la même syntaxe que CoursController avec CAST sur les paramètres
+            // Requête optimisée: fenêtre datetime continue (comme dans CoursController et EtudiantController)
             $query = "SELECT 
                         id,
                         user_id,
@@ -80,25 +108,11 @@ class BiostarAttendanceService
                         bsevtdt,
                         user_name
                       FROM punchlog 
-                      WHERE CAST(devdt AS DATE) = CAST(? AS DATE)";
+                      WHERE devdt BETWEEN ? AND ?
+                      AND devnm NOT LIKE 'TOUR%' 
+                      AND devnm NOT LIKE 'ACCES HCK%'";
 
-            $params = [$formattedDate];
-
-            // Add time filters if provided - utiliser BETWEEN comme dans CoursController
-            if ($formattedStartTime && $formattedEndTime) {
-                $query .= " AND CAST(devdt AS TIME) BETWEEN CAST(? AS TIME) AND CAST(? AS TIME)";
-                $params[] = $formattedStartTime;
-                $params[] = $formattedEndTime;
-            } elseif ($formattedStartTime) {
-                $query .= " AND CAST(devdt AS TIME) >= CAST(? AS TIME)";
-                $params[] = $formattedStartTime;
-            } elseif ($formattedEndTime) {
-                $query .= " AND CAST(devdt AS TIME) <= CAST(? AS TIME)";
-                $params[] = $formattedEndTime;
-            }
-
-            // Exclure TOUR% et ACCES HCK% comme dans CoursController
-            $query .= " AND devnm NOT LIKE 'TOUR%' AND devnm NOT LIKE 'ACCES HCK%'";
+            $params = [$startDtFormatted, $endDtFormatted];
 
             // Add student IDs filter if provided
             if ($studentIds && is_array($studentIds) && count($studentIds) > 0) {
@@ -113,9 +127,8 @@ class BiostarAttendanceService
             \Log::info('BiostarAttendanceService: Requête SQL à exécuter', [
                 'query' => $query,
                 'params' => $params,
-                'formatted_date' => $formattedDate,
-                'formatted_start_time' => $formattedStartTime,
-                'formatted_end_time' => $formattedEndTime,
+                'start_dt' => $startDtFormatted,
+                'end_dt' => $endDtFormatted,
                 'student_ids_count' => $studentIds ? count($studentIds) : 0
             ]);
 

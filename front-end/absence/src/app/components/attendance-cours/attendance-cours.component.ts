@@ -250,10 +250,11 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
           // Mettre à jour lastRefreshTime
           this.lastRefreshTime = new Date();
           
-          this.notificationService.success(
-            'Données de pointage chargées', 
-            `${response.data.total_punches || 0} pointage(s) récupéré(s) depuis Biostar`
-          );
+          // Toast commenté - affichage du nombre de pointages
+          // this.notificationService.success(
+          //   'Données de pointage chargées', 
+          //   `${response.data.total_punches || 0} pointage(s) récupéré(s) depuis Biostar`
+          // );
         }
       },
       error: (error) => {
