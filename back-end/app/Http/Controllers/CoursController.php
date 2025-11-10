@@ -6,6 +6,7 @@ use App\Models\Cours;
 use App\Services\AttendanceStateService;
 use App\Services\CoursService;
 use App\Services\UserContextService;
+use App\Services\ConfigurationService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use DateTime;   
@@ -18,12 +19,14 @@ class CoursController extends Controller
     protected $attendanceStateService;
     protected $coursService;
     protected $userContextService;
+    protected $configurationService;
 
-    public function __construct(AttendanceStateService $attendanceStateService, CoursService $coursService, UserContextService $userContextService)
+    public function __construct(AttendanceStateService $attendanceStateService, CoursService $coursService, UserContextService $userContextService, ConfigurationService $configurationService)
     {
         $this->attendanceStateService = $attendanceStateService;
         $this->coursService = $coursService;
         $this->userContextService = $userContextService;
+        $this->configurationService = $configurationService;
     }
     public function index(Request $request)
     {
@@ -635,30 +638,129 @@ class CoursController extends Controller
             $biostarResults = [];
             $localStudents = collect();
             
-            // Create a PDO connection to the SQL Server database
-            $dsn = 'sqlsrv:Server=10.0.2.148;Database=BIOSTAR_TA;TrustServerCertificate=true';
-            $username = 'dbuser';
-            $password = 'Driss@2024';
-            
-            try {
-                $pdo = new PDO($dsn, $username, $password);
-                $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                
-                // Format date and time for SQL Server compatibility
-                $formattedDate = date('Y-m-d', strtotime($date));
-                $formattedTime1 = date('H:i:s', strtotime($heureDebut));
-                $formattedTime2 = date('H:i:s', strtotime($heureFin));
-                $formattedTimeRef = date('H:i:s', strtotime($heureDebutPointage));
+            // Décalage horaire Biostar par défaut: -60 min (serveur en retard d'1h)
+            // Exception: si le cours est à Rabat, ne pas appliquer de décalage
+            $offsetMinutes = -60;
+            if ($cours && $cours->ville && isset($cours->ville->name)) {
+                if (strtolower(trim($cours->ville->name)) === 'rabat') {
+                    $offsetMinutes = 0;
+                }
+            }
 
-                // Execute the query using PDO with proper date formatting
-                $sql = "SELECT * FROM punchlog WHERE CAST(devdt AS date) = CAST(:date AS date) AND CAST(devdt AS time) BETWEEN CAST(:heure1 AS time) AND CAST(:heure2 AS time) AND devnm NOT LIKE 'TOUR%' AND devnm NOT LIKE 'ACCES HCK%'";
-                $stmt = $pdo->prepare($sql);
-                $stmt->execute(['date' => $formattedDate, 'heure1' => $formattedTimeRef, 'heure2' => $formattedTime2]);
-                
-                // Fetch the results
-                $biostarResults = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            } catch (PDOException $e) {
-                // If Biostar connection fails, continue with empty results
+            // Get connection configuration from database based on cours ville if available
+            if ($cours && !empty($cours->ville_id)) {
+                $config = $this->configurationService->getConnectionConfigForVille($cours->ville_id);
+                \Log::info('Configuration sélectionnée par ville cours', [
+                    'cours_id' => $cours->id,
+                    'ville_id' => $cours->ville_id,
+                    'has_config' => is_array($config) && isset($config['dsn'])
+                ]);
+            } else {
+                $config = $this->configurationService->getConnectionConfig();
+                \Log::info('Configuration par défaut utilisée (aucune ville cours)');
+            }
+            
+            if (is_array($config) && isset($config['dsn'])) {
+                try {
+                    $pdo = new PDO($config['dsn'], $config['username'], $config['password']);
+                    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                    
+                    // Normaliser la date du cours
+                    $normalizedDate = date('Y-m-d', strtotime($date));
+                    
+                    // Fonction pour normaliser les heures (comme dans EtudiantController)
+                    $normalizeTime = function($t) {
+                        if (empty($t)) return '00:00:00';
+                        // Cas ISO complet
+                        if (strpos($t, 'T') !== false || strpos($t, 'Z') !== false || strpos($t, '+') !== false) {
+                            try {
+                                return (new \DateTime($t))->format('H:i:s');
+                            } catch (\Exception $e) {
+                                // continue
+                            }
+                        }
+                        // Si format HH:MM, ajouter :00
+                        if (preg_match('/^\d{2}:\d{2}$/', $t)) {
+                            return $t . ':00';
+                        }
+                        // Si déjà HH:MM:SS, le retourner tel quel, sinon tenter un parse
+                        if (preg_match('/^\d{2}:\d{2}:\d{2}$/', $t)) {
+                            return $t;
+                        }
+                        return date('H:i:s', strtotime($t));
+                    };
+                    
+                    // Déterminer l'heure de début réelle à utiliser (pointage si défini sinon heure_debut)
+                    $heureReference = $heureDebutPointage ? $heureDebutPointage : $heureDebut;
+                    
+                    $hourRefWithSec = $normalizeTime($heureReference);
+                    $hourFinWithSec = $normalizeTime($heureFin);
+                    
+                    // Construire la fenêtre datetime côté client avec la date normalisée
+                    $startClientDt = new \DateTime("{$normalizedDate} {$hourRefWithSec}");
+                    $endClientDt = new \DateTime("{$normalizedDate} {$hourFinWithSec}");
+                    
+                    // Le serveur Biostar est décalé de -60 minutes (serveur en retard d'1h)
+                    $startServerDt = (clone $startClientDt)->modify("{$offsetMinutes} minutes");
+                    $endServerDt = (clone $endClientDt)->modify("{$offsetMinutes} minutes");
+                    
+                    // Si la fenêtre passe minuit côté serveur, étendre la date de fin
+                    if ($endServerDt < $startServerDt) {
+                        $endServerDt->modify('+1 day');
+                    }
+                    
+                    $startDtFormatted = $startServerDt->format('Y-m-d H:i:s');
+                    $endDtFormatted = $endServerDt->format('Y-m-d H:i:s');
+                    
+                    \Log::info('CoursController: Paramètres de requête Biostar', [
+                        'normalized_date' => $normalizedDate,
+                        'heure_reference' => $heureReference,
+                        'heure_debut_pointage' => $heureDebutPointage,
+                        'heure_debut' => $heureDebut,
+                        'heure_fin' => $heureFin,
+                        'hour_ref_with_sec' => $hourRefWithSec,
+                        'hour_fin_with_sec' => $hourFinWithSec,
+                        'offset_minutes' => $offsetMinutes,
+                        'start_client_dt' => $startClientDt->format('Y-m-d H:i:s'),
+                        'end_client_dt' => $endClientDt->format('Y-m-d H:i:s'),
+                        'start_server_dt' => $startDtFormatted,
+                        'end_server_dt' => $endDtFormatted
+                    ]);
+                    
+                    // Requête optimisée: fenêtre datetime continue (comme dans EtudiantController)
+                    $sql = "
+                        SELECT *
+                        FROM punchlog
+                        WHERE devdt BETWEEN :start_dt AND :end_dt
+                          AND devnm NOT LIKE 'TOUR%'
+                          AND devnm NOT LIKE 'ACCES HCK%'
+                    ";
+                    $stmt = $pdo->prepare($sql);
+                    $stmt->execute(['start_dt' => $startDtFormatted, 'end_dt' => $endDtFormatted]);
+                    
+                    // Fetch the results
+                    $biostarResults = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    
+                    \Log::info('CoursController: Résultats Biostar récupérés', [
+                        'nombre_pointages' => count($biostarResults),
+                        'premiers_pointages' => array_slice($biostarResults, 0, 3),
+                        'champs_disponibles' => !empty($biostarResults) ? array_keys($biostarResults[0]) : []
+                    ]);
+                    
+                } catch (PDOException $e) {
+                    // If Biostar connection fails, log the error
+                    \Log::error("Erreur de connexion Biostar:", [
+                        'error' => $e->getMessage(),
+                        'code' => $e->getCode(),
+                        'cours_id' => $cours->id ?? null
+                    ]);
+                    $biostarResults = [];
+                }
+            } else {
+                \Log::warning('CoursController: Configuration Biostar non trouvée', [
+                    'cours_id' => $cours->id ?? null,
+                    'ville_id' => $cours->ville_id ?? null
+                ]);
                 $biostarResults = [];
             }
             

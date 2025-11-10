@@ -54,11 +54,24 @@ class BiostarAttendanceController extends Controller
             // Get configuration for cours ville
             $configResult = $this->configurationService->getConnectionConfigForCours($coursId);
             if (isset($configResult['error'])) {
+                \Log::error('BiostarAttendanceController: Configuration non trouvée', [
+                    'cours_id' => $coursId,
+                    'error' => $configResult['error'] ?? 'Unknown error',
+                    'cours_ville_id' => $cours->ville_id ?? null
+                ]);
                 return response()->json([
                     'success' => false,
                     'message' => 'Configuration not found for cours ville'
                 ], 404);
             }
+            
+            \Log::info('BiostarAttendanceController: Configuration récupérée', [
+                'cours_id' => $coursId,
+                'ville_id' => $configResult['ville_id'] ?? null,
+                'dsn' => $configResult['dsn'] ?? 'N/A',
+                'has_username' => !empty($configResult['username']),
+                'has_password' => !empty($configResult['password'])
+            ]);
 
             // Récupérer les devices des salles du cours (salles multiples ou salle unique)
             $allowedDeviceIds = [];
@@ -107,21 +120,36 @@ class BiostarAttendanceController extends Controller
             $hasSalles = (method_exists($cours, 'salles') && $cours->relationLoaded('salles') && $cours->salles && $cours->salles->isNotEmpty()) 
                         || ($cours->salle_id && $cours->salle);
             
-            // Si le cours a des salles mais aucun device assigné, on doit rejeter tous les pointages
-            // Pour cela, on passe des tableaux vides (pas null) pour forcer le filtrage
+            // Si le cours a des salles mais aucun device assigné, on ne filtre pas par devices
+            // On passe null pour accepter tous les pointages (pas de filtrage)
             if ($hasSalles && empty($allowedDeviceIds) && empty($allowedDeviceNames)) {
                 // Le cours a des salles mais aucun device assigné
-                // On force le filtrage en passant des tableaux vides (tous les pointages seront rejetés)
-                $allowedDeviceIds = [];
-                $allowedDeviceNames = [];
-                \Log::warning('BiostarAttendanceController: Cours a des salles mais aucun device assigné', [
+                // On ne filtre pas par devices (passer null pour accepter tous les pointages)
+                $allowedDeviceIds = null;
+                $allowedDeviceNames = null;
+                \Log::warning('BiostarAttendanceController: Cours a des salles mais aucun device assigné - pas de filtrage par devices', [
                     'cours_id' => $cours->id,
                     'salles_count' => method_exists($cours, 'salles') && $cours->relationLoaded('salles') ? $cours->salles->count() : 0,
-                    'salle_id' => $cours->salle_id
+                    'salle_id' => $cours->salle_id,
+                    'action' => 'Pas de filtrage par devices - tous les pointages seront acceptés'
                 ]);
             }
             
             // Log pour déboguer
+            \Log::info('BiostarAttendanceController: Paramètres reçus pour getCoursAttendance', [
+                'cours_id' => $coursId,
+                'date' => $date,
+                'start_time' => $startTime,
+                'end_time' => $endTime,
+                'start_time_fallback' => $cours->pointage_start_hour,
+                'end_time_fallback' => $cours->heure_fin,
+                'student_ids' => $studentIds,
+                'cours_date' => $cours->date,
+                'cours_pointage_start_hour' => $cours->pointage_start_hour,
+                'cours_heure_debut' => $cours->heure_debut,
+                'cours_heure_fin' => $cours->heure_fin
+            ]);
+            
             \Log::info('BiostarAttendanceController: Devices autorisés pour le cours', [
                 'cours_id' => $cours->id,
                 'allowed_device_ids' => $allowedDeviceIds,
@@ -130,19 +158,36 @@ class BiostarAttendanceController extends Controller
                 'salle_id' => $cours->salle_id,
                 'has_salles' => method_exists($cours, 'salles') && $cours->relationLoaded('salles') && $cours->salles && $cours->salles->isNotEmpty(),
                 'has_salle' => $cours->salle && is_array($cours->salle->devices) && count($cours->salle->devices) > 0,
-                'will_filter' => !empty($allowedDeviceIds) || !empty($allowedDeviceNames)
+                'will_filter' => !empty($allowedDeviceIds) || !empty($allowedDeviceNames),
+                'config_ville_id' => $configResult['ville_id'] ?? null
             ]);
 
             // Get attendance data from Biostar
+            $finalStartTime = $startTime ?: $cours->pointage_start_hour;
+            $finalEndTime = $endTime ?: $cours->heure_fin;
+            
+            \Log::info('BiostarAttendanceController: Appel à getAttendanceData', [
+                'date' => $date,
+                'start_time' => $finalStartTime,
+                'end_time' => $finalEndTime,
+                'has_allowed_devices' => !empty($allowedDeviceIds) || !empty($allowedDeviceNames)
+            ]);
+            
             $attendanceData = $this->biostarAttendanceService->getAttendanceData(
                 $configResult,
                 $date,
-                $startTime ?: $cours->pointage_start_hour,
-                $endTime ?: $cours->heure_fin,
+                $finalStartTime,
+                $finalEndTime,
                 $studentIds,
                 $allowedDeviceIds,
                 $allowedDeviceNames
             );
+            
+            \Log::info('BiostarAttendanceController: Résultats de getAttendanceData', [
+                'total_punches' => $attendanceData['total_punches'] ?? 0,
+                'students_with_punches' => $attendanceData['students_with_punches'] ?? 0,
+                'punches_count' => count($attendanceData['punches'] ?? [])
+            ]);
 
             return response()->json([
                 'success' => true,

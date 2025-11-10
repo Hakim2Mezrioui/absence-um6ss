@@ -19,8 +19,18 @@ class BiostarAttendanceService
             if (strpos($dsn, 'LoginTimeout=') === false) {
                 $dsn .= (str_contains($dsn, ';') ? '' : ';') . 'LoginTimeout=3';
             }
+            
+            \Log::info('BiostarAttendanceService: Tentative de connexion à Biostar', [
+                'dsn' => $dsn,
+                'username' => $config['username'],
+                'has_password' => !empty($config['password']),
+                'ville_id' => $config['ville_id'] ?? null
+            ]);
+            
             $pdo = new PDO($dsn, $config['username'], $config['password']);
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            
+            \Log::info('BiostarAttendanceService: Connexion à Biostar réussie');
 
             // Formater la date au format YYYY-MM-DD (extraire juste la date du format ISO)
             $formattedDate = date('Y-m-d', strtotime($date));
@@ -49,7 +59,17 @@ class BiostarAttendanceService
                 }
             }
 
+            // Test : vérifier s'il y a des pointages pour cette date (sans filtre horaire)
+            $testStmt = $pdo->prepare("SELECT COUNT(*) as total FROM punchlog WHERE CAST(devdt AS DATE) = CAST(? AS DATE)");
+            $testStmt->execute([$formattedDate]);
+            $testResult = $testStmt->fetch(PDO::FETCH_ASSOC);
+            \Log::info('BiostarAttendanceService: Test - Pointages pour la date (sans filtre horaire)', [
+                'date' => $formattedDate,
+                'total_punches_for_date' => $testResult['total'] ?? 0
+            ]);
+
             // Build query - utiliser les colonnes correctes de la table punchlog
+            // Utiliser la même syntaxe que CoursController avec CAST sur les paramètres
             $query = "SELECT 
                         id,
                         user_id,
@@ -60,20 +80,25 @@ class BiostarAttendanceService
                         bsevtdt,
                         user_name
                       FROM punchlog 
-                      WHERE CAST(devdt AS DATE) = ?";
+                      WHERE CAST(devdt AS DATE) = CAST(? AS DATE)";
 
             $params = [$formattedDate];
 
-            // Add time filters if provided
-            if ($formattedStartTime) {
-                $query .= " AND CAST(devdt AS TIME) >= ?";
+            // Add time filters if provided - utiliser BETWEEN comme dans CoursController
+            if ($formattedStartTime && $formattedEndTime) {
+                $query .= " AND CAST(devdt AS TIME) BETWEEN CAST(? AS TIME) AND CAST(? AS TIME)";
                 $params[] = $formattedStartTime;
-            }
-
-            if ($formattedEndTime) {
-                $query .= " AND CAST(devdt AS TIME) <= ?";
+                $params[] = $formattedEndTime;
+            } elseif ($formattedStartTime) {
+                $query .= " AND CAST(devdt AS TIME) >= CAST(? AS TIME)";
+                $params[] = $formattedStartTime;
+            } elseif ($formattedEndTime) {
+                $query .= " AND CAST(devdt AS TIME) <= CAST(? AS TIME)";
                 $params[] = $formattedEndTime;
             }
+
+            // Exclure TOUR% et ACCES HCK% comme dans CoursController
+            $query .= " AND devnm NOT LIKE 'TOUR%' AND devnm NOT LIKE 'ACCES HCK%'";
 
             // Add student IDs filter if provided
             if ($studentIds && is_array($studentIds) && count($studentIds) > 0) {
@@ -84,14 +109,38 @@ class BiostarAttendanceService
 
             $query .= " ORDER BY devdt ASC";
 
+            // Log de la requête SQL et des paramètres
+            \Log::info('BiostarAttendanceService: Requête SQL à exécuter', [
+                'query' => $query,
+                'params' => $params,
+                'formatted_date' => $formattedDate,
+                'formatted_start_time' => $formattedStartTime,
+                'formatted_end_time' => $formattedEndTime,
+                'student_ids_count' => $studentIds ? count($studentIds) : 0
+            ]);
+
             $stmt = $pdo->prepare($query);
             $stmt->execute($params);
             $punches = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            \Log::info('BiostarAttendanceService: Résultats bruts de la requête SQL', [
+                'total_punches_before_filter' => count($punches),
+                'sample_punches' => array_slice($punches, 0, 3), // Échantillon des 3 premiers pointages
+                'unique_devices' => array_unique(array_column($punches, 'devnm')),
+                'unique_user_ids' => array_slice(array_unique(array_column($punches, 'user_id')), 0, 5)
+            ]);
 
             // Filtrer par devices autorisés si fournis
             // Si des devices sont spécifiés, on filtre strictement
             // Si des tableaux vides sont passés (cours avec salles mais sans devices), on rejette tous les pointages
             // Si null est passé (pas de filtrage), on accepte tous les pointages
+            \Log::info('BiostarAttendanceService: État du filtrage par devices', [
+                'allowedDeviceIds' => $allowedDeviceIds,
+                'allowedDeviceNames' => $allowedDeviceNames,
+                'will_filter' => $allowedDeviceIds !== null || $allowedDeviceNames !== null,
+                'punches_before_filter' => count($punches)
+            ]);
+            
             if ($allowedDeviceIds !== null || $allowedDeviceNames !== null) {
                 $beforeCount = count($punches);
                 
@@ -199,8 +248,19 @@ class BiostarAttendanceService
             ];
 
         } catch (PDOException $e) {
+            \Log::error('BiostarAttendanceService: Erreur PDO lors de la récupération des pointages', [
+                'error' => $e->getMessage(),
+                'code' => $e->getCode(),
+                'dsn' => $config['dsn'] ?? 'N/A',
+                'ville_id' => $config['ville_id'] ?? null,
+                'trace' => $e->getTraceAsString()
+            ]);
             throw new \Exception('Database error while fetching attendance: ' . $e->getMessage());
         } catch (\Exception $e) {
+            \Log::error('BiostarAttendanceService: Erreur générale lors de la récupération des pointages', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             throw new \Exception('Error retrieving attendance data: ' . $e->getMessage());
         }
     }

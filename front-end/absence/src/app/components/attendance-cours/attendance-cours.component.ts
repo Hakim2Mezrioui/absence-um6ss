@@ -223,6 +223,15 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     }
     
     console.log('🏢 IDs des salles pour filtrer les devices:', sallesIds);
+    console.log('📅 Paramètres envoyés à syncCoursAttendanceWithBiostar:', {
+      coursId: this.coursId,
+      date: this.coursData.cours.date,
+      startTime: this.coursData.cours.pointage_start_hour,
+      endTime: this.coursData.cours.heure_fin,
+      sallesIds: sallesIds,
+      salles: this.coursData.cours.salles,
+      salle: this.coursData.cours.salle
+    });
 
     this.biostarAttendanceService.syncCoursAttendanceWithBiostar(
       this.coursId,
