@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterModule, Router } from '@angular/router';
 import { AttendanceService, AttendanceFilters, AttendanceResponse, StudentAttendance } from '../../services/attendance.service';
 import { AbsenceAutoService, CreateAbsencesFromAttendanceRequest } from '../../services/absence-auto.service';
 import { NotificationService } from '../../services/notification.service';
@@ -14,7 +14,7 @@ import * as XLSX from 'xlsx';
 @Component({
   selector: 'app-attendance',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, HttpClientModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, HttpClientModule, RouterModule],
   templateUrl: './attendance.component.html',
   styleUrl: './attendance.component.css'
 })
@@ -98,7 +98,8 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     private configurationAutoService: ConfigurationAutoService,
     private biostarAttendanceService: BiostarAttendanceService,
     private fb: FormBuilder,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private router: Router
   ) {
     this.filtersForm = this.fb.group({
       date: [''],
@@ -1585,6 +1586,23 @@ export class AttendanceComponent implements OnInit, OnDestroy {
    */
   getAbsentAndLateStudents(): StudentAttendance[] {
     return this.students.filter(s => s.status === 'absent' || s.status === 'en retard');
+  }
+
+  /**
+   * Ouvrir l'affichage public dans une nouvelle fenêtre
+   */
+  openPublicDisplay(): void {
+    if (!this.examId) {
+      this.notificationService.warning(
+        'ID d\'examen manquant',
+        'Impossible d\'ouvrir l\'affichage public car l\'ID de l\'examen n\'est pas disponible.'
+      );
+      return;
+    }
+    
+    // Ouvrir dans une nouvelle fenêtre en plein écran
+    const url = `/absence-display/${this.examId}`;
+    window.open(url, '_blank', 'fullscreen=yes');
   }
 
   /**

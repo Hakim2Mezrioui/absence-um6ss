@@ -126,6 +126,34 @@ export class ExamensComponent implements OnInit, OnDestroy {
     this.router.navigate(['/attendance', examen.id], { queryParams });
   }
 
+  /**
+   * Ouvrir l'affichage public des absences pour un examen
+   */
+  openPublicDisplay(examen: Examen): void {
+    if (!examen.id) {
+      this.notificationService.warning(
+        'ID d\'examen manquant',
+        'Impossible d\'ouvrir l\'affichage public.'
+      );
+      return;
+    }
+    
+    // Ouvrir dans une nouvelle fenêtre en plein écran
+    const url = `/absence-display/${examen.id}`;
+    window.open(url, '_blank', 'fullscreen=yes');
+  }
+
+  /**
+   * Vérifier si l'utilisateur peut accéder à l'affichage public
+   */
+  canAccessPublicDisplay(): boolean {
+    const userRole = this.authService.getUserRoleName();
+    const normalizedRole = userRole ? userRole.toLowerCase().replace(/[\s-]/g, '') : '';
+    
+    // Seuls les admins et super-admins peuvent ouvrir l'affichage public
+    return normalizedRole === 'superadmin' || normalizedRole === 'admin';
+  }
+
   openImportModal(): void {
     this.router.navigate(['/import-examens-simple']);
   }

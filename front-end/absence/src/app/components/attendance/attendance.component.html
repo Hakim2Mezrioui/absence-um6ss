@@ -14,12 +14,23 @@
               <p class="subtitle">Examen</p>
             </div>
           </div>
-          <div class="auto-refresh-indicator flex items-center gap-2 text-sm text-gray-600">
-            <span class="material-icons">schedule</span>
-            <span>Dernière actualisation: {{ getTimeSinceLastRefresh() }}</span>
-            <span class="auto-refresh-badge relative inline-flex h-2 w-2">
-              <span class="pulse-dot inline-flex absolute inset-0 rounded-full bg-emerald-500"></span>
-            </span>
+          <div class="flex items-center gap-3">
+            <button 
+              *ngIf="examId"
+              (click)="openPublicDisplay()"
+              class="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg"
+              title="Ouvrir l'affichage public des absences"
+            >
+              <span class="material-icons">tv</span>
+              <span>Écran Public</span>
+            </button>
+            <div class="auto-refresh-indicator flex items-center gap-2 text-sm text-gray-600">
+              <span class="material-icons">schedule</span>
+              <span>Dernière actualisation: {{ getTimeSinceLastRefresh() }}</span>
+              <span class="auto-refresh-badge relative inline-flex h-2 w-2">
+                <span class="pulse-dot inline-flex absolute inset-0 rounded-full bg-emerald-500"></span>
+              </span>
+            </div>
           </div>
         </div>
         <p class="description mt-2 flex items-center gap-2 text-gray-600">

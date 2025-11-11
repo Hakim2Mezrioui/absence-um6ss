@@ -1,0 +1,169 @@
+<div class="public-display-container">
+  <!-- Background animé élégant -->
+  <div class="animated-background">
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
+    <div class="gradient-orb orb-3"></div>
+  </div>
+
+  <!-- Contenu principal -->
+  <div class="display-content">
+    <!-- Header ultra élégant -->
+    <header class="elegant-header">
+      <div class="header-glow"></div>
+      <div class="header-inner">
+        <div class="logo-section">
+          <div class="logo-badge">
+            <span class="material-icons">school</span>
+          </div>
+          <div class="brand-info">
+            <h1 class="brand-title">UM6SS</h1>
+            <p class="brand-subtitle">Système de Gestion des Absences</p>
+          </div>
+        </div>
+        
+        <div class="exam-info" *ngIf="examenData">
+          <div class="info-card">
+            <span class="material-icons info-icon">event_note</span>
+            <div class="info-content">
+              <span class="info-label">Examen</span>
+              <span class="info-value">{{ examenData.title }}</span>
+            </div>
+          </div>
+          <div class="info-divider"></div>
+          <div class="info-card">
+            <span class="material-icons info-icon">calendar_today</span>
+            <div class="info-content">
+              <span class="info-label">Date</span>
+              <span class="info-value">{{ formatDate(examenData.date) }}</span>
+            </div>
+          </div>
+          <div class="info-divider"></div>
+          <div class="info-card">
+            <span class="material-icons info-icon">schedule</span>
+            <div class="info-content">
+              <span class="info-label">Horaire</span>
+              <span class="info-value">{{ formatTime(examenData.heure_debut) }} - {{ formatTime(examenData.heure_fin) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="live-indicator">
+          <div class="pulse-dot"></div>
+          <span class="live-text">EN DIRECT</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- État de chargement élégant -->
+    <div *ngIf="loading" class="loading-elegant">
+      <div class="loading-spinner-elegant">
+        <div class="spinner-ring"></div>
+        <div class="spinner-ring"></div>
+        <div class="spinner-ring"></div>
+      </div>
+      <p class="loading-text">Chargement des données...</p>
+    </div>
+
+    <!-- Message d'erreur élégant -->
+    <div *ngIf="error && !loading" class="error-elegant">
+      <span class="material-icons error-icon">error_outline</span>
+      <p class="error-text">{{ error }}</p>
+    </div>
+
+    <!-- Section d'affichage principal -->
+    <div *ngIf="!loading && !error && currentSegment" class="main-display-section">
+      <!-- Bandeau segment élégant -->
+      <div class="segment-banner">
+        <div class="banner-glow"></div>
+        <div class="banner-content">
+          <div class="segment-title-section">
+            <span class="material-icons segment-icon">groups</span>
+            <h2 class="segment-title">{{ currentSegment.title }}</h2>
+          </div>
+          <div class="segment-meta">
+            <div class="meta-badge">
+              <span class="material-icons meta-icon">person</span>
+              <span class="meta-text">{{ currentSegment.students.length }} étudiant(s) absent(s)</span>
+            </div>
+            <div class="meta-divider"></div>
+            <div class="meta-badge">
+              <span class="material-icons meta-icon">layers</span>
+              <span class="meta-text">Page {{ currentPageIndex + 1 }}/{{ getTotalPages() }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="((currentPageIndex + 1) / getTotalPages()) * 100"></div>
+        </div>
+      </div>
+
+      <!-- Grille des étudiants ultra élégante -->
+      <div class="students-elegant-grid" *ngIf="getCurrentPageStudents().length > 0">
+        <div 
+          *ngFor="let student of getCurrentPageStudents(); let i = index" 
+          class="student-card-elegant"
+          [attr.data-status]="student.status"
+          [style.animation-delay.ms]="i * 50"
+        >
+          <div class="card-glow" [attr.data-status]="student.status"></div>
+          <div class="card-inner">
+            <div class="student-avatar">
+              <span class="material-icons avatar-icon">person</span>
+              <div class="avatar-ring" [attr.data-status]="student.status"></div>
+            </div>
+            <div class="student-info">
+              <h3 class="student-name">{{ student.first_name }} {{ student.last_name }}</h3>
+              <p class="student-matricule">{{ student.matricule }}</p>
+            </div>
+            <div class="status-badge-elegant" [attr.data-status]="student.status">
+              <span class="status-icon material-icons">
+                {{ student.status === 'absent' ? 'cancel' : 'schedule' }}
+              </span>
+              <span class="status-text">{{ getStatusLabel(student.status) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Message aucun absent élégant -->
+    <div *ngIf="!loading && !error && segments.length === 0" class="no-absents-elegant">
+      <div class="success-animation">
+        <div class="success-circle">
+          <span class="material-icons success-icon">check_circle</span>
+        </div>
+      </div>
+      <h2 class="success-title">Excellente nouvelle !</h2>
+      <p class="success-text">Tous les étudiants sont présents</p>
+    </div>
+
+    <!-- Boutons de navigation -->
+    <div class="navigation-controls" *ngIf="!loading && !error && currentSegment">
+      <button 
+        class="nav-button prev-button"
+        (click)="previousPage()"
+        title="Page précédente"
+      >
+        <span class="material-icons">chevron_left</span>
+        <span class="nav-text">Précédent</span>
+      </button>
+      
+      <div class="page-indicator">
+        <span class="page-current">{{ currentPageIndex + 1 }}</span>
+        <span class="page-separator">/</span>
+        <span class="page-total">{{ getTotalPages() }}</span>
+      </div>
+      
+      <button 
+        class="nav-button next-button"
+        (click)="nextPage(true)"
+        title="Page suivante"
+      >
+        <span class="nav-text">Suivant</span>
+        <span class="material-icons">chevron_right</span>
+      </button>
+    </div>
+
+  </div>
+</div>

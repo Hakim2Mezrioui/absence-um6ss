@@ -37,12 +37,21 @@ import { GroupsComponent } from './components/groups/groups.component';
 import { UserManagementComponent } from './components/user-management/user-management.component';
 import { ExamensArchivedComponent } from './components/examens-archived/examens-archived.component';
 import { CoursArchivedComponent } from './components/cours-archived/cours-archived.component';
+import { AbsenceDisplayComponent } from './components/absence-display/absence-display.component';
+import { DisplayPublicGuard } from './guards/display-public.guard';
 
 export const routes: Routes = [
     {path: "", redirectTo: "login", pathMatch: "full"},
     {path: "login", component: LoginComponent},
     // Public access to add-enseignant (no AuthGuard)
     {path: "add-enseignant", component: AddEnseignantComponent},
+
+    // Affichage public des absences (SANS layout/sidebar, plein écran)
+    { 
+        path: "absence-display/:id", 
+        component: AbsenceDisplayComponent, 
+        canActivate: [AuthGuard, DisplayPublicGuard] 
+    },
 
     // Authenticated area with sidebar layout
     {
