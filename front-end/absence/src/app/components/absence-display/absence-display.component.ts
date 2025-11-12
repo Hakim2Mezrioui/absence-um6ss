@@ -45,6 +45,15 @@ export class AbsenceDisplayComponent implements OnInit, AfterViewInit, OnDestroy
   private resizeListener?: () => void;
   private refreshDuration = 30000; // 30 secondes
   
+  // Face ID notification
+  previousAbsentStudents: AbsentStudent[] = [];
+  showFaceIdNotification: boolean = false;
+  faceIdStudentsQueue: AbsentStudent[] = [];
+  currentFaceIdStudent: AbsentStudent | null = null;
+  faceIdNotificationTimeout: any = null;
+  isPaused: boolean = false;
+  faceIdDisplayDuration = 5000; // 5 secondes par étudiant
+  
   // Exposer Math pour le template
   Math = Math;
 
@@ -80,6 +89,12 @@ export class AbsenceDisplayComponent implements OnInit, AfterViewInit, OnDestroy
     this.destroy$.next();
     this.destroy$.complete();
     this.clearIntervals();
+    
+    // Nettoyer le timeout de notification Face ID
+    if (this.faceIdNotificationTimeout) {
+      clearTimeout(this.faceIdNotificationTimeout);
+      this.faceIdNotificationTimeout = null;
+    }
     
     // Nettoyer le listener resize
     if (this.resizeListener) {
@@ -162,6 +177,36 @@ export class AbsenceDisplayComponent implements OnInit, AfterViewInit, OnDestroy
           
           if (isRefresh) {
             console.log(`📊 Rafraîchissement: ${absentStudents.length} étudiant(s) absent(s) trouvé(s)`);
+            
+            // Détecter les étudiants qui ont fait le face ID
+            if (this.previousAbsentStudents.length > 0) {
+              const studentsWhoDidFaceId = this.previousAbsentStudents.filter(prevStudent => {
+                // Vérifier si l'étudiant n'est plus dans la nouvelle liste
+                return !absentStudents.some(newStudent => 
+                  newStudent.id === prevStudent.id || 
+                  newStudent.matricule === prevStudent.matricule
+                );
+              });
+              
+              if (studentsWhoDidFaceId.length > 0) {
+                console.log(`✅ ${studentsWhoDidFaceId.length} étudiant(s) ont fait le face ID`);
+                
+                // Ajouter à la file d'attente (éviter les doublons)
+                studentsWhoDidFaceId.forEach(student => {
+                  const alreadyInQueue = this.faceIdStudentsQueue.some(q => 
+                    q.id === student.id || q.matricule === student.matricule
+                  );
+                  if (!alreadyInQueue) {
+                    this.faceIdStudentsQueue.push(student);
+                  }
+                });
+                
+                // Démarrer la boucle si elle n'est pas déjà en cours
+                if (!this.showFaceIdNotification && this.faceIdStudentsQueue.length > 0) {
+                  this.startFaceIdNotificationLoop();
+                }
+              }
+            }
           }
           
           // Grouper par segments
@@ -209,10 +254,19 @@ export class AbsenceDisplayComponent implements OnInit, AfterViewInit, OnDestroy
               this.currentSegmentIndex = 0;
               this.currentSegment = this.segments[0];
               this.loading = false;
+              
+              // Initialiser la liste précédente pour le premier chargement
+              this.previousAbsentStudents = [...absentStudents];
+              
               setTimeout(() => {
                 this.calculateStudentsPerPage();
                 this.startDisplayLoop();
               }, 200);
+            }
+            
+            // Mettre à jour la liste précédente lors du rafraîchissement
+            if (isRefresh) {
+              this.previousAbsentStudents = [...absentStudents];
             }
           } else {
             // Plus d'étudiants absents
@@ -225,6 +279,9 @@ export class AbsenceDisplayComponent implements OnInit, AfterViewInit, OnDestroy
               // Forcer la détection de changement lors du rafraîchissement
               this.cdr.detectChanges();
             }
+            
+            // Mettre à jour la liste précédente
+            this.previousAbsentStudents = [];
           }
         },
         error: (error) => {
@@ -246,29 +303,36 @@ export class AbsenceDisplayComponent implements OnInit, AfterViewInit, OnDestroy
     const banner = document.querySelector('.segment-banner');
     const nav = document.querySelector('.navigation-controls');
     
-    const headerHeight = header ? header.getBoundingClientRect().height : 100;
-    const bannerHeight = banner ? banner.getBoundingClientRect().height : 80;
-    const navHeight = nav ? nav.getBoundingClientRect().height : 55;
-    const padding = 60; // padding réduit (1.5rem * 2)
-    const gaps = 16; // gaps réduits (1rem)
+    const headerHeight = header ? header.getBoundingClientRect().height : 60;
+    const bannerHeight = banner ? banner.getBoundingClientRect().height : 50;
+    const navHeight = nav ? nav.getBoundingClientRect().height : 40;
+    const padding = 32; // padding réduit (0.75rem * 2 + 1rem * 2)
+    const gaps = 16; // gaps réduits (0.5rem + 0.5rem)
     
     const availableHeight = window.innerHeight - headerHeight - bannerHeight - navHeight - padding - gaps;
     
     // Hauteur d'une card étudiant (card + gap vertical)
-    // Card: ~145px (padding 1rem + avatar 3.5rem + info + badge)
-    // Gap: 1rem = 16px
-    const cardHeight = 161; // ~161px par card
+    // Card compacte: ~70px (padding 0.1875rem + nom + matricule + badge)
+    // Gap: 0.25rem = 4px
+    const cardHeight = 74; // ~74px par card compacte
     
-    // Nombre de lignes possibles (arrondir vers le bas et soustraire 1 pour marge de sécurité)
-    const rows = Math.max(1, Math.floor(availableHeight / cardHeight) - 1);
+    // Nombre de lignes possibles (utiliser tout l'espace disponible)
+    const rows = Math.max(1, Math.floor(availableHeight / cardHeight));
     
-    // Nombre de colonnes selon la largeur
-    let cols = 4;
-    if (window.innerWidth < 768) {
-      cols = 2;
-    }
-    if (window.innerWidth < 640) {
-      cols = 1;
+    // Nombre de colonnes selon la largeur (optimisé pour plus de colonnes)
+    let cols = 8;
+    if (window.innerWidth >= 1536) {
+      cols = 12;
+    } else if (window.innerWidth >= 1280) {
+      cols = 10;
+    } else if (window.innerWidth >= 1024) {
+      cols = 9;
+    } else if (window.innerWidth >= 768) {
+      cols = 8;
+    } else if (window.innerWidth >= 640) {
+      cols = 8;
+    } else {
+      cols = 3;
     }
     
     // Calculer le nombre total d'étudiants par page
@@ -290,10 +354,18 @@ export class AbsenceDisplayComponent implements OnInit, AfterViewInit, OnDestroy
       return [];
     }
     
-    // Un seul segment avec tous les étudiants, triés par nom
+    // Un seul segment avec tous les étudiants, triés par nom de famille (alphabétique)
     return [{
       title: `Étudiants Absents`,
-      students: students.sort((a, b) => a.last_name.localeCompare(b.last_name)),
+      students: students.sort((a, b) => {
+        // Trier par nom de famille (last_name) en premier
+        const lastNameCompare = a.last_name.localeCompare(b.last_name, 'fr', { sensitivity: 'base' });
+        if (lastNameCompare !== 0) {
+          return lastNameCompare;
+        }
+        // Si les noms sont identiques, trier par prénom
+        return a.first_name.localeCompare(b.first_name, 'fr', { sensitivity: 'base' });
+      }),
       type: 'group'
     }];
   }
@@ -302,26 +374,43 @@ export class AbsenceDisplayComponent implements OnInit, AfterViewInit, OnDestroy
    * Démarrer la boucle d'affichage automatique
    */
   startDisplayLoop(): void {
-    this.clearIntervals();
-    this.currentPageIndex = 0;
+    // Ne pas vérifier isPaused ici, démarrer les intervalles même si en pause
+    // Le rafraîchissement doit toujours fonctionner pour détecter les nouveaux face ID
     
-    // Changer de page automatiquement toutes les 15 secondes
+    // Nettoyer seulement le segmentInterval, garder refreshInterval s'il existe
+    if (this.segmentInterval) {
+      clearInterval(this.segmentInterval);
+      this.segmentInterval = null;
+    }
+    
+    // Si refreshInterval n'existe pas encore, le créer
+    if (!this.refreshInterval) {
+      // Recharger les données toutes les 30 secondes
+      // IMPORTANT: Ne pas vérifier isPaused, le rafraîchissement doit toujours s'exécuter
+      this.refreshInterval = setInterval(() => {
+        console.log('🔄 Rafraîchissement automatique des absents...');
+        this.loadAbsentStudents(true); // true = rafraîchissement automatique
+      }, this.refreshDuration);
+    }
+    
+    // Changer de page automatiquement toutes les 15 secondes (seulement si pas en pause)
     this.segmentInterval = setInterval(() => {
-      this.nextPage();
+      if (!this.isPaused) {
+        this.nextPage();
+      }
     }, this.segmentDisplayDuration);
     
-    // Recharger les données toutes les 30 secondes
-    this.refreshInterval = setInterval(() => {
-      console.log('🔄 Rafraîchissement automatique des absents...');
-      this.loadAbsentStudents(true); // true = rafraîchissement automatique
-    }, this.refreshDuration);
+    // Réinitialiser l'index de page seulement si on démarre pour la première fois
+    if (this.currentPageIndex === 0 && this.segments.length > 0) {
+      // Ne pas réinitialiser si on reprend après une pause
+    }
   }
 
   /**
    * Aller à la page suivante (manuel ou automatique)
    */
   nextPage(manual: boolean = false): void {
-    if (this.segments.length === 0 || !this.currentSegment) return;
+    if (this.isPaused || this.segments.length === 0 || !this.currentSegment) return;
     
     const totalPages = this.getTotalPages();
     
@@ -358,13 +447,25 @@ export class AbsenceDisplayComponent implements OnInit, AfterViewInit, OnDestroy
   }
   
   /**
-   * Réinitialiser le timer de lecture automatique
+   * Réinitialiser le timer de lecture automatique (seulement le défilement)
    */
   resetAutoPlayTimer(): void {
-    this.clearIntervals();
+    // Nettoyer seulement le segmentInterval, garder refreshInterval
+    if (this.segmentInterval) {
+      clearInterval(this.segmentInterval);
+    }
     this.segmentInterval = setInterval(() => {
-      this.nextPage();
+      if (!this.isPaused) {
+        this.nextPage();
+      }
     }, this.segmentDisplayDuration);
+    // S'assurer que refreshInterval existe toujours
+    if (!this.refreshInterval) {
+      this.refreshInterval = setInterval(() => {
+        console.log('🔄 Rafraîchissement automatique des absents...');
+        this.loadAbsentStudents(true);
+      }, this.refreshDuration);
+    }
   }
 
   /**
@@ -415,6 +516,126 @@ export class AbsenceDisplayComponent implements OnInit, AfterViewInit, OnDestroy
     if (this.refreshInterval) {
       clearInterval(this.refreshInterval);
       this.refreshInterval = null;
+    }
+  }
+
+  /**
+   * Nettoyer seulement le défilement de pages (garder le rafraîchissement)
+   */
+  clearSegmentInterval(): void {
+    if (this.segmentInterval) {
+      clearInterval(this.segmentInterval);
+      this.segmentInterval = null;
+    }
+  }
+
+  /**
+   * Démarrer la boucle de notification Face ID
+   */
+  startFaceIdNotificationLoop(): void {
+    if (this.faceIdStudentsQueue.length === 0) {
+      return;
+    }
+    
+    // Prendre le premier étudiant de la queue
+    const student = this.faceIdStudentsQueue.shift();
+    if (!student) {
+      return;
+    }
+    
+    // Définir l'étudiant actuel
+    this.currentFaceIdStudent = student;
+    this.showFaceIdNotification = true;
+    this.isPaused = true;
+    
+    // Pauser le défilement
+    this.pauseDisplayLoop();
+    
+    // Démarrer le timeout pour afficher le suivant ou masquer
+    this.faceIdNotificationTimeout = setTimeout(() => {
+      this.showNextFaceIdStudent();
+    }, this.faceIdDisplayDuration);
+    
+    // Forcer la détection de changement
+    this.cdr.detectChanges();
+  }
+
+  /**
+   * Afficher le prochain étudiant ou masquer la notification
+   */
+  showNextFaceIdStudent(): void {
+    // Nettoyer le timeout précédent
+    if (this.faceIdNotificationTimeout) {
+      clearTimeout(this.faceIdNotificationTimeout);
+      this.faceIdNotificationTimeout = null;
+    }
+    
+    // Vérifier s'il y a encore des étudiants dans la queue
+    if (this.faceIdStudentsQueue.length > 0) {
+      // Afficher le suivant
+      this.startFaceIdNotificationLoop();
+    } else {
+      // Masquer la notification et reprendre le défilement
+      this.hideFaceIdNotification();
+    }
+  }
+
+  /**
+   * Masquer la notification Face ID et reprendre le défilement
+   */
+  hideFaceIdNotification(): void {
+    // Nettoyer le timeout
+    if (this.faceIdNotificationTimeout) {
+      clearTimeout(this.faceIdNotificationTimeout);
+      this.faceIdNotificationTimeout = null;
+    }
+    
+    // Masquer le popup
+    this.showFaceIdNotification = false;
+    this.currentFaceIdStudent = null;
+    this.isPaused = false;
+    
+    // Reprendre le défilement
+    this.resumeDisplayLoop();
+    
+    // Forcer la détection de changement
+    this.cdr.detectChanges();
+  }
+
+  /**
+   * Pauser le défilement automatique (mais garder le rafraîchissement actif)
+   */
+  pauseDisplayLoop(): void {
+    this.isPaused = true;
+    // Nettoyer seulement le segmentInterval (défilement de pages)
+    // Garder refreshInterval actif pour continuer à détecter les nouveaux face ID
+    if (this.segmentInterval) {
+      clearInterval(this.segmentInterval);
+      this.segmentInterval = null;
+    }
+    // Ne PAS nettoyer refreshInterval ici
+  }
+
+  /**
+   * Reprendre le défilement automatique
+   */
+  resumeDisplayLoop(): void {
+    this.isPaused = false;
+    // Redémarrer seulement le défilement de pages
+    // Le refreshInterval continue déjà de tourner
+    if (!this.segmentInterval) {
+      this.segmentInterval = setInterval(() => {
+        if (!this.isPaused) {
+          this.nextPage();
+        }
+      }, this.segmentDisplayDuration);
+    }
+    // S'assurer que refreshInterval existe (au cas où)
+    if (!this.refreshInterval) {
+      this.refreshInterval = setInterval(() => {
+        console.log('🔄 Rafraîchissement automatique des absents...');
+        this.loadAbsentStudents(true);
+      }, this.refreshDuration);
     }
   }
 

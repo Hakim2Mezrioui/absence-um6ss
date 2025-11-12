@@ -125,6 +125,8 @@ export class AttendanceComponent implements OnInit, OnDestroy {
         
         // Auto-sélectionner la configuration si un ID d'examen est fourni
         this.autoSelectConfigurationForExamen(this.examId);
+      } else {
+        console.warn('⚠️ Aucun ID d\'examen trouvé dans l\'URL. Le bouton "Écran Public" ne sera visible que si examData.id est disponible.');
       }
     });
     
@@ -1592,7 +1594,15 @@ export class AttendanceComponent implements OnInit, OnDestroy {
    * Ouvrir l'affichage public dans une nouvelle fenêtre
    */
   openPublicDisplay(): void {
-    if (!this.examId) {
+    // Utiliser examId ou examData.id en fallback
+    const examenId = this.examId || this.examData?.id;
+    
+    if (!examenId) {
+      console.warn('⚠️ Aucun ID d\'examen disponible:', {
+        examId: this.examId,
+        examDataId: this.examData?.id,
+        examData: this.examData
+      });
       this.notificationService.warning(
         'ID d\'examen manquant',
         'Impossible d\'ouvrir l\'affichage public car l\'ID de l\'examen n\'est pas disponible.'
@@ -1600,8 +1610,10 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       return;
     }
     
+    console.log('🖥️ Ouverture de l\'affichage public pour l\'examen ID:', examenId);
+    
     // Ouvrir dans une nouvelle fenêtre en plein écran
-    const url = `/absence-display/${this.examId}`;
+    const url = `/absence-display/${examenId}`;
     window.open(url, '_blank', 'fullscreen=yes');
   }
 
