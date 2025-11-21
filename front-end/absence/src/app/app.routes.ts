@@ -38,7 +38,9 @@ import { UserManagementComponent } from './components/user-management/user-manag
 import { ExamensArchivedComponent } from './components/examens-archived/examens-archived.component';
 import { CoursArchivedComponent } from './components/cours-archived/cours-archived.component';
 import { AbsenceDisplayComponent } from './components/absence-display/absence-display.component';
+import { CoursDisplayComponent } from './components/cours-display/cours-display.component';
 import { DisplayPublicGuard } from './guards/display-public.guard';
+import { AttendanceRapideComponent } from './components/attendance-rapide/attendance-rapide.component';
 
 export const routes: Routes = [
     {path: "", redirectTo: "login", pathMatch: "full"},
@@ -50,6 +52,13 @@ export const routes: Routes = [
     { 
         path: "absence-display/:id", 
         component: AbsenceDisplayComponent, 
+        canActivate: [AuthGuard, DisplayPublicGuard] 
+    },
+
+    // Affichage public des cours (SANS layout/sidebar, plein écran)
+    { 
+        path: "cours-display/:id", 
+        component: CoursDisplayComponent, 
         canActivate: [AuthGuard, DisplayPublicGuard] 
     },
 
@@ -85,6 +94,7 @@ export const routes: Routes = [
             { path: "groups", component: GroupsComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien'] } },
 
             { path: "absences", component: AbsencesComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien'] } },
+            { path: "attendance-rapide", component: AttendanceRapideComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },
             { path: "promotions", component: PromotionsComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },
             { path: "etablissements", component: EtablissementsComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin'] } },
             { path: "salles", component: SallesComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien'] } },

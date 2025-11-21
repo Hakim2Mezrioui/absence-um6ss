@@ -369,6 +369,13 @@ export class SidebarComponent implements OnInit {
       roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien']
     },
     {
+      label: 'Attendance Rapide',
+      icon: 'speed',
+      route: '/attendance-rapide',
+      tooltip: 'Import rapide et récupération des présences',
+      roles: ['super-admin', 'admin', 'scolarite']
+    },
+    {
       label: 'Promotions',
       icon: 'school',
       route: '/promotions',

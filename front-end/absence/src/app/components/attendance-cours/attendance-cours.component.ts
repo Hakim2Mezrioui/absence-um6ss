@@ -2302,4 +2302,20 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     
     XLSX.utils.book_append_sheet(wb, ws, 'Statistiques des absences');
   }
+
+  /**
+   * Ouvrir l'affichage public dans une nouvelle fenêtre
+   */
+  openPublicDisplay(): void {
+    if (!this.coursId) {
+      console.warn('⚠️ Aucun ID de cours disponible');
+      return;
+    }
+    
+    console.log('🖥️ Ouverture de l\'affichage public pour le cours ID:', this.coursId);
+    
+    // Ouvrir dans une nouvelle fenêtre en plein écran
+    const url = `/cours-display/${this.coursId}`;
+    window.open(url, '_blank', 'fullscreen=yes');
+  }
 }

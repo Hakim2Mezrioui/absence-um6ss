@@ -26,6 +26,7 @@ use App\Http\Controllers\AbsenceAutoController;
 use App\Http\Controllers\AttendanceStateController;
 use App\Http\Controllers\EnseignantController;
 use App\Http\Controllers\UserManagementController;
+use App\Http\Controllers\AttendanceRapideController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -251,6 +252,14 @@ Route::post('attendance-states/cours/bulk-update', [AttendanceStateController::c
 Route::post('attendance-states/examen/bulk-update', [AttendanceStateController::class, 'updateExamenAttendanceStatesBulk']);
 
 Route::apiResource('absences', AbsenceController::class);
+
+// Attendance Rapide routes
+Route::post('attendance-rapide/validate', [AttendanceRapideController::class, 'validate']);
+Route::post('attendance-rapide/suggest', [AttendanceRapideController::class, 'suggest']);
+Route::post('attendance-rapide/import', [AttendanceRapideController::class, 'import']);
+Route::post('attendance-rapide/lancer', [AttendanceRapideController::class, 'lancer']);
+Route::get('attendance-rapide/template', [AttendanceRapideController::class, 'template']);
+Route::get('attendance-rapide/{etablissementId}', [AttendanceRapideController::class, 'get']);
 
 // Rattrapage routes - Routes spécifiques AVANT la ressource
 Route::get('rattrapages/search', [RattrapageController::class, 'search']);

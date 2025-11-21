@@ -383,4 +383,29 @@ export class CoursComponent implements OnInit {
 
     return 'N/A';
   }
+
+  /**
+   * Ouvrir l'affichage public des absences pour un cours
+   */
+  openPublicDisplay(cours: Cours): void {
+    if (!cours.id) {
+      console.error('ID de cours manquant');
+      return;
+    }
+    
+    // Ouvrir dans une nouvelle fenêtre en plein écran
+    const url = `/cours-display/${cours.id}`;
+    window.open(url, '_blank', 'fullscreen=yes');
+  }
+
+  /**
+   * Vérifier si l'utilisateur peut accéder à l'affichage public
+   */
+  canAccessPublicDisplay(): boolean {
+    const userRole = this.authService.getUserRoleName();
+    const normalizedRole = userRole ? userRole.toLowerCase().replace(/[\s-]/g, '') : '';
+    
+    // Seuls les admins et super-admins peuvent ouvrir l'affichage public
+    return normalizedRole === 'superadmin' || normalizedRole === 'admin';
+  }
 }
