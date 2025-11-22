@@ -138,8 +138,8 @@ export class SimpleExamensImportComponent implements OnInit, OnDestroy {
   downloadTemplate(): void {
     const rows = [
       this.templateHeaders,
-      ['Examen de Math', '15/01/2024', '08:45', '09:00', '11:00', '15', 'Université A', 'Promotion 1', 'Contrôle', 'Salle 101', 'Groupe A', 'Rabat', 'Option 1', '2024-2025'],
-      ['Examen de Physique', '16/01/2024', '13:45', '14:00', '16:00', '10', 'Université B', 'Promotion 2', 'Final', 'Salle 202', 'Groupe B', 'Casablanca', 'Option 2', '2024-2025']
+      ['Examen de Math', '15/01/2024', '08:45', '09:00', '11:00', '15', 'Université A', 'Promotion 1', 'Contrôle', 'C401, C501', 'Groupe A', 'Rabat', 'Option 1', '2024-2025'],
+      ['Examen de Physique', '16/01/2024', '13:45', '14:00', '16:00', '10', 'Université B', 'Promotion 2', 'Final', 'C201, C202, C203', 'Groupe B', 'Casablanca', 'Option 2', '2024-2025']
     ];
     const worksheet = utils.aoa_to_sheet(rows);
     
@@ -154,7 +154,7 @@ export class SimpleExamensImportComponent implements OnInit, OnDestroy {
       { wch: 20 }, // etablissement_name
       { wch: 15 }, // promotion_name
       { wch: 15 }, // type_examen_name
-      { wch: 12 }, // salle_name
+      { wch: 25 }, // salle_name (augmenté pour plusieurs salles)
       { wch: 12 }, // group_title
       { wch: 15 }, // ville_name
       { wch: 15 }, // option_name
@@ -384,7 +384,7 @@ export class SimpleExamensImportComponent implements OnInit, OnDestroy {
       'etablissement_name': 'Ex: Université A',
       'promotion_name': 'Ex: Promotion 1',
       'type_examen_name': 'Ex: Contrôle',
-      'salle_name': 'Ex: Salle 101',
+      'salle_name': 'Ex: C401, C501 (séparées par virgule)',
       'group_title': 'Ex: Groupe A',
       'ville_name': 'Ex: Rabat',
       'option_name': 'Ex: Option 1',
@@ -512,22 +512,28 @@ export class SimpleExamensImportComponent implements OnInit, OnDestroy {
 
   getColumnWidth(header: string): string {
     const columnWidths: Record<string, string> = {
-      'title': '250px',
-      'date': '140px',
-      'heure_debut_poigntage': '150px',
-      'hour_debut': '120px',
-      'hour_fin': '120px',
-      'tolerance': '120px',
-      'etablissement_name': '220px',
-      'promotion_name': '180px',
-      'type_examen_name': '160px',
-      'salle_name': '140px',
-      'group_title': '140px',
-      'ville_name': '140px',
-      'option_name': '160px',
-      'annee_universitaire': '180px'
+      'title': '280px',
+      'date': '150px',
+      'heure_debut_poigntage': '180px',
+      'hour_debut': '130px',
+      'hour_fin': '130px',
+      'tolerance': '140px',
+      'etablissement_name': '320px',  // Augmenté pour les noms longs
+      'promotion_name': '200px',
+      'type_examen_name': '200px',
+      'salle_name': '220px',  // Augmenté pour supporter plusieurs salles (C401, C501, 506)
+      'group_title': '160px',
+      'ville_name': '160px',
+      'option_name': '180px',
+      'annee_universitaire': '200px'
     };
-    return columnWidths[header] || '180px';
+    return columnWidths[header] || '200px';
+  }
+
+  getMinColumnWidth(header: string): string {
+    // Retourne la largeur minimale (même valeur que getColumnWidth)
+    // Permet aux colonnes de s'étendre selon le contenu
+    return this.getColumnWidth(header);
   }
 
   importExamens(): void {
@@ -650,7 +656,17 @@ export class SimpleExamensImportComponent implements OnInit, OnDestroy {
         const etablissement = findEtablissement(examen.etablissement_name);
         const promotion = findPromotion(examen.promotion_name);
         const typeExamen = findTypeExamen(examen.type_examen_name);
-        const salle = findSalle(examen.salle_name);
+        
+        // Parser les salles séparées par virgule
+        const salleNames = this.parseSalleNames(examen.salle_name);
+        const salleIds: number[] = [];
+        salleNames.forEach((salleName: string) => {
+          const salle = findSalle(salleName);
+          if (salle) {
+            salleIds.push(salle.id);
+          }
+        });
+        
         const group = findGroup(examen.group_title);
         const ville = findVille(examen.ville_name);
         const option = findOption(examen.option_name);
@@ -668,8 +684,11 @@ export class SimpleExamensImportComponent implements OnInit, OnDestroy {
           examen.type_examen_id = typeExamen.id;
         }
         
-        if (salle) {
-          examen.salle_id = salle.id;
+        // Gérer plusieurs salles
+        if (salleIds.length > 0) {
+          examen.salle_id = salleIds[0]; // Première salle pour compatibilité
+          // Ne pas inclure salle_ids dans le fichier Excel (Excel ne peut pas stocker des tableaux)
+          // Le backend va parser salle_name depuis le fichier Excel et créer salle_ids automatiquement
         }
         
         if (group) {
@@ -683,6 +702,11 @@ export class SimpleExamensImportComponent implements OnInit, OnDestroy {
         if (option) {
           examen.option_id = option.id;
         }
+        
+        // NE PAS supprimer salle_name - il doit rester dans le fichier Excel
+        // Le backend va lire salle_name depuis le fichier Excel (ex: "C401, C501, 506")
+        // et le parser pour créer salle_ids automatiquement
+        // delete examen.salle_name; // ❌ À RETIRER
       }
 
       return examen;
@@ -854,9 +878,38 @@ export class SimpleExamensImportComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const { isValid, suggestions } = this.computeSuggestions(referenceEntries, value);
-    this.suggestionsByCell[rowIndex][header] = suggestions;
-    this.invalidCells[rowIndex][header] = !isValid;
+    // Cas spécial pour salle_name : valider plusieurs salles séparées par virgule
+    if (header === 'salle_name' && value.includes(',')) {
+      const salleNames = this.parseSalleNames(value);
+      let allValid = true;
+      const allSuggestions: Suggestion[] = [];
+      
+      salleNames.forEach((salleName: string) => {
+        const { isValid, suggestions } = this.computeSuggestions(referenceEntries, salleName);
+        if (!isValid) {
+          allValid = false;
+          // Ajouter les suggestions pour cette salle
+          if (suggestions.length > 0) {
+            allSuggestions.push(...suggestions.map(s => ({ ...s, label: `${s.label} (pour "${salleName}")` })));
+          }
+        }
+      });
+      
+      // Si toutes les salles sont valides, pas de suggestions
+      if (allValid) {
+        this.suggestionsByCell[rowIndex][header] = [];
+        this.invalidCells[rowIndex][header] = false;
+      } else {
+        // Prendre les meilleures suggestions (limitées à 5)
+        this.suggestionsByCell[rowIndex][header] = allSuggestions.slice(0, 5);
+        this.invalidCells[rowIndex][header] = true;
+      }
+    } else {
+      // Validation normale pour les autres champs ou une seule salle
+      const { isValid, suggestions } = this.computeSuggestions(referenceEntries, value);
+      this.suggestionsByCell[rowIndex][header] = suggestions;
+      this.invalidCells[rowIndex][header] = !isValid;
+    }
   }
 
   private computeSuggestions(reference: ReferenceEntry[], rawValue: string): { isValid: boolean; suggestions: Suggestion[] } {
@@ -870,23 +923,43 @@ export class SimpleExamensImportComponent implements OnInit, OnDestroy {
       };
     }
 
+    // Correspondance exacte
+    const exactMatch = reference.find((entry) => entry.normalized === normalized);
+    if (exactMatch) {
+      return { isValid: true, suggestions: [] };
+    }
+
+    // Détection spéciale pour les salles : si la valeur est uniquement numérique
+    // Chercher les salles qui contiennent ce nombre (ex: "506" -> "C506", "A506", etc.)
+    const isNumericOnly = /^\d+$/.test(value);
+    let enhancedCandidates: ReferenceEntry[] = [];
+    
+    if (isNumericOnly) {
+      // Chercher les salles qui se terminent par ce nombre ou le contiennent
+      enhancedCandidates = reference.filter((entry) => {
+        // Extraire le nombre de la salle (ex: "C506" -> "506")
+        const entryNumber = entry.normalized.replace(/^[a-z]+/i, ''); // Enlever les lettres au début
+        return entryNumber === normalized || entry.normalized.includes(normalized);
+      });
+    }
+
     // Fast path: for very short inputs, avoid expensive scoring
     if (normalized.length < 3) {
       const quick = reference
         .filter((entry) => entry.normalized.startsWith(normalized) || entry.normalized.includes(normalized))
         .slice(0, 5)
         .map((entry) => this.toSuggestion(entry));
-      // If we have an exact match, it's valid; otherwise suggest without heavy work
-      const exact = reference.find((entry) => entry.normalized === normalized);
-      if (exact) {
-        return { isValid: true, suggestions: [] };
+      
+      // Si on a des candidats améliorés (pour les nombres), les prioriser
+      if (enhancedCandidates.length > 0) {
+        const enhancedSuggestions = enhancedCandidates
+          .slice(0, 5)
+          .map((entry) => this.toSuggestion(entry));
+        return { isValid: false, suggestions: enhancedSuggestions };
       }
+      
+      // If we have an exact match, it's valid; otherwise suggest without heavy work
       return { isValid: false, suggestions: quick.length ? quick : reference.slice(0, 5).map((e) => this.toSuggestion(e)) };
-    }
-
-    const exactMatch = reference.find((entry) => entry.normalized === normalized);
-    if (exactMatch) {
-      return { isValid: true, suggestions: [] };
     }
 
     // Reduce work: try quick candidates first, then score a limited subset
@@ -894,15 +967,28 @@ export class SimpleExamensImportComponent implements OnInit, OnDestroy {
       entry.normalized.startsWith(normalized) || entry.normalized.includes(normalized) || normalized.includes(entry.normalized)
     );
 
-    const pool = quickCandidates.length ? quickCandidates : reference.slice(0, Math.min(300, reference.length));
+    // Combiner les candidats rapides avec les candidats améliorés (pour les nombres)
+    const allCandidates = [...new Set([...enhancedCandidates, ...quickCandidates])];
+    const pool = allCandidates.length ? allCandidates : reference.slice(0, Math.min(300, reference.length));
 
     const numMatch = (s: string): string | null => {
-      const m = s.match(/^(\d+)/);
-      return m ? m[1] : null;
+      const m = s.match(/\d+/);
+      return m ? m[0] : null;
     };
     const termNum = numMatch(normalized);
     const scored = pool.map((entry) => {
       let score = 0;
+      
+      // Bonus très élevé si c'est un nombre et que la salle contient ce nombre
+      if (isNumericOnly && termNum) {
+        const entryNumber = entry.normalized.replace(/^[a-z]+/i, '');
+        if (entryNumber === termNum) {
+          score += 100; // Score très élevé pour correspondance exacte du nombre
+        } else if (entry.normalized.includes(termNum)) {
+          score += 80; // Score élevé si le nombre est contenu
+        }
+      }
+      
       if (entry.normalized.includes(normalized) || normalized.includes(entry.normalized)) {
         score += 50;
       }
@@ -911,21 +997,20 @@ export class SimpleExamensImportComponent implements OnInit, OnDestroy {
       }
       const distance = this.levenshteinDistance(normalized, entry.normalized);
       score += Math.max(0, 40 - distance * 10);
-       // Bonus fort si chiffre initial identique (ex: 2 vs 2eme annee)
-       const entryNum = numMatch(entry.normalized);
-       if (termNum && entryNum && termNum === entryNum) {
-         score += 60;
-       }
+      
+      // Bonus fort si chiffre initial identique (ex: 2 vs 2eme annee)
+      const entryNum = numMatch(entry.normalized);
+      if (termNum && entryNum && termNum === entryNum) {
+        score += 60;
+      }
+      
       return { entry, score };
     }).filter((item) => item.score > 0);
 
     scored.sort((a, b) => b.score - a.score);
-    // High-confidence acceptance: if best score is high, mark cell valid
-    const top = scored[0];
-    if (top && top.score >= 80) {
-      return { isValid: true, suggestions: [] };
-    }
-
+    
+    // Ne valider que les correspondances exactes (déjà vérifiées ligne 918-921)
+    // Pour tout le reste, afficher des suggestions même avec un score élevé
     const baseCandidates = scored.length ? scored : reference.slice(0, 3);
 
     const suggestions = baseCandidates
@@ -983,6 +1068,17 @@ export class SimpleExamensImportComponent implements OnInit, OnDestroy {
     }
 
     return matrix[m][n];
+  }
+
+  // Parser les noms de salles séparés par virgule
+  private parseSalleNames(salleNamesString: string): string[] {
+    if (!salleNamesString || !salleNamesString.trim()) {
+      return [];
+    }
+    return salleNamesString
+      .split(',')
+      .map(name => name.trim())
+      .filter(name => name.length > 0);
   }
 
   private formatDate(dateString: string): string {

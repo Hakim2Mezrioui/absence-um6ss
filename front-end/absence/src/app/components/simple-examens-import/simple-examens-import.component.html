@@ -88,11 +88,12 @@
       <table class="w-full border-collapse">
         <thead class="sticky top-0 z-20 bg-slate-100 border-b-2 border-slate-300">
           <tr>
-            <th class="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase border-r border-slate-300" style="width: 60px;">#</th>
+            <th class="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase border-r border-slate-300" style="min-width: 60px; white-space: nowrap;">#</th>
             <th *ngFor="let header of tableHeaders" 
                 class="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase border-r border-slate-300"
                 [class.bg-red-100]="isColumnInvalid(header)"
-                [style.width]="getColumnWidth(header)">
+                [style.min-width]="getMinColumnWidth(header)"
+                style="white-space: nowrap;">
               <div class="flex items-center gap-2">
                 <span>{{ getHeaderDisplayName(header) }}</span>
                 <span *ngIf="relationHeaders.includes(header)" class="text-red-500">*</span>
@@ -109,14 +110,15 @@
                 [class.border-l-4]="isRowInvalid(i)"
                 [class.border-red-500]="isRowInvalid(i)">
               <!-- Row Number -->
-              <td class="px-4 py-4 text-center font-semibold text-slate-600 border-r border-slate-200 bg-slate-50">
+              <td class="px-4 py-4 text-center font-semibold text-slate-600 border-r border-slate-200 bg-slate-50" style="min-width: 60px;">
                 {{ i + 1 }}
               </td>
               
               <!-- Data Cells -->
               <td *ngFor="let header of tableHeaders" 
                   class="px-4 py-4 border-r border-slate-200 align-top"
-                  [class.bg-red-50]="isCellInvalid(i, header)">
+                  [class.bg-red-50]="isCellInvalid(i, header)"
+                  [style.min-width]="getMinColumnWidth(header)">
                 <div class="space-y-2">
                   <!-- Input Field -->
                   <input type="text"

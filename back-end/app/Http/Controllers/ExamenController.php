@@ -408,11 +408,18 @@ class ExamenController extends Controller
             // Insérer les données dans la base
             if (!empty($examens)) {
                 try {
-                    Examen::insert($examens);
+                    $result = $this->insertExamensWithSalles($examens);
+                    
+                    $message = $result['created_count'] . ' examen(s) importé(s) avec succès';
+                    if ($result['salles_attached'] > 0) {
+                        $message .= ' (' . $result['salles_attached'] . ' salle(s) attachée(s))';
+                    }
                     
                     return response()->json([
-                        'message' => count($examens) . ' examens importés avec succès',
-                        'imported_count' => count($examens),
+                        'message' => $message,
+                        'imported_count' => $result['created_count'],
+                        'salles_attached' => $result['salles_attached'],
+                        'errors' => $result['errors'],
                         'data' => $examens
                     ], 200);
                 } catch (\Exception $e) {
@@ -676,7 +683,7 @@ class ExamenController extends Controller
         // Vérifier que les IDs existent
         $this->validateForeignKeys($data, $lineNumber);
 
-        return [
+        $result = [
             'title' => $data['title'],
             'date' => $date,
             'heure_debut_poigntage' => $heureDebutPoigntage,
@@ -684,7 +691,7 @@ class ExamenController extends Controller
             'heure_fin' => $heureFin,
             'tolerance' => !empty($data['tolerance']) ? (int)$data['tolerance'] : 15,
             'option_id' => !empty($data['option_id']) ? $data['option_id'] : null,
-            'salle_id' => $data['salle_id'],
+            'salle_id' => $data['salle_id'] ?? ($data['salle_ids'][0] ?? null), // Utiliser la première salle de salle_ids si salle_id n'est pas défini
             'promotion_id' => $data['promotion_id'],
             'type_examen_id' => $data['type_examen_id'],
             'etablissement_id' => $data['etablissement_id'],
@@ -694,6 +701,17 @@ class ExamenController extends Controller
             'created_at' => now(),
             'updated_at' => now()
         ];
+        
+        // Ajouter salle_ids si présent (pour la relation many-to-many)
+        // Priorité à salle_ids si fourni, sinon créer depuis salle_id
+        if (!empty($data['salle_ids']) && is_array($data['salle_ids'])) {
+            $result['salle_ids'] = $data['salle_ids'];
+        } elseif (!empty($result['salle_id'])) {
+            // Si seulement salle_id est fourni, créer salle_ids avec cette salle
+            $result['salle_ids'] = [$result['salle_id']];
+        }
+        
+        return $result;
     }
 
     /**
@@ -744,14 +762,45 @@ class ExamenController extends Controller
             $data['type_examen_id'] = $typeExamen->id;
         }
 
-        // Salle (avec recherche flexible)
-        if (empty($data['salle_id']) && !empty($data['salle_name'])) {
-            $salle = $this->findEntityByName(\App\Models\Salle::class, $data['salle_name']);
-            if (!$salle) {
-                $available = \App\Models\Salle::pluck('name')->take(10)->implode(', ');
-                throw new \Exception("Salle '{$data['salle_name']}' introuvable à la ligne $lineNumber. Exemples: {$available}");
+        // Salle (avec recherche flexible) - Support de plusieurs salles séparées par virgule
+        // Parser salle_name si fourni (priorité à salle_name même si salle_id existe)
+        if (!empty($data['salle_name'])) {
+            // Parser les salles séparées par virgule
+            $salleNames = array_map('trim', explode(',', $data['salle_name']));
+            $salleIds = [];
+            $notFoundSalles = [];
+            
+            foreach ($salleNames as $salleName) {
+                if (empty($salleName)) continue;
+                
+                $salle = $this->findEntityByName(\App\Models\Salle::class, $salleName);
+                if ($salle) {
+                    $salleIds[] = $salle->id;
+                } else {
+                    $notFoundSalles[] = $salleName;
+                }
             }
-            $data['salle_id'] = $salle->id;
+            
+            if (empty($salleIds)) {
+                $available = \App\Models\Salle::pluck('name')->take(10)->implode(', ');
+                throw new \Exception("Aucune salle trouvée à la ligne $lineNumber. Salles recherchées: " . implode(', ', $salleNames) . ". Exemples disponibles: {$available}");
+            }
+            
+            if (!empty($notFoundSalles)) {
+                // Avertir mais continuer avec les salles trouvées
+                \Log::warning("Certaines salles non trouvées à la ligne $lineNumber: " . implode(', ', $notFoundSalles));
+            }
+            
+            $data['salle_id'] = $salleIds[0]; // Première salle pour compatibilité
+            $data['salle_ids'] = $salleIds; // Array de toutes les salles
+        }
+        
+        // Support direct de salle_ids depuis le frontend
+        if (!empty($data['salle_ids']) && is_array($data['salle_ids'])) {
+            // S'assurer que salle_id est défini (première salle pour compatibilité)
+            if (empty($data['salle_id'])) {
+                $data['salle_id'] = $data['salle_ids'][0] ?? null;
+            }
         }
 
         // Groupe (avec recherche flexible sur 'title')
@@ -848,6 +897,46 @@ class ExamenController extends Controller
         }
         
         return null;
+    }
+
+    /**
+     * Insérer les examens avec leurs salles (relation many-to-many)
+     */
+    private function insertExamensWithSalles(array $examens): array
+    {
+        $createdCount = 0;
+        $sallesAttached = 0;
+        $errors = [];
+        
+        foreach ($examens as $index => $examenData) {
+            try {
+                // Extraire les salle_ids si présents
+                $salleIds = $examenData['salle_ids'] ?? [];
+                unset($examenData['salle_ids']); // Retirer de l'array pour l'insertion
+                
+                // Créer l'examen
+                $examen = Examen::create($examenData);
+                $createdCount++;
+                
+                // Attacher toutes les salles via la relation many-to-many
+                if (!empty($salleIds)) {
+                    $examen->salles()->sync($salleIds);
+                    $sallesAttached += count($salleIds);
+                }
+            } catch (\Exception $e) {
+                $errors[] = [
+                    'index' => $index,
+                    'error' => $e->getMessage()
+                ];
+                \Log::error("Erreur lors de la création de l'examen à l'index $index: " . $e->getMessage());
+            }
+        }
+        
+        return [
+            'created_count' => $createdCount,
+            'salles_attached' => $sallesAttached,
+            'errors' => $errors
+        ];
     }
 
     /**
@@ -1043,11 +1132,18 @@ class ExamenController extends Controller
             // Insérer les données dans la base
             if (!empty($examens)) {
                 try {
-                    Examen::insert($examens);
+                    $result = $this->insertExamensWithSalles($examens);
+                    
+                    $message = $result['created_count'] . ' examen(s) importé(s) avec succès';
+                    if ($result['salles_attached'] > 0) {
+                        $message .= ' (' . $result['salles_attached'] . ' salle(s) attachée(s))';
+                    }
                     
                     return response()->json([
-                        'message' => count($examens) . ' examens importés avec succès',
-                        'imported_count' => count($examens),
+                        'message' => $message,
+                        'imported_count' => $result['created_count'],
+                        'salles_attached' => $result['salles_attached'],
+                        'errors' => $result['errors'],
                         'data' => $examens
                     ], 200);
                 } catch (\Exception $e) {
