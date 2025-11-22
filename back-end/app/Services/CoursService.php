@@ -236,6 +236,10 @@ class CoursService
                     // Valider et transformer les données
                     $coursData = $this->transformCoursDataForImport($courseData);
                     
+                    // Extraire salle_ids avant la création/mise à jour
+                    $salleIds = $coursData['_salle_ids'] ?? [];
+                    unset($coursData['_salle_ids']); // Retirer de l'array pour l'insertion
+                    
                     // Vérifier si le cours existe déjà
                     $existingCours = Cours::where('name', $coursData['name'])
                         ->where('date', $coursData['date'])
@@ -246,10 +250,18 @@ class CoursService
                     if ($existingCours) {
                         // Mettre à jour le cours existant
                         $existingCours->update($coursData);
+                        // Synchroniser les salles
+                        if (!empty($salleIds)) {
+                            $existingCours->salles()->sync($salleIds);
+                        }
                         $results['updated']++;
                     } else {
                         // Créer un nouveau cours
-                        Cours::create($coursData);
+                        $cours = Cours::create($coursData);
+                        // Attacher toutes les salles via la relation many-to-many
+                        if (!empty($salleIds)) {
+                            $cours->salles()->sync($salleIds);
+                        }
                         $results['created']++;
                     }
 
@@ -347,6 +359,10 @@ class CoursService
                     // Valider et transformer les données
                     $coursData = $this->transformCoursDataForImport($courseData);
                     
+                    // Extraire salle_ids avant la création/mise à jour
+                    $salleIds = $coursData['_salle_ids'] ?? [];
+                    unset($coursData['_salle_ids']); // Retirer de l'array pour l'insertion
+                    
                     // Vérifier si le cours existe déjà
                     $existingCours = Cours::where('name', $coursData['name'])
                         ->where('date', $coursData['date'])
@@ -357,10 +373,18 @@ class CoursService
                     if ($existingCours) {
                         // Mettre à jour le cours existant
                         $existingCours->update($coursData);
+                        // Synchroniser les salles
+                        if (!empty($salleIds)) {
+                            $existingCours->salles()->sync($salleIds);
+                        }
                         $results['updated']++;
                     } else {
                         // Créer un nouveau cours
-                        Cours::create($coursData);
+                        $cours = Cours::create($coursData);
+                        // Attacher toutes les salles via la relation many-to-many
+                        if (!empty($salleIds)) {
+                            $cours->salles()->sync($salleIds);
+                        }
                         $results['created']++;
                     }
 
@@ -391,7 +415,7 @@ class CoursService
     private function transformCoursDataForImport(array $data): array
     {
         // Valider les champs requis (mapping des champs du frontend)
-        $requiredFields = ['name', 'date', 'heure_debut', 'heure_fin', 'etablissement_id', 'promotion_id', 'type_cours_id', 'salle_id', 'ville_id'];
+        $requiredFields = ['name', 'date', 'heure_debut', 'heure_fin', 'etablissement_id', 'promotion_id', 'type_cours_id', 'ville_id'];
         foreach ($requiredFields as $field) {
             if (empty($data[$field])) {
                 throw new \Exception("Le champ '{$field}' est requis");
@@ -413,6 +437,35 @@ class CoursService
         $heureFin = $this->formatTime($data['heure_fin']);
         $tolerance = $this->formatTime($data['tolerance'] ?? '00:15');
 
+        // Parser les salles multiples si salle_name est fourni
+        $salleIds = [];
+        if (!empty($data['salle_name'])) {
+            // Parser les salles séparées par virgule
+            $salleNames = array_map('trim', explode(',', $data['salle_name']));
+            foreach ($salleNames as $salleName) {
+                if (empty($salleName)) continue;
+                
+                // Rechercher la salle par nom (recherche flexible)
+                $salle = \App\Models\Salle::where('name', $salleName)
+                    ->orWhereRaw('LOWER(name) = ?', [strtolower($salleName)])
+                    ->orWhere('name', 'LIKE', '%' . $salleName . '%')
+                    ->first();
+                
+                if ($salle) {
+                    $salleIds[] = $salle->id;
+                }
+            }
+            
+            if (empty($salleIds)) {
+                throw new \Exception("Aucune salle trouvée pour: " . $data['salle_name']);
+            }
+        } elseif (!empty($data['salle_id'])) {
+            // Si seulement salle_id est fourni, créer salle_ids avec cette salle
+            $salleIds = [$data['salle_id']];
+        } else {
+            throw new \Exception("Le champ 'salle_id' ou 'salle_name' est requis");
+        }
+
         $coursData = [
             'name' => $data['name'],
             'date' => $date,
@@ -423,7 +476,7 @@ class CoursService
             'etablissement_id' => $data['etablissement_id'],
             'promotion_id' => $data['promotion_id'],
             'type_cours_id' => $data['type_cours_id'],
-            'salle_id' => $data['salle_id'],
+            'salle_id' => $salleIds[0], // Première salle pour compatibilité
             'ville_id' => $data['ville_id'],
             'annee_universitaire' => $data['annee_universitaire'] ?? '2024-2025'
         ];
@@ -432,6 +485,9 @@ class CoursService
         if (!empty($data['option_id'])) {
             $coursData['option_id'] = $data['option_id'];
         }
+
+        // Stocker salle_ids pour l'attachement après création
+        $coursData['_salle_ids'] = $salleIds;
 
         return $coursData;
     }
