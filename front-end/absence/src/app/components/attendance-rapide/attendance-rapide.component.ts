@@ -5,7 +5,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { Subject, takeUntil } from 'rxjs';
 import { read, utils, WorkBook, write } from 'xlsx';
 
-import { AttendanceRapideService, AttendanceRapideStudent, AttendanceRapideData, AttendanceRapideLancerResponse, AttendanceRapideImportRequest, AttendanceRapideResponse } from '../../services/attendance-rapide.service';
+import { AttendanceRapideService, AttendanceRapideStudent, AttendanceRapideData, AttendanceRapideLancerResponse, AttendanceRapideImportRequest, AttendanceRapideResponse, Device } from '../../services/attendance-rapide.service';
 import { EtudiantsService, FilterOptions } from '../../services/etudiants.service';
 import { NotificationService } from '../../services/notification.service';
 
@@ -72,11 +72,18 @@ export class AttendanceRapideComponent implements OnInit, OnDestroy {
   // Données d'attendance (mode consultation)
   attendanceData: AttendanceRapideData | null = null;
   students: AttendanceRapideStudent[] = [];
+  filteredStudents: AttendanceRapideStudent[] = []; // Liste filtrée pour l'affichage
+  searchTerm: string = ''; // Terme de recherche
   hasTriedToLoad = false;
   totalStudents = 0;
   presentCount = 0;
   absentCount = 0;
   loading = false;
+
+  // Devices
+  devices: Device[] = [];
+  loadingDevices = false;
+  deviceSearchTerm: string = ''; // Terme de recherche pour les devices
 
   private destroy$ = new Subject<void>();
 
@@ -91,12 +98,106 @@ export class AttendanceRapideComponent implements OnInit, OnDestroy {
       etablissement_id: ['', Validators.required],
       date: ['', Validators.required],
       heure_debut: ['', Validators.required],
-      heure_fin: ['', Validators.required]
+      heure_fin: ['', Validators.required],
+      device_ids: [[]] // Array pour stocker les IDs des devices sélectionnés
     });
   }
 
   ngOnInit(): void {
     this.loadFilterOptions();
+    
+    // Écouter les changements de ville pour charger les devices
+    this.importForm.get('ville_id')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(villeId => {
+        if (villeId) {
+          this.loadDevices(villeId);
+        } else {
+          this.devices = [];
+          this.importForm.patchValue({ device_ids: [] });
+        }
+      });
+  }
+
+  loadDevices(villeId: number): void {
+    this.loadingDevices = true;
+    // Réinitialiser la sélection des devices et la recherche avant de charger les nouveaux
+    this.importForm.patchValue({ device_ids: [] });
+    this.deviceSearchTerm = '';
+    
+    this.attendanceRapideService.getDevices(villeId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.loadingDevices = false;
+          if (response.success && response.data) {
+            this.devices = response.data.devices || [];
+          } else {
+            this.devices = [];
+            this.notificationService.errorMessage('Erreur lors du chargement des devices');
+          }
+        },
+        error: (err) => {
+          this.loadingDevices = false;
+          this.devices = [];
+          console.error('Erreur lors du chargement des devices:', err);
+          this.notificationService.errorMessage('Erreur lors du chargement des devices');
+        }
+      });
+  }
+
+  // Méthodes pour gérer les checkboxes des devices
+  isDeviceSelected(deviceId: string): boolean {
+    const selectedIds = this.importForm.get('device_ids')?.value || [];
+    return selectedIds.includes(deviceId);
+  }
+
+  toggleDevice(deviceId: string, event: Event): void {
+    const checkbox = event.target as HTMLInputElement;
+    const currentIds = this.importForm.get('device_ids')?.value || [];
+    
+    if (checkbox.checked) {
+      // Ajouter le device s'il n'est pas déjà présent
+      if (!currentIds.includes(deviceId)) {
+        this.importForm.patchValue({
+          device_ids: [...currentIds, deviceId]
+        });
+      }
+    } else {
+      // Retirer le device
+      this.importForm.patchValue({
+        device_ids: currentIds.filter((id: string) => id !== deviceId)
+      });
+    }
+  }
+
+  getSelectedDevicesCount(): number {
+    const selectedIds = this.importForm.get('device_ids')?.value || [];
+    return selectedIds.length;
+  }
+
+  clearAllDevices(): void {
+    this.importForm.patchValue({ device_ids: [] });
+  }
+
+  // Filtrer les devices selon le terme de recherche
+  getFilteredDevices(): Device[] {
+    if (!this.deviceSearchTerm.trim()) {
+      return this.devices;
+    }
+
+    const searchLower = this.deviceSearchTerm.toLowerCase().trim();
+    return this.devices.filter(device => {
+      const deviceName = (device.devnm || '').toLowerCase();
+      const deviceId = (device.devid || '').toLowerCase();
+      
+      return deviceName.includes(searchLower) || deviceId.includes(searchLower);
+    });
+  }
+
+  // Réinitialiser la recherche des devices
+  clearDeviceSearch(): void {
+    this.deviceSearchTerm = '';
   }
 
   ngOnDestroy(): void {
@@ -202,9 +303,9 @@ export class AttendanceRapideComponent implements OnInit, OnDestroy {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) {
-      return;
-    }
-
+          return;
+        }
+        
     this.errorMessage = '';
     this.successMessage = '';
     this.isProcessing = true;
@@ -719,6 +820,36 @@ export class AttendanceRapideComponent implements OnInit, OnDestroy {
     return student.status === 'present';
   }
 
+  // Helper pour filtrer les étudiants selon le terme de recherche
+  filterStudents(): void {
+    if (!this.searchTerm.trim()) {
+      this.filteredStudents = [...this.students];
+      return;
+    }
+
+    const searchLower = this.searchTerm.toLowerCase().trim();
+    this.filteredStudents = this.students.filter(student => {
+      const matricule = (student.cne || student.matricule || '').toLowerCase();
+      const nom = (student.nom || student.last_name || '').toLowerCase();
+      const prenom = (student.prenom || student.first_name || '').toLowerCase();
+      
+      return matricule.includes(searchLower) ||
+             nom.includes(searchLower) ||
+             prenom.includes(searchLower);
+    });
+  }
+
+  // Méthode appelée lors de la saisie dans le champ de recherche
+  onSearchChange(): void {
+    this.filterStudents();
+  }
+
+  // Méthode pour réinitialiser la recherche
+  clearSearch(): void {
+    this.searchTerm = '';
+    this.filterStudents();
+  }
+
   // Helper pour obtenir l'heure de pointage
   getPunchTime(student: AttendanceRapideStudent): string | null {
     if (!student.punches || student.punches.length === 0) {
@@ -859,13 +990,22 @@ export class AttendanceRapideComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.hasTriedToLoad = true;
     this.errorMessage = '';
+    this.searchTerm = ''; // Réinitialiser la recherche
+
+    // Préparer les devices
+    const selectedDeviceIds = formValues.device_ids || [];
+    const selectedDevices = this.devices.filter(d => selectedDeviceIds.includes(d.devid));
+    const deviceIds = selectedDeviceIds.length > 0 ? selectedDeviceIds : undefined;
+    const deviceNames = selectedDevices.length > 0 ? selectedDevices.map(d => d.devnm) : undefined;
 
     this.attendanceRapideService.lancerRecuperation({
       etablissement_id: formValues.etablissement_id,
       date: formValues.date,
       heure_debut: formValues.heure_debut,
       heure_fin: formValues.heure_fin,
-      ville_id: formValues.ville_id
+      ville_id: formValues.ville_id,
+      device_ids: deviceIds,
+      device_names: deviceNames
     })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -876,6 +1016,7 @@ export class AttendanceRapideComponent implements OnInit, OnDestroy {
             const lancerData = response.data as any;
             if (lancerData.students) {
               this.students = lancerData.students || [];
+              this.filteredStudents = [...this.students]; // Initialiser la liste filtrée
               this.totalStudents = this.students.length;
               
               // Calculer présents/absents en fonction de la propriété disponible
@@ -894,6 +1035,7 @@ export class AttendanceRapideComponent implements OnInit, OnDestroy {
           } else {
               this.errorMessage = 'Format de réponse inattendu';
               this.students = [];
+              this.filteredStudents = [];
               this.totalStudents = 0;
               this.presentCount = 0;
               this.absentCount = 0;
@@ -901,6 +1043,7 @@ export class AttendanceRapideComponent implements OnInit, OnDestroy {
           } else {
             this.errorMessage = response.message || 'Aucune donnée trouvée';
             this.students = [];
+            this.filteredStudents = [];
             this.totalStudents = 0;
               this.presentCount = 0;
             this.absentCount = 0;
@@ -912,6 +1055,7 @@ export class AttendanceRapideComponent implements OnInit, OnDestroy {
           this.errorMessage = err.error?.message || 'Erreur lors de la récupération des données';
           this.notificationService.errorMessage('Erreur lors de la récupération des données');
           this.students = [];
+          this.filteredStudents = [];
           this.totalStudents = 0;
           this.presentCount = 0;
           this.absentCount = 0;

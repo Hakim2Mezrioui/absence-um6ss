@@ -259,6 +259,7 @@ Route::post('attendance-rapide/suggest', [AttendanceRapideController::class, 'su
 Route::post('attendance-rapide/import', [AttendanceRapideController::class, 'import']);
 Route::post('attendance-rapide/lancer', [AttendanceRapideController::class, 'lancer']);
 Route::get('attendance-rapide/template', [AttendanceRapideController::class, 'template']);
+Route::get('attendance-rapide/devices', [AttendanceRapideController::class, 'getDevices']);
 Route::get('attendance-rapide/{etablissementId}', [AttendanceRapideController::class, 'get']);
 
 // Rattrapage routes - Routes spécifiques AVANT la ressource

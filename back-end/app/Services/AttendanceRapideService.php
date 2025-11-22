@@ -898,9 +898,41 @@ class AttendanceRapideService extends BaseService
     }
 
     /**
+     * Récupérer les devices selon la ville
+     */
+    public function getDevicesForVille($villeId)
+    {
+        try {
+            // Récupérer config Biostar
+            $configResult = $this->configurationService->getConnectionConfigForVille($villeId);
+            
+            if (is_object($configResult) && method_exists($configResult, 'getData')) {
+                $errorData = $configResult->getData(true);
+                return $this->errorResponse($errorData['message'] ?? 'Configuration Biostar non trouvée', 404);
+            }
+            
+            $config = $configResult;
+            if (!is_array($config) || !isset($config['dsn'])) {
+                return $this->errorResponse('Configuration Biostar invalide', 404);
+            }
+
+            // Récupérer tous les devices
+            $devices = $this->biostarAttendanceService->getDevices($config);
+
+            return $this->successResponse([
+                'devices' => $devices
+            ], 'Devices récupérés avec succès');
+
+        } catch (\Exception $e) {
+            Log::error('Erreur getDevicesForVille: ' . $e->getMessage());
+            return $this->errorResponse('Erreur: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
      * Lancer la récupération des données Biostar et calculer les statuts
      */
-    public function lancerRecuperation($etablissementId, $date, $heureDebut, $heureFin, $villeId)
+    public function lancerRecuperation($etablissementId, $date, $heureDebut, $heureFin, $villeId, $allowedDeviceIds = null, $allowedDeviceNames = null)
     {
         try {
             // 1. Récupérer TOUS les étudiants de l'établissement (PAS de filtre date/heure)
@@ -932,9 +964,9 @@ class AttendanceRapideService extends BaseService
                 return $this->errorResponse('Aucun matricule valide', 400);
             }
 
-            // 4. Interroger Biostar avec date/heure passées en paramètres
+            // 4. Interroger Biostar avec date/heure passées en paramètres ET devices
             $biostarData = $this->biostarAttendanceService->getAttendanceData(
-                $config, $date, $heureDebut, $heureFin, $matricules
+                $config, $date, $heureDebut, $heureFin, $matricules, $allowedDeviceIds, $allowedDeviceNames
             );
 
             // 5. Index des présents

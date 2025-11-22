@@ -9,8 +9,28 @@ export interface AttendanceRapideImportRequest {
   ville_id: number;
 }
 
+export interface Device {
+  devid: string;
+  devnm: string;
+  device_group_id?: number | null;
+}
+
+export interface AttendanceRapideDevicesResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    devices: Device[];
+  };
+}
+
 export interface AttendanceRapideLancerRequest {
   etablissement_id: number;
+  date: string;
+  heure_debut: string;
+  heure_fin: string;
+  ville_id: number;
+  device_ids?: string[];
+  device_names?: string[];
 }
 
 export interface AttendanceRapideStudent {
@@ -163,15 +183,17 @@ export class AttendanceRapideService {
   }
 
   /**
+   * Récupérer les devices selon la ville
+   */
+  getDevices(villeId: number): Observable<AttendanceRapideDevicesResponse> {
+    const params = new HttpParams().set('ville_id', villeId.toString());
+    return this.http.get<AttendanceRapideDevicesResponse>(`${this.baseUrl}/devices`, { params });
+  }
+
+  /**
    * Lancer la récupération des données Biostar
    */
-  lancerRecuperation(request: {
-    etablissement_id: number;
-    date: string;
-    heure_debut: string;
-    heure_fin: string;
-    ville_id: number;
-  }): Observable<AttendanceRapideResponse> {
+  lancerRecuperation(request: AttendanceRapideLancerRequest): Observable<AttendanceRapideResponse> {
     return this.http.post<AttendanceRapideResponse>(`${this.baseUrl}/lancer`, request);
   }
 

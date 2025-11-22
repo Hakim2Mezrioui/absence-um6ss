@@ -115,7 +115,11 @@ class AttendanceRapideController extends Controller
                 'date' => 'required|date',
                 'heure_debut' => 'required|date_format:H:i',
                 'heure_fin' => 'required|date_format:H:i|after:heure_debut',
-                'ville_id' => 'required|exists:villes,id'
+                'ville_id' => 'required|exists:villes,id',
+                'device_ids' => 'nullable|array',
+                'device_ids.*' => 'nullable|string',
+                'device_names' => 'nullable|array',
+                'device_names.*' => 'nullable|string'
             ]);
 
             $result = $this->attendanceRapideService->lancerRecuperation(
@@ -123,7 +127,9 @@ class AttendanceRapideController extends Controller
                 $request->date,
                 $request->heure_debut,
                 $request->heure_fin,
-                $request->ville_id
+                $request->ville_id,
+                $request->device_ids ?? null,
+                $request->device_names ?? null
             );
 
             return response()->json($result->getData(), $result->getStatusCode());
@@ -158,6 +164,35 @@ class AttendanceRapideController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur lors de la récupération: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Récupérer les devices selon la ville
+     */
+    public function getDevices(Request $request): JsonResponse
+    {
+        try {
+            $request->validate([
+                'ville_id' => 'required|exists:villes,id'
+            ]);
+
+            $result = $this->attendanceRapideService->getDevicesForVille($request->ville_id);
+
+            return response()->json($result->getData(), $result->getStatusCode());
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur de validation',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de la récupération des devices: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération des devices: ' . $e->getMessage()
             ], 500);
         }
     }
