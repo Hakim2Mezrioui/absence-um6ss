@@ -200,6 +200,124 @@ export class AttendanceRapideComponent implements OnInit, OnDestroy {
     this.deviceSearchTerm = '';
   }
 
+  // ====================
+  // EXPORT DES DONNÉES
+  // ====================
+
+  /**
+   * Exporter les données d'attendance en Excel
+   */
+  exportToExcel(): void {
+    if (this.filteredStudents.length === 0) {
+      this.notificationService.warningMessage('Aucune donnée à exporter');
+      return;
+    }
+
+    try {
+      // Préparer les données pour l'export
+      const exportData = this.filteredStudents.map((student, index) => {
+        const punchTime = this.getPunchTime(student);
+        const formattedTime = punchTime ? this.formatPunchTime(punchTime, student) : '-';
+        const deviceName = this.getDeviceName(student) || '-';
+        const status = this.isStudentPresent(student) ? 'Présent' : 'Absent';
+
+        return {
+          '#': index + 1,
+          'Matricule': student.cne || student.matricule || '-',
+          'Nom': student.nom || student.last_name || '-',
+          'Prénom': student.prenom || student.first_name || '-',
+          'Promotion': student.promotion_name || '-',
+          'Groupe': student.group_title || '-',
+          'Option': student.option_name || '-',
+          'Statut': status,
+          'Heure de pointage': formattedTime,
+          'Device': deviceName
+        };
+      });
+
+      // Créer le workbook
+      const worksheet = utils.json_to_sheet(exportData);
+      const workbook = utils.book_new();
+      utils.book_append_sheet(workbook, worksheet, 'Attendance');
+
+      // Générer le fichier Excel
+      const excelBuffer = write(workbook, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      
+      // Télécharger le fichier
+      const fileName = `attendance_rapide_${new Date().toISOString().split('T')[0]}.xlsx`;
+      this.downloadFile(blob, fileName);
+
+      this.notificationService.successMessage(`Export Excel réussi : ${this.filteredStudents.length} étudiant(s)`);
+    } catch (error) {
+      console.error('Erreur lors de l\'export Excel:', error);
+      this.notificationService.errorMessage('Erreur lors de l\'export Excel');
+    }
+  }
+
+  /**
+   * Exporter les données d'attendance en CSV
+   */
+  exportToCSV(): void {
+    if (this.filteredStudents.length === 0) {
+      this.notificationService.warningMessage('Aucune donnée à exporter');
+      return;
+    }
+
+    try {
+      // Préparer les données pour l'export
+      const exportData = this.filteredStudents.map((student, index) => {
+        const punchTime = this.getPunchTime(student);
+        const formattedTime = punchTime ? this.formatPunchTime(punchTime, student) : '-';
+        const deviceName = this.getDeviceName(student) || '-';
+        const status = this.isStudentPresent(student) ? 'Présent' : 'Absent';
+
+        return {
+          '#': index + 1,
+          'Matricule': student.cne || student.matricule || '-',
+          'Nom': student.nom || student.last_name || '-',
+          'Prénom': student.prenom || student.first_name || '-',
+          'Promotion': student.promotion_name || '-',
+          'Groupe': student.group_title || '-',
+          'Option': student.option_name || '-',
+          'Statut': status,
+          'Heure de pointage': formattedTime,
+          'Device': deviceName
+        };
+      });
+
+      // Créer le worksheet
+      const worksheet = utils.json_to_sheet(exportData);
+      
+      // Convertir en CSV
+      const csv = utils.sheet_to_csv(worksheet);
+      const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+      
+      // Télécharger le fichier
+      const fileName = `attendance_rapide_${new Date().toISOString().split('T')[0]}.csv`;
+      this.downloadFile(blob, fileName);
+
+      this.notificationService.successMessage(`Export CSV réussi : ${this.filteredStudents.length} étudiant(s)`);
+    } catch (error) {
+      console.error('Erreur lors de l\'export CSV:', error);
+      this.notificationService.errorMessage('Erreur lors de l\'export CSV');
+    }
+  }
+
+  /**
+   * Télécharger un fichier
+   */
+  private downloadFile(blob: Blob, fileName: string): void {
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  }
+
   ngOnDestroy(): void {
     Object.values(this.validationTimers).forEach((t) => clearTimeout(t));
     this.validationTimers = {};
