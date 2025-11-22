@@ -63,6 +63,15 @@
                 <span *ngIf="!isExporting || exportFormat !== 'excel'" class="material-icons">table_chart</span>
                 <span>Excel</span>
               </button>
+              <button 
+                (click)="exportAttendancePDF()"
+                [disabled]="isExporting || filteredStudents.length === 0"
+                class="btn btn-red"
+                title="Exporter toutes les présences en PDF">
+                <span *ngIf="isExporting && exportFormat === 'pdf'" class="material-icons spinning">sync</span>
+                <span *ngIf="!isExporting || exportFormat !== 'pdf'" class="material-icons">picture_as_pdf</span>
+                <span>PDF</span>
+              </button>
             </div>
           </div>
 

@@ -989,12 +989,12 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
       }
       
       // If we have an exact match, it's valid; otherwise suggest without heavy work
+      // Vérifier la correspondance exacte avant de retourner
+      const exactMatchQuick = reference.find((entry) => entry.normalized === normalized);
+      if (exactMatchQuick) {
+        return { isValid: true, suggestions: [] };
+      }
       return { isValid: false, suggestions: quick.length ? quick : reference.slice(0, 5).map((e) => this.toSuggestion(e)) };
-    }
-
-    const exactMatch = reference.find((entry) => entry.normalized === normalized);
-    if (exactMatch) {
-      return { isValid: true, suggestions: [] };
     }
 
     // Reduce work: try quick candidates first, then score a limited subset

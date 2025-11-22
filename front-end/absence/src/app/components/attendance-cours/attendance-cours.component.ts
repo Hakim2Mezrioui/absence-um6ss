@@ -5,6 +5,8 @@ import { HttpClientModule } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { Subject, takeUntil, interval } from 'rxjs';
 import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 import { CoursService, Cours } from '../../services/cours.service';
 import { CoursAttendanceService, CoursAttendanceData } from '../../services/cours-attendance.service';
@@ -40,7 +42,7 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
   
   // Propriétés pour l'export
   isExporting = false;
-  exportFormat: 'csv' | 'excel' | null = null;
+  exportFormat: 'csv' | 'excel' | 'pdf' | null = null;
   
   // ID du cours
   coursId: number | null = null;
@@ -981,6 +983,35 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Exporter les données d'attendance en PDF
+   */
+  exportAttendancePDF(): void {
+    if (this.filteredStudents.length === 0) {
+      this.notificationService.error('Aucune donnée à exporter', 'Aucun étudiant trouvé pour l\'exportation');
+      return;
+    }
+
+    this.isExporting = true;
+    this.exportFormat = 'pdf';
+
+    try {
+      // Préparer les données pour l'export
+      const exportData = this.prepareExportData();
+      
+      // Créer le fichier PDF
+      this.createPDFFile(exportData);
+      
+      this.notificationService.success('Export réussi', 'Les données ont été exportées en PDF avec succès');
+    } catch (error) {
+      console.error('Erreur lors de l\'export PDF:', error);
+      this.notificationService.error('Erreur d\'export', 'Une erreur est survenue lors de l\'exportation PDF');
+    } finally {
+      this.isExporting = false;
+      this.exportFormat = null;
+    }
+  }
+
+  /**
    * Préparer les données pour l'export
    */
   private prepareExportData(): any[] {
@@ -1256,14 +1287,160 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
   /**
    * Générer le nom du fichier
    */
-  private generateFileName(format: 'csv' | 'excel'): string {
-    if (!this.coursData) return `cours_attendance.${format === 'excel' ? 'xlsx' : 'csv'}`;
+  private generateFileName(format: 'csv' | 'excel' | 'pdf'): string {
+    if (!this.coursData) {
+      const extension = format === 'excel' ? 'xlsx' : format === 'pdf' ? 'pdf' : 'csv';
+      return `cours_attendance.${extension}`;
+    }
     
     const date = this.formatDate(this.coursData.cours.date);
     const time = this.formatTimeForFileName(this.coursData.cours.heure_debut);
-    const extension = format === 'excel' ? 'xlsx' : 'csv';
+    const extension = format === 'excel' ? 'xlsx' : format === 'pdf' ? 'pdf' : 'csv';
     
     return `cours_attendance_${date}_${time}.${extension}`;
+  }
+
+  /**
+   * Créer un fichier PDF avec les données d'attendance
+   */
+  private createPDFFile(data: any[]): void {
+    const doc = new jsPDF('l', 'mm', 'a4'); // Orientation paysage
+    
+    // Couleurs
+    const headerColor = [52, 73, 94]; // Gris foncé
+    const presentColor = [39, 174, 96]; // Vert
+    const absentColor = [231, 76, 60]; // Rouge
+    const lateColor = [241, 196, 15]; // Jaune
+    const excusedColor = [155, 89, 182]; // Violet
+    
+    let startY = 20;
+    
+    // Informations du cours
+    if (this.coursData) {
+      doc.setFontSize(16);
+      doc.setTextColor(headerColor[0], headerColor[1], headerColor[2]);
+      doc.text('FEUILLE DE PRÉSENCE', 14, startY);
+      
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      let yPos = startY + 10;
+      
+      const coursInfo = [
+        `Cours: ${this.coursData.cours.name}`,
+        `Date: ${this.formatDate(this.coursData.cours.date)}`,
+        `Heure de pointage: ${this.coursData.cours.pointage_start_hour}`,
+        `Heure de début: ${this.coursData.cours.heure_debut}`,
+        `Heure de fin: ${this.coursData.cours.heure_fin}`,
+        `Tolérance: ${this.coursData.cours.tolerance || 5} minutes`
+      ];
+      
+      coursInfo.forEach((info, index) => {
+        doc.text(info, 14, yPos + (index * 5));
+      });
+      
+      // Statistiques
+      yPos = startY + 45;
+      doc.setFontSize(12);
+      doc.setTextColor(headerColor[0], headerColor[1], headerColor[2]);
+      doc.text('STATISTIQUES', 14, yPos);
+      
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      const stats = [
+        `Total étudiants: ${this.totalStudents}`,
+        `Présents: ${this.presents}`,
+        `En retard: ${this.lates}`,
+        `Absents: ${this.absents}`,
+        `Excusés: ${this.excused}`
+      ];
+      
+      stats.forEach((stat, index) => {
+        doc.text(stat, 14, yPos + 8 + (index * 5));
+      });
+      
+      startY = yPos + 40;
+    }
+    
+    // Préparer les données pour le tableau
+    const tableData = data.map(student => [
+      student.nom || '',
+      student.prenom || '',
+      student.matricule || '',
+      student.statut || '',
+      student.heure_pointage || 'N/A',
+      student.appareil || 'N/A',
+      student.promotion || 'N/A',
+      student.groupe || 'N/A'
+    ]);
+    
+    // Créer le tableau
+    autoTable(doc, {
+      startY: startY,
+      head: [['Nom', 'Prénom', 'Matricule', 'Statut', 'Heure de pointage', 'Appareil', 'Promotion', 'Groupe']],
+      body: tableData,
+      theme: 'striped',
+      headStyles: {
+        fillColor: [headerColor[0], headerColor[1], headerColor[2]] as [number, number, number],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: 9
+      },
+      bodyStyles: {
+        fontSize: 8,
+        cellPadding: 2
+      },
+      columnStyles: {
+        0: { cellWidth: 30 }, // Nom
+        1: { cellWidth: 30 }, // Prénom
+        2: { cellWidth: 25 }, // Matricule
+        3: { cellWidth: 25 }, // Statut
+        4: { cellWidth: 30 }, // Heure de pointage
+        5: { cellWidth: 35 }, // Appareil
+        6: { cellWidth: 30 }, // Promotion
+        7: { cellWidth: 25 }  // Groupe
+      },
+      didParseCell: (data: any) => {
+        // Colorer les cellules de statut
+        if (data.column.index === 3 && data.row.index >= 0) {
+          const status = data.cell.text[0];
+          if (status === 'Présent') {
+            data.cell.styles.fillColor = [presentColor[0], presentColor[1], presentColor[2]] as [number, number, number];
+            data.cell.styles.textColor = [255, 255, 255];
+          } else if (status === 'Absent') {
+            data.cell.styles.fillColor = [absentColor[0], absentColor[1], absentColor[2]] as [number, number, number];
+            data.cell.styles.textColor = [255, 255, 255];
+          } else if (status === 'En retard') {
+            data.cell.styles.fillColor = [lateColor[0], lateColor[1], lateColor[2]] as [number, number, number];
+            data.cell.styles.textColor = [0, 0, 0];
+          } else if (status === 'Excusé') {
+            data.cell.styles.fillColor = [excusedColor[0], excusedColor[1], excusedColor[2]] as [number, number, number];
+            data.cell.styles.textColor = [255, 255, 255];
+          }
+        }
+      },
+      margin: { top: 20, right: 14, bottom: 20, left: 14 },
+      styles: {
+        overflow: 'linebreak',
+        cellWidth: 'wrap'
+      }
+    });
+    
+    // Ajouter le numéro de page
+    const pageCount = (doc as any).internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(128, 128, 128);
+      doc.text(
+        `Page ${i} sur ${pageCount}`,
+        doc.internal.pageSize.getWidth() / 2,
+        doc.internal.pageSize.getHeight() - 10,
+        { align: 'center' }
+      );
+    }
+    
+    // Télécharger le fichier
+    doc.save(this.generateFileName('pdf'));
   }
 
   /**
