@@ -202,9 +202,9 @@ export class AttendanceRapideComponent implements OnInit, OnDestroy {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) {
-          return;
-        }
-        
+      return;
+    }
+
     this.errorMessage = '';
     this.successMessage = '';
     this.isProcessing = true;
@@ -292,7 +292,7 @@ export class AttendanceRapideComponent implements OnInit, OnDestroy {
         }
 
         this.validateRows();
-      } catch (error: any) {
+          } catch (error: any) {
         console.error('Erreur détaillée lors de la lecture du fichier:', error);
         this.errorMessage = error?.message || 'Impossible de lire le fichier.';
         this.tableHeaders = [];
@@ -317,7 +317,7 @@ export class AttendanceRapideComponent implements OnInit, OnDestroy {
 
   updateCell(rowIndex: number, header: string, value: string): void {
     if (!this.tableRows[rowIndex]) {
-      return;
+        return;
     }
     this.tableRows[rowIndex] = {
       ...this.tableRows[rowIndex],
@@ -343,9 +343,9 @@ export class AttendanceRapideComponent implements OnInit, OnDestroy {
 
     const headersToCheck = this.relationHeaders.filter((header) => this.tableHeaders.includes(header));
     if (!headersToCheck.length) {
-      return;
-    }
-
+          return;
+        }
+        
     this.tableRows.forEach((_, rowIndex) => {
       headersToCheck.forEach((header) => this.validateCell(rowIndex, header));
     });
@@ -719,6 +719,74 @@ export class AttendanceRapideComponent implements OnInit, OnDestroy {
     return student.status === 'present';
   }
 
+  // Helper pour obtenir l'heure de pointage
+  getPunchTime(student: AttendanceRapideStudent): string | null {
+    if (!student.punches || student.punches.length === 0) {
+      return null;
+    }
+    // Prendre le DERNIER punch (le plus récent dans la plage définie)
+    // Les punches sont triés par ORDER BY devdt ASC (du plus ancien au plus récent)
+    const lastPunch = student.punches[student.punches.length - 1];
+    return lastPunch?.punch_time || null;
+  }
+
+  // Helper pour obtenir le nom du device
+  getDeviceName(student: AttendanceRapideStudent): string | null {
+    if (!student.punches || student.punches.length === 0) {
+      return null;
+    }
+    // Prendre le DERNIER punch (le plus récent dans la plage définie)
+    // Les punches sont triés par ORDER BY devdt ASC (du plus ancien au plus récent)
+    const lastPunch = student.punches[student.punches.length - 1];
+    return lastPunch?.device_name || lastPunch?.devnm || null;
+  }
+
+  // Helper pour formater l'heure de pointage
+  formatPunchTime(punchTime: string | null, student?: AttendanceRapideStudent): string {
+    if (!punchTime) return '-';
+    
+    try {
+      // Format: "2025-11-21 14:09:41.0000000"
+      const date = new Date(punchTime);
+      if (isNaN(date.getTime())) {
+        return punchTime; // Retourner tel quel si parsing échoue
+      }
+      
+      // Vérifier si la ville est Casablanca (insensible à la casse)
+      // On peut utiliser student.ville_name ou récupérer depuis le formulaire
+      let villeName: string | null = null;
+      
+      if (student?.ville_name) {
+        villeName = student.ville_name;
+      } else {
+        // Récupérer depuis le formulaire si disponible
+        const villeId = this.importForm?.value?.ville_id;
+        if (villeId && this.filterOptions.villes) {
+          const ville = this.filterOptions.villes.find((v: any) => v.id === villeId);
+          villeName = ville?.name || null;
+        }
+      }
+      
+      const isCasablanca = villeName && 
+        (villeName.toLowerCase().includes('casa') || 
+         villeName.toLowerCase().includes('casablanca'));
+      
+      // Ajouter 1 heure si c'est Casablanca
+      if (isCasablanca) {
+        date.setHours(date.getHours() + 1);
+      }
+      
+      // Formater en HH:mm:ss
+      const hours = date.getHours().toString().padStart(2, '0');
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      const seconds = date.getSeconds().toString().padStart(2, '0');
+      
+      return `${hours}:${minutes}:${seconds}`;
+    } catch (e) {
+      return punchTime; // Retourner tel quel en cas d'erreur
+    }
+  }
+
   // ====================
   // IMPORTATION
   // ====================
@@ -822,8 +890,8 @@ export class AttendanceRapideComponent implements OnInit, OnDestroy {
                 this.notificationService.warningMessage('Aucun étudiant trouvé');
               } else {
                 this.notificationService.successMessage(`${this.students.length} étudiant(s) trouvé(s)`);
-              }
-            } else {
+            }
+          } else {
               this.errorMessage = 'Format de réponse inattendu';
               this.students = [];
               this.totalStudents = 0;
@@ -834,9 +902,9 @@ export class AttendanceRapideComponent implements OnInit, OnDestroy {
             this.errorMessage = response.message || 'Aucune donnée trouvée';
             this.students = [];
             this.totalStudents = 0;
-            this.presentCount = 0;
+              this.presentCount = 0;
             this.absentCount = 0;
-          }
+            }
         },
         error: (err) => {
           this.loading = false;

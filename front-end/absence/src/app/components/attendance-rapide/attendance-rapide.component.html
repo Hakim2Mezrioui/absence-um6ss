@@ -348,6 +348,8 @@
               <th class="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Groupe</th>
               <th class="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Option</th>
               <th class="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Statut</th>
+              <th class="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Heure de pointage</th>
+              <th class="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Device</th>
             </tr>
           </thead>
           <tbody>
@@ -371,6 +373,22 @@
                   <span class="material-icons" style="font-size: 14px;">cancel</span>
                   Absent
                 </span>
+              </td>
+              <td class="px-4 py-3 text-sm text-slate-600">
+                <span *ngIf="getPunchTime(student); else noPunchTime" class="font-medium">
+                  {{ formatPunchTime(getPunchTime(student), student) }}
+                </span>
+                <ng-template #noPunchTime>
+                  <span class="text-slate-400 italic">-</span>
+                </ng-template>
+              </td>
+              <td class="px-4 py-3 text-sm text-slate-600">
+                <span *ngIf="getDeviceName(student); else noDevice" class="font-medium">
+                  {{ getDeviceName(student) }}
+                </span>
+                <ng-template #noDevice>
+                  <span class="text-slate-400 italic">-</span>
+                </ng-template>
               </td>
             </tr>
           </tbody>
