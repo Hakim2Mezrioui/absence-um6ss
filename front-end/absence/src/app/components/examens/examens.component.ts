@@ -20,6 +20,7 @@ import { TypesExamenService, TypeExamen } from '../../services/types-examen.serv
 
 export class ExamensComponent implements OnInit, OnDestroy {
   examens: Examen[] = [];
+  private allExamens: Examen[] = [];
   loading = false;
   error = '';
   
@@ -41,6 +42,7 @@ export class ExamensComponent implements OnInit, OnDestroy {
   salles: any[] = [];
   options: any[] = [];
   typesExamen: TypeExamen[] = [];
+  selectedStatus = '';
   
 
   
@@ -150,8 +152,20 @@ export class ExamensComponent implements OnInit, OnDestroy {
     const userRole = this.authService.getUserRoleName();
     const normalizedRole = userRole ? userRole.toLowerCase().replace(/[\s-]/g, '') : '';
     
-    // Seuls les admins et super-admins peuvent ouvrir l'affichage public
-    return normalizedRole === 'superadmin' || normalizedRole === 'admin';
+    // Autoriser super-admin, admin et rôle dédié au défilement
+    return normalizedRole === 'superadmin' 
+      || normalizedRole === 'admin'
+      || normalizedRole === 'defilement'
+      || normalizedRole === 'défilement';
+  }
+
+  /**
+   * Vérifie si l'utilisateur connecté est un compte Défilement
+   */
+  public isDefilementRole(): boolean {
+    const userRole = this.authService.getUserRoleName();
+    const normalizedRole = userRole ? userRole.toLowerCase().replace(/[\s-]/g, '') : '';
+    return normalizedRole === 'defilement' || normalizedRole === 'défilement';
   }
 
   openImportModal(): void {
@@ -194,6 +208,8 @@ export class ExamensComponent implements OnInit, OnDestroy {
         ville: { id: 1, name: 'Rabat' }
       }
     ];
+    this.allExamens = [...this.examens];
+    this.examens = this.applyStatusFilter(this.allExamens);
     this.total = 1;
     this.currentPage = 1;
     this.lastPage = 1;
@@ -313,14 +329,14 @@ export class ExamensComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (response: ExamenResponse) => {
           console.log('✅ Données reçues de l\'API:', response);
-          this.examens = response.data;
-          
-          // S'assurer que le statut temporel est calculé pour chaque examen
-          this.examens.forEach(examen => {
+          const normalizedExamens = response.data.map(examen => {
             if (!examen.statut_temporel) {
               examen.statut_temporel = this.calculateStatutTemporel(examen);
             }
+            return examen;
           });
+          this.allExamens = normalizedExamens;
+          this.examens = this.applyStatusFilter(this.allExamens);
           this.currentPage = response.current_page;
           this.lastPage = response.last_page;
           this.perPage = response.per_page;
@@ -360,6 +376,7 @@ export class ExamensComponent implements OnInit, OnDestroy {
   clearFilters(): void {
     this.filtersForm.reset();
     this.searchValue = '';
+    this.selectedStatus = '';
     this.currentPage = 1;
     this.loadExamens();
   }
@@ -374,6 +391,22 @@ export class ExamensComponent implements OnInit, OnDestroy {
     }
     
     return pages;
+  }
+
+  onStatusFilterChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.selectedStatus = select?.value || '';
+    this.examens = this.applyStatusFilter(this.allExamens);
+  }
+
+  private applyStatusFilter(examens: Examen[]): Examen[] {
+    if (!this.selectedStatus) {
+      return [...examens];
+    }
+    return examens.filter(examen => {
+      const statut = examen.statut_temporel || this.calculateStatutTemporel(examen);
+      return statut === this.selectedStatus;
+    });
   }
 
   formatDate(dateString: string): string {

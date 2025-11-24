@@ -75,8 +75,8 @@ export const routes: Routes = [
             { path: "dashboard", component: DashboardComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'enseignant', 'doyen'] } },
 
             // Super-admin and admin and scolarite access; enseignant only to cours-related
-            { path: "examens", component: ExamensComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien'] } },
-            { path: "examens-archived", component: ExamensArchivedComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien'] } },
+            { path: "examens", component: ExamensComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien', 'defilement'] } },
+            { path: "examens-archived", component: ExamensArchivedComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien', 'defilement'] } },
             { path: "add-examen", component: AddExamenComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'doyen'] } },
             { path: "edit-examen/:id", component: EditExamenComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'doyen'] } },
             { path: "import-examens", component: ImportExamensComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'doyen'] } },

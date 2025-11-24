@@ -25,9 +25,9 @@ class PromotionSeeder extends Seeder
         \App\Models\Promotion::withoutGlobalScope(\App\Scopes\UserContextScope::class)->create(['name' => '4ème année']);
         \App\Models\Promotion::withoutGlobalScope(\App\Scopes\UserContextScope::class)->create(['name' => '5ème année']);
         \App\Models\Promotion::withoutGlobalScope(\App\Scopes\UserContextScope::class)->create(['name' => '6ème année']);
-        \App\Models\Promotion::withoutGlobalScope(\App\Scopes\UserContextScope::class)->create(['name' => 'LIC 1ère année']);
-        \App\Models\Promotion::withoutGlobalScope(\App\Scopes\UserContextScope::class)->create(['name' => 'LIC 2ème année']);
-        \App\Models\Promotion::withoutGlobalScope(\App\Scopes\UserContextScope::class)->create(['name' => 'LIC 3ème année']);
+        \App\Models\Promotion::withoutGlobalScope(\App\Scopes\UserContextScope::class)->create(['name' => 'LAP 1ère année']);
+        \App\Models\Promotion::withoutGlobalScope(\App\Scopes\UserContextScope::class)->create(['name' => 'LAP 2ème année']);
+        \App\Models\Promotion::withoutGlobalScope(\App\Scopes\UserContextScope::class)->create(['name' => 'LAP 3ème année']);
 
         $this->command->info("✅ 9 promotions ont été créées avec succès !");
     }

@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Role;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -52,6 +54,13 @@ class AuthController extends Controller
             'etablissement_id' => 'nullable|integer|exists:etablissements,id',
             'ville_id' => 'nullable|integer|exists:villes,id',
         ]);
+
+        if (!$this->canAssignDefilementRole((int) $request->role_id, $request->user())) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Création non autorisée pour le rôle "Défilement"'
+            ], 403);
+        }
 
         $user = User::create([
             'first_name' => $request->first_name,
@@ -101,6 +110,12 @@ class AuthController extends Controller
             "etablissement_id" => ["nullable", "integer", "exists:etablissements,id"],
             "ville_id" => ["nullable", "integer", "exists:villes,id"],
         ]);
+
+        if (!$this->canAssignDefilementRole((int) $request->role_id, $request->user())) {
+            return response()->json([
+                "message" => "Création non autorisée pour le rôle \"Défilement\""
+            ], 403);
+        }
 
         try {
             // Création de l'utilisateur avec les bons champs
@@ -298,6 +313,13 @@ class AuthController extends Controller
                 "ville_id" => ["sometimes", "nullable", "integer", "exists:villes,id"],
             ]);
 
+            if ($request->filled('role_id') && !$this->canAssignDefilementRole((int) $request->role_id, $request->user())) {
+                return response()->json([
+                    "status" => "error",
+                    "message" => "Attribution non autorisée pour le rôle \"Défilement\""
+                ], 403);
+            }
+
             // Mise à jour des champs fournis
             $updateData = $request->only([
                 'first_name', 'last_name', 'email', 'role_id', 'post_id', 'etablissement_id', 'ville_id'
@@ -326,5 +348,54 @@ class AuthController extends Controller
                 "error" => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Vérifie si l'utilisateur courant est autorisé à attribuer le rôle Défilement.
+     */
+    private function canAssignDefilementRole(?int $roleId, ?User $actor): bool
+    {
+        if (!$roleId || !$this->isDefilementRoleId($roleId)) {
+            return true;
+        }
+
+        if (!$actor) {
+            return false;
+        }
+
+        return in_array((int) $actor->role_id, [1, 2]);
+    }
+
+    /**
+     * Vérifie si l'identifiant correspond au rôle Défilement.
+     */
+    private function isDefilementRoleId(?int $roleId): bool
+    {
+        if (!$roleId) {
+            return false;
+        }
+
+        $role = Role::find($roleId);
+        return $role ? $this->isDefilementRoleName($role->name) : false;
+    }
+
+    /**
+     * Vérifie si un nom correspond au rôle Défilement (avec ou sans accent).
+     */
+    private function isDefilementRoleName(?string $name): bool
+    {
+        if (!$name) {
+            return false;
+        }
+
+        $normalized = Str::of($name)
+            ->lower()
+            ->replaceMatches('/[\s\-]/', '')
+            ->__toString();
+
+        $normalizedAscii = Str::ascii($normalized);
+
+        return in_array($normalized, ['défilement', 'defilement'], true)
+            || $normalizedAscii === 'defilement';
     }
 }

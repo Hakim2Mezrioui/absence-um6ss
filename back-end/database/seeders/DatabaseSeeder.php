@@ -28,12 +28,12 @@ class DatabaseSeeder extends Seeder
             PostSeeder::class,
             TypeCoursSeeder::class,
             TypeExamenSeeder::class,
-            SalleSeeder::class,
+            // SalleSeeder::class,
             OptionSeeder::class,
             GroupSeeder::class,        // Déplacé avant ExamenSeeder
-            ExamenSeeder::class,       // Maintenant après GroupSeeder
+            // ExamenSeeder::class,       // Maintenant après GroupSeeder
             // EtudiantSeeder::class,
-            CoursSeeder::class,
+            // CoursSeeder::class,
             UserSeeder::class,
             EnseignantSeeder::class,
             AbsenceSeeder::class,      // Après ExamenSeeder

@@ -230,7 +230,9 @@ export class SidebarComponent implements OnInit {
       3: 'scolarite',   // ID 3: Scolarité
       4: 'doyen',       // ID 4: Doyen
       5: 'technicien',  // ID 5: Technicien SI
-      6: 'enseignant'   // ID 6: Enseignant
+      6: 'enseignant',   // ID 6: Enseignant
+      7: 'affichage-public', // ID 7: Affichage public
+      8: 'defilement'        // ID 8: Défilement
     };
     
     return roleMapping[roleId] || 'user';
@@ -244,7 +246,9 @@ export class SidebarComponent implements OnInit {
       3: 'Gestion scolaire',        // Scolarité
       4: 'Gestion de la faculté',   // Doyen
       5: 'Accès aux fonctionnalités techniques',  // Technicien SI
-      6: 'Accès enseignants'
+      6: 'Accès enseignants',
+      7: 'Consultation de l\'affichage public',
+      8: 'Compte dédié au défilement des écrans publics'
     };
     
     return descriptions[roleId] || 'Accès standard';
@@ -273,6 +277,10 @@ export class SidebarComponent implements OnInit {
       return 'school';
     } else if (roleLower.includes('etudiant') || roleLower.includes('student') || roleLower.includes('élève')) {
       return 'person';
+    } else if (roleLower.includes('affichage')) {
+      return 'live_tv';
+    } else if (roleLower.includes('defilement') || roleLower.includes('défilement')) {
+      return 'slideshow';
     } else if (roleLower.includes('secretaire') || roleLower.includes('secretary')) {
       return 'admin_panel_settings';
     } else if (roleLower.includes('directeur') || roleLower.includes('director')) {

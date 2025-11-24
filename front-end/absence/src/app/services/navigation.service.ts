@@ -17,10 +17,17 @@ export class NavigationService {
     // Si le technicien, rediriger vers examens
     if (userRole === 'technicien') {
       this.router.navigate(['/examens']);
-    } else {
-      // Sinon rediriger vers dashboard
-      this.router.navigate(['/dashboard']);
+      return;
     }
+
+    // Compte Défilement : aller directement vers la page examens (ou écran public)
+    if (userRole === 'defilement' || userRole === 'défilement') {
+      this.router.navigate(['/examens']);
+      return;
+    }
+
+    // Sinon rediriger vers dashboard
+    this.router.navigate(['/dashboard']);
   }
 
   /**

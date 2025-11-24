@@ -6,6 +6,8 @@ use App\Models\Role;
 use App\Services\RoleService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
 
 class RoleController extends Controller
 {
@@ -28,6 +30,7 @@ class RoleController extends Controller
         $skip = ($page - 1) * $size;
 
         $query = Role::query();
+        $this->applyDefilementVisibilityConstraint($query);
 
         // Appliquer le filtre de recherche si nécessaire
         if (!empty($searchValue) && $searchValue !== "") {
@@ -59,7 +62,7 @@ class RoleController extends Controller
     {
         $role = $this->roleService->getRoleById((int) $id);
         
-        if (!$role) {
+        if (!$role || ($this->shouldHideDefilementRole() && $this->isDefilementRoleName($role->name))) {
             return response()->json(['message' => 'Rôle non trouvé'], 404);
         }
         
@@ -128,7 +131,9 @@ class RoleController extends Controller
      */
     public function getAll()
     {
-        $roles = $this->roleService->getAllRoles();
+        $query = Role::query()->orderBy('name');
+        $this->applyDefilementVisibilityConstraint($query);
+        $roles = $query->get();
         
         return response()->json([
             'roles' => $roles,
@@ -147,11 +152,66 @@ class RoleController extends Controller
             return response()->json(['message' => 'Terme de recherche requis'], 400);
         }
 
-        $roles = $this->roleService->searchRoles($searchValue);
+        $query = Role::where("name", "LIKE", "%{$searchValue}%")->orderBy('name');
+        $this->applyDefilementVisibilityConstraint($query);
+        $roles = $query->get();
         
         return response()->json([
             'roles' => $roles,
             'status' => 200
         ]);
+    }
+    
+    /**
+     * Vérifie si l'utilisateur actuel peut gérer le rôle Défilement.
+     */
+    private function canManageDefilementRole(): bool
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return false;
+        }
+
+        return in_array((int) $user->role_id, [1, 2]);
+    }
+
+    /**
+     * Indique si l'utilisateur actuel doit se voir cacher le rôle Défilement.
+     */
+    private function shouldHideDefilementRole(): bool
+    {
+        return !$this->canManageDefilementRole();
+    }
+
+    /**
+     * Applique la contrainte de visibilité du rôle Défilement à une requête.
+     */
+    private function applyDefilementVisibilityConstraint(Builder $query): void
+    {
+        if ($this->shouldHideDefilementRole()) {
+            $query->whereRaw(
+                "LOWER(REPLACE(REPLACE(name, ' ', ''), '-', '')) NOT IN ('défilement', 'defilement')"
+            );
+        }
+    }
+
+    /**
+     * Indique si le nom de rôle correspond au rôle Défilement.
+     */
+    private function isDefilementRoleName(?string $name): bool
+    {
+        if (!$name) {
+            return false;
+        }
+
+        $normalized = Str::of($name)
+            ->lower()
+            ->replaceMatches('/[\s\-]/', '')
+            ->__toString();
+
+        $normalizedAscii = Str::ascii($normalized);
+
+        return in_array($normalized, ['défilement', 'defilement'], true)
+            || $normalizedAscii === 'defilement';
     }
 } 

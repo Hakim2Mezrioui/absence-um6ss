@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Str;
 
 class UserManagementController extends Controller
 {
@@ -87,6 +88,13 @@ class UserManagementController extends Controller
                     'message' => 'Données de validation invalides',
                     'errors' => $validator->errors()
                 ], 422);
+            }
+
+            if ($this->isDefilementRoleId((int) $request->role_id) && !$this->canManageDefilementRole()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Vous n\'avez pas la permission de créer un compte avec le rôle "Défilement"'
+                ], 403);
             }
 
             $user = User::create([
@@ -176,6 +184,15 @@ class UserManagementController extends Controller
                 'first_name', 'last_name', 'email', 'role_id', 'etablissement_id', 'ville_id'
             ]);
 
+            if (array_key_exists('role_id', $updateData) && $updateData['role_id']) {
+                if ($this->isDefilementRoleId((int) $updateData['role_id']) && !$this->canManageDefilementRole()) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Vous n\'avez pas la permission d\'attribuer le rôle "Défilement"'
+                    ], 403);
+                }
+            }
+
             // Hacher le mot de passe si fourni
             if ($request->has('password')) {
                 $updateData['password'] = Hash::make($request->password);
@@ -253,6 +270,13 @@ class UserManagementController extends Controller
                 ], 422);
             }
 
+            if ($this->isDefilementRoleId((int) $request->role_id) && !$this->canManageDefilementRole()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Vous n\'avez pas la permission d\'attribuer le rôle "Défilement"'
+                ], 403);
+            }
+
             $user->update(['role_id' => $request->role_id]);
             $user->load(['role', 'etablissement', 'ville']);
 
@@ -277,7 +301,13 @@ class UserManagementController extends Controller
     public function getFormOptions()
     {
         try {
-            $roles = Role::select('id', 'name')->orderBy('name')->get();
+            $rolesQuery = Role::select('id', 'name')->orderBy('name');
+            if (!$this->canManageDefilementRole()) {
+                $rolesQuery->whereRaw(
+                    "LOWER(REPLACE(REPLACE(name, ' ', ''), '-', '')) NOT IN ('défilement', 'defilement')"
+                );
+            }
+            $roles = $rolesQuery->get();
             $etablissements = Etablissement::select('id', 'name')->orderBy('name')->get();
             $villes = Ville::select('id', 'name')->orderBy('name')->get();
 
@@ -379,5 +409,51 @@ class UserManagementController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Vérifie si l'utilisateur actuel peut gérer/attribuer le rôle Défilement.
+     */
+    private function canManageDefilementRole(): bool
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return false;
+        }
+
+        return in_array((int) $user->role_id, [1, 2]);
+    }
+
+    /**
+     * Vérifie si un identifiant de rôle correspond au rôle Défilement.
+     */
+    private function isDefilementRoleId(?int $roleId): bool
+    {
+        if (!$roleId) {
+            return false;
+        }
+
+        $role = Role::find($roleId);
+        return $role ? $this->isDefilementRoleName($role->name) : false;
+    }
+
+    /**
+     * Vérifie si un nom de rôle correspond au rôle Défilement.
+     */
+    private function isDefilementRoleName(?string $name): bool
+    {
+        if (!$name) {
+            return false;
+        }
+
+        $normalized = Str::of($name)
+            ->lower()
+            ->replaceMatches('/[\s\-]/', '')
+            ->__toString();
+
+        $normalizedAscii = Str::ascii($normalized);
+
+        return in_array($normalized, ['défilement', 'defilement'], true)
+            || $normalizedAscii === 'defilement';
     }
 }

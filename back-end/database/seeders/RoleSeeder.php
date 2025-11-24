@@ -19,5 +19,6 @@ class RoleSeeder extends Seeder
         \App\Models\Role::create(['name' => 'Technicien SI']);
         \App\Models\Role::create(['name' => 'Enseignant']);
         \App\Models\Role::create(['name' => 'Affichage Public']);
+        \App\Models\Role::create(['name' => 'Défilement']);
     }
 }

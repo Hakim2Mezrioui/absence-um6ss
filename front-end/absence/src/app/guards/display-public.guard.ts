@@ -28,7 +28,9 @@ export class DisplayPublicGuard implements CanActivate {
     const allowedRoles = [
       'affichagepublic',
       'superadmin',
-      'admin'
+      'admin',
+      'defilement',
+      'défilement'
     ];
 
     if (allowedRoles.includes(normalizedRole)) {

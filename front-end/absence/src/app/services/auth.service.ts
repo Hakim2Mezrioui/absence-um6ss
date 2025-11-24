@@ -258,7 +258,8 @@ export class AuthService {
       4: 'doyen',       // ID 4: Doyen
       5: 'technicien',  // ID 5: Technicien SI
       6: 'enseignant',   // ID 6: Enseignant
-      7: 'affichage-public'  // ID 7: Affichage Public
+      7: 'affichage-public',  // ID 7: Affichage Public
+      8: 'defilement'        // ID 8: Défilement
     };
     
     return roleMapping[roleId] || 'user';
