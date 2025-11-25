@@ -21,23 +21,23 @@ class DatabaseSeeder extends Seeder
         // ]);
 
         $this->call([
-            VilleSeeder::class,
-            EtablissementSeeder::class,
-            PromotionSeeder::class,
+            // VilleSeeder::class,
+            // EtablissementSeeder::class,
+            // PromotionSeeder::class,
             RoleSeeder::class,
-            PostSeeder::class,
-            TypeCoursSeeder::class,
-            TypeExamenSeeder::class,
+            // PostSeeder::class,
+            // TypeCoursSeeder::class,
+            // TypeExamenSeeder::class,
             // SalleSeeder::class,
-            OptionSeeder::class,
-            GroupSeeder::class,        // Déplacé avant ExamenSeeder
+            // OptionSeeder::class,
+            // GroupSeeder::class,        // Déplacé avant ExamenSeeder
             // ExamenSeeder::class,       // Maintenant après GroupSeeder
             // EtudiantSeeder::class,
             // CoursSeeder::class,
-            UserSeeder::class,
-            EnseignantSeeder::class,
-            AbsenceSeeder::class,      // Après ExamenSeeder
-            RattrapageSeeder::class,
+            // UserSeeder::class,
+            // EnseignantSeeder::class,
+            // AbsenceSeeder::class,      // Après ExamenSeeder
+            // RattrapageSeeder::class,
         ]);
     }
 }

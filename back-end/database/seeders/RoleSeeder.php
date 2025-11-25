@@ -12,13 +12,13 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
-        \App\Models\Role::create(['name' => 'Super Admin']);
-        \App\Models\Role::create(['name' => 'Admin']);
-        \App\Models\Role::create(['name' => 'Scolarité']);
-        \App\Models\Role::create(['name' => 'Doyen']);
-        \App\Models\Role::create(['name' => 'Technicien SI']);
-        \App\Models\Role::create(['name' => 'Enseignant']);
-        \App\Models\Role::create(['name' => 'Affichage Public']);
-        \App\Models\Role::create(['name' => 'Défilement']);
+        \App\Models\Role::create(['name' => 'Defilement']);
+        // \App\Models\Role::create(['name' => 'Super Admin']);
+        // \App\Models\Role::create(['name' => 'Admin']);
+        // \App\Models\Role::create(['name' => 'Scolarité']);
+        // \App\Models\Role::create(['name' => 'Doyen']);
+        // \App\Models\Role::create(['name' => 'Technicien SI']);
+        // \App\Models\Role::create(['name' => 'Enseignant']);
+        // \App\Models\Role::create(['name' => 'Affichage Public']);
     }
 }
