@@ -473,6 +473,8 @@ class CoursService
             'heure_debut' => $heureDebut,
             'heure_fin' => $heureFin,
             'tolerance' => $tolerance,
+            'attendance_mode' => $data['attendance_mode'] ?? 'normal',
+            'exit_capture_window' => isset($data['exit_capture_window']) ? (int)$data['exit_capture_window'] : 0,
             'etablissement_id' => $data['etablissement_id'],
             'promotion_id' => $data['promotion_id'],
             'type_cours_id' => $data['type_cours_id'],

@@ -17,6 +17,8 @@ class Cours extends Model
         'heure_debut',
         'heure_fin',
         'tolerance',
+        'attendance_mode',
+        'exit_capture_window',
         'annee_universitaire',
         'etablissement_id',
         'promotion_id',

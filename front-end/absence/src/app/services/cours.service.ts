@@ -13,6 +13,8 @@ export interface Cours {
   heure_debut: string;
   heure_fin: string;
   tolerance: string;
+  attendance_mode?: 'normal' | 'bicheck';
+  exit_capture_window?: number;
   etablissement_id: number;
   promotion_id: number;
   type_cours_id: number;
@@ -20,6 +22,7 @@ export interface Cours {
   salles_ids?: number[]; // Pour la sélection multiple de salles
   option_id?: number;
   ville_id?: number;
+  group_ids?: number[];
   annee_universitaire: string;
   statut_temporel?: 'passé' | 'en_cours' | 'futur'; // Calculé côté frontend
   archived_at?: string;

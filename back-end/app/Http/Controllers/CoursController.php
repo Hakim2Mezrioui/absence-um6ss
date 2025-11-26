@@ -150,6 +150,8 @@ class CoursController extends Controller
             'heure_debut' => 'required|date_format:H:i',
             'heure_fin' => 'required|date_format:H:i|after:heure_debut',
             'tolerance' => 'required|date_format:H:i',
+            'attendance_mode' => 'nullable|in:normal,bicheck',
+            'exit_capture_window' => 'nullable|integer|min:0|max:120',
             'etablissement_id' => 'required|exists:etablissements,id',
             'promotion_id' => 'required|exists:promotions,id',
             'type_cours_id' => 'required|exists:types_cours,id',
@@ -162,6 +164,10 @@ class CoursController extends Controller
             'ville_id' => 'required|exists:villes,id',
             'annee_universitaire' => 'required|string|max:9'
         ]);
+        
+        // Valeurs par défaut pour les nouveaux champs
+        $validatedData['attendance_mode'] = $validatedData['attendance_mode'] ?? 'normal';
+        $validatedData['exit_capture_window'] = $validatedData['exit_capture_window'] ?? 0;
 
         // Validation : au moins une salle doit être fournie (salle_id ou salles_ids)
         if (empty($validatedData['salles_ids']) && empty($validatedData['salle_id'])) {
@@ -259,6 +265,8 @@ class CoursController extends Controller
             'heure_debut' => 'sometimes|date_format:H:i',
             'heure_fin' => 'sometimes|date_format:H:i|after:heure_debut',
             'tolerance' => 'sometimes|date_format:H:i',
+            'attendance_mode' => 'nullable|in:normal,bicheck',
+            'exit_capture_window' => 'nullable|integer|min:0|max:120',
             'etablissement_id' => 'sometimes|exists:etablissements,id',
             'promotion_id' => 'sometimes|exists:promotions,id',
             'type_cours_id' => 'sometimes|exists:types_cours,id',
@@ -695,10 +703,14 @@ class CoursController extends Controller
                     
                     $hourRefWithSec = $normalizeTime($heureReference);
                     $hourFinWithSec = $normalizeTime($heureFin);
+                    $exitWindowMinutes = (int)($cours->exit_capture_window ?? 0);
                     
                     // Construire la fenêtre datetime côté client avec la date normalisée
                     $startClientDt = new \DateTime("{$normalizedDate} {$hourRefWithSec}");
                     $endClientDt = new \DateTime("{$normalizedDate} {$hourFinWithSec}");
+                    if ($exitWindowMinutes > 0) {
+                        $endClientDt->modify("+{$exitWindowMinutes} minutes");
+                    }
                     
                     // Le serveur Biostar est décalé de -60 minutes (serveur en retard d'1h)
                     $startServerDt = (clone $startClientDt)->modify("{$offsetMinutes} minutes");
@@ -724,7 +736,8 @@ class CoursController extends Controller
                         'start_client_dt' => $startClientDt->format('Y-m-d H:i:s'),
                         'end_client_dt' => $endClientDt->format('Y-m-d H:i:s'),
                         'start_server_dt' => $startDtFormatted,
-                        'end_server_dt' => $endDtFormatted
+                        'end_server_dt' => $endDtFormatted,
+                        'exit_window_minutes' => $exitWindowMinutes
                     ]);
                     
                     // Requête optimisée: fenêtre datetime continue (comme dans EtudiantController)
@@ -948,8 +961,13 @@ class CoursController extends Controller
             // Get present students (those who have punched in Biostar)
             $presentStudentMatricules = collect($biostarResults)->pluck('user_id')->toArray();
 
+            // Récupérer les paramètres du mode bi-check
+            $attendanceMode = $cours->attendance_mode ?? 'normal';
+            $exitCaptureWindow = $cours->exit_capture_window ?? 0;
+            $heureFin = $cours->heure_fin;
+            
             // Prepare the final response with attendance status
-            $studentsWithAttendance = $localStudents->map(function ($student) use ($presentStudentMatricules, $biostarResults, $heureDebutPointage, $heureDebut, $tolerance, $cours) {
+            $studentsWithAttendance = $localStudents->map(function ($student) use ($presentStudentMatricules, $biostarResults, $heureDebutPointage, $heureDebut, $tolerance, $cours, $attendanceMode, $exitCaptureWindow, $heureFin, $offsetMinutes) {
                 // Vérifier d'abord s'il y a un état manuellement défini dans la table absences
                 $manualState = $this->attendanceStateService->getStudentAttendanceState($cours->id, $student->id);
                 
@@ -975,52 +993,189 @@ class CoursController extends Controller
                 }
 
                 // Sinon, calculer l'état basé sur les données Biostar
-                $punchTime = $this->getPunchTime($student->matricule, $biostarResults);
-                $isPresent = false;
-                $isLate = false;
                 $status = 'absent';
-
-                if ($punchTime) {
-                    // Convertir l'heure de pointage en format comparable
-                    $punchTimeFormatted = date('H:i:s', strtotime($punchTime['time']));
-                    $heureDebutCours = date('H:i:s', strtotime($heureDebut));
+                $punchTime = null;
+                $punchIn = null;
+                $punchOut = null;
+                $punchInRaw = null;
+                $punchOutRaw = null;
+                
+                if ($attendanceMode === 'bicheck') {
+                    // Mode bi-check: nécessite pointage entrée ET sortie
+                    $punches = $this->getAllPunches($student->matricule, $biostarResults);
                     
-                    // Convertir la tolérance en minutes (format HH:MM -> minutes)
-                    $toleranceParts = explode(':', $tolerance);
-                    $toleranceMinutes = (int)$toleranceParts[0] * 60 + (int)$toleranceParts[1];
-                    
-                    // Calculer l'heure limite (début + tolérance en minutes)
-                    $heureLimite = date('H:i:s', strtotime($heureDebut . ' + ' . $toleranceMinutes . ' minutes'));
-                    
-                    // Debug logs pour le calcul du statut
-                    \Log::info("Calcul statut pour étudiant {$student->matricule}:", [
-                        'punch_time' => $punchTime['time'],
-                        'punch_time_formatted' => $punchTimeFormatted,
-                        'heure_debut_cours' => $heureDebutCours,
-                        'tolerance_original' => $tolerance,
-                        'tolerance_minutes' => $toleranceMinutes,
-                        'heure_limite' => $heureLimite,
-                        'comparison' => $punchTimeFormatted . ' <= ' . $heureLimite . ' = ' . ($punchTimeFormatted <= $heureLimite ? 'true' : 'false')
-                    ]);
-                    
-                    if ($punchTimeFormatted <= $heureLimite) {
-                        $isPresent = true;
-                        $status = $punchTimeFormatted <= $heureDebutCours ? 'present' : 'late';
+                    if (!empty($punches)) {
+                        $punchInRaw = $punches[0];
+                        $punchOutRaw = null;
                         
-                        \Log::info("Étudiant {$student->matricule} marqué comme présent:", [
-                            'status' => $status,
-                            'is_present' => $isPresent,
-                            'is_late' => $punchTimeFormatted > $heureDebutCours
+                        // Fonction pour normaliser les heures (ISO -> HH:MM:SS)
+                        $normalizeTimeLocal = function($t) {
+                            if (empty($t)) return '00:00:00';
+                            if (strpos($t, 'T') !== false || strpos($t, 'Z') !== false || strpos($t, '+') !== false) {
+                                try {
+                                    return (new \DateTime($t))->format('H:i:s');
+                                } catch (\Exception $e) {
+                                    // continue
+                                }
+                            }
+                            if (preg_match('/^\d{2}:\d{2}$/', $t)) {
+                                return $t . ':00';
+                            }
+                            if (preg_match('/^\d{2}:\d{2}:\d{2}$/', $t)) {
+                                return $t;
+                            }
+                            return date('H:i:s', strtotime($t));
+                        };
+                        
+                        // Normaliser la date du cours
+                        $normalizedDate = date('Y-m-d', strtotime($cours->date));
+                        
+                        // Normaliser les heures
+                        $heureDebutNormalized = $normalizeTimeLocal($heureDebut);
+                        $heureFinNormalized = $normalizeTimeLocal($heureFin);
+                        $heurePointageNormalized = $normalizeTimeLocal($cours->pointage_start_hour ?? $heureDebut);
+                        $toleranceNormalized = $normalizeTimeLocal($tolerance);
+                        
+                        // Convertir les heures en timestamps pour comparaison
+                        $heureDebutCours = strtotime($normalizedDate . ' ' . $heureDebutNormalized);
+                        $heureFinCours = strtotime($normalizedDate . ' ' . $heureFinNormalized);
+                        $heureDebutPointageTimestamp = strtotime($normalizedDate . ' ' . $heurePointageNormalized);
+                        
+                        // Convertir la tolérance en minutes (format HH:MM:SS)
+                        $toleranceParts = explode(':', $toleranceNormalized);
+                        $toleranceMinutes = (int)$toleranceParts[0] * 60 + (int)$toleranceParts[1];
+                        $heureLimiteEntree = $heureDebutCours + ($toleranceMinutes * 60);
+                        
+                        // Fenêtre de capture sortie (en secondes)
+                        $exitWindowSeconds = $exitCaptureWindow * 60;
+                        $heureLimiteSortie = $heureFinCours + $exitWindowSeconds;
+                        
+                        // Offset Biostar: le serveur Biostar est décalé de -60 minutes (sauf Rabat)
+                        // Pour comparer les punches avec les fenêtres locales, on doit ajouter l'offset inverse
+                        // aux timestamps des punches (c'est-à-dire +60 minutes pour Casablanca)
+                        $biostarOffsetSeconds = ($offsetMinutes * -1) * 60; // offsetMinutes = -60 → biostarOffsetSeconds = +3600
+                        
+                        // Log pour debug bi-check
+                        \Log::info('Bi-check fenêtres pour étudiant', [
+                            'matricule' => $student->matricule,
+                            'date' => $normalizedDate,
+                            'heure_debut' => $heureDebutNormalized,
+                            'heure_fin' => $heureFinNormalized,
+                            'heure_pointage' => $heurePointageNormalized,
+                            'tolerance' => $toleranceNormalized,
+                            'tolerance_minutes' => $toleranceMinutes,
+                            'biostar_offset_seconds' => $biostarOffsetSeconds,
+                            'fenetre_entree' => [
+                                'debut' => date('Y-m-d H:i:s', $heureDebutPointageTimestamp),
+                                'fin' => date('Y-m-d H:i:s', $heureLimiteEntree)
+                            ],
+                            'fenetre_sortie' => [
+                                'debut' => date('Y-m-d H:i:s', $heureFinCours),
+                                'fin' => date('Y-m-d H:i:s', $heureLimiteSortie)
+                            ],
+                            'punches_count' => count($punches),
+                            'punches' => array_map(function($p) use ($biostarOffsetSeconds) { 
+                                $raw = $p['time'] ?? 'N/A';
+                                $adjusted = $raw !== 'N/A' ? date('Y-m-d H:i:s', strtotime($raw) + $biostarOffsetSeconds) : 'N/A';
+                                return ['raw' => $raw, 'adjusted' => $adjusted];
+                            }, $punches)
                         ]);
+                        
+                        // Trouver le pointage d'entrée (premier avant heure_debut + tolérance)
+                        foreach ($punches as $punch) {
+                            // Appliquer l'offset Biostar pour obtenir l'heure locale réelle
+                            $punchTimestamp = strtotime($punch['time']) + $biostarOffsetSeconds;
+                            if ($punchTimestamp >= $heureDebutPointageTimestamp && $punchTimestamp <= $heureLimiteEntree) {
+                                $punchIn = $punch;
+                                break;
+                            }
+                        }
+                        
+                        // Trouver le pointage de sortie (après heure_fin, dans la fenêtre)
+                        $validatedExitFound = false;
+                        foreach ($punches as $punch) {
+                            // Appliquer l'offset Biostar pour obtenir l'heure locale réelle
+                            $punchTimestamp = strtotime($punch['time']) + $biostarOffsetSeconds;
+                            if ($punchTimestamp >= $heureFinCours && $punchTimestamp <= $heureLimiteSortie) {
+                                $punchOut = $punch;
+                                $punchOutRaw = $punch;
+                                $validatedExitFound = true;
+                                break;
+                            }
+                        }
+                        
+                        // Si aucun punch dans la fenêtre, mais qu'un second punch existe, afficher le dernier en brut
+                        if (!$validatedExitFound && count($punches) > 1) {
+                            $punchOutRaw = $punches[count($punches) - 1];
+                        }
+                        
+                        // Déterminer le statut
+                        if ($punchIn && $punchOut) {
+                            // Les deux pointages sont présents
+                            // Appliquer l'offset pour comparer avec l'heure de début du cours
+                            $punchInTimestamp = strtotime($punchIn['time']) + $biostarOffsetSeconds;
+                            $status = $punchInTimestamp <= $heureDebutCours ? 'present' : 'late';
+                            // On considère la sortie comme pointage principal (plus récent)
+                            $punchTime = $punchOut;
+                        } elseif ($punchIn && !$punchOut) {
+                            // Pointage entrée mais pas de sortie
+                            $status = 'pending_exit';
+                            $punchTime = null;
+                        } elseif (!$punchIn && !empty($punches)) {
+                            // Pointage détecté mais hors fenêtre d'entrée
+                            $status = 'pending_entry';
+                            $punchTime = null;
+                        }
                     } else {
-                        \Log::info("Étudiant {$student->matricule} marqué comme absent (en retard):", [
-                            'punch_time' => $punchTimeFormatted,
-                            'heure_limite' => $heureLimite
-                        ]);
+                        $punchInRaw = null;
+                        $punchOutRaw = null;
+                    }
+                } else {
+                    // Mode normal: logique existante
+                    $punchTime = $this->getPunchTime($student->matricule, $biostarResults);
+                    $isPresent = false;
+                    $isLate = false;
+
+                    if ($punchTime) {
+                        // Fonction pour normaliser les heures (ISO -> HH:MM:SS)
+                        $normalizeTimeLocal = function($t) {
+                            if (empty($t)) return '00:00:00';
+                            if (strpos($t, 'T') !== false || strpos($t, 'Z') !== false || strpos($t, '+') !== false) {
+                                try {
+                                    return (new \DateTime($t))->format('H:i:s');
+                                } catch (\Exception $e) {
+                                    // continue
+                                }
+                            }
+                            if (preg_match('/^\d{2}:\d{2}$/', $t)) {
+                                return $t . ':00';
+                            }
+                            if (preg_match('/^\d{2}:\d{2}:\d{2}$/', $t)) {
+                                return $t;
+                            }
+                            return date('H:i:s', strtotime($t));
+                        };
+                        
+                        // Convertir l'heure de pointage en format comparable
+                        $punchTimeFormatted = date('H:i:s', strtotime($punchTime['time']));
+                        $heureDebutCoursNormalized = $normalizeTimeLocal($heureDebut);
+                        $toleranceNormalized = $normalizeTimeLocal($tolerance);
+                        
+                        // Convertir la tolérance en minutes (format HH:MM:SS -> minutes)
+                        $toleranceParts = explode(':', $toleranceNormalized);
+                        $toleranceMinutes = (int)$toleranceParts[0] * 60 + (int)$toleranceParts[1];
+                        
+                        // Calculer l'heure limite (début + tolérance en minutes)
+                        $heureLimite = date('H:i:s', strtotime($heureDebutCoursNormalized . ' + ' . $toleranceMinutes . ' minutes'));
+                        
+                        if ($punchTimeFormatted <= $heureLimite) {
+                            $isPresent = true;
+                            $status = $punchTimeFormatted <= $heureDebutCoursNormalized ? 'present' : 'late';
+                        }
                     }
                 }
 
-                return [
+                $result = [
                     'id' => $student->id,
                     'matricule' => $student->matricule,
                     'first_name' => $student->first_name,
@@ -1037,13 +1192,23 @@ class CoursController extends Controller
                     'manual_override' => false,
                     'absence' => null
                 ];
+                
+                // Ajouter les pointages d'entrée et de sortie pour le mode bi-check
+                if ($attendanceMode === 'bicheck') {
+                    $result['punch_in'] = $punchIn;
+                    $result['punch_out'] = $punchOut;
+                    $result['punch_in_raw'] = $punchInRaw ?? $punchIn;
+                    $result['punch_out_raw'] = $punchOutRaw ?? $punchOut;
+                }
+                
+                return $result;
             });
 
             // Calculer les statistiques
             $totalStudents = $studentsWithAttendance->count();
             $presents = $studentsWithAttendance->where('status', 'present')->count();
             $lates = $studentsWithAttendance->where('status', 'late')->count();
-            $absents = $studentsWithAttendance->where('status', 'absent')->count();
+            $absents = $studentsWithAttendance->whereIn('status', ['absent', 'pending_entry', 'pending_exit'])->count();
             $excused = 0; // Pour l'instant, pas de gestion des excuses
 
             return response()->json([
@@ -1056,6 +1221,8 @@ class CoursController extends Controller
                     'heure_debut' => $cours->heure_debut,
                     'heure_fin' => $cours->heure_fin,
                     'tolerance' => $cours->tolerance,
+                    'attendance_mode' => $cours->attendance_mode ?? 'normal',
+                    'exit_capture_window' => $cours->exit_capture_window ?? 0,
                     'etablissement' => $cours->etablissement,
                     'promotion' => $cours->promotion,
                     'type_cours' => $cours->type_cours,
@@ -1183,6 +1350,78 @@ class CoursController extends Controller
         // Aucun match trouvé
         \Log::warning("Aucun match trouvé pour le matricule: '$matricule'");
         return null;
+    }
+
+    /**
+     * Get all punches for a specific student (for bi-check mode)
+     */
+    private function getAllPunches($matricule, $biostarResults)
+    {
+        $getTimestamp = function ($punch) {
+            $raw = $punch['devdt'] ?? ($punch['punch_time'] ?? null);
+            return $raw ? strtotime($raw) : null;
+        };
+        
+        $findMatches = function ($searchMatricule) use ($biostarResults) {
+            $matches = collect($biostarResults)->filter(function ($punch) use ($searchMatricule) {
+                return isset($punch['user_id']) && $punch['user_id'] == $searchMatricule;
+            });
+            
+            if ($matches->isEmpty()) {
+                // Essayer avec suppression des zéros
+                $trimmed = ltrim($searchMatricule, '0');
+                if ($trimmed !== $searchMatricule && !empty($trimmed)) {
+                    $matches = collect($biostarResults)->filter(function ($punch) use ($trimmed) {
+                        return isset($punch['user_id']) && $punch['user_id'] == $trimmed;
+                    });
+                }
+            }
+            
+            if ($matches->isEmpty()) {
+                // Essayer avec ajout de zéros
+                $padded = str_pad($searchMatricule, 6, '0', STR_PAD_LEFT);
+                if ($padded !== $searchMatricule) {
+                    $matches = collect($biostarResults)->filter(function ($punch) use ($padded) {
+                        return isset($punch['user_id']) && $punch['user_id'] == $padded;
+                    });
+                }
+            }
+            
+            if ($matches->isEmpty()) {
+                // Recherche partielle (contient le matricule)
+                $matches = collect($biostarResults)->filter(function ($punch) use ($searchMatricule) {
+                    return isset($punch['user_id']) && strpos($punch['user_id'], $searchMatricule) !== false;
+                });
+            }
+
+            if ($matches->isEmpty()) {
+                // Recherche inverse (le matricule contient user_id)
+                $matches = collect($biostarResults)->filter(function ($punch) use ($searchMatricule) {
+                    return isset($punch['user_id']) && strpos($searchMatricule, $punch['user_id']) !== false;
+                });
+            }
+
+            return $matches;
+        };
+        
+        $matches = $findMatches($matricule);
+        
+        if ($matches->isEmpty()) {
+            return [];
+        }
+        
+        // Trier par timestamp et retourner tous les pointages
+        return $matches
+            ->filter(function ($p) use ($getTimestamp) { return $getTimestamp($p) !== null; })
+            ->sortBy(function ($p) use ($getTimestamp) { return $getTimestamp($p); })
+            ->map(function ($punch) {
+                return [
+                    'time' => $punch['devdt'] ?? $punch['punch_time'],
+                    'device' => ($punch['devnm'] ?? ($punch['device'] ?? ($punch['device_name'] ?? ($punch['name'] ?? 'Inconnu'))))
+                ];
+            })
+            ->values()
+            ->toArray();
     }
 
     /**
