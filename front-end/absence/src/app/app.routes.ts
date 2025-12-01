@@ -41,6 +41,7 @@ import { AbsenceDisplayComponent } from './components/absence-display/absence-di
 import { CoursDisplayComponent } from './components/cours-display/cours-display.component';
 import { DisplayPublicGuard } from './guards/display-public.guard';
 import { AttendanceRapideComponent } from './components/attendance-rapide/attendance-rapide.component';
+import { TrackerComponent } from './components/tracker/tracker.component';
 
 export const routes: Routes = [
     {path: "", redirectTo: "login", pathMatch: "full"},
@@ -95,6 +96,7 @@ export const routes: Routes = [
 
             { path: "absences", component: AbsencesComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien'] } },
             { path: "attendance-rapide", component: AttendanceRapideComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },
+            { path: "tracker", component: TrackerComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien'] } },
             { path: "promotions", component: PromotionsComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },
             { path: "etablissements", component: EtablissementsComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin'] } },
             { path: "salles", component: SallesComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien'] } },

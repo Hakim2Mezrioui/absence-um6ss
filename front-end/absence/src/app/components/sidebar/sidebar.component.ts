@@ -377,6 +377,13 @@ export class SidebarComponent implements OnInit {
       roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien']
     },
     {
+      label: 'Traquer Étudiant',
+      icon: 'person_search',
+      route: '/tracker',
+      tooltip: 'Suivi détaillé de la présence d\'un étudiant',
+      roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien']
+    },
+    {
       label: 'Attendance Rapide',
       icon: 'speed',
       route: '/attendance-rapide',

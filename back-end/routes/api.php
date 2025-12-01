@@ -27,6 +27,7 @@ use App\Http\Controllers\AttendanceStateController;
 use App\Http\Controllers\EnseignantController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\AttendanceRapideController;
+use App\Http\Controllers\StudentTrackingController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -261,6 +262,9 @@ Route::post('attendance-rapide/lancer', [AttendanceRapideController::class, 'lan
 Route::get('attendance-rapide/template', [AttendanceRapideController::class, 'template']);
 Route::get('attendance-rapide/devices', [AttendanceRapideController::class, 'getDevices']);
 Route::get('attendance-rapide/{etablissementId}', [AttendanceRapideController::class, 'get']);
+
+// Student Tracking routes
+Route::get('student-tracking/track', [StudentTrackingController::class, 'track']);
 
 // Rattrapage routes - Routes spécifiques AVANT la ressource
 Route::get('rattrapages/search', [RattrapageController::class, 'search']);

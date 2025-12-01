@@ -1,0 +1,37 @@
+/* Tracker component styles */
+.container {
+  max-width: 1400px;
+}
+
+table {
+  width: 100%;
+}
+
+tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+/* Student search dropdown styles */
+.student-dropdown {
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.student-dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.student-dropdown::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.student-dropdown::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.student-dropdown::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
