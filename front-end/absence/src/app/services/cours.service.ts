@@ -15,6 +15,7 @@ export interface Cours {
   tolerance: string;
   attendance_mode?: 'normal' | 'bicheck';
   exit_capture_window?: number;
+  tracking_method?: 'biostar' | 'qr_code';
   etablissement_id: number;
   promotion_id: number;
   type_cours_id: number;

@@ -28,6 +28,7 @@ export class AddCoursComponent implements OnInit, OnDestroy {
     tolerance: '00:15', // Valeur par défaut en format time
     attendance_mode: 'normal',
     exit_capture_window: 0,
+    tracking_method: 'biostar',
     etablissement_id: 0,
     promotion_id: 0,
     type_cours_id: 0,
@@ -612,6 +613,7 @@ export class AddCoursComponent implements OnInit, OnDestroy {
       tolerance: '00:15',
       attendance_mode: 'normal',
       exit_capture_window: 0,
+      tracking_method: 'biostar',
       etablissement_id: 0,
       promotion_id: 0,
       type_cours_id: 0,

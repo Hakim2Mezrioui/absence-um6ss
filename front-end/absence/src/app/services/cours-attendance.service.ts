@@ -14,6 +14,7 @@ export interface CoursAttendanceData {
     tolerance: string;
     attendance_mode?: 'normal' | 'bicheck';
     exit_capture_window?: number;
+    tracking_method?: 'biostar' | 'qr_code';
     annee_universitaire: string;
     etablissement_id: number;
     promotion_id: number;

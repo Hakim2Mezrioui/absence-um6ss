@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'super.admin' => \App\Http\Middleware\SuperAdminMiddleware::class,
+            'auth.etudiant' => \App\Http\Middleware\AuthenticateEtudiant::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

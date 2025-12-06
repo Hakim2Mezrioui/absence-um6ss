@@ -103,7 +103,8 @@ export class AddExamenComponent implements OnInit, OnDestroy {
       group_id: [''], // Permet null pour "Tous"
       ville_id: ['', Validators.required],
       annee_universitaire: ['', Validators.required],
-      all_groups: [false]
+      all_groups: [false],
+      tracking_method: ['biostar', Validators.required]
     });
 
     this.newSalleForm = this.fb.group({

@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil, interval } from 'rxjs';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
@@ -137,7 +137,8 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     private biostarAttendanceService: BiostarAttendanceService,
     private fb: FormBuilder,
     private route: ActivatedRoute,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -2616,6 +2617,56 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     
     // Ouvrir dans une nouvelle fenêtre en plein écran
     const url = `/cours-display/${this.coursId}`;
+    window.open(url, '_blank', 'fullscreen=yes');
+  }
+
+  /**
+   * Indique si la méthode de suivi du cours est le QR code.
+   * Utilisé dans le template pour éviter les erreurs de typage strict.
+   */
+  get isQrTracking(): boolean {
+    if (!this.coursData || !this.coursData.cours) {
+      return false;
+    }
+    const trackingMethod = (this.coursData.cours as any)?.tracking_method;
+    const result = trackingMethod === 'qr_code';
+    console.log('🔍 isQrTracking check:', {
+      trackingMethod,
+      result,
+      coursId: this.coursId,
+      coursDataExists: !!this.coursData,
+      coursExists: !!this.coursData?.cours
+    });
+    return result;
+  }
+
+  /**
+   * Récupère la méthode de suivi actuelle (pour affichage de débogage).
+   */
+  get trackingMethod(): string {
+    if (!this.coursData || !this.coursData.cours) {
+      return 'non défini';
+    }
+    return (this.coursData.cours as any)?.tracking_method || 'non défini';
+  }
+
+  /**
+   * Ouvrir l'affichage du QR code dans une nouvelle fenêtre
+   */
+  openQrDisplay(): void {
+    if (!this.coursId) {
+      console.warn('⚠️ Aucun ID de cours disponible');
+      this.notificationService.warning(
+        'ID de cours manquant',
+        'Impossible d\'ouvrir l\'affichage du QR code car l\'ID du cours n\'est pas disponible.'
+      );
+      return;
+    }
+    
+    console.log('📱 Ouverture de l\'affichage QR code pour le cours ID:', this.coursId);
+    
+    // Ouvrir dans une nouvelle fenêtre en plein écran
+    const url = `/qr-display/cours/${this.coursId}`;
     window.open(url, '_blank', 'fullscreen=yes');
   }
 }

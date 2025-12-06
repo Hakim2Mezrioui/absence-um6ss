@@ -26,6 +26,7 @@ export class EditCoursComponent implements OnInit, OnDestroy {
     tolerance: '',
     attendance_mode: 'normal',
     exit_capture_window: 0,
+    tracking_method: 'biostar',
     etablissement_id: 0,
     promotion_id: 0,
     type_cours_id: 0,
@@ -268,7 +269,8 @@ export class EditCoursComponent implements OnInit, OnDestroy {
           date: cours.date ? cours.date.split('T')[0] : '', // Format pour input date
           option_id: cours.option_id || undefined,
           attendance_mode: cours.attendance_mode || 'normal',
-          exit_capture_window: cours.exit_capture_window || 0
+          exit_capture_window: cours.exit_capture_window || 0,
+          tracking_method: cours.tracking_method || 'biostar'
         };
         
         // Initialiser les propriétés du mode bi-check

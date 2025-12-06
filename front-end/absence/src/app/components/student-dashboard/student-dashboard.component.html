@@ -1,0 +1,454 @@
+<!-- Drawer Overlay -->
+<div 
+  *ngIf="isDrawerOpen" 
+  class="fixed inset-0 bg-black/50 z-40 transition-opacity duration-300"
+  (click)="closeDrawer()"
+></div>
+
+<!-- Drawer -->
+<div 
+  [class.translate-x-0]="isDrawerOpen"
+  [class.-translate-x-full]="!isDrawerOpen"
+  class="fixed top-0 left-0 h-full w-72 bg-gradient-to-b from-blue-600 to-blue-800 z-50 transform transition-transform duration-300 ease-in-out shadow-2xl"
+>
+  <!-- Drawer Header -->
+  <div class="p-6 border-b border-blue-500">
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+          <span class="material-icons text-white text-2xl">school</span>
+        </div>
+        <div>
+          <p class="text-white font-semibold text-lg" *ngIf="currentUser">
+            {{ currentUser.first_name }}
+          </p>
+          <p class="text-indigo-200 text-sm" *ngIf="currentUser">
+            {{ currentUser.last_name }}
+          </p>
+        </div>
+      </div>
+      <button 
+        (click)="closeDrawer()" 
+        class="text-indigo-200 hover:text-white transition-colors p-1"
+      >
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+    </div>
+
+  <!-- Navigation Items -->
+  <nav class="p-4 flex-1">
+    <ul class="space-y-2">
+      <li>
+        <button 
+          (click)="navigateTo('cours')"
+          [class.bg-white]="activeSection === 'cours'"
+          [class.text-blue-700]="activeSection === 'cours'"
+          [class.shadow-lg]="activeSection === 'cours'"
+          [class.text-white]="activeSection !== 'cours'"
+          [class.hover:bg-blue-500]="activeSection !== 'cours'"
+          class="w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 font-medium"
+        >
+          <span class="material-icons">book</span>
+            <span>Mes Cours</span>
+          <span 
+            *ngIf="coursEnCours.length + coursFuturs.length > 0"
+            class="ml-auto bg-blue-400 text-white text-xs px-2 py-1 rounded-full"
+            [class.bg-blue-200]="activeSection === 'cours'"
+            [class.text-blue-700]="activeSection === 'cours'"
+          >
+            {{ coursEnCours.length + coursFuturs.length }}
+          </span>
+        </button>
+      </li>
+      <li>
+        <button 
+          (click)="navigateTo('examens')"
+          [class.bg-white]="activeSection === 'examens'"
+          [class.text-blue-700]="activeSection === 'examens'"
+          [class.shadow-lg]="activeSection === 'examens'"
+          [class.text-white]="activeSection !== 'examens'"
+          [class.hover:bg-blue-500]="activeSection !== 'examens'"
+          class="w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 font-medium"
+        >
+          <span class="material-icons">assignment</span>
+          <span>Mes Examens</span>
+          <span 
+            *ngIf="examensEnCours.length + examensFuturs.length > 0"
+            class="ml-auto bg-blue-400 text-white text-xs px-2 py-1 rounded-full"
+            [class.bg-blue-200]="activeSection === 'examens'"
+            [class.text-blue-700]="activeSection === 'examens'"
+          >
+            {{ examensEnCours.length + examensFuturs.length }}
+          </span>
+        </button>
+      </li>
+      <li>
+        <button 
+          (click)="navigateTo('absences')"
+          [class.bg-white]="activeSection === 'absences'"
+          [class.text-blue-700]="activeSection === 'absences'"
+          [class.shadow-lg]="activeSection === 'absences'"
+          [class.text-white]="activeSection !== 'absences'"
+          [class.hover:bg-blue-500]="activeSection !== 'absences'"
+          class="w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 font-medium"
+        >
+          <span class="material-icons">event_busy</span>
+          <span>Mes Absences</span>
+        </button>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Drawer Footer -->
+  <div class="p-4 border-t border-blue-500">
+    <button 
+      (click)="logout()"
+      class="w-full flex items-center gap-4 px-4 py-3 text-red-300 hover:bg-red-500/20 rounded-xl transition-colors font-medium"
+    >
+      <span class="material-icons">logout</span>
+      <span>Déconnexion</span>
+    </button>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+  <!-- Header compact -->
+  <header class="bg-gradient-to-r from-blue-500 to-blue-600 sticky top-0 z-30 shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+      <div class="flex items-center justify-between">
+        <!-- Gauche: Menu + Section active -->
+        <div class="flex items-center gap-3">
+          <button 
+            (click)="toggleDrawer()"
+            class="p-2 -ml-2 rounded-lg text-white/90 hover:bg-white/10 transition-colors"
+          >
+            <span class="material-icons text-2xl">menu</span>
+          </button>
+          
+          <!-- Section active badge -->
+          <div class="flex items-center gap-2 bg-white/15 px-3 py-1.5 rounded-full">
+            <span class="material-icons text-white text-sm">
+              <ng-container *ngIf="activeSection === 'cours'">book</ng-container>
+              <ng-container *ngIf="activeSection === 'examens'">assignment</ng-container>
+              <ng-container *ngIf="activeSection === 'absences'">event_busy</ng-container>
+            </span>
+            <span class="text-white text-sm font-medium">
+              <ng-container *ngIf="activeSection === 'cours'">Cours</ng-container>
+              <ng-container *ngIf="activeSection === 'examens'">Examens</ng-container>
+              <ng-container *ngIf="activeSection === 'absences'">Absences</ng-container>
+            </span>
+          </div>
+        </div>
+
+        <!-- Droite: Nom -->
+        <div class="flex items-center gap-3">
+          <p class="text-white text-sm hidden sm:block" *ngIf="currentUser">
+            {{ getGreeting() }}, <span class="font-semibold">{{ currentUser.first_name }}</span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Page Content -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- ============= COURS SECTION ============= -->
+    <div *ngIf="activeSection === 'cours'" class="space-y-4">
+      <!-- Header: Tab bar + Refresh -->
+      <div class="flex items-center justify-between">
+        <!-- Tab Bar -->
+        <div class="inline-flex bg-white rounded-xl p-1 shadow-sm">
+          <button 
+            (click)="activeCoursTab = 'en_cours'"
+            [class.bg-blue-500]="activeCoursTab === 'en_cours'"
+            [class.text-white]="activeCoursTab === 'en_cours'"
+            [class.text-gray-600]="activeCoursTab !== 'en_cours'"
+            class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all"
+          >
+            <span class="w-2 h-2 rounded-full" [class.bg-white]="activeCoursTab === 'en_cours'" [class.bg-blue-500]="activeCoursTab !== 'en_cours'" [class.animate-pulse]="activeCoursTab === 'en_cours'"></span>
+            En cours
+            <span class="bg-white/20 px-1.5 py-0.5 rounded text-xs" *ngIf="activeCoursTab === 'en_cours'">{{ coursEnCours.length }}</span>
+            <span class="bg-gray-100 px-1.5 py-0.5 rounded text-xs text-gray-500" *ngIf="activeCoursTab !== 'en_cours'">{{ coursEnCours.length }}</span>
+          </button>
+          <button 
+            (click)="activeCoursTab = 'a_venir'"
+            [class.bg-green-500]="activeCoursTab === 'a_venir'"
+            [class.text-white]="activeCoursTab === 'a_venir'"
+            [class.text-gray-600]="activeCoursTab !== 'a_venir'"
+            class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all"
+          >
+            <span class="w-2 h-2 rounded-full" [class.bg-white]="activeCoursTab === 'a_venir'" [class.bg-green-500]="activeCoursTab !== 'a_venir'"></span>
+            À venir
+            <span class="bg-white/20 px-1.5 py-0.5 rounded text-xs" *ngIf="activeCoursTab === 'a_venir'">{{ coursFuturs.length }}</span>
+            <span class="bg-gray-100 px-1.5 py-0.5 rounded text-xs text-gray-500" *ngIf="activeCoursTab !== 'a_venir'">{{ coursFuturs.length }}</span>
+          </button>
+        </div>
+
+        <!-- Refresh Button -->
+          <button 
+            (click)="loadCours()" 
+          class="p-2 bg-white rounded-lg shadow-sm text-blue-600 hover:bg-blue-50 transition-colors"
+            [disabled]="loadingCours"
+            title="Actualiser"
+          >
+          <span class="material-icons" [class.animate-spin]="loadingCours">refresh</span>
+          </button>
+        </div>
+
+        <!-- Loading State -->
+      <div *ngIf="loadingCours" class="flex justify-center items-center py-16">
+        <div class="animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-600"></div>
+        </div>
+
+        <!-- Error State -->
+      <div *ngIf="errorCours && !loadingCours" class="bg-red-50 border border-red-200 rounded-xl p-4">
+        <div class="flex items-center gap-3">
+          <span class="material-icons text-red-500">error</span>
+          <p class="text-red-800">{{ errorCours }}</p>
+        </div>
+        </div>
+
+        <!-- Cours en cours -->
+      <div *ngIf="!loadingCours && !errorCours && activeCoursTab === 'en_cours'">
+        <div *ngIf="coursEnCours.length === 0" class="bg-white rounded-xl p-12 text-center shadow-sm">
+          <span class="material-icons text-6xl text-gray-300 mb-4">schedule</span>
+          <p class="text-gray-500 text-lg">Aucun cours en ce moment</p>
+          <p class="text-gray-400 text-sm mt-1">Les cours en cours apparaîtront ici</p>
+          </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div 
+              *ngFor="let cours of coursEnCours" 
+            class="bg-white border-l-4 border-blue-500 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
+          >
+            <div class="flex items-start justify-between mb-3">
+              <h4 class="font-semibold text-gray-900 text-lg flex-1">{{ cours.name }}</h4>
+              <div class="flex items-center gap-2">
+                <!-- Bouton Scan QR (seulement si tracking_method = qr_code) -->
+                <button 
+                  *ngIf="cours.tracking_method === 'qr_code'"
+                  (click)="openQrScanner()"
+                  class="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  title="Scanner QR Code pour marquer la présence"
+                >
+                  <span class="material-icons text-lg">qr_code_scanner</span>
+                </button>
+                <span class="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  En cours
+                </span>
+              </div>
+              </div>
+            <div class="space-y-2 text-sm text-gray-600">
+                <div class="flex items-center gap-2">
+                <span class="material-icons text-lg text-gray-400">schedule</span>
+                  <span>{{ formatTime(cours.heure_debut) }} - {{ formatTime(cours.heure_fin) }}</span>
+                </div>
+                <div class="flex items-center gap-2" *ngIf="cours.salle">
+                <span class="material-icons text-lg text-gray-400">location_on</span>
+                <span>{{ cours.salle.name }}</span>
+                </div>
+                <div class="flex items-center gap-2" *ngIf="cours.type_cours">
+                <span class="material-icons text-lg text-gray-400">category</span>
+                <span>{{ cours.type_cours.name }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      <!-- Cours à venir -->
+      <div *ngIf="!loadingCours && !errorCours && activeCoursTab === 'a_venir'">
+        <div *ngIf="coursFuturs.length === 0" class="bg-white rounded-xl p-12 text-center shadow-sm">
+          <span class="material-icons text-6xl text-gray-300 mb-4">event</span>
+          <p class="text-gray-500 text-lg">Aucun cours programmé</p>
+          <p class="text-gray-400 text-sm mt-1">Les prochains cours apparaîtront ici</p>
+          </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div 
+              *ngFor="let cours of coursFuturs" 
+            class="bg-white border-l-4 border-green-500 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
+          >
+            <div class="flex items-start justify-between mb-3">
+              <h4 class="font-semibold text-gray-900 text-lg">{{ cours.name }}</h4>
+              <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                À venir
+                </span>
+            </div>
+            <div class="space-y-2 text-sm text-gray-600">
+              <div class="flex items-center gap-2">
+                <span class="material-icons text-lg text-gray-400">event</span>
+                <span>{{ formatDate(cours.date) }}</span>
+              </div>
+                <div class="flex items-center gap-2">
+                <span class="material-icons text-lg text-gray-400">schedule</span>
+                  <span>{{ formatTime(cours.heure_debut) }} - {{ formatTime(cours.heure_fin) }}</span>
+                </div>
+                <div class="flex items-center gap-2" *ngIf="cours.salle">
+                <span class="material-icons text-lg text-gray-400">location_on</span>
+                <span>{{ cours.salle.name }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============= EXAMENS SECTION ============= -->
+    <div *ngIf="activeSection === 'examens'" class="space-y-4">
+      <!-- Header: Tab bar + Refresh -->
+      <div class="flex items-center justify-between">
+        <!-- Tab Bar -->
+        <div class="inline-flex bg-white rounded-xl p-1 shadow-sm">
+          <button 
+            (click)="activeExamensTab = 'en_cours'"
+            [class.bg-blue-500]="activeExamensTab === 'en_cours'"
+            [class.text-white]="activeExamensTab === 'en_cours'"
+            [class.text-gray-600]="activeExamensTab !== 'en_cours'"
+            class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all"
+          >
+            <span class="w-2 h-2 rounded-full" [class.bg-white]="activeExamensTab === 'en_cours'" [class.bg-blue-500]="activeExamensTab !== 'en_cours'" [class.animate-pulse]="activeExamensTab === 'en_cours'"></span>
+            En cours
+            <span class="bg-white/20 px-1.5 py-0.5 rounded text-xs" *ngIf="activeExamensTab === 'en_cours'">{{ examensEnCours.length }}</span>
+            <span class="bg-gray-100 px-1.5 py-0.5 rounded text-xs text-gray-500" *ngIf="activeExamensTab !== 'en_cours'">{{ examensEnCours.length }}</span>
+          </button>
+          <button 
+            (click)="activeExamensTab = 'a_venir'"
+            [class.bg-green-500]="activeExamensTab === 'a_venir'"
+            [class.text-white]="activeExamensTab === 'a_venir'"
+            [class.text-gray-600]="activeExamensTab !== 'a_venir'"
+            class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all"
+          >
+            <span class="w-2 h-2 rounded-full" [class.bg-white]="activeExamensTab === 'a_venir'" [class.bg-green-500]="activeExamensTab !== 'a_venir'"></span>
+            À venir
+            <span class="bg-white/20 px-1.5 py-0.5 rounded text-xs" *ngIf="activeExamensTab === 'a_venir'">{{ examensFuturs.length }}</span>
+            <span class="bg-gray-100 px-1.5 py-0.5 rounded text-xs text-gray-500" *ngIf="activeExamensTab !== 'a_venir'">{{ examensFuturs.length }}</span>
+          </button>
+        </div>
+
+        <!-- Refresh Button -->
+        <button 
+          (click)="loadExamens()" 
+          class="p-2 bg-white rounded-lg shadow-sm text-blue-600 hover:bg-blue-50 transition-colors"
+          [disabled]="loadingExamens"
+          title="Actualiser"
+        >
+          <span class="material-icons" [class.animate-spin]="loadingExamens">refresh</span>
+          </button>
+        </div>
+
+        <!-- Loading State -->
+      <div *ngIf="loadingExamens" class="flex justify-center items-center py-16">
+        <div class="animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-600"></div>
+        </div>
+
+        <!-- Error State -->
+      <div *ngIf="errorExamens && !loadingExamens" class="bg-red-50 border border-red-200 rounded-xl p-4">
+        <div class="flex items-center gap-3">
+          <span class="material-icons text-red-500">error</span>
+          <p class="text-red-800">{{ errorExamens }}</p>
+        </div>
+        </div>
+
+        <!-- Examens en cours -->
+      <div *ngIf="!loadingExamens && !errorExamens && activeExamensTab === 'en_cours'">
+        <div *ngIf="examensEnCours.length === 0" class="bg-white rounded-xl p-12 text-center shadow-sm">
+          <span class="material-icons text-6xl text-gray-300 mb-4">assignment</span>
+          <p class="text-gray-500 text-lg">Aucun examen en ce moment</p>
+          <p class="text-gray-400 text-sm mt-1">Les examens en cours apparaîtront ici</p>
+          </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div 
+              *ngFor="let examen of examensEnCours" 
+            class="bg-white border-l-4 border-blue-500 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
+          >
+            <div class="flex items-start justify-between mb-3">
+              <h4 class="font-semibold text-gray-900 text-lg flex-1">{{ examen.title }}</h4>
+              <div class="flex items-center gap-2">
+                <!-- Bouton Scan QR (seulement si tracking_method = qr_code) -->
+                <button 
+                  *ngIf="examen.tracking_method === 'qr_code'"
+                  (click)="openQrScanner()"
+                  class="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  title="Scanner QR Code pour marquer la présence"
+                >
+                  <span class="material-icons text-lg">qr_code_scanner</span>
+                </button>
+                <span class="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  En cours
+                </span>
+              </div>
+              </div>
+            <div class="space-y-2 text-sm text-gray-600">
+                <div class="flex items-center gap-2">
+                <span class="material-icons text-lg text-gray-400">schedule</span>
+                  <span>{{ formatTime(examen.heure_debut) }} - {{ formatTime(examen.heure_fin) }}</span>
+                </div>
+                <div class="flex items-center gap-2" *ngIf="examen.salle">
+                <span class="material-icons text-lg text-gray-400">location_on</span>
+                <span>{{ examen.salle.name }}</span>
+                </div>
+                <div class="flex items-center gap-2" *ngIf="examen.type_examen">
+                <span class="material-icons text-lg text-gray-400">category</span>
+                <span>{{ examen.type_examen.name }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      <!-- Examens à venir -->
+      <div *ngIf="!loadingExamens && !errorExamens && activeExamensTab === 'a_venir'">
+        <div *ngIf="examensFuturs.length === 0" class="bg-white rounded-xl p-12 text-center shadow-sm">
+          <span class="material-icons text-6xl text-gray-300 mb-4">event_note</span>
+          <p class="text-gray-500 text-lg">Aucun examen programmé</p>
+          <p class="text-gray-400 text-sm mt-1">Les prochains examens apparaîtront ici</p>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div 
+            *ngFor="let examen of examensFuturs" 
+            class="bg-white border-l-4 border-green-500 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
+          >
+            <div class="flex items-start justify-between mb-3">
+              <h4 class="font-semibold text-gray-900 text-lg">{{ examen.title }}</h4>
+              <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                À venir
+              </span>
+            </div>
+            <div class="space-y-2 text-sm text-gray-600">
+              <div class="flex items-center gap-2">
+                <span class="material-icons text-lg text-gray-400">event</span>
+                <span>{{ formatDate(examen.date) }}</span>
+              </div>
+                <div class="flex items-center gap-2">
+                <span class="material-icons text-lg text-gray-400">schedule</span>
+                  <span>{{ formatTime(examen.heure_debut) }} - {{ formatTime(examen.heure_fin) }}</span>
+                </div>
+                <div class="flex items-center gap-2" *ngIf="examen.salle">
+                <span class="material-icons text-lg text-gray-400">location_on</span>
+                <span>{{ examen.salle.name }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============= ABSENCES SECTION ============= -->
+    <div *ngIf="activeSection === 'absences'" class="space-y-6">
+      <div class="bg-white rounded-xl p-8 text-center shadow-sm">
+        <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-amber-100 flex items-center justify-center">
+          <span class="material-icons text-4xl text-amber-600">construction</span>
+        </div>
+        <h3 class="text-xl font-semibold text-gray-800 mb-2">Section en développement</h3>
+        <p class="text-gray-500 max-w-md mx-auto">
+          Cette fonctionnalité sera bientôt disponible. Vous pourrez consulter l'historique de vos absences ici.
+        </p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- QR Scanner Modal -->
+<app-qr-scanner *ngIf="isQrScannerOpen"></app-qr-scanner>

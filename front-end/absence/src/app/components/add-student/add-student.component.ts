@@ -169,7 +169,7 @@ export class AddStudentComponent implements OnInit, OnDestroy {
     formData.append('last_name', this.studentForm.get('last_name')?.value);
     formData.append('email', this.studentForm.get('email')?.value);
     formData.append('matricule', this.studentForm.get('matricule')?.value);
-    formData.append('password', 'defaultPassword123'); // Générer un mot de passe par défaut
+    // Ne pas envoyer le password - le backend utilisera automatiquement le matricule comme mot de passe
     formData.append('ville_id', this.studentForm.get('ville_id')?.value);
     formData.append('etablissement_id', this.studentForm.get('etablissement_id')?.value);
     formData.append('promotion_id', this.studentForm.get('promotion_id')?.value);

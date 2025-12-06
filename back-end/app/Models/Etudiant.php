@@ -6,10 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Scopes\UserContextScope;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Laravel\Sanctum\HasApiTokens;
 
-class Etudiant extends Model
+class Etudiant extends Authenticatable
 {
-    use HasFactory;
+    use HasFactory, HasApiTokens;
     
     // protected $primaryKey = 'matricule'; // Commenté pour utiliser 'id' par défaut
     // public $incrementing = false; // Commenté pour permettre l'auto-incrémentation
@@ -28,6 +30,17 @@ class Etudiant extends Model
         "group_id",
         "option_id", // Optionnel - toutes les écoles n'utilisent pas les options
     ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    /**
+     * Note: Pas de cast 'hashed' pour le password.
+     * Le hashage est géré explicitement avec Hash::make() dans les contrôleurs
+     * pour éviter les conflits de double hashage.
+     */
 
     /**
      * Get the promotion that owns the etudiant.

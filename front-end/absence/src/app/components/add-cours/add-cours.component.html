@@ -260,6 +260,37 @@
               </div>
             </div>
           </div>
+          
+          <!-- Méthode de suivi (Biostar / QR code) -->
+          <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label for="tracking_method" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <span class="material-icons text-green-600 text-lg">qr_code</span>
+                Méthode de suivi <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                <select
+                  id="tracking_method"
+                  name="tracking_method"
+                  [(ngModel)]="cours.tracking_method"
+                  class="w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl shadow-sm
+                         focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500
+                         bg-white hover:border-green-400 transition-all duration-200"
+                  required
+                >
+                  <option value="biostar">Biostar (Face ID / Biostar)</option>
+                  <option value="qr_code">Code QR (scan par étudiant)</option>
+                </select>
+                <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
+                  arrow_drop_down
+                </span>
+              </div>
+              <p class="mt-2 text-xs text-gray-500 flex items-center gap-1">
+                <span class="material-icons text-xs">info</span>
+                Choisissez entre le suivi automatique Biostar ou le scan de code QR par les étudiants.
+              </p>
+            </div>
+          </div>
         </div>
 
         <!-- Section Classification -->

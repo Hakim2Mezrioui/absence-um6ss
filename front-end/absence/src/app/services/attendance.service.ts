@@ -80,6 +80,7 @@ export interface AttendanceResponse {
     heure_fin: string;
     heure_debut_poigntage?: string;
     tolerance: number;
+    tracking_method?: 'biostar' | 'qr_code';
     salle?: {
       id: number;
       name: string;

@@ -151,6 +151,7 @@ class CoursController extends Controller
             'heure_fin' => 'required|date_format:H:i|after:heure_debut',
             'tolerance' => 'required|date_format:H:i',
             'attendance_mode' => 'nullable|in:normal,bicheck',
+            'tracking_method' => 'nullable|in:biostar,qr_code',
             'exit_capture_window' => 'nullable|integer|min:0|max:120',
             'etablissement_id' => 'required|exists:etablissements,id',
             'promotion_id' => 'required|exists:promotions,id',
@@ -168,6 +169,7 @@ class CoursController extends Controller
         // Valeurs par défaut pour les nouveaux champs
         $validatedData['attendance_mode'] = $validatedData['attendance_mode'] ?? 'normal';
         $validatedData['exit_capture_window'] = $validatedData['exit_capture_window'] ?? 0;
+        $validatedData['tracking_method'] = $validatedData['tracking_method'] ?? 'biostar';
 
         // Validation : au moins une salle doit être fournie (salle_id ou salles_ids)
         if (empty($validatedData['salles_ids']) && empty($validatedData['salle_id'])) {
@@ -266,6 +268,7 @@ class CoursController extends Controller
             'heure_fin' => 'sometimes|date_format:H:i|after:heure_debut',
             'tolerance' => 'sometimes|date_format:H:i',
             'attendance_mode' => 'nullable|in:normal,bicheck',
+            'tracking_method' => 'nullable|in:biostar,qr_code',
             'exit_capture_window' => 'nullable|integer|min:0|max:120',
             'etablissement_id' => 'sometimes|exists:etablissements,id',
             'promotion_id' => 'sometimes|exists:promotions,id',
@@ -1223,6 +1226,7 @@ class CoursController extends Controller
                     'tolerance' => $cours->tolerance,
                     'attendance_mode' => $cours->attendance_mode ?? 'normal',
                     'exit_capture_window' => $cours->exit_capture_window ?? 0,
+                    'tracking_method' => $cours->tracking_method ?? 'biostar',
                     'etablissement' => $cours->etablissement,
                     'promotion' => $cours->promotion,
                     'type_cours' => $cours->type_cours,

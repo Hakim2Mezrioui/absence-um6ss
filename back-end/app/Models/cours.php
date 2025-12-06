@@ -19,6 +19,7 @@ class Cours extends Model
         'tolerance',
         'attendance_mode',
         'exit_capture_window',
+        'tracking_method',
         'annee_universitaire',
         'etablissement_id',
         'promotion_id',
