@@ -21,14 +21,14 @@
       <div class="flex items-center gap-4 transition-all duration-300 ease-in-out"
            *ngIf="!isCollapsed || isMobile">
         <div class="relative flex items-center justify-center">
-          <div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-2xl ring-2 ring-gray-200/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-3xl hover:ring-gray-300/50 hover:scale-105 overflow-hidden">
+          <div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-2xl ring-2 ring-gray-200/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-3xl hover:ring-gray-300/50 hover:scale-105 overflow-hidden hidden">
             <img src="assets/logo_um6ss.png" alt="UM6SS Logo" class="w-full h-full object-contain p-1">
           </div>
           <!-- Effet de brillance -->
           <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
         </div>
         <div class="flex flex-col gap-1" *ngIf="!isCollapsed || isMobile">
-          <h1 class="text-lg font-bold text-gray-900 leading-tight m-0 drop-shadow-sm">UM6SS</h1>
+          <h1 class="text-lg font-bold text-gray-900 leading-tight m-0 drop-shadow-sm hidden">UM6SS</h1>
           <p class="text-xs font-semibold text-gray-600 leading-tight m-0">Gestion Absences</p>
         </div>
       </div>
