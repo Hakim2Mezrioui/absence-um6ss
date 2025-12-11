@@ -217,7 +217,7 @@
               Statut
             </th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Heure pointage
+              Pointage
             </th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Device
@@ -253,7 +253,25 @@
               </span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-              {{ formatPunchTimeSimple(result.punch_time) }}
+              <!-- Mode Bi-check: afficher entrée et sortie séparément -->
+              <div *ngIf="result.attendance_mode === 'bicheck'" class="space-y-1">
+                <div class="flex items-center gap-1">
+                  <span class="text-xs text-gray-500">Entrée:</span>
+                  <span [class]="result.punch_in ? 'text-green-600' : 'text-red-600'">
+                    {{ result.punch_in ? formatPunchTimeSimple(result.punch_in) : 'Aucun' }}
+                  </span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <span class="text-xs text-gray-500">Sortie:</span>
+                  <span [class]="result.punch_out ? 'text-green-600' : 'text-red-600'">
+                    {{ result.punch_out ? formatPunchTimeSimple(result.punch_out) : 'Aucun' }}
+                  </span>
+                </div>
+              </div>
+              <!-- Mode normal: afficher heure de pointage simple -->
+              <span *ngIf="result.attendance_mode !== 'bicheck'">
+                {{ formatPunchTimeSimple(result.punch_time) }}
+              </span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
               {{ result.device || '-' }}

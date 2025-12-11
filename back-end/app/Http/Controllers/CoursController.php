@@ -1084,32 +1084,45 @@ class CoursController extends Controller
                             }, $punches)
                         ]);
                         
-                        // Trouver le pointage d'entrée (premier avant heure_debut + tolérance)
-                        foreach ($punches as $punch) {
-                            // Appliquer l'offset Biostar pour obtenir l'heure locale réelle
-                            $punchTimestamp = strtotime($punch['time']) + $biostarOffsetSeconds;
-                            if ($punchTimestamp >= $heureDebutPointageTimestamp && $punchTimestamp <= $heureLimiteEntree) {
-                                $punchIn = $punch;
-                                break;
-                            }
+                        // Normaliser les punches avec timestamp local (offset Biostar corrigé)
+                        $punchesWithTs = array_map(function($p) use ($biostarOffsetSeconds) {
+                            return array_merge($p, [
+                                'timestamp' => strtotime($p['time']) + $biostarOffsetSeconds
+                            ]);
+                        }, $punches);
+
+                        // Entrée : conserver le PREMIER punch dans la fenêtre d'entrée
+                        $entryCandidates = array_values(array_filter($punchesWithTs, function($p) use ($heureDebutPointageTimestamp, $heureLimiteEntree) {
+                            return $p['timestamp'] >= $heureDebutPointageTimestamp && $p['timestamp'] <= $heureLimiteEntree;
+                        }));
+                        if (!empty($entryCandidates)) {
+                            usort($entryCandidates, function($a, $b) { return $a['timestamp'] <=> $b['timestamp']; });
+                            $punchIn = [
+                                'time' => $entryCandidates[0]['time'],
+                                'device' => $entryCandidates[0]['device']
+                            ];
+                            $punchInRaw = $punchIn;
                         }
-                        
-                        // Trouver le pointage de sortie (après heure_fin, dans la fenêtre)
-                        $validatedExitFound = false;
-                        foreach ($punches as $punch) {
-                            // Appliquer l'offset Biostar pour obtenir l'heure locale réelle
-                            $punchTimestamp = strtotime($punch['time']) + $biostarOffsetSeconds;
-                            if ($punchTimestamp >= $heureFinCours && $punchTimestamp <= $heureLimiteSortie) {
-                                $punchOut = $punch;
-                                $punchOutRaw = $punch;
-                                $validatedExitFound = true;
-                                break;
-                            }
-                        }
-                        
-                        // Si aucun punch dans la fenêtre, mais qu'un second punch existe, afficher le dernier en brut
-                        if (!$validatedExitFound && count($punches) > 1) {
-                            $punchOutRaw = $punches[count($punches) - 1];
+
+                        // Sortie : conserver le DERNIER punch dans la fenêtre de sortie
+                        $exitCandidates = array_values(array_filter($punchesWithTs, function($p) use ($heureFinCours, $heureLimiteSortie) {
+                            return $p['timestamp'] >= $heureFinCours && $p['timestamp'] <= $heureLimiteSortie;
+                        }));
+                        if (!empty($exitCandidates)) {
+                            usort($exitCandidates, function($a, $b) { return $a['timestamp'] <=> $b['timestamp']; });
+                            $lastExit = $exitCandidates[count($exitCandidates) - 1];
+                            $punchOut = [
+                                'time' => $lastExit['time'],
+                                'device' => $lastExit['device']
+                            ];
+                            $punchOutRaw = $punchOut;
+                        } elseif (count($punchesWithTs) > 1) {
+                            // Pas de punch valide en sortie → montrer tout de même le dernier brut pour audit
+                            $lastPunch = $punchesWithTs[count($punchesWithTs) - 1];
+                            $punchOutRaw = [
+                                'time' => $lastPunch['time'],
+                                'device' => $lastPunch['device']
+                            ];
                         }
                         
                         // Déterminer le statut

@@ -193,7 +193,9 @@ export class TrackerComponent implements OnInit {
       'present': 'Présent',
       'absent': 'Absent',
       'late': 'En retard',
-      'left_early': 'Parti tôt'
+      'left_early': 'Parti tôt',
+      'pending_exit': 'Sortie à valider',
+      'pending_entry': 'Entrée à valider'
     };
     return labels[status] || status;
   }
@@ -203,7 +205,9 @@ export class TrackerComponent implements OnInit {
       'present': 'bg-green-100 text-green-800',
       'absent': 'bg-red-100 text-red-800',
       'late': 'bg-yellow-100 text-yellow-800',
-      'left_early': 'bg-orange-100 text-orange-800'
+      'left_early': 'bg-orange-100 text-orange-800',
+      'pending_exit': 'bg-orange-100 text-orange-800',
+      'pending_entry': 'bg-orange-100 text-orange-800'
     };
     return classes[status] || 'bg-gray-100 text-gray-800';
   }
@@ -480,7 +484,8 @@ export class TrackerComponent implements OnInit {
           if (result.status === 'present') {
             data.cell.styles.fillColor = presentColor as [number, number, number];
             data.cell.styles.textColor = [255, 255, 255] as [number, number, number];
-          } else if (result.status === 'absent') {
+          } else if (result.status === 'absent' || result.status === 'pending_exit' || result.status === 'pending_entry') {
+            // pending_exit et pending_entry sont considérés comme absents (bi-check non validé)
             data.cell.styles.fillColor = absentColor as [number, number, number];
             data.cell.styles.textColor = [255, 255, 255] as [number, number, number];
           } else if (result.status === 'late') {

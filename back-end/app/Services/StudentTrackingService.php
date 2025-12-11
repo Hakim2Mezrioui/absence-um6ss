@@ -187,9 +187,22 @@ class StudentTrackingService
         // Always try to get punch data from Biostar (even if there's a manual absence)
         $punchData = $this->getPunchDataForCours($student, $cours);
         
+        // Variables pour bi-check
+        $punchIn = null;
+        $punchOut = null;
+        $attendanceMode = $cours->attendance_mode ?? 'normal';
+        
         if ($punchData) {
             $punchTime = $punchData['punch_time'];
             $device = $punchData['device'];
+            
+            // Récupérer les données bi-check si disponibles
+            if (isset($punchData['punch_in'])) {
+                $punchIn = $punchData['punch_in'];
+            }
+            if (isset($punchData['punch_out'])) {
+                $punchOut = $punchData['punch_out'];
+            }
             
             // Only use Biostar status if there's no manual absence
             if (!$absence) {
@@ -225,7 +238,7 @@ class StudentTrackingService
         $heureDebutFormatted = $this->formatTime($cours->heure_debut);
         $heureFinFormatted = $this->formatTime($cours->heure_fin);
 
-        return [
+        $result = [
             'type' => 'cours',
             'id' => $cours->id,
             'name' => $cours->name,
@@ -237,8 +250,17 @@ class StudentTrackingService
             'device' => $device,
             'salle' => $cours->salle ? $cours->salle->name : null,
             'type_cours' => $cours->type_cours ? $cours->type_cours->name : null,
-            'absence' => $absence
+            'absence' => $absence,
+            'attendance_mode' => $attendanceMode
         ];
+        
+        // Ajouter les données bi-check si disponibles
+        if ($attendanceMode === 'bicheck') {
+            $result['punch_in'] = $punchIn;
+            $result['punch_out'] = $punchOut;
+        }
+        
+        return $result;
     }
 
     /**
@@ -402,6 +424,19 @@ class StudentTrackingService
             $coursDate = $cours->date instanceof \Carbon\Carbon 
                 ? $cours->date->format('Y-m-d')
                 : (is_string($cours->date) ? date('Y-m-d', strtotime($cours->date)) : $cours->date);
+            
+            // =============================================
+            // MODE BI-CHECK : nécessite entrée ET sortie
+            // =============================================
+            $attendanceMode = $cours->attendance_mode ?? 'normal';
+            
+            if ($attendanceMode === 'bicheck') {
+                return $this->getPunchDataForCoursBiCheck($student, $cours, $config, $coursDate, $allowedDeviceIds, $allowedDeviceNames, $deviceIdsForQuery, $deviceNamesForQuery, $hasSalles);
+            }
+            
+            // =============================================
+            // MODE NORMAL : logique existante (entrée seule)
+            // =============================================
             
             // Format start time
             $startTime = $cours->pointage_start_hour ?? $cours->heure_debut;
@@ -596,6 +631,261 @@ class StudentTrackingService
             ]);
             return null;
         }
+    }
+    
+    /**
+     * Get punch data for bi-check cours (requires BOTH entry AND exit punches)
+     */
+    private function getPunchDataForCoursBiCheck($student, $cours, $config, $coursDate, $allowedDeviceIds, $allowedDeviceNames, $deviceIdsForQuery, $deviceNamesForQuery, $hasSalles)
+    {
+        try {
+            // Récupérer les paramètres du cours
+            $toleranceMinutes = $this->parseTolerance($cours->tolerance);
+            $exitCaptureWindow = $cours->exit_capture_window ?? 0;
+            
+            // Formatage des heures
+            $heureDebut = $this->formatTime($cours->heure_debut);
+            $heureFin = $this->formatTime($cours->heure_fin);
+            $heurePointage = $this->formatTime($cours->pointage_start_hour ?? $cours->heure_debut);
+            
+            // Calculer les fenêtres
+            $heureDebutCours = Carbon::parse($coursDate . ' ' . $heureDebut);
+            $heureFinCours = Carbon::parse($coursDate . ' ' . $heureFin);
+            $heureDebutPointage = Carbon::parse($coursDate . ' ' . $heurePointage);
+            $heureLimiteEntree = $heureDebutCours->copy()->addMinutes($toleranceMinutes);
+            $heureLimiteSortie = $heureFinCours->copy()->addMinutes($exitCaptureWindow);
+            
+            // Offset Biostar (serveur décalé de -60 min)
+            $biostarOffsetMinutes = 60;
+            
+            // Requête Biostar pour toute la plage du cours (pointage_start -> heure_fin + exit_window)
+            $queryStartTime = $heureDebutPointage->format('H:i:s');
+            $queryEndTime = $heureLimiteSortie->format('H:i:s');
+            
+            $attendanceData = $this->biostarAttendanceService->getAttendanceData(
+                $config,
+                $coursDate,
+                $queryStartTime,
+                $queryEndTime,
+                [$student->matricule],
+                $deviceIdsForQuery,
+                $deviceNamesForQuery
+            );
+            
+            $punches = $attendanceData['punches'] ?? [];
+            
+            Log::info('StudentTrackingService: Bi-check query for cours', [
+                'cours_id' => $cours->id,
+                'student_matricule' => $student->matricule,
+                'date' => $coursDate,
+                'fenetre_entree' => [
+                    'debut' => $heureDebutPointage->format('Y-m-d H:i:s'),
+                    'fin' => $heureLimiteEntree->format('Y-m-d H:i:s')
+                ],
+                'fenetre_sortie' => [
+                    'debut' => $heureFinCours->format('Y-m-d H:i:s'),
+                    'fin' => $heureLimiteSortie->format('Y-m-d H:i:s')
+                ],
+                'punches_count' => count($punches)
+            ]);
+            
+            if (empty($punches)) {
+                return null; // Aucun pointage = absent
+            }
+            
+            // Filtrer les punches de l'étudiant et normaliser les timestamps
+            $studentPunches = $this->filterStudentPunches($punches, $student->matricule, $allowedDeviceIds, $allowedDeviceNames, $hasSalles);
+            
+            if (empty($studentPunches)) {
+                return null;
+            }
+            
+            // Convertir les punches avec timestamps corrigés (offset Biostar)
+            $punchesWithTs = [];
+            foreach ($studentPunches as $punch) {
+                $punchTime = $punch['devdt'] ?? $punch['punch_time'] ?? null;
+                if ($punchTime) {
+                    try {
+                        $punchTimeClean = $this->cleanSqlServerDateTime($punchTime);
+                        $punchDateTime = Carbon::createFromFormat('Y-m-d H:i:s', $punchTimeClean);
+                        // Ajouter l'offset pour obtenir l'heure locale
+                        $punchDateTimeClient = $punchDateTime->copy()->addMinutes($biostarOffsetMinutes);
+                        
+                        // Vérifier que c'est la même date
+                        if ($punchDateTimeClient->format('Y-m-d') === $coursDate) {
+                            $punchesWithTs[] = [
+                                'punch' => $punch,
+                                'timestamp' => $punchDateTimeClient->timestamp,
+                                'datetime' => $punchDateTimeClient
+                            ];
+                        }
+                    } catch (\Exception $e) {
+                        // Ignorer les punches avec dates invalides
+                    }
+                }
+            }
+            
+            if (empty($punchesWithTs)) {
+                return null;
+            }
+            
+            // Trier par timestamp
+            usort($punchesWithTs, function($a, $b) {
+                return $a['timestamp'] <=> $b['timestamp'];
+            });
+            
+            // Chercher le PREMIER punch dans la fenêtre d'entrée
+            $punchIn = null;
+            $punchInTime = null;
+            foreach ($punchesWithTs as $p) {
+                if ($p['datetime']->gte($heureDebutPointage) && $p['datetime']->lte($heureLimiteEntree)) {
+                    $punchIn = $p['punch'];
+                    $punchInTime = $p['datetime'];
+                    break;
+                }
+            }
+            
+            // Chercher le DERNIER punch dans la fenêtre de sortie
+            $punchOut = null;
+            $punchOutTime = null;
+            foreach (array_reverse($punchesWithTs) as $p) {
+                if ($p['datetime']->gte($heureFinCours) && $p['datetime']->lte($heureLimiteSortie)) {
+                    $punchOut = $p['punch'];
+                    $punchOutTime = $p['datetime'];
+                    break;
+                }
+            }
+            
+            Log::info('StudentTrackingService: Bi-check punches analysis', [
+                'cours_id' => $cours->id,
+                'student_matricule' => $student->matricule,
+                'total_punches' => count($punchesWithTs),
+                'punch_in_found' => $punchIn !== null,
+                'punch_in_time' => $punchInTime ? $punchInTime->format('Y-m-d H:i:s') : null,
+                'punch_out_found' => $punchOut !== null,
+                'punch_out_time' => $punchOutTime ? $punchOutTime->format('Y-m-d H:i:s') : null
+            ]);
+            
+            // Déterminer le statut
+            if ($punchIn && $punchOut) {
+                // Les deux pointages sont présents → présent ou retard
+                $status = $punchInTime->lte($heureDebutCours) ? 'present' : 'late';
+                return [
+                    'status' => $status,
+                    'punch_time' => $punchOutTime->format('Y-m-d H:i:s'),
+                    'device' => $punchOut['devnm'] ?? $punchOut['device_name'] ?? null,
+                    'punch_in' => $punchInTime->format('Y-m-d H:i:s'),
+                    'punch_out' => $punchOutTime->format('Y-m-d H:i:s')
+                ];
+            } elseif ($punchIn && !$punchOut) {
+                // Entrée mais pas de sortie → pending_exit (ABSENT pour le tracking)
+                return [
+                    'status' => 'pending_exit',
+                    'punch_time' => $punchInTime->format('Y-m-d H:i:s'),
+                    'device' => $punchIn['devnm'] ?? $punchIn['device_name'] ?? null,
+                    'punch_in' => $punchInTime->format('Y-m-d H:i:s'),
+                    'punch_out' => null
+                ];
+            } elseif (!$punchIn && !empty($punchesWithTs)) {
+                // Punches détectés mais hors fenêtre d'entrée → pending_entry (ABSENT)
+                return [
+                    'status' => 'pending_entry',
+                    'punch_time' => null,
+                    'device' => null,
+                    'punch_in' => null,
+                    'punch_out' => null
+                ];
+            }
+            
+            return null; // Aucun pointage valide
+            
+        } catch (\Exception $e) {
+            Log::error('Error getting bi-check punch data for cours', [
+                'student_id' => $student->id,
+                'cours_id' => $cours->id,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+    
+    /**
+     * Filter punches for a specific student with device validation
+     */
+    private function filterStudentPunches($punches, $matricule, $allowedDeviceIds, $allowedDeviceNames, $hasSalles)
+    {
+        $filtered = [];
+        
+        // Normalize device names for comparison
+        $normalizedDeviceNames = [];
+        if (!empty($allowedDeviceNames)) {
+            $normalizedDeviceNames = array_map(function($name) {
+                return strtolower(trim((string)$name));
+            }, $allowedDeviceNames);
+        }
+        
+        $normalizedDeviceIds = [];
+        if (!empty($allowedDeviceIds)) {
+            $normalizedDeviceIds = array_map(function($id) {
+                return (string)$id;
+            }, $allowedDeviceIds);
+        }
+        
+        foreach ($punches as $punch) {
+            $punchMatricule = $punch['user_id'] ?? $punch['bsevtc'] ?? null;
+            
+            if (!$punchMatricule) {
+                continue;
+            }
+            
+            // Check matricule match
+            $matches = false;
+            if ($punchMatricule == $matricule) {
+                $matches = true;
+            } else {
+                $trimmedMatricule = ltrim($matricule, '0');
+                $trimmedPunch = ltrim($punchMatricule, '0');
+                if ($trimmedMatricule && $trimmedMatricule == $trimmedPunch) {
+                    $matches = true;
+                } else {
+                    $paddedMatricule = str_pad($matricule, 6, '0', STR_PAD_LEFT);
+                    if ($punchMatricule == $paddedMatricule) {
+                        $matches = true;
+                    }
+                }
+            }
+            
+            if (!$matches) {
+                continue;
+            }
+            
+            // Check device if filtering is required
+            if ($hasSalles && (!empty($normalizedDeviceIds) || !empty($normalizedDeviceNames))) {
+                $punchDevId = isset($punch['devid']) ? (string)$punch['devid'] : null;
+                $punchDevName = isset($punch['devnm']) ? strtolower(trim((string)$punch['devnm'])) : null;
+                
+                $deviceMatches = false;
+                
+                if (empty($normalizedDeviceIds) && empty($normalizedDeviceNames)) {
+                    $deviceMatches = false; // Salle sans devices = rejeter
+                } else {
+                    if (!empty($normalizedDeviceIds) && $punchDevId && in_array($punchDevId, $normalizedDeviceIds, true)) {
+                        $deviceMatches = true;
+                    }
+                    if (!$deviceMatches && !empty($normalizedDeviceNames) && $punchDevName && in_array($punchDevName, $normalizedDeviceNames, true)) {
+                        $deviceMatches = true;
+                    }
+                }
+                
+                if (!$deviceMatches) {
+                    continue;
+                }
+            }
+            
+            $filtered[] = $punch;
+        }
+        
+        return $filtered;
     }
 
     /**
@@ -889,7 +1179,8 @@ class StudentTrackingService
             return true;
         }
         
-        if ($filter === 'absent' && in_array($status, ['absent', 'left_early'])) {
+        // Pour bi-check: pending_exit et pending_entry sont considérés comme absents
+        if ($filter === 'absent' && in_array($status, ['absent', 'left_early', 'pending_exit', 'pending_entry'])) {
             return true;
         }
         
@@ -1252,6 +1543,8 @@ class StudentTrackingService
         $presents = 0;
         $absents = 0;
         $lates = 0;
+        $pendingExit = 0;
+        $pendingEntry = 0;
 
         foreach ($results as $result) {
             if (in_array($result['status'], ['present'])) {
@@ -1261,6 +1554,14 @@ class StudentTrackingService
             } elseif (in_array($result['status'], ['late'])) {
                 $lates++;
                 $presents++; // Late is still considered present
+            } elseif ($result['status'] === 'pending_exit') {
+                // Bi-check: entrée sans sortie = absent
+                $pendingExit++;
+                $absents++;
+            } elseif ($result['status'] === 'pending_entry') {
+                // Bi-check: pointage hors fenêtre d'entrée = absent
+                $pendingEntry++;
+                $absents++;
             }
         }
 
@@ -1268,7 +1569,9 @@ class StudentTrackingService
             'total' => $total,
             'presents' => $presents,
             'absents' => $absents,
-            'lates' => $lates
+            'lates' => $lates,
+            'pending_exit' => $pendingExit,
+            'pending_entry' => $pendingEntry
         ];
     }
 }

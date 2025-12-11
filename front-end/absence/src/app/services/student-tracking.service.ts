@@ -11,13 +11,17 @@ export interface TrackingResult {
   date: string;
   heure_debut: string;
   heure_fin: string;
-  status: 'present' | 'absent' | 'late' | 'left_early';
+  status: 'present' | 'absent' | 'late' | 'left_early' | 'pending_exit' | 'pending_entry';
   punch_time?: string | null | undefined;
   device?: string | null | undefined;
   salle?: string | null | undefined;
   type_cours?: string | null | undefined;
   type_examen?: string | null | undefined;
   absence?: any;
+  // Bi-check mode specific fields
+  attendance_mode?: 'normal' | 'bicheck';
+  punch_in?: string | null | undefined;
+  punch_out?: string | null | undefined;
 }
 
 export interface TrackingResponse {
@@ -29,6 +33,8 @@ export interface TrackingResponse {
     presents: number;
     absents: number;
     lates: number;
+    pending_exit?: number;
+    pending_entry?: number;
   };
   date_range?: {
     from: string;
