@@ -822,19 +822,24 @@ class ExamenController extends Controller
 
         // Groupe (avec recherche flexible sur 'title')
         if (empty($data['group_id']) && !empty($data['group_title'])) {
-            // Pour les groupes, on utilise 'title' au lieu de 'name'
-            $group = \App\Models\Group::where('title', $data['group_title'])->first();
-            if (!$group) {
-                $group = \App\Models\Group::whereRaw('LOWER(title) = ?', [strtolower($data['group_title'])])->first();
+            // Cas spécial : "Tous" signifie tous les groupes (group_id reste null)
+            if (strtolower(trim($data['group_title'])) === 'tous') {
+                $data['group_id'] = null;
+            } else {
+                // Pour les groupes, on utilise 'title' au lieu de 'name'
+                $group = \App\Models\Group::where('title', $data['group_title'])->first();
+                if (!$group) {
+                    $group = \App\Models\Group::whereRaw('LOWER(title) = ?', [strtolower($data['group_title'])])->first();
+                }
+                if (!$group) {
+                    $group = \App\Models\Group::where('title', 'LIKE', '%' . $data['group_title'] . '%')->first();
+                }
+                if (!$group) {
+                    $available = \App\Models\Group::pluck('title')->take(10)->implode(', ');
+                    throw new \Exception("Groupe '{$data['group_title']}' introuvable à la ligne $lineNumber. Exemples: {$available}");
+                }
+                $data['group_id'] = $group->id;
             }
-            if (!$group) {
-                $group = \App\Models\Group::where('title', 'LIKE', '%' . $data['group_title'] . '%')->first();
-            }
-            if (!$group) {
-                $available = \App\Models\Group::pluck('title')->take(10)->implode(', ');
-                throw new \Exception("Groupe '{$data['group_title']}' introuvable à la ligne $lineNumber. Exemples: {$available}");
-            }
-            $data['group_id'] = $group->id;
         }
 
         // Ville (avec recherche flexible)

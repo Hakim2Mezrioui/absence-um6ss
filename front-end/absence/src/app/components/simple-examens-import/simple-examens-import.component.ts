@@ -63,6 +63,7 @@ export class SimpleExamensImportComponent implements OnInit, OnDestroy {
   successMessage = '';
   isProcessing = false;
   isImporting = false;
+  isDragging = false;
 
   referenceError = '';
   filterOptions: FilterOptions | null = null;
@@ -186,10 +187,46 @@ export class SimpleExamensImportComponent implements OnInit, OnDestroy {
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
-    if (!file) {
-      return;
+    if (file) {
+      this.handleFile(file);
+      input.value = '';
     }
+  }
 
+  onZoneClick(fileInput: HTMLInputElement): void {
+    fileInput.click();
+  }
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragging = true;
+  }
+
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragging = false;
+  }
+
+  addEmptyRow(): void {
+    if (!this.tableHeaders.length) {
+      this.tableHeaders = [...this.templateHeaders];
+    }
+    const newRow: Record<string, string> = {};
+    this.tableHeaders.forEach((h) => (newRow[h] = ''));
+    this.tableRows = [...this.tableRows, newRow];
+    this.validateRows();
+  }
+
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragging = false;
+    const file = event.dataTransfer?.files?.[0];
+    if (file) {
+      this.handleFile(file);
+    }
+  }
+
+  private handleFile(file: File): void {
     this.errorMessage = '';
     this.successMessage = '';
     this.isProcessing = true;
@@ -371,7 +408,42 @@ export class SimpleExamensImportComponent implements OnInit, OnDestroy {
 
   getSuggestions(rowIndex: number, header: string): Suggestion[] { return this.suggestionsByCell[rowIndex]?.[header] ?? []; }
   isCellInvalid(rowIndex: number, header: string): boolean { return !!this.invalidCells[rowIndex]?.[header]; }
-  applySuggestion(rowIndex: number, header: string, suggestion: Suggestion): void { this.updateCell(rowIndex, header, suggestion.label); }
+  applySuggestion(rowIndex: number, header: string, suggestion: Suggestion): void {
+    const suggestionLabel = suggestion.label || '';
+
+    // Cas général (autres colonnes) : comportement inchangé
+    if (header !== 'salle_name') {
+      this.updateCell(rowIndex, header, suggestionLabel);
+      return;
+    }
+
+    // Nettoyer le label pour retirer "(pour "xxx")"
+    const baseLabel = suggestionLabel.replace(/\s*\(pour\s+"[^"]*"\)\s*$/i, '').trim();
+
+    const current = this.tableRows[rowIndex]?.[header] || '';
+    const parts = current.split(',').map(p => p.trim()).filter(p => p.length > 0);
+
+    // Tenter de cibler le token concerné si indiqué dans le label "(pour "xxx")"
+    const match = suggestionLabel.match(/\(pour\s+"([^"]+)"\)/i);
+    const target = match?.[1]?.trim().toLowerCase();
+
+    let replaced = false;
+    const updated = parts.map(p => {
+      if (!replaced && target && p.toLowerCase() === target) {
+        replaced = true;
+        return baseLabel;
+      }
+      return p;
+    });
+
+    // Si on n'a pas remplacé (token introuvable), on ajoute la salle proposée
+    if (!replaced) {
+      updated.push(baseLabel);
+    }
+
+    const newValue = updated.filter(Boolean).join(', ');
+    this.updateCell(rowIndex, header, newValue);
+  }
 
   getPlaceholder(header: string): string {
     const placeholders: Record<string, string> = {
@@ -385,7 +457,7 @@ export class SimpleExamensImportComponent implements OnInit, OnDestroy {
       'promotion_name': 'Ex: Promotion 1',
       'type_examen_name': 'Ex: Contrôle',
       'salle_name': 'Ex: C401, C501 (séparées par virgule)',
-      'group_title': 'Ex: Groupe A',
+      'group_title': 'Ex: Groupe A ou "Tous"',
       'ville_name': 'Ex: Rabat',
       'option_name': 'Ex: Option 1',
       'annee_universitaire': 'Ex: 2024-2025'
@@ -622,9 +694,13 @@ export class SimpleExamensImportComponent implements OnInit, OnDestroy {
           );
         };
 
-        const findGroup = (title: string) => {
+        const findGroup = (title: string): { id: number | null; title?: string; name?: string } | null | undefined => {
           if (!title) return null;
           const normalizedTitle = this.normalize(title);
+          // Cas spécial : "Tous" signifie tous les groupes de la promo
+          if (normalizedTitle === 'tous') {
+            return { id: null, title: 'Tous' };
+          }
           return this.filterOptions?.groups?.find(g => {
             const groupTitle = g.title || g.name;
             return this.normalize(groupTitle) === normalizedTitle ||
@@ -692,7 +768,11 @@ export class SimpleExamensImportComponent implements OnInit, OnDestroy {
         }
         
         if (group) {
-          examen.group_id = group.id as any;
+          if (group.id) {
+            examen.group_id = group.id as any;
+          }
+          // Si "Tous" (id null), on laisse group_id vide et group_title='Tous'
+          // Le backend interprète group_id vide + group_title='Tous' comme tous les groupes
         }
         
         if (ville) {
@@ -837,7 +917,10 @@ export class SimpleExamensImportComponent implements OnInit, OnDestroy {
       promotion_name: (options.promotions || []).map(p => this.toReferenceEntry(p.name, p.id)),
       type_examen_name: (options.typesExamen || []).map(t => this.toReferenceEntry(t.name, t.id)),
       salle_name: filteredSalles.map(s => this.toReferenceEntry(s.name, s.id)),
-      group_title: (options.groups || []).map(g => this.toReferenceEntry(g.title || g.name, (g as any).id)),
+      group_title: [
+        { label: 'Tous', normalized: 'tous', id: -1 }, // option globale pour tous les groupes
+        ...(options.groups || []).map(g => this.toReferenceEntry(g.title || g.name, (g as any).id))
+      ],
       ville_name: (options.villes || []).map(v => this.toReferenceEntry(v.name, v.id)),
       option_name: (options.options || []).map(o => this.toReferenceEntry(o.name, o.id))
     };
@@ -870,6 +953,14 @@ export class SimpleExamensImportComponent implements OnInit, OnDestroy {
     }
 
     const value = this.tableRows[rowIndex]?.[header] ?? '';
+
+    // Cas spécial pour group_title : accepter "Tous" comme valeur valide
+    if (header === 'group_title' && this.normalize(value) === 'tous') {
+      this.suggestionsByCell[rowIndex][header] = [];
+      this.invalidCells[rowIndex][header] = false;
+      return;
+    }
+
     const referenceEntries = this.referenceData[header];
 
     if (!referenceEntries || referenceEntries.length === 0) {

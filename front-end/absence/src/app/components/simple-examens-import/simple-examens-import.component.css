@@ -1,3 +1,20 @@
 /* Styles spécifiques pour l'import simple des examens */
 
+.dropzone-active {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
 
+.table-scroll {
+  max-height: calc(100vh - 260px);
+  overflow: auto;
+  padding-bottom: 96px; /* espace pour éviter que les boutons bas recouvrent les lignes */
+}
+
+.bottom-action {
+  position: sticky;
+  bottom: 0;
+  z-index: 30;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08);
+  background: #fff;
+}

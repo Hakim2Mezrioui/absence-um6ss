@@ -1,4 +1,4 @@
-<div class="h-screen flex flex-col bg-slate-50">
+<div class="min-h-screen flex flex-col bg-slate-50 overflow-hidden">
   <!-- Compact Header Section -->
   <div class="flex-shrink-0 bg-white border-b border-slate-200 shadow-sm">
     <div class="max-w-full px-6 py-4">
@@ -16,24 +16,9 @@
           </button>
           <label class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium cursor-pointer hover:bg-blue-700 transition-colors">
             <span class="material-icons text-base">upload_file</span>
-            Importer
+            {{ fileName ? 'Importer un nouveau fichier' : 'Importer' }}
             <input type="file" accept=".xlsx,.xls" class="hidden" (change)="onFileSelected($event)" />
           </label>
-          <button *ngIf="tableRows.length" type="button" (click)="clearTable()"
-                  class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-300 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
-            <span class="material-icons text-base">refresh</span>
-            Réinitialiser
-          </button>
-          <button *ngIf="tableRows.length" type="button" (click)="importExamens()"
-                  [disabled]="isImporting || hasInvalidCells()"
-                  class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  [class.bg-blue-600]="!hasInvalidCells()"
-                  [class.hover:bg-blue-700]="!hasInvalidCells()"
-                  [class.bg-slate-400]="hasInvalidCells()">
-            <span class="material-icons text-base" *ngIf="!isImporting">cloud_upload</span>
-            <span class="material-icons text-base animate-spin" *ngIf="isImporting">refresh</span>
-            {{ isImporting ? 'Import...' : (hasInvalidCells() ? 'Erreurs' : 'Importer') }}
-          </button>
         </div>
       </div>
 
@@ -69,22 +54,29 @@
     </div>
   </div>
 
-  <!-- Empty State -->
-  <div *ngIf="!tableRows.length && !isProcessing" class="flex-1 flex items-center justify-center">
-    <div class="text-center">
-      <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-indigo-100 mb-4">
-        <svg class="h-8 w-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-        </svg>
+  <!-- Empty State avec drag & drop -->
+  <div *ngIf="!tableRows.length && !isProcessing" class="flex-1 flex items-center justify-center px-6">
+    <div
+      class="w-full max-w-3xl rounded-2xl border-2 border-dashed transition-all p-10 bg-white cursor-pointer"
+      [class.border-blue-500]="isDragging"
+      [class.bg-blue-50]="isDragging"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onDrop($event)"
+      (click)="onZoneClick(fileInput)"
+    >
+      <div class="flex flex-col items-center gap-4 text-center text-slate-600">
+        <span class="material-icons text-5xl text-indigo-500">cloud_upload</span>
+        <div class="text-lg font-semibold text-slate-900">Glissez-déposez votre fichier Excel ici</div>
+        <p class="text-sm text-slate-500">ou cliquez pour sélectionner un fichier .xlsx/.xls</p>
+        <input #fileInput type="file" accept=".xlsx,.xls" class="hidden" (change)="onFileSelected($event)" />
       </div>
-      <h3 class="text-lg font-medium text-slate-900 mb-2">Aucune donnée importée</h3>
-      <p class="text-sm text-slate-500">Sélectionnez un fichier Excel pour commencer</p>
     </div>
   </div>
 
   <!-- Data Table - Full Height -->
   <div *ngIf="tableRows.length" class="flex-1 overflow-hidden">
-    <div class="h-full overflow-auto">
+    <div class="h-full overflow-auto table-scroll">
       <table class="w-full border-collapse">
         <thead class="sticky top-0 z-20 bg-slate-100 border-b-2 border-slate-300">
           <tr>
@@ -186,6 +178,38 @@
           </ng-container>
         </tbody>
       </table>
+    </div>
+  </div>
+
+  <!-- Bottom action bar -->
+  <div *ngIf="tableRows.length" class="flex-shrink-0 border-t border-slate-200 bg-white px-6 py-4 flex items-center justify-between bottom-action">
+    <div class="text-sm text-slate-600">
+      {{ hasInvalidCells() ? (getInvalidCellsCount() + ' erreur(s) à corriger') : 'Données prêtes à être importées' }}
+    </div>
+    <div class="flex items-center gap-3">
+      <button type="button"
+              (click)="addEmptyRow()"
+              class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-300 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+        <span class="material-icons text-base">add</span>
+        Ajouter une ligne
+      </button>
+      <button type="button"
+              (click)="clearTable()"
+              class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-300 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+        <span class="material-icons text-base">refresh</span>
+        Réinitialiser
+      </button>
+      <button type="button"
+              (click)="importExamens()"
+              [disabled]="isImporting || hasInvalidCells()"
+              class="inline-flex items-center gap-2 px-5 py-2 rounded-lg text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              [class.bg-blue-600]="!hasInvalidCells()"
+              [class.hover:bg-blue-700]="!hasInvalidCells()"
+              [class.bg-slate-400]="hasInvalidCells()">
+        <span class="material-icons text-base" *ngIf="!isImporting">cloud_upload</span>
+        <span class="material-icons text-base animate-spin" *ngIf="isImporting">refresh</span>
+        {{ isImporting ? 'Import...' : (hasInvalidCells() ? 'Erreurs' : 'Importer') }}
+      </button>
     </div>
   </div>
 
