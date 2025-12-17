@@ -399,13 +399,25 @@ export class CoursComponent implements OnInit {
   }
 
   /**
+   * Vérifie si l'utilisateur connecté est un compte Défilement
+   */
+  public isDefilementRole(): boolean {
+    const userRole = this.authService.getUserRoleName();
+    const normalizedRole = userRole ? userRole.toLowerCase().replace(/[\s-]/g, '') : '';
+    return normalizedRole === 'defilement' || normalizedRole === 'défilement';
+  }
+
+  /**
    * Vérifier si l'utilisateur peut accéder à l'affichage public
    */
   canAccessPublicDisplay(): boolean {
     const userRole = this.authService.getUserRoleName();
     const normalizedRole = userRole ? userRole.toLowerCase().replace(/[\s-]/g, '') : '';
     
-    // Seuls les admins et super-admins peuvent ouvrir l'affichage public
-    return normalizedRole === 'superadmin' || normalizedRole === 'admin';
+    // Autoriser super-admin, admin et rôle dédié au défilement
+    return normalizedRole === 'superadmin' 
+      || normalizedRole === 'admin'
+      || normalizedRole === 'defilement'
+      || normalizedRole === 'défilement';
   }
 }

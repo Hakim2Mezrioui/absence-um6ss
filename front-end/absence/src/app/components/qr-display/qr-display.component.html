@@ -1,0 +1,40 @@
+<div class="qr-display-container">
+  <div class="qr-header">
+    <h1>QR de présence</h1>
+    <p *ngIf="type === 'cours' && coursId">Cours #{{ coursId }}</p>
+    <p *ngIf="type === 'examen' && examenId">Examen #{{ examenId }}</p>
+  </div>
+
+  <div *ngIf="loading" class="qr-status">
+    Génération du QR code en cours...
+  </div>
+
+  <div *ngIf="error" class="qr-status qr-error">
+    {{ error }}
+  </div>
+
+  <div *ngIf="token && !error" class="qr-body">
+    <!-- QR Code visuel -->
+    <div class="qr-code-wrapper">
+      <qrcode 
+        [qrdata]="token" 
+        [width]="400" 
+        [errorCorrectionLevel]="'M'"
+        [margin]="2"
+        [colorDark]="'#000000'"
+        [colorLight]="'#FFFFFF'">
+      </qrcode>
+    </div>
+
+    <div *ngIf="expiresAt" class="qr-expiration">
+      Expiration : {{ expiresAt }}
+    </div>
+
+    <p class="qr-hint">
+      Cette page se régénère automatiquement toutes les ~20 secondes pour
+      sécuriser le suivi de présence.
+    </p>
+  </div>
+</div>
+
+

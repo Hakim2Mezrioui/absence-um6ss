@@ -640,6 +640,30 @@ export class AbsenceDisplayComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   /**
+   * Obtenir le nombre d'étudiants absents (sans les en retard)
+   */
+  getAbsentCount(): number {
+    if (!this.currentSegment) return 0;
+    return this.currentSegment.students.filter(s => s.status === 'absent').length;
+  }
+
+  /**
+   * Obtenir le nombre d'étudiants en retard
+   */
+  getLateCount(): number {
+    if (!this.currentSegment) return 0;
+    return this.currentSegment.students.filter(s => s.status === 'en retard').length;
+  }
+
+  /**
+   * Obtenir le nombre total d'absences (absents + en retard)
+   */
+  getTotalAbsencesCount(): number {
+    if (!this.currentSegment) return 0;
+    return this.currentSegment.students.length;
+  }
+
+  /**
    * Obtenir le statut formaté
    */
   getStatusLabel(status: string): string {

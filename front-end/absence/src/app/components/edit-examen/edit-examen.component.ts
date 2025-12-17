@@ -81,7 +81,8 @@ export class EditExamenComponent implements OnInit, OnDestroy {
       group_id: [''], // Permet null pour "Tous"
       ville_id: ['', Validators.required],
       annee_universitaire: ['', Validators.required],
-      all_groups: [false]
+      all_groups: [false],
+      tracking_method: ['biostar', Validators.required]
     });
 
     this.newSalleForm = this.fb.group({
@@ -252,7 +253,8 @@ export class EditExamenComponent implements OnInit, OnDestroy {
           : (this.examen.salle_id ? [this.examen.salle_id] : []),
         group_id: this.examen.group_id ? this.examen.group_id.toString() : (this.examen.group ? 'ALL' : ''),
         ville_id: this.examen.ville_id ? this.examen.ville_id.toString() : '',
-        annee_universitaire: this.examen.annee_universitaire || ''
+        annee_universitaire: this.examen.annee_universitaire || '',
+        tracking_method: this.examen.tracking_method || 'biostar'
       };
       
       console.log('📋 Valeurs brutes de l\'examen:', {

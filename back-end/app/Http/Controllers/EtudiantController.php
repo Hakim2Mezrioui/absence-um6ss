@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Etudiant;
+use App\Models\Cours;
+use App\Models\Examen;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use PDO;
@@ -374,45 +376,46 @@ class EtudiantController extends Controller
                 // Préparer les informations complètes de l'examen pour le cas d'erreur
                 $examenInfo = null;
                 if ($examen) {
-                    $examenInfo = [
-                        'id' => $examen->id,
-                        'date' => $examen->date,
-                        'heure_debut' => $examen->heure_debut,
-                        'heure_fin' => $examen->heure_fin,
-                        'heure_debut_poigntage' => $examen->heure_debut_poigntage,
-                        'tolerance' => $examen->tolerance,
-                        'salle' => $examen->salle ? [
-                            'id' => $examen->salle->id,
-                            'name' => $examen->salle->name,
-                            'capacity' => $examen->salle->capacity ?? null,
-                            'location' => $examen->salle->location ?? null
-                        ] : null,
-                        'promotion' => $examen->promotion ? [
-                            'id' => $examen->promotion->id,
-                            'name' => $examen->promotion->name,
-                            'year' => $examen->promotion->year ?? null
-                        ] : null,
-                        'etablissement' => $examen->etablissement ? [
-                            'id' => $examen->etablissement->id,
-                            'name' => $examen->etablissement->name,
-                            'address' => $examen->etablissement->address ?? null
-                        ] : null,
-                        'ville' => $examen->ville ? [
-                            'id' => $examen->ville->id,
-                            'name' => $examen->ville->name
-                        ] : null,
-                        'type_examen' => $examen->typeExamen ? [
-                            'id' => $examen->typeExamen->id,
-                            'name' => $examen->typeExamen->name,
-                            'description' => $examen->typeExamen->description ?? null
-                        ] : null,
-                        'option' => $examen->option ? [
-                            'id' => $examen->option->id,
-                            'name' => $examen->option->name
-                        ] : null,
-                        'created_at' => $examen->created_at,
-                        'updated_at' => $examen->updated_at
-                    ];
+                $examenInfo = [
+                    'id' => $examen->id,
+                    'date' => $examen->date,
+                    'heure_debut' => $examen->heure_debut,
+                    'heure_fin' => $examen->heure_fin,
+                    'heure_debut_poigntage' => $examen->heure_debut_poigntage,
+                    'tolerance' => $examen->tolerance,
+                    'tracking_method' => $examen->tracking_method ?? 'biostar',
+                    'salle' => $examen->salle ? [
+                        'id' => $examen->salle->id,
+                        'name' => $examen->salle->name,
+                        'capacity' => $examen->salle->capacity ?? null,
+                        'location' => $examen->salle->location ?? null
+                    ] : null,
+                    'promotion' => $examen->promotion ? [
+                        'id' => $examen->promotion->id,
+                        'name' => $examen->promotion->name,
+                        'year' => $examen->promotion->year ?? null
+                    ] : null,
+                    'etablissement' => $examen->etablissement ? [
+                        'id' => $examen->etablissement->id,
+                        'name' => $examen->etablissement->name,
+                        'address' => $examen->etablissement->address ?? null
+                    ] : null,
+                    'ville' => $examen->ville ? [
+                        'id' => $examen->ville->id,
+                        'name' => $examen->ville->name
+                    ] : null,
+                    'type_examen' => $examen->typeExamen ? [
+                        'id' => $examen->typeExamen->id,
+                        'name' => $examen->typeExamen->name,
+                        'description' => $examen->typeExamen->description ?? null
+                    ] : null,
+                    'option' => $examen->option ? [
+                        'id' => $examen->option->id,
+                        'name' => $examen->option->name
+                    ] : null,
+                    'created_at' => $examen->created_at,
+                    'updated_at' => $examen->updated_at
+                ];
                 }
                 
                 return response()->json([
@@ -546,6 +549,7 @@ class EtudiantController extends Controller
                     'heure_fin' => $examen->heure_fin,
                     'heure_debut_poigntage' => $examen->heure_debut_poigntage,
                     'tolerance' => $examen->tolerance,
+                    'tracking_method' => $examen->tracking_method ?? 'biostar',
                     'salle' => $examen->salle ? [
                         'id' => $examen->salle->id,
                         'name' => $examen->salle->name,
@@ -910,7 +914,7 @@ class EtudiantController extends Controller
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => 'required|email|unique:etudiants,email|max:255',
-            'password' => 'required|string|min:6',
+            'password' => 'nullable|string|min:6', // Optionnel, utilise le matricule par défaut
             'promotion_id' => 'required|exists:promotions,id',
             'etablissement_id' => 'required|exists:etablissements,id',
             'ville_id' => 'required|exists:villes,id',
@@ -920,17 +924,35 @@ class EtudiantController extends Controller
         ]);
 
         // Create a new Etudiant
+        // Utiliser Hash::make() comme pour les utilisateurs (même logique que User)
+        // Si password non fourni, utiliser le matricule comme mot de passe
+        $matricule = $request->input('matricule');
+        $passwordToHash = $request->input('password') ?? $matricule;
+        $hashedPassword = Hash::make($passwordToHash);
+        
         $etudiant = Etudiant::create([
-            'matricule' => $request->input('matricule'),
+            'matricule' => $matricule,
             'first_name' => $request->input('first_name'),
             'last_name' => $request->input('last_name'),
             'email' => $request->input('email'),
-            'password' => bcrypt($request->input('password')),
+            'password' => $hashedPassword, // Utiliser le matricule si password non fourni
             'promotion_id' => $request->input('promotion_id'),
             'etablissement_id' => $request->input('etablissement_id'),
             'ville_id' => $request->input('ville_id'),
             'group_id' => $request->input('group_id'),
             'option_id' => $request->input('option_id'), // Peut être null
+        ]);
+
+        // DEBUG: Logs pour voir ce qui est stocké lors de la création
+        \Log::info('🔍 Debug Création Étudiant', [
+            'etudiant_id' => $etudiant->id,
+            'matricule' => $matricule,
+            'password_avant_hash' => $passwordToHash,
+            'password_hash_creer' => substr($hashedPassword, 0, 30) . '...',
+            'password_stocke_dans_db' => substr($etudiant->password, 0, 30) . '...',
+            'password_egaux' => $hashedPassword === $etudiant->password,
+            'test_hash_check_apres_creation' => Hash::check($passwordToHash, $etudiant->password),
+            'password_stocke_length' => strlen($etudiant->password),
         ]);
 
         // Handle photo upload
@@ -1015,6 +1037,7 @@ class EtudiantController extends Controller
             'first_name' => 'sometimes|required|string|max:255',
             'last_name' => 'sometimes|required|string|max:255',
             'email' => 'sometimes|required|email|unique:etudiants,email,' . $id,
+            'password' => 'sometimes|required|string|min:6', // Permettre la mise à jour du password
             'promotion_id' => 'sometimes|required|exists:promotions,id',
             'etablissement_id' => 'sometimes|required|exists:etablissements,id',
             'ville_id' => 'sometimes|required|exists:villes,id',
@@ -1057,8 +1080,9 @@ class EtudiantController extends Controller
         }
 
         // Update the Etudiant with the new data
+        // Le password sera automatiquement hashé par le mutator setPasswordAttribute si fourni
         $etudiant->update($request->only([
-            'first_name', 'last_name', 'email', 'promotion_id', 
+            'first_name', 'last_name', 'email', 'password', 'promotion_id', 
             'etablissement_id', 'ville_id', 'group_id', 'option_id'
         ]));
 
@@ -1086,6 +1110,7 @@ class EtudiantController extends Controller
             'first_name' => 'sometimes|required|string|max:255',
             'last_name' => 'sometimes|required|string|max:255',
             'email' => 'sometimes|required|email|unique:etudiants,email,' . $etudiant->id,
+            'password' => 'sometimes|required|string|min:6', // Permettre la mise à jour du password
             'promotion_id' => 'sometimes|required|exists:promotions,id',
             'etablissement_id' => 'sometimes|required|exists:etablissements,id',
             'ville_id' => 'sometimes|required|exists:villes,id',
@@ -1094,8 +1119,9 @@ class EtudiantController extends Controller
         ]);
 
         // Update the Etudiant with the new data
+        // Le password sera automatiquement hashé par le mutator setPasswordAttribute si fourni
         $etudiant->update($request->only([
-            'first_name', 'last_name', 'email', 'promotion_id', 
+            'first_name', 'last_name', 'email', 'password', 'promotion_id', 
             'etablissement_id', 'ville_id', 'group_id', 'option_id'
         ]));
 
@@ -2477,7 +2503,7 @@ class EtudiantController extends Controller
                 'first_name' => $firstName,
                 'last_name' => $lastName,
                 'email' => $email,
-                'password' => 'password123' // Mot de passe par défaut
+                'password' => Hash::make($matricule) // Utiliser Hash::make() comme pour User
             ];
         }
         
@@ -2518,7 +2544,9 @@ class EtudiantController extends Controller
             $data['email'] = $studentData['email'];
         }
         
-        $data['password'] = 'password123'; // Mot de passe en clair pour éviter les timeouts
+        // Utiliser le matricule comme mot de passe par défaut
+        // Utiliser Hash::make() comme pour User (même logique)
+        $data['password'] = Hash::make($data['matricule'] ?? 'um6ss@2025'); // Fallback si matricule manquant
         
         // Mapping des noms vers les IDs pour les relations
         $relationMapping = [
@@ -2864,6 +2892,290 @@ class EtudiantController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Erreur lors de la suppression multiple',
+                'error' => $e->getMessage(),
+                'status' => 500
+            ], 500);
+        }
+    }
+
+    /**
+     * Récupérer les cours de l'étudiant connecté
+     * Filtre par promotion_id, group_id, etablissement_id, ville_id de l'étudiant
+     */
+    public function getMyCours(Request $request)
+    {
+        try {
+            // DEBUG: Vérifier le token reçu AVANT d'essayer de résoudre l'utilisateur
+            $bearerToken = $request->bearerToken();
+            $authHeader = $request->header('Authorization');
+            
+            \Log::info('🔍 Debug getMyCours - AVANT authentification', [
+                'bearer_token_present' => $bearerToken ? 'OUI' : 'NON',
+                'bearer_token_start' => $bearerToken ? substr($bearerToken, 0, 20) . '...' : null,
+                'bearer_token_full' => $bearerToken,
+                'authorization_header' => $authHeader ? 'OUI' : 'NON',
+                'authorization_value' => $authHeader ? substr($authHeader, 0, 50) . '...' : null,
+                'all_headers' => array_keys($request->headers->all()),
+            ]);
+            
+            // Utiliser $request->user() au lieu de Auth::guard('sanctum')->user()
+            // pour que Sanctum résolve correctement l'utilisateur depuis le token
+            $user = $request->user();
+            
+            // DEBUG: Logs pour diagnostiquer le problème d'authentification
+            \Log::info('🔍 Debug getMyCours - APRÈS authentification', [
+                'user_authenticated' => $user ? 'OUI' : 'NON',
+                'user_type' => $user ? get_class($user) : null,
+                'user_id' => $user ? $user->id : null,
+                'is_etudiant' => $user instanceof Etudiant,
+            ]);
+            
+            // Vérifier si l'utilisateur est authentifié
+            if (!$user) {
+                return response()->json([
+                    'message' => 'Non authentifié',
+                    'status' => 401
+                ], 401);
+            }
+            
+            // Vérifier si c'est un étudiant
+            if (!($user instanceof Etudiant)) {
+                return response()->json([
+                    'message' => 'Accès non autorisé. Seuls les étudiants peuvent accéder à cette ressource.',
+                    'status' => 403
+                ], 403);
+            }
+
+            $etudiant = $user;
+            $today = Carbon::today();
+
+            // Récupérer les cours qui correspondent aux critères de l'étudiant
+            // Utiliser withoutGlobalScope pour éviter le filtrage par UserContextScope
+            // car nous filtrons déjà manuellement par les critères de l'étudiant
+            $query = Cours::withoutGlobalScope(\App\Scopes\UserContextScope::class)
+                ->with(['etablissement', 'promotion', 'type_cours', 'salle', 'option', 'groups', 'ville'])
+                ->whereNull('archived_at')
+                ->where('promotion_id', $etudiant->promotion_id)
+                ->where('etablissement_id', $etudiant->etablissement_id)
+                ->where('ville_id', $etudiant->ville_id)
+                // N'afficher que les cours suivis par QR code ou sans tracking_method (compatibilité anciens cours)
+                ->where(function($q) {
+                    $q->whereNull('tracking_method')
+                      ->orWhere('tracking_method', 'qr_code');
+                });
+
+            // Filtrer par groupe si l'étudiant a un groupe
+            if ($etudiant->group_id) {
+                // Inclure les cours sans groupe (tous les groupes) OU avec le groupe de l'étudiant
+                $query->where(function($q) use ($etudiant) {
+                    $q->whereDoesntHave('groups')
+                      ->orWhereHas('groups', function($q2) use ($etudiant) {
+                          $q2->where('groups.id', $etudiant->group_id);
+                      });
+                });
+            } else {
+                // Si l'étudiant n'a pas de groupe, ne montrer que les cours sans groupe
+                $query->whereDoesntHave('groups');
+            }
+
+            // Filtrer par option si l'étudiant a une option
+            if ($etudiant->option_id) {
+                // Inclure les cours sans option (toutes options) OU avec l'option de l'étudiant
+                $query->where(function($q) use ($etudiant) {
+                    $q->whereNull('option_id')
+                      ->orWhere('option_id', $etudiant->option_id);
+                });
+            } else {
+                // Si l'étudiant n'a pas d'option, ne montrer que les cours sans option
+                $query->whereNull('option_id');
+            }
+
+            // DEBUG: Compter les cours avant filtrage par date
+            $totalCoursAvantDate = (clone $query)->count();
+            \Log::info('🔍 Debug getMyCours - Total cours avant filtrage date', [
+                'total' => $totalCoursAvantDate,
+                'sql' => (clone $query)->toSql(),
+                'bindings' => (clone $query)->getBindings(),
+            ]);
+
+            // Récupérer tous les cours d'aujourd'hui et du futur
+            $tousCours = (clone $query)
+                ->where('date', '>=', $today)
+                ->orderBy('date', 'asc')
+                ->orderBy('heure_debut', 'asc')
+                ->get();
+
+            // Séparer les cours en cours et futurs en fonction de l'heure réelle
+            $tz = 'Africa/Casablanca';
+            $now = Carbon::now($tz);
+
+            $coursEnCours = $tousCours->filter(function ($cours) use ($tz, $now) {
+                $dateString = $cours->date instanceof Carbon ? $cours->date->format('Y-m-d') : (string) $cours->date;
+
+                // heure_debut / heure_fin peuvent être des chaînes ou des objets Carbon selon les casts
+                $heureDebutStr = $cours->heure_debut instanceof Carbon ? $cours->heure_debut->format('H:i:s') : (string) $cours->heure_debut;
+                $heureFinStr = $cours->heure_fin instanceof Carbon ? $cours->heure_fin->format('H:i:s') : (string) $cours->heure_fin;
+
+                $debut = Carbon::createFromFormat('Y-m-d H:i:s', $dateString . ' ' . $heureDebutStr, $tz);
+                $fin = Carbon::createFromFormat('Y-m-d H:i:s', $dateString . ' ' . $heureFinStr, $tz);
+
+                return $now->greaterThanOrEqualTo($debut) && $now->lessThan($fin);
+            })->values();
+
+            $coursFuturs = $tousCours->filter(function ($cours) use ($tz, $now) {
+                $dateString = $cours->date instanceof Carbon ? $cours->date->format('Y-m-d') : (string) $cours->date;
+                $heureDebutStr = $cours->heure_debut instanceof Carbon ? $cours->heure_debut->format('H:i:s') : (string) $cours->heure_debut;
+
+                $debut = Carbon::createFromFormat('Y-m-d H:i:s', $dateString . ' ' . $heureDebutStr, $tz);
+
+                // Futur = date/heure de début pas encore atteinte
+                return $now->lessThan($debut);
+            })->values();
+
+            \Log::info('🔍 Debug getMyCours - Résultats', [
+                'total_tous' => $tousCours->count(),
+                'cours_en_cours_count' => $coursEnCours->count(),
+                'cours_futurs_count' => $coursFuturs->count(),
+                'cours_en_cours_ids' => $coursEnCours->pluck('id')->toArray(),
+                'cours_futurs_ids' => $coursFuturs->pluck('id')->toArray(),
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'cours_en_cours' => $coursEnCours,
+                'cours_futurs' => $coursFuturs,
+                'total_en_cours' => $coursEnCours->count(),
+                'total_futurs' => $coursFuturs->count()
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erreur lors de la récupération des cours',
+                'error' => $e->getMessage(),
+                'status' => 500
+            ], 500);
+        }
+    }
+
+    /**
+     * Récupérer les examens de l'étudiant connecté
+     * Filtre par promotion_id, group_id, etablissement_id, ville_id de l'étudiant
+     */
+    public function getMyExamens(Request $request)
+    {
+        try {
+            // Utiliser $request->user() au lieu de Auth::guard('sanctum')->user()
+            // pour que Sanctum résolve correctement l'utilisateur depuis le token
+            $user = $request->user();
+            
+            // Vérifier si l'utilisateur est authentifié
+            if (!$user) {
+                return response()->json([
+                    'message' => 'Non authentifié',
+                    'status' => 401
+                ], 401);
+            }
+            
+            // Vérifier si c'est un étudiant
+            if (!($user instanceof Etudiant)) {
+                return response()->json([
+                    'message' => 'Accès non autorisé. Seuls les étudiants peuvent accéder à cette ressource.',
+                    'status' => 403
+                ], 403);
+            }
+
+            $etudiant = $user;
+            $today = Carbon::today();
+
+            // DEBUG: Log des informations de l'étudiant
+            \Log::info('🔍 Debug getMyExamens - Informations étudiant', [
+                'etudiant_id' => $etudiant->id,
+                'etudiant_email' => $etudiant->email,
+                'promotion_id' => $etudiant->promotion_id,
+                'etablissement_id' => $etudiant->etablissement_id,
+                'ville_id' => $etudiant->ville_id,
+                'group_id' => $etudiant->group_id,
+                'option_id' => $etudiant->option_id,
+                'today' => $today->format('Y-m-d'),
+            ]);
+
+            // Récupérer les examens qui correspondent aux critères de l'étudiant
+            // Utiliser withoutGlobalScope pour éviter le filtrage par UserContextScope
+            // car nous filtrons déjà manuellement par les critères de l'étudiant
+            // Utiliser la relation 'group' (singulier) car Examen possède un seul groupe via group_id
+            // et la relation 'typeExamen' (camelCase) définie dans le modèle Examen
+            $query = Examen::withoutGlobalScope(\App\Scopes\UserContextScope::class)
+                ->with(['etablissement', 'promotion', 'typeExamen', 'salle', 'option', 'group', 'ville'])
+                ->whereNull('archived_at')
+                ->where('promotion_id', $etudiant->promotion_id)
+                ->where('etablissement_id', $etudiant->etablissement_id)
+                ->where('ville_id', $etudiant->ville_id)
+                // N'afficher que les examens suivis par QR code ou sans tracking_method (compatibilité anciens examens)
+                ->where(function($q) {
+                    $q->whereNull('tracking_method')
+                      ->orWhere('tracking_method', 'qr_code');
+                });
+
+            // Filtrer par groupe si l'étudiant a un groupe
+            if ($etudiant->group_id) {
+                // Inclure les examens pour tous les groupes (group_id = null) OU pour le groupe de l'étudiant
+                $query->where(function($q) use ($etudiant) {
+                    $q->whereNull('group_id')
+                      ->orWhere('group_id', $etudiant->group_id);
+                });
+            } else {
+                // Si l'étudiant n'a pas de groupe, ne montrer que les examens pour tous les groupes
+                $query->whereNull('group_id');
+            }
+
+            // Filtrer par option si l'étudiant a une option
+            if ($etudiant->option_id) {
+                // Inclure les examens pour toutes les options (option_id = null) OU pour l'option de l'étudiant
+                $query->where(function($q) use ($etudiant) {
+                    $q->whereNull('option_id')
+                      ->orWhere('option_id', $etudiant->option_id);
+                });
+            } else {
+                // Si l'étudiant n'a pas d'option, ne montrer que les examens pour toutes les options
+                $query->whereNull('option_id');
+            }
+
+            // Récupérer tous les examens d'aujourd'hui et du futur
+            $tousExamens = (clone $query)
+                ->where('date', '>=', $today)
+                ->orderBy('date', 'asc')
+                ->orderBy('heure_debut', 'asc')
+                ->get();
+
+            // Utiliser les helpers du modèle Examen pour classifier en cours / futurs
+            $examensEnCours = $tousExamens->filter(function ($examen) {
+                return $examen->isEnCours();
+            })->values();
+
+            $examensFuturs = $tousExamens->filter(function ($examen) {
+                return $examen->isFutur();
+            })->values();
+
+            // DEBUG: Log des résultats
+            \Log::info('🔍 Debug getMyExamens - Résultats', [
+                'total_tous' => $tousExamens->count(),
+                'examens_en_cours_count' => $examensEnCours->count(),
+                'examens_futurs_count' => $examensFuturs->count(),
+                'examens_en_cours_ids' => $examensEnCours->pluck('id')->toArray(),
+                'examens_futurs_ids' => $examensFuturs->pluck('id')->toArray(),
+            ]);
+            
+            return response()->json([
+                'status' => 'success',
+                'examens_en_cours' => $examensEnCours,
+                'examens_futurs' => $examensFuturs,
+                'total_en_cours' => $examensEnCours->count(),
+                'total_futurs' => $examensFuturs->count(),
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erreur lors de la récupération des examens',
                 'error' => $e->getMessage(),
                 'status' => 500
             ], 500);

@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Etudiant;
 use App\Models\Role;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -18,28 +20,127 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
+        // Essayer d'abord dans la table users
         $user = User::where('email', $request->email)->first();
+        
+        if ($user && Hash::check($request->password, $user->password)) {
+            // Utilisateur trouvé dans la table users
+            $token = $user->createToken($request->email)->plainTextToken;
+            $cookie = cookie('jwt', $token, 1);
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['Information incorrect.'],
-            ]);
+            return response()->json(
+                [
+                    'status' => 'success',
+                    'user' => $user,
+                    'user_type' => 'user', // Indiquer le type d'utilisateur
+                    'authorisation' => [
+                        'token' => $token,
+                        'type' => 'bearer',
+                    ]
+                ]
+            )->withCookie($cookie);
         }
 
-        $token = $user->createToken($request->email)->plainTextToken;
+        // Si pas trouvé dans users, essayer dans la table etudiants
+        $etudiant = Etudiant::withoutGlobalScope(\App\Scopes\UserContextScope::class)
+            ->where('email', $request->email)
+            ->first();
 
-        $cookie = cookie('jwt', $token, 1);
+        // DEBUG: Logs temporaires pour diagnostiquer le problème d'authentification
+        \Log::info('🔍 Debug Authentification Étudiant', [
+            'email_recherche' => $request->email,
+            'etudiant_trouve' => $etudiant ? 'OUI' : 'NON',
+            'etudiant_id' => $etudiant ? $etudiant->id : null,
+            'etudiant_email' => $etudiant ? $etudiant->email : null,
+            'etudiant_matricule' => $etudiant ? $etudiant->matricule : null,
+            'password_stocke_debut' => $etudiant ? substr($etudiant->password, 0, 20) : null,
+            'password_stocke_length' => $etudiant ? strlen($etudiant->password) : null,
+            'password_envoye' => substr($request->password, 0, 10) . '...',
+            'password_envoye_length' => strlen($request->password),
+            'hash_check_result' => $etudiant ? Hash::check($request->password, $etudiant->password) : false,
+            'password_stocke_est_hash' => $etudiant ? str_starts_with($etudiant->password, '$2y$') : false,
+        ]);
 
-        return response()->json(
-            [
-                'status' => 'success',
-                'user' => $user,
-                'authorisation' => [
-                    'token' => $token,
-                    'type' => 'bearer',
+        if ($etudiant && Hash::check($request->password, $etudiant->password)) {
+            // Supprimer les anciens tokens de l'étudiant pour éviter les conflits
+            $etudiant->tokens()->delete();
+            
+            // Étudiant trouvé dans la table etudiants
+            $token = $etudiant->createToken($request->email)->plainTextToken;
+            
+            // DEBUG: Vérifier si le token a été créé et sauvegardé
+            \Log::info('🔍 Debug Création Token Étudiant', [
+                'etudiant_id' => $etudiant->id,
+                'etudiant_email' => $etudiant->email,
+                'token_creer' => $token ? 'OUI' : 'NON',
+                'token_start' => $token ? substr($token, 0, 20) . '...' : null,
+                'token_full' => $token,
+            ]);
+            
+            // Vérifier si le token existe dans la base de données
+            $tokenParts = explode('|', $token);
+            if (count($tokenParts) === 2) {
+                $tokenId = $tokenParts[0];
+                $tokenHash = hash('sha256', $tokenParts[1]);
+                
+                $tokenInDb = \DB::table('personal_access_tokens')
+                    ->where('id', $tokenId)
+                    ->where('token', $tokenHash)
+                    ->where('tokenable_type', 'App\\Models\\Etudiant')
+                    ->where('tokenable_id', $etudiant->id)
+                    ->first();
+                    
+                \Log::info('🔍 Debug Token dans DB', [
+                    'token_id' => $tokenId,
+                    'token_hash' => substr($tokenHash, 0, 20) . '...',
+                    'token_in_db' => $tokenInDb ? 'OUI' : 'NON',
+                    'tokenable_type_attendu' => 'App\\Models\\Etudiant',
+                    'tokenable_id_attendu' => $etudiant->id,
+                ]);
+                
+                // Vérifier tous les tokens de cet étudiant
+                $allTokens = \DB::table('personal_access_tokens')
+                    ->where('tokenable_type', 'App\\Models\\Etudiant')
+                    ->where('tokenable_id', $etudiant->id)
+                    ->get();
+                    
+                \Log::info('🔍 Debug Tous les tokens de l\'étudiant', [
+                    'nombre_tokens' => $allTokens->count(),
+                    'tokens' => $allTokens->map(function($t) {
+                        return [
+                            'id' => $t->id,
+                            'name' => $t->name,
+                            'tokenable_type' => $t->tokenable_type,
+                            'tokenable_id' => $t->tokenable_id,
+                            'created_at' => $t->created_at,
+                        ];
+                    })->toArray(),
+                ]);
+            }
+            
+            $cookie = cookie('jwt', $token, 1);
+
+            // Charger les relations de l'étudiant
+            $etudiant->load(['promotion', 'etablissement', 'ville', 'group', 'option']);
+
+            return response()->json(
+                [
+                    'status' => 'success',
+                    'user' => $etudiant, // Utiliser 'user' pour compatibilité avec le frontend
+                    'etudiant' => $etudiant, // Ajouter aussi 'etudiant' pour clarté
+                    'user_type' => 'etudiant', // Indiquer le type d'utilisateur
+                    'authorisation' => [
+                        'token' => $token,
+                        'type' => 'bearer',
+                    ]
                 ]
-            ]
-        )->withCookie($cookie);
+            )->withCookie($cookie);
+        }
+
+        // Aucun utilisateur trouvé dans les deux tables
+        throw ValidationException::withMessages([
+            'email' => ['Email ou mot de passe incorrect.'],
+        ]);
     }
 
     public function register(Request $request)

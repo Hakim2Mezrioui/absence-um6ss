@@ -41,6 +41,9 @@ import { AbsenceDisplayComponent } from './components/absence-display/absence-di
 import { CoursDisplayComponent } from './components/cours-display/cours-display.component';
 import { DisplayPublicGuard } from './guards/display-public.guard';
 import { AttendanceRapideComponent } from './components/attendance-rapide/attendance-rapide.component';
+import { TrackerComponent } from './components/tracker/tracker.component';
+import { QrDisplayComponent } from './components/qr-display/qr-display.component';
+import { StudentDashboardComponent } from './components/student-dashboard/student-dashboard.component';
 
 export const routes: Routes = [
     {path: "", redirectTo: "login", pathMatch: "full"},
@@ -60,6 +63,27 @@ export const routes: Routes = [
         path: "cours-display/:id", 
         component: CoursDisplayComponent, 
         canActivate: [AuthGuard, DisplayPublicGuard] 
+    },
+
+    // Affichage plein écran du QR de présence (SANS layout/sidebar, plein écran)
+    { 
+        path: "qr-display/cours/:id", 
+        component: QrDisplayComponent, 
+        canActivate: [AuthGuard, RoleGuard], 
+        data: { roles: ['super-admin', 'admin', 'enseignant'] } 
+    },
+    { 
+        path: "qr-display/examen/:id", 
+        component: QrDisplayComponent, 
+        canActivate: [AuthGuard, RoleGuard], 
+        data: { roles: ['super-admin', 'admin', 'enseignant'] } 
+    },
+
+    // Student dashboard (sans sidebar, accessible uniquement aux étudiants)
+    { 
+        path: "student-dashboard", 
+        component: StudentDashboardComponent, 
+        canActivate: [AuthGuard]
     },
 
     // Authenticated area with sidebar layout
@@ -91,19 +115,20 @@ export const routes: Routes = [
             { path: "import-students", component: ImportStudentsComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },
             { path: "import-students-simple", component: SimpleStudentImportComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },
 
-            { path: "groups", component: GroupsComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien'] } },
+            { path: "groups", component: GroupsComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen'] } },
 
             { path: "absences", component: AbsencesComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien'] } },
             { path: "attendance-rapide", component: AttendanceRapideComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },
+            { path: "tracker", component: TrackerComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen'] } } ,
             { path: "promotions", component: PromotionsComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },
             { path: "etablissements", component: EtablissementsComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin'] } },
-            { path: "salles", component: SallesComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien'] } },
+            { path: "salles", component: SallesComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen'] } },
 
             { path: "rattrapages", component: RattrapageComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien'] } },
             { path: "rattrapages/:id/students", component: RattrapageStudentsComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien'] } },
 
             // Cours: scolarite and enseignant (and admins, super-admin)
-            { path: "cours", component: CoursComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'enseignant', 'doyen', 'technicien'] } },
+            { path: "cours", component: CoursComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'enseignant', 'doyen', 'technicien', 'defilement'] } },
             { path: "cours-archived", component: CoursArchivedComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien'] } },
             { path: "add-cours", component: AddCoursComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen'] } },
             { path: "edit-cours/:id", component: EditCoursComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen'] } },

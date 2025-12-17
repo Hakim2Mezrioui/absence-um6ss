@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil, interval } from 'rxjs';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
@@ -15,6 +15,7 @@ import { AttendanceStateService } from '../../services/attendance-state.service'
 import { ConfigurationAutoService } from '../../services/configuration-auto.service';
 import { BiostarAttendanceService } from '../../services/biostar-attendance.service';
 import { AttendanceStateModalComponent } from '../attendance-state-modal/attendance-state-modal.component';
+import { AuthService } from '../../services/auth.service';
 
 
 @Component({
@@ -78,6 +79,10 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
   // Offset configurable appliqué aux heures de pointage Biostar (en minutes)
   biostarTimeOffsetMinutes: number = 0;
   
+  // Mode bi-check
+  isBiCheckMode = false;
+  exitCaptureWindowMinutes = 0;
+
   // Propriétés pour l'actualisation automatique
   autoRefreshInterval = 30000; // 30 secondes en millisecondes
   lastRefreshTime: Date | null = null;
@@ -93,7 +98,9 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     { value: 'present', label: 'Présent' },
     { value: 'absent', label: 'Absent' },
     { value: 'late', label: 'En retard' },
-    { value: 'excused', label: 'Excusé' }
+    { value: 'excused', label: 'Excusé' },
+    { value: 'pending_entry', label: 'Entrée à valider' },
+    { value: 'pending_exit', label: 'Sortie à valider' }
   ];
   
   promotionOptions: { value: string, label: string }[] = [];
@@ -118,6 +125,8 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
   ];
   
   private destroy$ = new Subject<void>();
+  private readonly allowedRolesForEdit = ['super-admin', 'admin', 'enseignant'];
+  canEditStatuses = false;
 
   constructor(
     private coursService: CoursService,
@@ -127,10 +136,15 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     private configurationAutoService: ConfigurationAutoService,
     private biostarAttendanceService: BiostarAttendanceService,
     private fb: FormBuilder,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private authService: AuthService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
+    const currentRole = (this.authService.getUserRoleName() || '').toLowerCase();
+    this.canEditStatuses = this.allowedRolesForEdit.includes(currentRole);
+
     // Récupérer l'ID du cours depuis les paramètres de route
     this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
       this.coursId = +params['id'];
@@ -273,6 +287,14 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
    * Intégrer les données de pointage Biostar avec les étudiants
    */
   integrateBiostarDataWithStudents(biostarData: any): void {
+    // En mode Bi-check, toute la logique de pointage (punch_in/punch_out et statistiques)
+    // est gérée par le back-end. On NE DOIT PAS recalculer les statuts ni les stats ici,
+    // sinon on risque de contredire les données officielles de l'API.
+    if (this.isBiCheckMode) {
+      console.log('ℹ️ Mode Bi-check actif → intégration Biostar front ignorée (gérée par le back-end)');
+      return;
+    }
+
     if (!biostarData.punches || !this.students) return;
 
     console.log('🔄 Intégration des données Biostar avec les étudiants');
@@ -379,16 +401,30 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
           // Appliquer le calcul automatique du statut temporel
           if (data.cours) {
             data.cours.statut_temporel = this.coursService.calculateStatutTemporel(data.cours);
+            this.isBiCheckMode = (data.cours.attendance_mode || 'normal') === 'bicheck';
+            this.exitCaptureWindowMinutes = data.cours.exit_capture_window ?? 0;
+          }
+          else {
+            this.isBiCheckMode = false;
+            this.exitCaptureWindowMinutes = 0;
           }
           this.coursData = data;
           this.students = data.students || [];
+
+          // Statistiques
+          if (this.isBiCheckMode && data.statistics) {
+            // En mode bi-check, utiliser directement les statistiques renvoyées par le back-end
+            this.updateStatistics(data.statistics);
+          } else {
+            // En mode normal, appliquer la logique de tolérance côté frontend
+            this.applyToleranceLogic();
+          }
           
-          // Appliquer la logique de calcul automatique des statuts côté frontend
-          this.applyToleranceLogic();
-          
-          this.filteredStudents = [...this.students];
-          // Ne pas appeler updateStatistics ici car applyToleranceLogic() recalcule déjà les stats
+          this.applyFilters();
           this.updatePromotionOptions();
+          if (this.sortConfig.column) {
+            this.applySorting();
+          }
           this.loading = false;
           
           // Mettre à jour lastRefreshTime
@@ -450,6 +486,8 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
           type_cours_id: 1,
           salle_id: 1,
           option_id: 1,
+            attendance_mode: 'normal',
+            exit_capture_window: 0,
           statut_temporel: 'futur' as 'passé' | 'en_cours' | 'futur',
           created_at: '2024-01-01T00:00:00.000000Z',
           updated_at: '2024-01-01T00:00:00.000000Z',
@@ -535,11 +573,43 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Recalculer les statistiques à partir de la liste actuelle
+   */
+  private refreshStatsFromCurrentStudents(): void {
+    this.totalStudents = this.students.length;
+
+    let presents = 0;
+    let lates = 0;
+    let excused = 0;
+    let absents = 0;
+
+    this.students.forEach(student => {
+      const status = this.isBiCheckMode ? this.getDisplayStatus(student) : student.status;
+
+      if (status === 'present') presents++;
+      else if (status === 'late') lates++;
+      else if (status === 'excused') excused++;
+      else absents++;
+    });
+
+    this.presents = presents;
+    this.lates = lates;
+    this.excused = excused;
+    this.absents = absents;
+  }
+
+  /**
    * Applique la logique de tolérance aux étudiants
    */
   private applyToleranceLogic(): void {
     if (!this.coursData?.cours) {
       console.log('❌ Pas de données de cours pour appliquer la logique de tolérance');
+      return;
+    }
+
+    if (this.isBiCheckMode) {
+      // En mode Bi-check, les statuts et statistiques viennent exclusivement du back-end.
+      // Ne pas recalculer côté front pour éviter tout écart avec l'API.
       return;
     }
 
@@ -610,11 +680,7 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     });
 
     // Recalculer les statistiques
-    this.presents = this.students.filter(s => s.status === 'present').length;
-    this.absents = this.students.filter(s => s.status === 'absent').length;
-    this.lates = this.students.filter(s => s.status === 'late').length;
-    this.excused = this.students.filter(s => s.status === 'excused').length;
-    this.totalStudents = this.students.length;
+    this.refreshStatsFromCurrentStudents();
     
     console.log(`\n📊 RÉSULTAT FINAL:`);
     console.log(`   Étudiants avec pointage: ${studentsWithPunchTime}/${this.students.length}`);
@@ -2055,6 +2121,42 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Nombre d'étudiants bi-check avec bi-check incomplet (entrée ou sortie manquante)
+   */
+  get biCheckIncompleteCount(): number {
+    if (!this.isBiCheckMode) {
+      return 0;
+    }
+
+    return this.students.filter(student => {
+      const status = this.getDisplayStatus(student);
+      return status === 'pending_entry' || status === 'pending_exit';
+    }).length;
+  }
+
+  /**
+   * Nombre d'étudiants ayant au moins un Face ID d'entrée (punch_in_raw)
+   */
+  get biCheckEntryCount(): number {
+    if (!this.isBiCheckMode) {
+      return 0;
+    }
+
+    return this.students.filter(student => !!student.punch_in_raw).length;
+  }
+
+  /**
+   * Nombre d'étudiants ayant au moins un Face ID de sortie (punch_out_raw)
+   */
+  get biCheckExitCount(): number {
+    if (!this.isBiCheckMode) {
+      return 0;
+    }
+
+    return this.students.filter(student => !!student.punch_out_raw).length;
+  }
+
+  /**
    * Afficher les détails d'un étudiant
    */
   showStudentDetails(student: any): void {
@@ -2078,9 +2180,31 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
       'present': { label: 'Présent', icon: 'check_circle', color: 'text-green-600' },
       'absent': { label: 'Absent', icon: 'cancel', color: 'text-red-600' },
       'late': { label: 'En retard', icon: 'schedule', color: 'text-yellow-600' },
-      'excused': { label: 'Excusé', icon: 'info', color: 'text-blue-600' }
+      'excused': { label: 'Excusé', icon: 'info', color: 'text-blue-600' },
+      'pending_entry': { label: 'Entrée à valider', icon: 'login', color: 'text-orange-600' },
+      'pending_exit': { label: 'Sortie à valider', icon: 'logout', color: 'text-orange-600' }
     };
     return statusConfig[status] || { label: status, icon: 'help', color: 'text-gray-600' };
+  }
+
+  getDisplayStatus(student: any): string {
+    if (!this.isBiCheckMode) {
+      return student.status;
+    }
+
+    if (student.manual_override) {
+      return student.status;
+    }
+
+    if (!student.punch_in) {
+      return 'pending_entry';
+    }
+
+    if (student.punch_in && !student.punch_out) {
+      return 'pending_exit';
+    }
+
+    return student.status;
   }
 
   /**
@@ -2493,6 +2617,56 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     
     // Ouvrir dans une nouvelle fenêtre en plein écran
     const url = `/cours-display/${this.coursId}`;
+    window.open(url, '_blank', 'fullscreen=yes');
+  }
+
+  /**
+   * Indique si la méthode de suivi du cours est le QR code.
+   * Utilisé dans le template pour éviter les erreurs de typage strict.
+   */
+  get isQrTracking(): boolean {
+    if (!this.coursData || !this.coursData.cours) {
+      return false;
+    }
+    const trackingMethod = (this.coursData.cours as any)?.tracking_method;
+    const result = trackingMethod === 'qr_code';
+    console.log('🔍 isQrTracking check:', {
+      trackingMethod,
+      result,
+      coursId: this.coursId,
+      coursDataExists: !!this.coursData,
+      coursExists: !!this.coursData?.cours
+    });
+    return result;
+  }
+
+  /**
+   * Récupère la méthode de suivi actuelle (pour affichage de débogage).
+   */
+  get trackingMethod(): string {
+    if (!this.coursData || !this.coursData.cours) {
+      return 'non défini';
+    }
+    return (this.coursData.cours as any)?.tracking_method || 'non défini';
+  }
+
+  /**
+   * Ouvrir l'affichage du QR code dans une nouvelle fenêtre
+   */
+  openQrDisplay(): void {
+    if (!this.coursId) {
+      console.warn('⚠️ Aucun ID de cours disponible');
+      this.notificationService.warning(
+        'ID de cours manquant',
+        'Impossible d\'ouvrir l\'affichage du QR code car l\'ID du cours n\'est pas disponible.'
+      );
+      return;
+    }
+    
+    console.log('📱 Ouverture de l\'affichage QR code pour le cours ID:', this.coursId);
+    
+    // Ouvrir dans une nouvelle fenêtre en plein écran
+    const url = `/qr-display/cours/${this.coursId}`;
     window.open(url, '_blank', 'fullscreen=yes');
   }
 }

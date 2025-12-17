@@ -12,6 +12,9 @@ export interface CoursAttendanceData {
     heure_debut: string;
     heure_fin: string;
     tolerance: string;
+    attendance_mode?: 'normal' | 'bicheck';
+    exit_capture_window?: number;
+    tracking_method?: 'biostar' | 'qr_code';
     annee_universitaire: string;
     etablissement_id: number;
     promotion_id: number;
@@ -58,6 +61,24 @@ export interface StudentAttendance {
     time: string;
     device: string;
   };
+  punch_in?: {
+    time: string;
+    device: string;
+  };
+  punch_out?: {
+    time: string;
+    device: string;
+  };
+  punch_in_raw?: {
+    time: string;
+    device: string;
+  };
+  punch_out_raw?: {
+    time: string;
+    device: string;
+  };
+  manual_override?: boolean;
+  absence?: any;
   promotion?: { id: number; name: string };
   group?: { id: number; title: string };
   option?: { id: number; name: string };

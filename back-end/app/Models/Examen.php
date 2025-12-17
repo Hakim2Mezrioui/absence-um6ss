@@ -11,7 +11,7 @@ class Examen extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title', 'date', 'heure_debut', 'heure_fin', 'heure_debut_poigntage', 'annee_universitaire', 'tolerance', 'option_id', 'salle_id', 'promotion_id', 'type_examen_id', 'etablissement_id', 'group_id', 'ville_id', 'archived_at'];
+    protected $fillable = ['title', 'date', 'heure_debut', 'heure_fin', 'heure_debut_poigntage', 'annee_universitaire', 'tolerance', 'option_id', 'salle_id', 'promotion_id', 'type_examen_id', 'etablissement_id', 'group_id', 'ville_id', 'archived_at', 'tracking_method'];
 
     protected $casts = [
         'date' => 'date',

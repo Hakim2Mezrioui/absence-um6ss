@@ -1,0 +1,32 @@
+/* Styles pour le scanner QR code */
+#qr-reader {
+  min-height: 300px;
+  position: relative;
+}
+
+#qr-reader video {
+  width: 100%;
+  border-radius: 0.5rem;
+}
+
+#qr-reader__dashboard {
+  display: none; /* Masquer le dashboard par défaut si nécessaire */
+}
+
+/* Animation pour le scanner */
+@keyframes scan-line {
+  0% {
+    top: 0;
+  }
+  100% {
+    top: 100%;
+  }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  #qr-reader {
+    min-height: 250px;
+  }
+}
+

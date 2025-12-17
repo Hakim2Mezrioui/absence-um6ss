@@ -24,6 +24,9 @@ export class EditCoursComponent implements OnInit, OnDestroy {
     heure_debut: '',
     heure_fin: '',
     tolerance: '',
+    attendance_mode: 'normal',
+    exit_capture_window: 0,
+    tracking_method: 'biostar',
     etablissement_id: 0,
     promotion_id: 0,
     type_cours_id: 0,
@@ -38,6 +41,10 @@ export class EditCoursComponent implements OnInit, OnDestroy {
   error = '';
   success = '';
   coursId: number = 0;
+  
+  // Propriétés pour le mode bi-check
+  isBiCheckMode: boolean = false;
+  exitCaptureWindow: number = 15;
 
   // Dropdown salle state (aligné avec add-cours)
   salleDropdownOpen = false;
@@ -260,8 +267,15 @@ export class EditCoursComponent implements OnInit, OnDestroy {
         this.cours = {
           ...cours,
           date: cours.date ? cours.date.split('T')[0] : '', // Format pour input date
-          option_id: cours.option_id || undefined
+          option_id: cours.option_id || undefined,
+          attendance_mode: cours.attendance_mode || 'normal',
+          exit_capture_window: cours.exit_capture_window || 0,
+          tracking_method: cours.tracking_method || 'biostar'
         };
+        
+        // Initialiser les propriétés du mode bi-check
+        this.isBiCheckMode = cours.attendance_mode === 'bicheck';
+        this.exitCaptureWindow = cours.exit_capture_window || 15;
         
         // Appliquer la logique de permissions pour les utilisateurs non-super-admin
         if (this.isAdminEtablissement && this.currentUser) {
@@ -780,7 +794,7 @@ export class EditCoursComponent implements OnInit, OnDestroy {
     }
 
     // Conversion des IDs en nombres
-    const coursData = {
+    const coursData: Partial<Cours> = {
       ...this.cours,
       etablissement_id: Number(this.cours.etablissement_id),
       promotion_id: Number(this.cours.promotion_id),
@@ -789,6 +803,8 @@ export class EditCoursComponent implements OnInit, OnDestroy {
       salles_ids: this.selectedSalles.length > 0 ? this.selectedSalles.map(s => s.id) : (this.cours.salle_id ? [Number(this.cours.salle_id)] : []),
       option_id: this.cours.option_id ? Number(this.cours.option_id) : undefined,
       ville_id: Number(this.cours.ville_id),
+      attendance_mode: (this.isBiCheckMode ? 'bicheck' : 'normal') as 'normal' | 'bicheck',
+      exit_capture_window: this.isBiCheckMode ? Number(this.exitCaptureWindow) : 0,
       group_ids: this.selectedGroups // Envoyer les groupes sélectionnés nettoyés
     };
 
@@ -861,6 +877,14 @@ export class EditCoursComponent implements OnInit, OnDestroy {
       return false;
     }
 
+    // Validation du mode bi-check
+    if (this.isBiCheckMode) {
+      if (!this.exitCaptureWindow || this.exitCaptureWindow <= 0 || this.exitCaptureWindow > 120) {
+        this.error = 'La fenêtre de capture sortie doit être entre 1 et 120 minutes';
+        return false;
+      }
+    }
+
     // Le groupe est optionnel, pas de validation requise
 
     if (!this.cours.ville_id || this.cours.ville_id === 0) {
@@ -882,6 +906,12 @@ export class EditCoursComponent implements OnInit, OnDestroy {
     }
 
     return true;
+  }
+
+  onBiCheckModeChange() {
+    if (!this.isBiCheckMode) {
+      this.exitCaptureWindow = 15; // Réinitialiser à la valeur par défaut
+    }
   }
 
   onCancel() {

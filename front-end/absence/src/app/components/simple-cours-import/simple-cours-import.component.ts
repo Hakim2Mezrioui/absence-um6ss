@@ -63,6 +63,8 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
     'hour_debut',
     'hour_fin',
     'tolerance',
+    'attendance_mode',
+    'exit_capture_window',
     'etablissement_name',
     'promotion_name',
     'type_cours_name',
@@ -163,8 +165,8 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
   downloadTemplate(): void {
     const rows = [
       this.templateHeaders,
-      ['Cours de Mathématiques', '15/01/2024', '08:00', '10:00', '00:15', 'Université A', 'Promotion 1', 'Cours Magistral', 'C401, C501', 'Groupe A', 'Casablanca', 'Option 1', '2024-2025'],
-      ['Cours de Physique', '16/01/2024', '10:00', '12:00', '00:15', 'Université B', 'Promotion 2', 'TD', 'C506, A201', 'Groupe B', 'Rabat', 'Option 2', '2024-2025']
+      ['Cours de Mathématiques', '15/01/2024', '08:00', '10:00', '00:15', 'normal', '0', 'Université A', 'Promotion 1', 'Cours Magistral', 'C401, C501', 'Groupe A', 'Casablanca', 'Option 1', '2024-2025'],
+      ['Cours de Physique', '16/01/2024', '10:00', '12:00', '00:15', 'bicheck', '15', 'Université B', 'Promotion 2', 'TD', 'C506, A201', 'Groupe B', 'Rabat', 'Option 2', '2024-2025']
     ];
 
     const worksheet = utils.aoa_to_sheet(rows);
@@ -176,6 +178,8 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
       { wch: 10 }, // hour_debut
       { wch: 10 }, // hour_fin
       { wch: 10 }, // tolerance
+      { wch: 12 }, // attendance_mode
+      { wch: 12 }, // exit_capture_window
       { wch: 20 }, // etablissement_name
       { wch: 15 }, // promotion_name
       { wch: 15 }, // type_cours_name
@@ -405,6 +409,8 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
       'hour_debut': 'Ex: 08:00',
       'hour_fin': 'Ex: 10:00',
       'tolerance': 'Ex: 00:15',
+      'attendance_mode': 'Ex: normal ou bicheck',
+      'exit_capture_window': 'Ex: 15',
       'etablissement_name': 'Ex: Université A',
       'promotion_name': 'Ex: Promotion 1',
       'type_cours_name': 'Ex: Cours Magistral',
@@ -424,6 +430,8 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
       'hour_debut': 'Heure début',
       'hour_fin': 'Heure fin',
       'tolerance': 'Tolérance',
+      'attendance_mode': 'Mode de pointage',
+      'exit_capture_window': 'Fenêtre sortie (min)',
       'etablissement_name': 'Établissement',
       'promotion_name': 'Promotion',
       'type_cours_name': 'Type de cours',
@@ -575,6 +583,11 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
 
     // Préparer les données pour l'importation
     const coursData = this.tableRows.map(row => {
+      const normalizedMode = ((row['attendance_mode'] || 'normal').toString().toLowerCase().trim());
+      const attendanceMode = normalizedMode === 'bicheck' || normalizedMode === 'bi-check' ? 'bicheck' : 'normal';
+      const rawExitWindow = parseInt((row['exit_capture_window'] || '').toString(), 10);
+      const exitWindowValue = !isNaN(rawExitWindow) ? rawExitWindow : 0;
+
       const cours: any = {
         name: row['title'] || '',
         date: this.formatDate(row['date'] || ''),
@@ -582,6 +595,8 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
         heure_fin: this.formatTime(row['hour_fin'] || ''),
         tolerance: this.formatTime(row['tolerance'] || '00:15'),
         pointage_start_hour: this.formatTime(row['hour_debut'] || ''),
+        attendance_mode: attendanceMode,
+        exit_capture_window: attendanceMode === 'bicheck' ? (exitWindowValue || 15) : 0,
         etablissement_name: row['etablissement_name'] || '',
         promotion_name: row['promotion_name'] || '',
         type_cours_name: row['type_cours_name'] || '',

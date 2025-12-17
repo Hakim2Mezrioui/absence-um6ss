@@ -27,6 +27,10 @@ use App\Http\Controllers\AttendanceStateController;
 use App\Http\Controllers\EnseignantController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\AttendanceRapideController;
+use App\Http\Controllers\StudentTrackingController;
+use App\Http\Controllers\QrCodeAttendanceController;
+use App\Http\Middleware\AuthenticateEtudiant;
+use App\Http\Controllers\EtudiantAuthController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -46,6 +50,19 @@ Route::get("users/{id}", [AuthController::class, "show"]); // Nouvelle route
 Route::put("users/{id}", [AuthController::class, "update"]); // Nouvelle route
 Route::post("profile/change-password", [AuthController::class, "changePassword"])->middleware('auth:sanctum'); // Nouvelle route
 Route::get("profile", [AuthController::class, "profile"])->middleware('auth:sanctum'); // Nouvelle route
+
+// Authentification des étudiants (publique)
+Route::post("etudiants/login", [EtudiantAuthController::class, "login"]);
+Route::post("etudiants/logout", [EtudiantAuthController::class, "logout"])->middleware('auth:sanctum');
+Route::get("etudiants/me", [EtudiantAuthController::class, "me"])->middleware('auth:sanctum');
+
+// Routes pour les étudiants connectés (cours et examens)
+// Utiliser AuthenticateEtudiant au lieu de auth:sanctum car Sanctum ne peut pas résoudre les tokens Etudiant
+Route::get("etudiants/me/cours", [EtudiantController::class, "getMyCours"])->middleware(\App\Http\Middleware\AuthenticateEtudiant::class);
+Route::get("etudiants/me/examens", [EtudiantController::class, "getMyExamens"])->middleware(\App\Http\Middleware\AuthenticateEtudiant::class);
+
+// Route de scan QR par l'étudiant - DOIT être au même niveau que les routes ci-dessus
+Route::post("etudiants/qr-scan", [QrCodeAttendanceController::class, 'scan'])->middleware(\App\Http\Middleware\AuthenticateEtudiant::class);
 
 // Public route for enseignants filter options (must be defined BEFORE the resource route)
 Route::get('enseignants/filter-options', [EnseignantController::class, 'getFilterOptions']);
@@ -261,6 +278,27 @@ Route::post('attendance-rapide/lancer', [AttendanceRapideController::class, 'lan
 Route::get('attendance-rapide/template', [AttendanceRapideController::class, 'template']);
 Route::get('attendance-rapide/devices', [AttendanceRapideController::class, 'getDevices']);
 Route::get('attendance-rapide/{etablissementId}', [AttendanceRapideController::class, 'get']);
+
+// Student Tracking routes
+Route::get('student-tracking/track', [StudentTrackingController::class, 'track']);
+
+// QR Code attendance routes
+
+
+// Routes pour enseignants / admin / super-admin
+Route::middleware('auth:sanctum')->prefix('qr-attendance')->group(function () {
+    // Génération de QR pour les cours / examens
+    Route::post('cours/{coursId}/generate', [QrCodeAttendanceController::class, 'generateForCours']);
+    Route::post('examens/{examenId}/generate', [QrCodeAttendanceController::class, 'generateForExamen']);
+
+    // Lecture de l'attendance QR pour un cours
+    Route::get('cours/{coursId}', [QrCodeAttendanceController::class, 'getAttendanceForCours']);
+    
+    // Lecture de l'attendance QR pour un examen
+    Route::get('examens/{examenId}/attendance', [QrCodeAttendanceController::class, 'getAttendanceForExamen']);
+});
+
+// Scan QR par l'étudiant - utiliser AuthenticateEtudiant middleware
 
 // Rattrapage routes - Routes spécifiques AVANT la ressource
 Route::get('rattrapages/search', [RattrapageController::class, 'search']);

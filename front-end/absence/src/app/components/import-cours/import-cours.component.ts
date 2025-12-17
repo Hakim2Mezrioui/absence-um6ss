@@ -68,7 +68,9 @@ export class ImportCoursComponent implements OnInit, OnDestroy {
       option_id: [''],
       salle_id: ['', Validators.required],
       group_id: ['', Validators.required],
-      ville_id: ['', Validators.required]
+      ville_id: ['', Validators.required],
+      attendance_mode: ['normal'],
+      exit_capture_window: [15, [Validators.min(0), Validators.max(120)]]
     });
   }
 
@@ -248,6 +250,16 @@ export class ImportCoursComponent implements OnInit, OnDestroy {
     this.filePreview.forEach((item: FilePreviewItem, index: number) => {
       try {
         const heureDebut = this.formatTime(item.row['hour_debut'] || item.row['heure_debut'] || '');
+        const attendanceMode = this.normalizeAttendanceMode(
+          (item.row['attendance_mode'] || '').toString(),
+          formData.attendance_mode || 'normal'
+        );
+        const exitWindowFromRow = this.parseExitCaptureWindow(item.row['exit_capture_window']);
+        const defaultExitWindow = this.parseExitCaptureWindow(formData.exit_capture_window, 15);
+        const exitWindow = attendanceMode === 'bicheck'
+          ? (exitWindowFromRow ?? defaultExitWindow ?? 0)
+          : 0;
+
         const cours: Partial<Cours> = {
           name: item.row['title'] || item.row['name'] || item.row['nom'] || '',
           date: this.formatDate(item.row['date']),
@@ -260,6 +272,8 @@ export class ImportCoursComponent implements OnInit, OnDestroy {
             heureDebut
           ),
           tolerance: this.formatTime(item.row['tolerance'] || '00:15'),
+          attendance_mode: attendanceMode,
+          exit_capture_window: exitWindow,
           etablissement_id: formData.etablissement_id,
           promotion_id: formData.promotion_id,
           type_cours_id: formData.type_cours_id,
@@ -343,6 +357,15 @@ export class ImportCoursComponent implements OnInit, OnDestroy {
       this.importResults.errors++;
       this.importResults.details.push(`Ligne ${lineNumber}: L'heure de fin doit être postérieure à l'heure de début`);
       return false;
+    }
+
+    if (cours.attendance_mode === 'bicheck') {
+      const exitWindow = cours.exit_capture_window ?? 0;
+      if (exitWindow <= 0 || exitWindow > 120) {
+        this.importResults.errors++;
+        this.importResults.details.push(`Ligne ${lineNumber}: La fenêtre de capture sortie doit être comprise entre 1 et 120 minutes pour le mode bi-check`);
+        return false;
+      }
     }
 
     return true;
@@ -439,6 +462,12 @@ export class ImportCoursComponent implements OnInit, OnDestroy {
       if (control.errors['required']) {
         return 'Ce champ est requis';
       }
+      if (control.errors['min']) {
+        return `La valeur minimale est ${control.errors['min'].min}`;
+      }
+      if (control.errors['max']) {
+        return `La valeur maximale est ${control.errors['max'].max}`;
+      }
     }
     return '';
   }
@@ -447,6 +476,19 @@ export class ImportCoursComponent implements OnInit, OnDestroy {
   getHeaders(): string[] {
     if (this.filePreview.length === 0) return [];
     return Object.keys(this.filePreview[0].row);
+  }
+
+  onAttendanceModeToggle(event: Event) {
+    const checked = (event.target as HTMLInputElement).checked;
+    this.importForm.patchValue({
+      attendance_mode: checked ? 'bicheck' : 'normal'
+    });
+
+    if (!checked) {
+      this.importForm.patchValue({ exit_capture_window: 0 });
+    } else if (!this.importForm.get('exit_capture_window')?.value) {
+      this.importForm.patchValue({ exit_capture_window: 15 });
+    }
   }
 
   // Télécharger le modèle CSV
@@ -468,11 +510,11 @@ export class ImportCoursComponent implements OnInit, OnDestroy {
 
   // Générer le contenu du modèle CSV
   private generateCSVTemplate(): string {
-    const headers = ['title', 'date', 'hour_debut', 'hour_fin', 'tolerance'];
+    const headers = ['title', 'date', 'hour_debut', 'hour_fin', 'tolerance', 'attendance_mode', 'exit_capture_window'];
     const sampleData = [
-      ['Cours de Mathématiques', '15/01/2024', '08:00', '10:00', '00:15'],
-      ['Cours de Physique', '16/01/2024', '10:00', '12:00', '00:15'],
-      ['Cours de Chimie', '17/01/2024', '14:00', '16:00', '00:20']
+      ['Cours de Mathématiques', '15/01/2024', '08:00', '10:00', '00:15', 'normal', '0'],
+      ['Cours de Physique', '16/01/2024', '10:00', '12:00', '00:15', 'bicheck', '15'],
+      ['Cours de Chimie', '17/01/2024', '14:00', '16:00', '00:20', 'normal', '0']
     ];
 
     let csvContent = headers.join(',') + '\n';
@@ -481,6 +523,28 @@ export class ImportCoursComponent implements OnInit, OnDestroy {
     });
 
     return csvContent;
+  }
+
+  private normalizeAttendanceMode(value: string, fallback: 'normal' | 'bicheck' = 'normal'): 'normal' | 'bicheck' {
+    const normalized = value?.toLowerCase().trim();
+    if (normalized === 'bicheck' || normalized === 'bi-check' || normalized === 'bi_check' || normalized === 'double') {
+      return 'bicheck';
+    }
+    if (normalized === 'normal' || normalized === 'standard' || normalized === 'default') {
+      return 'normal';
+    }
+    return fallback;
+  }
+
+  private parseExitCaptureWindow(value: any, fallback?: number): number | undefined {
+    if (value === null || value === undefined || value === '') {
+      return fallback;
+    }
+    const parsed = Number(value);
+    if (isNaN(parsed)) {
+      return fallback;
+    }
+    return Math.min(Math.max(parsed, 0), 120);
   }
 
   removeFile() {

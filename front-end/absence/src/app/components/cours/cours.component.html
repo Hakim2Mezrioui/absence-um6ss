@@ -9,6 +9,7 @@
         </div>
         <div class="flex gap-3">
           <button 
+            *ngIf="!isDefilementRole()"
             (click)="openArchivedCours()"
             class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center gap-2"
           >
@@ -17,7 +18,7 @@
           </button>
           <div>
             <button 
-              *ngIf="authService.canEdit()"
+              *ngIf="authService.canEdit() && !isDefilementRole()"
               class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center gap-2"
               (click)="importCoursSimple()"
             >
@@ -26,7 +27,7 @@
             </button>
           </div>
           <button 
-            *ngIf="authService.canEdit()"
+            *ngIf="authService.canEdit() && !isDefilementRole()"
             (click)="addCours()"
             class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center gap-2"
           >
@@ -395,6 +396,7 @@
             </div>
             <div class="flex space-x-2">
               <button 
+                *ngIf="!isDefilementRole()"
                 class="action-button text-green-600 hover:text-green-900 p-2 rounded-md hover:bg-green-50 transition-colors"
                 (click)="viewCoursAttendance(coursItem)"
                 title="Vérifier les absences"
@@ -414,7 +416,7 @@
                 </svg>
               </button>
               <button 
-                *ngIf="coursItem.statut_temporel === 'passé' && authService.canEdit()"
+                *ngIf="coursItem.statut_temporel === 'passé' && authService.canEdit() && !isDefilementRole()"
                 class="action-button text-purple-600 hover:text-purple-900 p-2 rounded-md hover:bg-purple-50 transition-colors"
                 (click)="archiveCours(coursItem)"
                 title="Archiver"
@@ -424,7 +426,7 @@
                 </svg>
               </button>
               <button 
-                *ngIf="coursItem.statut_temporel !== 'passé'"
+                *ngIf="coursItem.statut_temporel !== 'passé' && !isDefilementRole()"
                 class="action-button text-blue-600 hover:text-blue-900 p-2 rounded-md hover:bg-blue-50 transition-colors"
                 (click)="editCours(coursItem)"
                 title="Modifier"
@@ -434,7 +436,7 @@
                 </svg>
               </button>
               <button 
-                *ngIf="coursItem.statut_temporel !== 'passé'"
+                *ngIf="coursItem.statut_temporel !== 'passé' && !isDefilementRole()"
                 class="action-button delete text-red-600 hover:text-red-900 p-2 rounded-md hover:bg-red-50 transition-colors"
                 (click)="deleteCours(coursItem)"
                 title="Supprimer"

@@ -16,7 +16,9 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   status: string;
-  user: User;
+  user: User | Etudiant;
+  etudiant?: Etudiant; // Optionnel, présent seulement si user_type === 'etudiant'
+  user_type?: 'user' | 'etudiant'; // Type d'utilisateur
   authorisation: Authorisation;
 }
 
@@ -31,6 +33,27 @@ export interface User {
   ville_id: number;
   created_at: string;
   updated_at: string;
+}
+
+export interface Etudiant {
+  id: number;
+  matricule: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  photo?: string;
+  promotion_id: number;
+  etablissement_id: number;
+  ville_id: number;
+  group_id?: number;
+  option_id: number;
+  created_at: string;
+  updated_at: string;
+  promotion?: any;
+  etablissement?: any;
+  ville?: any;
+  group?: any;
+  option?: any;
 }
 
 export interface Authorisation {
@@ -80,29 +103,50 @@ export class AuthService {
       .pipe(
         tap(response => {
           if (response.status === 'success' && response.authorisation?.token) {
+            // DEBUG: Vérifier le token reçu
+            console.log('🔍 Token reçu du backend:', response.authorisation.token.substring(0, 20) + '...');
+            
             // Store token in cookies
             this.cookieService.setAuthToken(
               response.authorisation.token,
               response.authorisation.type
             );
+            
+            // DEBUG: Vérifier que le token est bien stocké
+            const storedToken = this.cookieService.getAuthToken();
+            console.log('🔍 Token stocké dans cookie:', storedToken ? storedToken.substring(0, 20) + '...' : 'NON');
+            console.log('🔍 Tokens identiques:', storedToken === response.authorisation.token);
 
             // Store user data
             this.cookieService.setUserData(JSON.stringify(response.user));
 
-            // Store user role and token
+            // Store user type and role
             if (this.isBrowser()) {
-              const roleName = this.getRoleNameById(response.user.role_id);
               localStorage.setItem('token', response.authorisation.token);
-              this.startupService.setRole(roleName);
+              
+              // Gérer le rôle selon le type d'utilisateur
+              if (response.user_type === 'etudiant') {
+                // Pour les étudiants, utiliser un rôle spécial
+                localStorage.setItem('userType', 'etudiant');
+                this.startupService.setRole('etudiant');
+              } else {
+                // Pour les utilisateurs normaux, utiliser le role_id
+                const user = response.user as User;
+                const roleName = this.getRoleNameById(user.role_id);
+                localStorage.setItem('userType', 'user');
+                this.startupService.setRole(roleName);
+              }
             }
 
-            this.currentUserSubject.next(response.user);
+            this.currentUserSubject.next(response.user as any);
             this.isAuthenticatedSubject.next(true);
             
-            // Initialize user context and load configuration
-            this.userContextService.initializeUserContext().subscribe(() => {
-              this.userContextService.loadConfigurationForUserVille().subscribe();
-            });
+            // Initialize user context and load configuration (seulement pour les users, pas les étudiants)
+            if (response.user_type !== 'etudiant') {
+              this.userContextService.initializeUserContext().subscribe(() => {
+                this.userContextService.loadConfigurationForUserVille().subscribe();
+              });
+            }
           }
         })
       );
@@ -169,9 +213,18 @@ export class AuthService {
         try {
           const user = JSON.parse(userData);
           
-          // Restaurer le rôle
-          const roleName = this.getRoleNameById(user.role_id);
-          this.startupService.setRole(roleName);
+          // Vérifier le type d'utilisateur depuis localStorage
+          const userType = localStorage.getItem('userType');
+          
+          // Gérer différemment les étudiants et les utilisateurs normaux
+          if (userType === 'etudiant') {
+            // Pour les étudiants, utiliser le rôle 'etudiant'
+            this.startupService.setRole('etudiant');
+          } else {
+            // Pour les utilisateurs normaux, restaurer le rôle depuis role_id
+            const roleName = this.getRoleNameById(user.role_id);
+            this.startupService.setRole(roleName);
+          }
           
           this.currentUserSubject.next(user);
           this.isAuthenticatedSubject.next(true);
@@ -214,7 +267,14 @@ export class AuthService {
 
   getUserRole(): number {
     const user = this.getCurrentUser();
-    return user ? user.role_id : 0;
+    if (!user) return 0;
+    
+    // Si c'est un étudiant, retourner 0 (pas de role_id)
+    if (this.isEtudiant()) {
+      return 0;
+    }
+    
+    return (user as User).role_id || 0;
   }
 
   hasRole(roleId: number): boolean {
@@ -223,7 +283,30 @@ export class AuthService {
 
   getUserEtablissementId(): number {
     const user = this.getCurrentUser();
-    return user ? user.etablissement_id : 0;
+    if (!user) return 0;
+    
+    // Les étudiants et les users ont tous les deux etablissement_id
+    return user.etablissement_id || 0;
+  }
+
+  /**
+   * Vérifier si l'utilisateur connecté est un étudiant
+   */
+  isEtudiant(): boolean {
+    if (!this.isBrowser()) return false;
+    return localStorage.getItem('userType') === 'etudiant';
+  }
+
+  /**
+   * Obtenir l'étudiant connecté (si c'est un étudiant)
+   */
+  getEtudiant(): Etudiant | null {
+    const user = this.getCurrentUser();
+    if (this.isEtudiant() && user) {
+      // Conversion sûre via unknown pour éviter l'erreur TypeScript
+      return user as unknown as Etudiant;
+    }
+    return null;
   }
 
   /**
@@ -241,9 +324,15 @@ export class AuthService {
    * Obtenir le nom du rôle de l'utilisateur
    */
   getUserRoleName(): string {
+    // Vérifier d'abord si c'est un étudiant
+    const userType = localStorage.getItem('userType');
+    if (userType === 'etudiant') {
+      return 'etudiant';
+    }
+    
     const user = this.getCurrentUser();
-    if (user) {
-      return this.getRoleNameById(user.role_id);
+    if (user && (user as any).role_id) {
+      return this.getRoleNameById((user as any).role_id);
     }
     return 'user';
   }

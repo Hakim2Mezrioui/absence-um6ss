@@ -149,6 +149,7 @@ class ExamenController extends Controller
             'heure_debut' => 'required',
             'heure_fin' => 'required',
             'tolerance' => 'nullable|integer|min:0|max:60',
+            'tracking_method' => 'nullable|in:biostar,qr_code',
             'option_id' => 'nullable|exists:options,id',
             'salle_id' => 'nullable|exists:salles,id', // Déprécié mais gardé pour compatibilité
             'salles_ids' => 'nullable|array',
@@ -188,6 +189,7 @@ class ExamenController extends Controller
             'heure_debut' => $request->heure_debut,
             'heure_fin' => $request->heure_fin,
             'tolerance' => $request->tolerance ?? 15,
+            'tracking_method' => $request->tracking_method ?? 'biostar',
             'option_id' => $request->option_id,
             'salle_id' => $request->salle_id ?? ($request->salles_ids[0] ?? null), // Garder salle_id pour compatibilité
             'promotion_id' => $request->promotion_id,
@@ -230,6 +232,7 @@ class ExamenController extends Controller
             'heure_debut' => 'required',
             'heure_fin' => 'required',
             'tolerance' => 'nullable|integer|min:0|max:60',
+            'tracking_method' => 'nullable|in:biostar,qr_code',
             'option_id' => 'nullable|exists:options,id',
             'salle_id' => 'nullable|exists:salles,id', // Déprécié mais gardé pour compatibilité
             'salles_ids' => 'nullable|array',
@@ -274,7 +277,21 @@ class ExamenController extends Controller
         $all_groups = $request->boolean('all_groups') || ($group_id === null);
 
         // Update the Examen with the new data
-        $payload = $request->only(['title', 'date', 'heure_debut_poigntage', 'heure_debut', 'heure_fin', 'tolerance', 'option_id', 'salle_id', 'promotion_id', 'type_examen_id', 'etablissement_id', 'ville_id']);
+        $payload = $request->only([
+            'title',
+            'date',
+            'heure_debut_poigntage',
+            'heure_debut',
+            'heure_fin',
+            'tolerance',
+            'tracking_method',
+            'option_id',
+            'salle_id',
+            'promotion_id',
+            'type_examen_id',
+            'etablissement_id',
+            'ville_id'
+        ]);
         
         // Mettre à jour group_id selon all_groups
         $payload['group_id'] = $all_groups ? null : $group_id;
@@ -805,19 +822,24 @@ class ExamenController extends Controller
 
         // Groupe (avec recherche flexible sur 'title')
         if (empty($data['group_id']) && !empty($data['group_title'])) {
-            // Pour les groupes, on utilise 'title' au lieu de 'name'
-            $group = \App\Models\Group::where('title', $data['group_title'])->first();
-            if (!$group) {
-                $group = \App\Models\Group::whereRaw('LOWER(title) = ?', [strtolower($data['group_title'])])->first();
+            // Cas spécial : "Tous" signifie tous les groupes (group_id reste null)
+            if (strtolower(trim($data['group_title'])) === 'tous') {
+                $data['group_id'] = null;
+            } else {
+                // Pour les groupes, on utilise 'title' au lieu de 'name'
+                $group = \App\Models\Group::where('title', $data['group_title'])->first();
+                if (!$group) {
+                    $group = \App\Models\Group::whereRaw('LOWER(title) = ?', [strtolower($data['group_title'])])->first();
+                }
+                if (!$group) {
+                    $group = \App\Models\Group::where('title', 'LIKE', '%' . $data['group_title'] . '%')->first();
+                }
+                if (!$group) {
+                    $available = \App\Models\Group::pluck('title')->take(10)->implode(', ');
+                    throw new \Exception("Groupe '{$data['group_title']}' introuvable à la ligne $lineNumber. Exemples: {$available}");
+                }
+                $data['group_id'] = $group->id;
             }
-            if (!$group) {
-                $group = \App\Models\Group::where('title', 'LIKE', '%' . $data['group_title'] . '%')->first();
-            }
-            if (!$group) {
-                $available = \App\Models\Group::pluck('title')->take(10)->implode(', ');
-                throw new \Exception("Groupe '{$data['group_title']}' introuvable à la ligne $lineNumber. Exemples: {$available}");
-            }
-            $data['group_id'] = $group->id;
         }
 
         // Ville (avec recherche flexible)

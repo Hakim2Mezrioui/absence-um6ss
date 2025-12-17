@@ -339,14 +339,14 @@ export class SidebarComponent implements OnInit {
       route: '/examens',
       badge: '',
       tooltip: 'Gestion des examens',
-      roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien']
+      roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien', 'defilement']
     },
     {
       label: 'Cours',
       icon: 'class',
       route: '/cours',
       tooltip: 'Gestion des cours',
-      roles: ['super-admin', 'admin', 'scolarite', 'enseignant', 'doyen', 'technicien']
+      roles: ['super-admin', 'admin', 'scolarite', 'enseignant', 'doyen', 'technicien', 'defilement']
     },
     {
       label: 'Enseignants',
@@ -367,7 +367,7 @@ export class SidebarComponent implements OnInit {
       icon: 'groups',
       route: '/groups',
       tooltip: 'Gestion des groupes d\'étudiants',
-      roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien']
+      roles: ['super-admin', 'admin', 'scolarite', 'doyen']
     },
     {
       label: 'Absences',
@@ -377,11 +377,18 @@ export class SidebarComponent implements OnInit {
       roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien']
     },
     {
+      label: 'Traquer Étudiant',
+      icon: 'person_search',
+      route: '/tracker',
+      tooltip: 'Suivi détaillé de la présence d\'un étudiant',
+      roles: ['super-admin', 'admin', 'scolarite', 'doyen']
+    },
+    {
       label: 'Attendance Rapide',
       icon: 'speed',
       route: '/attendance-rapide',
       tooltip: 'Import rapide et récupération des présences',
-      roles: ['super-admin', 'admin', 'scolarite']
+      roles: ['super-admin', 'admin']
     },
     {
       label: 'Promotions',
@@ -402,7 +409,7 @@ export class SidebarComponent implements OnInit {
       icon: 'meeting_room',
       route: '/salles',
       tooltip: 'Gestion des salles',
-      roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien']
+      roles: ['super-admin', 'admin', 'scolarite', 'doyen']
     },
     {
       label: 'Rattrapages',

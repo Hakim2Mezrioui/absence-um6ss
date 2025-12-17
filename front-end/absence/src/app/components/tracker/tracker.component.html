@@ -1,0 +1,297 @@
+<div class="container mx-auto p-6">
+  <h1 class="text-3xl font-bold mb-6">Traquer Étudiant</h1>
+
+  <!-- Filter Form -->
+  <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+    <h2 class="text-xl font-semibold mb-4">Filtres de recherche</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+      <!-- Student Select with Search -->
+      <div class="relative">
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Étudiant *
+        </label>
+        
+        <!-- Search Input -->
+        <div class="relative">
+          <input
+            type="text"
+            [(ngModel)]="searchStudentText"
+            (input)="filterStudents()"
+            (focus)="openStudentDropdown()"
+            (blur)="scheduleCloseStudentDropdown()"
+            placeholder="Rechercher un étudiant..."
+            class="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+          </div>
+          <button
+            *ngIf="searchStudentText"
+            (click)="clearStudentSearch()"
+            (mousedown)="$event.preventDefault()"
+            class="absolute inset-y-0 right-0 flex items-center pr-8 text-gray-400 hover:text-gray-600"
+          >
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Dropdown Results -->
+        <div *ngIf="showStudentDropdown && (searchStudentText || filteredStudents.length > 0)" 
+             class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+          <div *ngIf="filteredStudents.length === 0" 
+               class="px-4 py-3 text-sm text-gray-500">
+            Aucun étudiant trouvé pour "{{ searchStudentText }}"
+          </div>
+          <div *ngFor="let student of filteredStudents" 
+               (mousedown)="$event.preventDefault(); selectStudent(student)"
+               class="px-4 py-2 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors">
+            <div class="font-medium text-gray-900">
+              {{ student.first_name }} {{ student.last_name }}
+            </div>
+            <div class="text-sm text-gray-500">
+              {{ student.matricule }} <span *ngIf="student.email">• {{ student.email }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Selected Student Display -->
+        <div *ngIf="selectedStudentId && !showStudentDropdown" 
+             class="mt-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-md">
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-blue-900">
+              {{ getSelectedStudentName() }}
+            </span>
+            <button
+              (click)="selectedStudentId = null; clearStudentSearch()"
+              class="text-blue-600 hover:text-blue-800"
+            >
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Results count -->
+        <p *ngIf="searchStudentText && showStudentDropdown" class="mt-1 text-xs text-gray-500">
+          {{ filteredStudents.length }} résultat(s) trouvé(s)
+        </p>
+      </div>
+
+      <!-- From Date -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Date de début *
+        </label>
+        <input
+          type="date"
+          [(ngModel)]="fromDate"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
+      <!-- To Date -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Date de fin *
+        </label>
+        <input
+          type="date"
+          [(ngModel)]="toDate"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
+      <!-- Type Filter -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Filtre par type
+        </label>
+        <select
+          [(ngModel)]="typeFilter"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="all">Tous</option>
+          <option value="cours">Cours</option>
+          <option value="examen">Examen</option>
+        </select>
+      </div>
+
+      <!-- Status Filter -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Filtre de statut
+        </label>
+        <select
+          [(ngModel)]="statusFilter"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="all">Tous</option>
+          <option value="present">Présents</option>
+          <option value="absent">Absents</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Search Button -->
+    <button
+      (click)="track()"
+      [disabled]="loading"
+      class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+    >
+      <span *ngIf="!loading">Rechercher</span>
+      <span *ngIf="loading">Recherche en cours...</span>
+    </button>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+    {{ error }}
+  </div>
+
+  <!-- Summary -->
+  <div *ngIf="summary && student" class="bg-white rounded-lg shadow-md p-6 mb-6">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-semibold">
+        Résumé pour {{ student.first_name }} {{ student.last_name }}
+      </h2>
+      <button
+        (click)="exportToPDF()"
+        [disabled]="filteredResults.length === 0"
+        class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
+        title="Exporter en PDF"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+        </svg>
+        <span>Exporter PDF</span>
+      </button>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="text-center">
+        <div class="text-3xl font-bold text-blue-600">{{ summary.total }}</div>
+        <div class="text-sm text-gray-600">Total</div>
+      </div>
+      <div class="text-center">
+        <div class="text-3xl font-bold text-green-600">{{ summary.presents }}</div>
+        <div class="text-sm text-gray-600">Présents</div>
+      </div>
+      <div class="text-center">
+        <div class="text-3xl font-bold text-red-600">{{ summary.absents }}</div>
+        <div class="text-sm text-gray-600">Absents</div>
+      </div>
+      <div class="text-center">
+        <div class="text-3xl font-bold text-yellow-600">{{ summary.lates }}</div>
+        <div class="text-sm text-gray-600">En retard</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results Table -->
+  <div *ngIf="filteredResults.length > 0" class="bg-white rounded-lg shadow-md overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Date
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Type
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Nom
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Heure début
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Heure fin
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Statut
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Pointage
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Device
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Salle
+            </th>
+          </tr>  
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <tr *ngFor="let result of filteredResults" class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              {{ formatDateOnly(result.date) }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              <span class="px-2 py-1 rounded text-xs font-medium"
+                    [ngClass]="result.type === 'cours' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'">
+                {{ result.type === 'cours' ? 'Cours' : 'Examen' }}
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              {{ result.name }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              {{ formatTime(result.heure_debut) }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              {{ formatTime(result.heure_fin) }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm">
+              <span class="px-2 py-1 rounded text-xs font-medium" [ngClass]="getStatusClass(result.status)">
+                {{ getStatusLabel(result.status) }}
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              <!-- Mode Bi-check: afficher entrée et sortie séparément -->
+              <div *ngIf="result.attendance_mode === 'bicheck'" class="space-y-1">
+                <div class="flex items-center gap-1">
+                  <span class="text-xs text-gray-500">Entrée:</span>
+                  <span [class]="result.punch_in ? 'text-green-600' : 'text-red-600'">
+                    {{ result.punch_in ? formatPunchTimeSimple(result.punch_in) : 'Aucun' }}
+                  </span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <span class="text-xs text-gray-500">Sortie:</span>
+                  <span [class]="result.punch_out ? 'text-green-600' : 'text-red-600'">
+                    {{ result.punch_out ? formatPunchTimeSimple(result.punch_out) : 'Aucun' }}
+                  </span>
+                </div>
+              </div>
+              <!-- Mode normal: afficher heure de pointage simple -->
+              <span *ngIf="result.attendance_mode !== 'bicheck'">
+                {{ formatPunchTimeSimple(result.punch_time) }}
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              {{ result.device || '-' }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              {{ result.salle || '-' }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && results.length === 0 && selectedStudentId" class="bg-white rounded-lg shadow-md p-12 text-center">
+    <p class="text-gray-500 text-lg">Aucun résultat trouvé pour cette période.</p>
+  </div>
+
+  <div *ngIf="!loading && results.length > 0 && filteredResults.length === 0" class="bg-white rounded-lg shadow-md p-12 text-center">
+    <p class="text-gray-500 text-lg">Aucun résultat ne correspond aux filtres sélectionnés.</p>
+  </div>
+</div>
+

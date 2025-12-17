@@ -11,6 +11,7 @@ export interface Examen {
   heure_fin: string;
   heure_debut_poigntage?: string;
   tolerance?: number;
+  tracking_method?: 'biostar' | 'qr_code';
   option_id?: number;
   salle_id: number;
   promotion_id: number;

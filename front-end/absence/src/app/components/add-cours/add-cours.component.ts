@@ -26,6 +26,9 @@ export class AddCoursComponent implements OnInit, OnDestroy {
     heure_debut: '',
     heure_fin: '',
     tolerance: '00:15', // Valeur par défaut en format time
+    attendance_mode: 'normal',
+    exit_capture_window: 0,
+    tracking_method: 'biostar',
     etablissement_id: 0,
     promotion_id: 0,
     type_cours_id: 0,
@@ -37,6 +40,10 @@ export class AddCoursComponent implements OnInit, OnDestroy {
 
   // Propriété pour gérer la tolérance en minutes dans le formulaire
   toleranceMinutes: number = 15;
+  
+  // Propriétés pour le mode bi-check
+  isBiCheckMode: boolean = false;
+  exitCaptureWindow: number = 15; // Valeur par défaut en minutes
 
   loading = false;
   error = '';
@@ -447,7 +454,7 @@ export class AddCoursComponent implements OnInit, OnDestroy {
     // Conversion des IDs en nombres et de la tolérance en format time
     const sallesIds = this.selectedSalles.map(s => s.id);
     
-    const coursData = {
+    const coursData: Partial<Cours> = {
       ...this.cours,
       etablissement_id: Number(this.cours.etablissement_id),
       promotion_id: Number(this.cours.promotion_id),
@@ -457,6 +464,8 @@ export class AddCoursComponent implements OnInit, OnDestroy {
       option_id: this.cours.option_id ? Number(this.cours.option_id) : undefined,
       ville_id: Number(this.cours.ville_id),
       tolerance: this.formatToleranceToTime(this.toleranceMinutes),
+      attendance_mode: (this.isBiCheckMode ? 'bicheck' : 'normal') as 'normal' | 'bicheck',
+      exit_capture_window: this.isBiCheckMode ? Number(this.exitCaptureWindow) : 0,
       group_ids: this.selectedGroups // Envoyer les groupes sélectionnés
     };
 
@@ -565,8 +574,23 @@ export class AddCoursComponent implements OnInit, OnDestroy {
       }
     }
 
+    // Validation du mode bi-check
+    if (this.isBiCheckMode) {
+      if (!this.exitCaptureWindow || this.exitCaptureWindow <= 0 || this.exitCaptureWindow > 120) {
+        console.log('❌ Validation échouée: fenêtre de capture sortie invalide');
+        this.error = 'La fenêtre de capture sortie doit être entre 1 et 120 minutes';
+        return false;
+      }
+    }
+
     console.log('✅ Toutes les validations sont passées');
     return true;
+  }
+
+  onBiCheckModeChange() {
+    if (!this.isBiCheckMode) {
+      this.exitCaptureWindow = 15; // Réinitialiser à la valeur par défaut
+    }
   }
 
   onCancel() {
@@ -587,6 +611,9 @@ export class AddCoursComponent implements OnInit, OnDestroy {
       heure_debut: '',
       heure_fin: '',
       tolerance: '00:15',
+      attendance_mode: 'normal',
+      exit_capture_window: 0,
+      tracking_method: 'biostar',
       etablissement_id: 0,
       promotion_id: 0,
       type_cours_id: 0,
@@ -597,6 +624,10 @@ export class AddCoursComponent implements OnInit, OnDestroy {
       annee_universitaire: `${currentYear}-${currentYear + 1}`
     };
     this.toleranceMinutes = 15;
+    this.isBiCheckMode = false;
+    this.exitCaptureWindow = 15;
+    this.selectedSalles = [];
+    this.selectedGroups = [];
     this.error = '';
     this.success = '';
   }

@@ -8,6 +8,7 @@ import { AbsenceAutoService, CreateAbsencesFromAttendanceRequest } from '../../s
 import { NotificationService } from '../../services/notification.service';
 import { ConfigurationAutoService } from '../../services/configuration-auto.service';
 import { BiostarAttendanceService } from '../../services/biostar-attendance.service';
+import { QrAttendanceService, QrAttendanceStudent } from '../../services/qr-attendance.service';
 import { Subject, takeUntil, interval } from 'rxjs';
 import * as XLSX from 'xlsx';
 
@@ -89,6 +90,10 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   // Offset configurable appliqué aux heures de pointage Biostar (en minutes)
   biostarTimeOffsetMinutes: number = 0;
   
+  // Mode QR Code
+  isQrCodeMode: boolean = false;
+  qrStudents: QrAttendanceStudent[] = [];
+  
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -97,6 +102,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     private notificationService: NotificationService,
     private configurationAutoService: ConfigurationAutoService,
     private biostarAttendanceService: BiostarAttendanceService,
+    private qrAttendanceService: QrAttendanceService,
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router
@@ -161,6 +167,20 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     if (!examenId) return;
 
     console.log('🔄 Auto-sélection de la configuration pour l\'examen ID:', examenId);
+    console.log('🔍 Mode de suivi de l\'examen:', this.examData?.tracking_method);
+    
+    // Vérifier si c'est le mode QR Code
+    if (this.examData?.tracking_method === 'qr_code') {
+      console.log('📱 Mode QR Code détecté - pas de configuration Biostar nécessaire');
+      this.isQrCodeMode = true;
+      this.biostarConfigStatus = 'none';
+      this.biostarConfigMessage = 'Mode de suivi: QR Code';
+      this.loadQrAttendanceDataForExamen(examenId);
+      return;
+    }
+    
+    // Mode Biostar (par défaut)
+    this.isQrCodeMode = false;
     
     // Mettre à jour l'état de chargement
     this.biostarConfigStatus = 'loading';
@@ -250,6 +270,87 @@ export class AttendanceComponent implements OnInit, OnDestroy {
         console.error('❌ Erreur lors de la récupération des données Biostar:', error);
       }
     });
+  }
+
+  /**
+   * Charger les données de pointage depuis QR Code pour un examen
+   */
+  loadQrAttendanceDataForExamen(examenId: number): void {
+    console.log('🔄 Chargement des données de pointage QR Code pour l\'examen:', examenId);
+    
+    this.qrAttendanceService.getExamenAttendance(examenId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          console.log('✅ Données de pointage QR Code récupérées:', response);
+          
+          if (response.success && response.data) {
+            // Mettre à jour les étudiants avec les données QR
+            this.qrStudents = response.data.etudiants;
+            
+            // Convertir les données QR au format StudentAttendance
+            this.students = response.data.etudiants.map(student => ({
+              id: student.id,
+              matricule: student.matricule,
+              first_name: student.first_name,
+              last_name: student.last_name,
+              email: student.email,
+              status: student.status,
+              punch_time: student.scan_time ? {
+                time: student.scan_time,
+                device: 'QR Code'
+              } : null,
+              group: student.group,
+              option: student.option,
+              promotion: student.promotion,
+              etablissement: student.etablissement,
+              ville: student.ville
+            } as StudentAttendance));
+            
+            // Mettre à jour les statistiques
+            this.totalStudents = response.data.total_etudiants;
+            this.presents = response.data.presents;
+            this.absents = response.data.absents;
+            
+            // Mettre à jour les informations de l'examen si non déjà définies
+            if (response.data.heure_debut_poigntage) {
+              this.examPunchStartTime = response.data.heure_debut_poigntage;
+            }
+            
+            // Mettre à jour les étudiants filtrés
+            this.filteredStudents = [...this.students];
+            
+            // Réappliquer le tri actuel si un tri est actif
+            this.applyCurrentSort();
+            
+            console.log(`✅ Données QR intégrées - ${this.presents} présent(s), ${this.absents} absent(s)`);
+            
+            // Enregistrer l'heure de la dernière actualisation
+            this.lastRefreshTime = new Date();
+            
+            // Fin du chargement
+            this.loading = false;
+            
+            this.notificationService.success(
+              'Données QR Code',
+              `${this.totalStudents} étudiant(s) chargé(s) - ${this.presents} présent(s)`
+            );
+          } else {
+            // Pas de données, fin du chargement quand même
+            this.lastRefreshTime = new Date();
+            this.loading = false;
+          }
+        },
+        error: (error) => {
+          console.error('❌ Erreur lors de la récupération des données QR:', error);
+          this.loading = false;
+          this.lastRefreshTime = new Date();
+          this.notificationService.error(
+            'Erreur QR Code',
+            'Impossible de charger les données de pointage QR'
+          );
+        }
+      });
   }
 
   /**
@@ -397,7 +498,8 @@ export class AttendanceComponent implements OnInit, OnDestroy {
             this.examSalle = response.salle || 'N/A';
           }
           this.examTolerance = response.tolerance || 15;
-          this.examId = response.examen_id || null;
+          // Utiliser examen.id car examen_id n'est pas retourné au niveau racine
+          this.examId = response.examen?.id || response.examen_id || null;
           this.examData = response.examen || null;
 
           // Ajuster l'offset d'affichage selon la ville de l'examen (Casablanca => +60 minutes, autres => 0)
@@ -418,14 +520,40 @@ export class AttendanceComponent implements OnInit, OnDestroy {
             punch_time: s.punch_time
           })));
           
-          // Auto-sélectionner la configuration si un examen est trouvé
+          // Auto-sélectionner la configuration selon le mode de suivi
           if (this.examId) {
             console.log('🔍 ID d\'examen trouvé dans les données:', this.examId);
-            // Vérifier si l'ID n'était pas déjà défini depuis l'URL
-            const wasIdFromUrl = this.route.snapshot.params['id'];
-            if (!wasIdFromUrl) {
-              // L'ID vient de l'API, déclencher l'auto-configuration
-              this.autoSelectConfigurationForExamen(this.examId);
+            console.log('🔍 Mode de suivi:', this.examData?.tracking_method);
+            
+            // Vérifier le mode de suivi
+            if (this.examData?.tracking_method === 'qr_code') {
+              // Mode QR Code - NE PAS utiliser les données Biostar
+              // Réinitialiser les données et charger uniquement les données QR
+              this.isQrCodeMode = true;
+              this.biostarConfigStatus = 'none';
+              this.biostarConfigMessage = 'Mode de suivi: QR Code';
+              
+              // Réinitialiser les statistiques (elles seront recalculées par loadQrAttendanceDataForExamen)
+              this.students = [];
+              this.filteredStudents = [];
+              this.totalStudents = 0;
+              this.presents = 0;
+              this.absents = 0;
+              
+              // Charger les données QR (cela va remplacer toutes les données)
+              this.loadQrAttendanceDataForExamen(this.examId);
+              
+              // NE PAS appeler applyToleranceLogic car c'est pour Biostar
+              // NE PAS mettre loading = false ici, loadQrAttendanceDataForExamen le fera
+              return; // Sortir ici, le reste est géré par loadQrAttendanceDataForExamen
+            } else {
+              // Mode Biostar (par défaut)
+              this.isQrCodeMode = false;
+              const wasIdFromUrl = this.route.snapshot.params['id'];
+              if (!wasIdFromUrl) {
+                // L'ID vient de l'API, déclencher l'auto-configuration
+                this.autoSelectConfigurationForExamen(this.examId);
+              }
             }
           } else {
             console.log('⚠️ Aucun ID d\'examen trouvé dans les données de l\'API');
@@ -434,7 +562,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
             this.biostarConfigMessage = 'Aucun examen trouvé pour ces critères';
           }
           
-          // Appliquer la logique de tolérance aux étudiants
+          // Appliquer la logique de tolérance aux étudiants (seulement pour Biostar)
           this.applyToleranceLogic();
           
           // Initialiser le filtrage
@@ -1614,6 +1742,33 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     
     // Ouvrir dans une nouvelle fenêtre en plein écran
     const url = `/absence-display/${examenId}`;
+    window.open(url, '_blank', 'fullscreen=yes');
+  }
+
+  /**
+   * Ouvrir l'affichage du QR code dans une nouvelle fenêtre
+   */
+  openQrDisplay(): void {
+    // Utiliser examId ou examData.id en fallback
+    const examenId = this.examId || this.examData?.id;
+    
+    if (!examenId) {
+      console.warn('⚠️ Aucun ID d\'examen disponible:', {
+        examId: this.examId,
+        examDataId: this.examData?.id,
+        examData: this.examData
+      });
+      this.notificationService.warning(
+        'ID d\'examen manquant',
+        'Impossible d\'ouvrir l\'affichage du QR code car l\'ID de l\'examen n\'est pas disponible.'
+      );
+      return;
+    }
+    
+    console.log('📱 Ouverture de l\'affichage QR code pour l\'examen ID:', examenId);
+    
+    // Ouvrir dans une nouvelle fenêtre en plein écran
+    const url = `/qr-display/examen/${examenId}`;
     window.open(url, '_blank', 'fullscreen=yes');
   }
 

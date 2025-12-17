@@ -1,0 +1,91 @@
+<div class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" (click)="close()">
+  <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6" (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+        <span class="material-icons text-blue-600">qr_code_scanner</span>
+        Scanner QR Code
+      </h2>
+      <button 
+        (click)="close()" 
+        class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+      >
+        <span class="material-icons text-gray-500">close</span>
+      </button>
+    </div>
+
+    <!-- Scanner Area -->
+    <div class="mb-4">
+      <div id="qr-reader" class="w-full rounded-lg overflow-hidden bg-gray-100"></div>
+    </div>
+
+    <!-- Messages -->
+    <div class="space-y-3 mb-4">
+      <!-- Success Message -->
+      <div 
+        *ngIf="successMessage" 
+        class="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3"
+      >
+        <span class="material-icons text-green-600">check_circle</span>
+        <p class="text-green-800 text-sm flex-1">{{ successMessage }}</p>
+      </div>
+
+      <!-- Error Message -->
+      <div 
+        *ngIf="errorMessage" 
+        class="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3"
+      >
+        <span class="material-icons text-red-600">error</span>
+        <p class="text-red-800 text-sm flex-1">{{ errorMessage }}</p>
+      </div>
+
+      <!-- Processing -->
+      <div 
+        *ngIf="isProcessing" 
+        class="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center gap-3"
+      >
+        <div class="animate-spin rounded-full h-5 w-5 border-2 border-blue-600 border-t-transparent"></div>
+        <p class="text-blue-800 text-sm">Traitement en cours...</p>
+      </div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="bg-gray-50 rounded-lg p-4 mb-4">
+      <p class="text-sm text-gray-600 text-center">
+        <span class="material-icons text-base align-middle">info</span>
+        Pointez la caméra vers le QR code affiché par l'enseignant
+      </p>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex gap-3">
+      <button 
+        *ngIf="!isScanning && !isProcessing"
+        (click)="startScanning()"
+        class="flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+      >
+        <span class="material-icons text-lg">camera_alt</span>
+        Démarrer le scan
+      </button>
+      
+      <button 
+        *ngIf="isScanning && !isProcessing"
+        (click)="stopScanning()"
+        class="flex-1 bg-gray-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-gray-700 transition-colors flex items-center justify-center gap-2"
+      >
+        <span class="material-icons text-lg">stop</span>
+        Arrêter
+      </button>
+      
+      <button 
+        *ngIf="errorMessage && !isProcessing"
+        (click)="retry()"
+        class="flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+      >
+        <span class="material-icons text-lg">refresh</span>
+        Réessayer
+      </button>
+    </div>
+  </div>
+</div>
+
