@@ -24,7 +24,7 @@
     "@angular/router": "^20.2.4",
     "@angular/ssr": "^20.2.2",
     "@tailwindcss/postcss": "^4.1.12",
-    "angularx-qrcode": "^21.0.0",
+    "angularx-qrcode": "^16.0.2",
     "express": "^4.18.2",
     "html5-qrcode": "^2.3.8",
     "jspdf": "^3.0.4",

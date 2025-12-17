@@ -1,5 +1,7 @@
 {
   "dependencies": {
-    "@angular/cli": "^19.2.15"
+    "@angular/cli": "^19.2.15",
+    "angularx-qrcode": "^21.0.4",
+    "html5-qrcode": "^2.3.8"
   }
 }

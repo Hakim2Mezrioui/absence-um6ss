@@ -5,12 +5,12 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { interval, Subscription } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../../services/auth.service';
-import { QRCodeComponent } from 'angularx-qrcode';
+import { QRCodeModule } from 'angularx-qrcode';
 
 @Component({
   selector: 'app-qr-display',
   standalone: true,
-  imports: [CommonModule, QRCodeComponent],
+  imports: [CommonModule, QRCodeModule],
   templateUrl: './qr-display.component.html',
   styleUrl: './qr-display.component.css'
 })

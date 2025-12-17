@@ -58,14 +58,14 @@ export class QrScannerComponent implements OnInit, OnDestroy {
       await this.html5QrCode.start(
         { facingMode: 'environment' }, // Utiliser la caméra arrière
         config,
-        (decodedText, decodedResult) => {
+        (decodedText: string, decodedResult: unknown) => {
           this.onScanSuccess(decodedText);
         },
-        (errorMessage) => {
+        (errorMessage: string) => {
           // Ignorer les erreurs de scan continu
         }
       );
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Erreur lors du démarrage du scanner:', err);
       this.errorMessage = 'Impossible d\'accéder à la caméra. Vérifiez les permissions.';
       this.isScanning = false;
