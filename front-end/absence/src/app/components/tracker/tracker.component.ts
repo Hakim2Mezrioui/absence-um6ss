@@ -284,7 +284,7 @@ export class TrackerComponent implements OnInit {
         }
       }
       
-      return date.toLocaleString('fr-FR', {
+      return date.toLocaleString('fr-FR', {  
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',

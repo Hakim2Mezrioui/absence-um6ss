@@ -119,7 +119,7 @@ export const routes: Routes = [
 
             { path: "absences", component: AbsencesComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien'] } },
             { path: "attendance-rapide", component: AttendanceRapideComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },
-            { path: "tracker", component: TrackerComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen'] } },
+            { path: "tracker", component: TrackerComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen'] } } ,
             { path: "promotions", component: PromotionsComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },
             { path: "etablissements", component: EtablissementsComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin'] } },
             { path: "salles", component: SallesComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen'] } },
