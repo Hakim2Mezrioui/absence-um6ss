@@ -27,7 +27,7 @@ export class ExamensComponent implements OnInit, OnDestroy {
   // Pagination
   currentPage = 1;
   lastPage = 1;
-  perPage = 10;
+  perPage = 12;
   total = 0;
   
   // Filters

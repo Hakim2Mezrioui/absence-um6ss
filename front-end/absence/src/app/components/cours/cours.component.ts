@@ -19,11 +19,11 @@ export class CoursComponent implements OnInit {
   currentPage = 1;
   totalPages = 1;
   totalItems = 0;
-  itemsPerPage = 10;
+  itemsPerPage = 12;
 
   // Filtres
   filters: CoursFilters = {
-    size: 10,
+    size: 12,
     page: 1,
     searchValue: ''
   };

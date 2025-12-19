@@ -147,10 +147,11 @@
           (change)="onPerPageChange($event)"
           class="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          <option value="5">5</option>
-          <option value="10">10</option>
-          <option value="20">20</option>
-          <option value="50">50</option>
+          <option value="6">6</option>
+          <option value="12">12</option>
+          <option value="18">18</option>
+          <option value="24">24</option>
+          <option value="30">30</option>
         </select>
       </div>
     </div>
@@ -175,7 +176,7 @@
     </div>
 
     <!-- Examens Cards -->
-    <div *ngIf="!loading && !error" class="examens-grid grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+    <div *ngIf="!loading && !error" class="examens-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
       <div *ngFor="let examen of examens" class="examens-card bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col">
         <!-- Header de la card avec titre et statut -->
         <div class="p-6 border-b border-gray-100">
