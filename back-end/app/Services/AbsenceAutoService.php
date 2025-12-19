@@ -19,21 +19,35 @@ class AbsenceAutoService
         try {
             DB::beginTransaction();
 
-            // Récupérer l'examen avec ses informations
-            $examen = Examen::with(['promotion', 'group', 'option', 'etablissement', 'ville'])
+            // Récupérer l'examen avec ses informations (y compris les groupes many-to-many)
+            $examen = Examen::with(['promotion', 'group', 'groups', 'option', 'etablissement', 'ville'])
                 ->find($examenId);
 
             if (!$examen) {
                 throw new \Exception("Examen non trouvé avec l'ID: {$examenId}");
             }
 
-            // Récupérer tous les étudiants de la promotion/groupe concernés
-            $etudiants = Etudiant::where('promotion_id', $examen->promotion_id)
-                ->where('group_id', $examen->group_id)
-                ->where('option_id', $examen->option_id)
+            // Construire la liste des groupes concernés pour cet examen
+            $groupIds = $examen->groups ? $examen->groups->pluck('id')->filter()->values() : collect();
+            if ($examen->group_id) {
+                $groupIds->push($examen->group_id);
+            }
+            $groupIds = $groupIds->unique()->values();
+
+            // Récupérer tous les étudiants de la promotion/groupe(s) concernés
+            $etudiantsQuery = Etudiant::where('promotion_id', $examen->promotion_id)
                 ->where('etablissement_id', $examen->etablissement_id)
-                ->where('ville_id', $examen->ville_id)
-                ->get();
+                ->where('ville_id', $examen->ville_id);
+
+            if ($examen->option_id) {
+                $etudiantsQuery->where('option_id', $examen->option_id);
+            }
+
+            if ($groupIds->isNotEmpty()) {
+                $etudiantsQuery->whereIn('group_id', $groupIds);
+            }
+
+            $etudiants = $etudiantsQuery->get();
 
             if ($etudiants->isEmpty()) {
                 throw new \Exception("Aucun étudiant trouvé pour cet examen");
@@ -208,10 +222,24 @@ class AbsenceAutoService
             return ['error' => 'Examen non trouvé'];
         }
 
-        $totalEtudiants = Etudiant::where('promotion_id', $examen->promotion_id)
-            ->where('group_id', $examen->group_id)
-            ->where('option_id', $examen->option_id)
-            ->count();
+        // Recalculer la liste des groupes concernés pour les statistiques
+        $groupIds = $examen->groups ? $examen->groups->pluck('id')->filter()->values() : collect();
+        if ($examen->group_id) {
+            $groupIds->push($examen->group_id);
+        }
+        $groupIds = $groupIds->unique()->values();
+
+        $totalEtudiantsQuery = Etudiant::where('promotion_id', $examen->promotion_id);
+
+        if ($examen->option_id) {
+            $totalEtudiantsQuery->where('option_id', $examen->option_id);
+        }
+
+        if ($groupIds->isNotEmpty()) {
+            $totalEtudiantsQuery->whereIn('group_id', $groupIds);
+        }
+
+        $totalEtudiants = $totalEtudiantsQuery->count();
 
         $absences = Absence::where('examen_id', $examenId)
             ->where('date_absence', $examen->date)

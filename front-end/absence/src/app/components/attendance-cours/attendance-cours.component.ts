@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject, takeUntil, interval } from 'rxjs';
+import { Subject, takeUntil, interval, Subscription } from 'rxjs';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -87,6 +87,7 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
   autoRefreshInterval = 30000; // 30 secondes en millisecondes
   lastRefreshTime: Date | null = null;
   private autoRefreshStarted = false; // Flag pour éviter de démarrer plusieurs fois
+  private autoRefreshSub?: Subscription;
   
   // Propriétés pour l'état de la configuration Biostar
   biostarConfigStatus: 'loading' | 'success' | 'error' | 'none' = 'loading';
@@ -160,6 +161,7 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.autoRefreshSub?.unsubscribe();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -1550,12 +1552,47 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     console.log('🔄 Démarrage de l\'actualisation automatique (toutes les 30s)');
     this.autoRefreshStarted = true;
     
-    interval(this.autoRefreshInterval)
+    this.autoRefreshSub = interval(this.autoRefreshInterval)
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
+        if (this.isCoursTermine()) {
+          console.log('⏹️ Cours terminé - arrêt du rafraîchissement automatique');
+          this.autoRefreshSub?.unsubscribe();
+          this.autoRefreshStarted = false;
+          return;
+        }
         console.log('⏰ Actualisation automatique déclenchée');
         this.loadAttendanceData();
       });
+  }
+
+  /**
+   * Vérifie si le cours est terminé (dans le passé)
+   */
+  private isCoursTermine(): boolean {
+    if (!this.coursData?.cours) return false;
+    
+    // Utiliser statut_temporel si disponible
+    if (this.coursData.cours.statut_temporel === 'passé') return true;
+    
+    // Sinon, vérifier manuellement
+    const cours = this.coursData.cours;
+    if (!cours.date || !cours.heure_fin) return false;
+    
+    const now = new Date();
+    const coursDate = new Date(cours.date);
+    const nowDate = now.toISOString().split('T')[0];
+    const coursDateOnly = coursDate.toISOString().split('T')[0];
+    
+    if (coursDateOnly < nowDate) return true;
+    
+    if (coursDateOnly === nowDate) {
+      const dateOnly = coursDate.toISOString().split('T')[0];
+      const heureFin = new Date(dateOnly + 'T' + cours.heure_fin);
+      return now > heureFin;
+    }
+    
+    return false;
   }
 
   /**

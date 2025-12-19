@@ -80,6 +80,11 @@ class Examen extends Model
         return $this->belongsTo(Group::class);
     }
 
+    public function groups()
+    {
+        return $this->belongsToMany(Group::class, 'examen_group');
+    }
+
     public function ville()
     {
         return $this->belongsTo(Ville::class);

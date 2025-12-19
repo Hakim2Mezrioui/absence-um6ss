@@ -139,8 +139,8 @@ export class SimpleExamensImportComponent implements OnInit, OnDestroy {
   downloadTemplate(): void {
     const rows = [
       this.templateHeaders,
-      ['Examen de Math', '15/01/2024', '08:45', '09:00', '11:00', '15', 'Université A', 'Promotion 1', 'Contrôle', 'C401, C501', 'Groupe A', 'Rabat', 'Option 1', '2024-2025'],
-      ['Examen de Physique', '16/01/2024', '13:45', '14:00', '16:00', '10', 'Université B', 'Promotion 2', 'Final', 'C201, C202, C203', 'Groupe B', 'Casablanca', 'Option 2', '2024-2025']
+      ['Examen de Math', '15/01/2024', '08:45', '09:00', '11:00', '15', 'Université A', 'Promotion 1', 'Contrôle', 'C401, C501', 'Groupe A, Groupe B', 'Rabat', 'Option 1', '2024-2025'],
+      ['Examen de Physique', '16/01/2024', '13:45', '14:00', '16:00', '10', 'Université B', 'Promotion 2', 'Final', 'C201, C202, C203', 'Groupe B, Groupe C', 'Casablanca', 'Option 2', '2024-2025']
     ];
     const worksheet = utils.aoa_to_sheet(rows);
     
@@ -156,7 +156,7 @@ export class SimpleExamensImportComponent implements OnInit, OnDestroy {
       { wch: 15 }, // promotion_name
       { wch: 15 }, // type_examen_name
       { wch: 25 }, // salle_name (augmenté pour plusieurs salles)
-      { wch: 12 }, // group_title
+      { wch: 20 }, // group_title (augmenté pour plusieurs groupes)
       { wch: 15 }, // ville_name
       { wch: 15 }, // option_name
       { wch: 15 }  // annee_universitaire
@@ -411,38 +411,66 @@ export class SimpleExamensImportComponent implements OnInit, OnDestroy {
   applySuggestion(rowIndex: number, header: string, suggestion: Suggestion): void {
     const suggestionLabel = suggestion.label || '';
 
-    // Cas général (autres colonnes) : comportement inchangé
-    if (header !== 'salle_name') {
-      this.updateCell(rowIndex, header, suggestionLabel);
+    // Cas spécial pour salle_name et group_title : gérer plusieurs valeurs séparées par virgule
+    if (header === 'salle_name' || header === 'group_title') {
+      // Suggestion spéciale : supprimer les doublons
+      if (suggestionLabel === 'Supprimer les doublons') {
+        const current = this.tableRows[rowIndex]?.[header] || '';
+        const parts = current.split(',').map(p => p.trim()).filter(p => p.length > 0);
+
+        const deduped = Array.from(
+          new Map(
+            parts
+              .filter(Boolean)
+              .map(v => [v.toLowerCase(), v])
+          ).values()
+        );
+
+        const newValue = deduped.join(', ');
+        this.updateCell(rowIndex, header, newValue);
+        return;
+      }
+
+      // Nettoyer le label pour retirer "(pour "xxx")"
+      const baseLabel = suggestionLabel.replace(/\s*\(pour\s+"[^"]*"\)\s*$/i, '').trim();
+
+      const current = this.tableRows[rowIndex]?.[header] || '';
+      const parts = current.split(',').map(p => p.trim()).filter(p => p.length > 0);
+
+      // Tenter de cibler le token concerné si indiqué dans le label "(pour "xxx")"
+      const match = suggestionLabel.match(/\(pour\s+"([^"]+)"\)/i);
+      const target = match?.[1]?.trim().toLowerCase();
+
+      let replaced = false;
+      const updated = parts.map(p => {
+        if (!replaced && target && p.toLowerCase() === target) {
+          replaced = true;
+          return baseLabel;
+        }
+        return p;
+      });
+
+      // Si on n'a pas remplacé (token introuvable), on ajoute la valeur proposée
+      if (!replaced) {
+        updated.push(baseLabel);
+      }
+
+      // Supprimer les doublons (insensible à la casse) avant de reconstruire la valeur
+      const deduped = Array.from(
+        new Map(
+          updated
+            .filter(Boolean)
+            .map(v => [v.toLowerCase(), v]) // clé normalisée, valeur originale
+        ).values()
+      );
+
+      const newValue = deduped.join(', ');
+      this.updateCell(rowIndex, header, newValue);
       return;
     }
 
-    // Nettoyer le label pour retirer "(pour "xxx")"
-    const baseLabel = suggestionLabel.replace(/\s*\(pour\s+"[^"]*"\)\s*$/i, '').trim();
-
-    const current = this.tableRows[rowIndex]?.[header] || '';
-    const parts = current.split(',').map(p => p.trim()).filter(p => p.length > 0);
-
-    // Tenter de cibler le token concerné si indiqué dans le label "(pour "xxx")"
-    const match = suggestionLabel.match(/\(pour\s+"([^"]+)"\)/i);
-    const target = match?.[1]?.trim().toLowerCase();
-
-    let replaced = false;
-    const updated = parts.map(p => {
-      if (!replaced && target && p.toLowerCase() === target) {
-        replaced = true;
-        return baseLabel;
-      }
-      return p;
-    });
-
-    // Si on n'a pas remplacé (token introuvable), on ajoute la salle proposée
-    if (!replaced) {
-      updated.push(baseLabel);
-    }
-
-    const newValue = updated.filter(Boolean).join(', ');
-    this.updateCell(rowIndex, header, newValue);
+    // Cas général (autres colonnes)
+    this.updateCell(rowIndex, header, suggestionLabel);
   }
 
   getPlaceholder(header: string): string {
@@ -457,7 +485,7 @@ export class SimpleExamensImportComponent implements OnInit, OnDestroy {
       'promotion_name': 'Ex: Promotion 1',
       'type_examen_name': 'Ex: Contrôle',
       'salle_name': 'Ex: C401, C501 (séparées par virgule)',
-      'group_title': 'Ex: Groupe A ou "Tous"',
+      'group_title': 'Ex: Groupe A, Groupe B (séparés par virgule) ou "Tous"',
       'ville_name': 'Ex: Rabat',
       'option_name': 'Ex: Option 1',
       'annee_universitaire': 'Ex: 2024-2025'
@@ -594,7 +622,7 @@ export class SimpleExamensImportComponent implements OnInit, OnDestroy {
       'promotion_name': '200px',
       'type_examen_name': '200px',
       'salle_name': '220px',  // Augmenté pour supporter plusieurs salles (C401, C501, 506)
-      'group_title': '160px',
+      'group_title': '220px',  // Augmenté pour supporter plusieurs groupes (Groupe A, Groupe B)
       'ville_name': '160px',
       'option_name': '180px',
       'annee_universitaire': '200px'
@@ -969,34 +997,58 @@ export class SimpleExamensImportComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Cas spécial pour salle_name : valider plusieurs salles séparées par virgule
-    if (header === 'salle_name' && value.includes(',')) {
-      const salleNames = this.parseSalleNames(value);
+    // Cas spécial pour salle_name et group_title : valider plusieurs valeurs séparées par virgule
+    if ((header === 'salle_name' || header === 'group_title') && value.includes(',')) {
+      const valueNames =
+        header === 'salle_name'
+          ? this.parseSalleNames(value)
+          : this.parseGroupTitles(value);
+
       let allValid = true;
       const allSuggestions: Suggestion[] = [];
-      
-      salleNames.forEach((salleName: string) => {
-        const { isValid, suggestions } = this.computeSuggestions(referenceEntries, salleName);
+
+      valueNames.forEach((val: string) => {
+        const { isValid, suggestions } = this.computeSuggestions(referenceEntries, val);
         if (!isValid) {
           allValid = false;
-          // Ajouter les suggestions pour cette salle
+          // Ajouter les suggestions pour cette valeur
           if (suggestions.length > 0) {
-            allSuggestions.push(...suggestions.map(s => ({ ...s, label: `${s.label} (pour "${salleName}")` })));
+            allSuggestions.push(
+              ...suggestions.map(s => ({ ...s, label: `${s.label} (pour "${val}")` }))
+            );
           }
         }
       });
-      
-      // Si toutes les salles sont valides, pas de suggestions
-      if (allValid) {
-        this.suggestionsByCell[rowIndex][header] = [];
-        this.invalidCells[rowIndex][header] = false;
-      } else {
-        // Prendre les meilleures suggestions (limitées à 5)
-        this.suggestionsByCell[rowIndex][header] = allSuggestions.slice(0, 5);
-        this.invalidCells[rowIndex][header] = true;
+
+      // Détection de redondance (doublons) dans les valeurs
+      const seen: Record<string, number> = {};
+      let hasDuplicates = false;
+      valueNames.forEach((val: string) => {
+        const key = this.normalize(val);
+        seen[key] = (seen[key] || 0) + 1;
+        if (seen[key] > 1) {
+          hasDuplicates = true;
+        }
+      });
+
+      const suggestions: Suggestion[] = [];
+
+      // Ajouter une suggestion spéciale pour supprimer les doublons
+      if (hasDuplicates) {
+        suggestions.push({
+          label: 'Supprimer les doublons',
+        });
       }
+
+      // Suggestions de correspondance (valeurs non trouvées)
+      if (!allValid) {
+        suggestions.push(...allSuggestions.slice(0, 5));
+      }
+
+      this.suggestionsByCell[rowIndex][header] = suggestions;
+      this.invalidCells[rowIndex][header] = hasDuplicates || !allValid;
     } else {
-      // Validation normale pour les autres champs ou une seule salle
+      // Validation normale pour les autres champs ou une seule valeur
       const { isValid, suggestions } = this.computeSuggestions(referenceEntries, value);
       this.suggestionsByCell[rowIndex][header] = suggestions;
       this.invalidCells[rowIndex][header] = !isValid;
@@ -1170,6 +1222,17 @@ export class SimpleExamensImportComponent implements OnInit, OnDestroy {
       .split(',')
       .map(name => name.trim())
       .filter(name => name.length > 0);
+  }
+
+  // Parser les titres de groupes séparés par virgule
+  private parseGroupTitles(groupTitlesString: string): string[] {
+    if (!groupTitlesString || !groupTitlesString.trim()) {
+      return [];
+    }
+    return groupTitlesString
+      .split(',')
+      .map(title => title.trim())
+      .filter(title => title.length > 0);
   }
 
   private formatDate(dateString: string): string {

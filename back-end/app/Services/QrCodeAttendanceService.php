@@ -244,6 +244,13 @@ class QrCodeAttendanceService
             ->with('etudiant')
             ->get();
 
+        // Construire la liste des groupes concernés pour cet examen
+        $groupIds = $examen->groups ? $examen->groups->pluck('id')->filter()->values() : collect();
+        if ($examen->group_id) {
+            $groupIds->push($examen->group_id);
+        }
+        $groupIds = $groupIds->unique()->values();
+
         // Récupérer les étudiants concernés par cet examen (même logique que pour les examens)
         $etudiantsQuery = Etudiant::withoutGlobalScope(\App\Scopes\UserContextScope::class)
             ->with(['promotion', 'group', 'option', 'etablissement', 'ville'])
@@ -251,9 +258,9 @@ class QrCodeAttendanceService
             ->where('etablissement_id', $examen->etablissement_id)
             ->where('ville_id', $examen->ville_id);
 
-        // Filtrer par groupe si spécifié
-        if ($examen->group_id) {
-            $etudiantsQuery->where('group_id', $examen->group_id);
+        // Filtrer par groupe(s) si spécifiés
+        if ($groupIds->isNotEmpty()) {
+            $etudiantsQuery->whereIn('group_id', $groupIds);
         }
         
         // Filtrer par option si spécifiée

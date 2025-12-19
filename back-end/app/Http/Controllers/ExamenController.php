@@ -727,6 +727,14 @@ class ExamenController extends Controller
             // Si seulement salle_id est fourni, créer salle_ids avec cette salle
             $result['salle_ids'] = [$result['salle_id']];
         }
+
+        // Ajouter group_ids si présent (pour la relation many-to-many sur les groupes)
+        // Priorité à group_ids si fourni, sinon créer depuis group_id
+        if (!empty($data['group_ids']) && is_array($data['group_ids'])) {
+            $result['group_ids'] = $data['group_ids'];
+        } elseif (array_key_exists('group_id', $result) && !empty($result['group_id'])) {
+            $result['group_ids'] = [$result['group_id']];
+        }
         
         return $result;
     }
@@ -820,25 +828,60 @@ class ExamenController extends Controller
             }
         }
 
-        // Groupe (avec recherche flexible sur 'title')
+        // Groupes (avec recherche flexible sur 'title') - support de plusieurs groupes séparés par virgule
         if (empty($data['group_id']) && !empty($data['group_title'])) {
+            $rawGroupTitle = trim($data['group_title']);
+
             // Cas spécial : "Tous" signifie tous les groupes (group_id reste null)
-            if (strtolower(trim($data['group_title'])) === 'tous') {
+            if (strtolower($rawGroupTitle) === 'tous') {
                 $data['group_id'] = null;
+                // Pas de group_ids dans ce cas, l'interprétation "tous les groupes" se fait ailleurs si besoin
             } else {
-                // Pour les groupes, on utilise 'title' au lieu de 'name'
-                $group = \App\Models\Group::where('title', $data['group_title'])->first();
-                if (!$group) {
-                    $group = \App\Models\Group::whereRaw('LOWER(title) = ?', [strtolower($data['group_title'])])->first();
+                // Découper "Groupe A, Groupe B, Groupe C"
+                $titles = array_filter(array_map('trim', explode(',', $rawGroupTitle)));
+
+                $groupIds = [];
+                $notFoundGroups = [];
+
+                foreach ($titles as $title) {
+                    if ($title === '') {
+                        continue;
+                    }
+
+                    // Même logique de recherche que précédemment (exacte, insensible à la casse, puis partielle)
+                    $group = \App\Models\Group::where('title', $title)->first();
+                    if (!$group) {
+                        $group = \App\Models\Group::whereRaw('LOWER(title) = ?', [strtolower($title)])->first();
+                    }
+                    if (!$group) {
+                        $group = \App\Models\Group::where('title', 'LIKE', '%' . $title . '%')->first();
+                    }
+
+                    if ($group) {
+                        $groupIds[] = $group->id;
+                    } else {
+                        $notFoundGroups[] = $title;
+                    }
                 }
-                if (!$group) {
-                    $group = \App\Models\Group::where('title', 'LIKE', '%' . $data['group_title'] . '%')->first();
-                }
-                if (!$group) {
+
+                if (empty($groupIds)) {
                     $available = \App\Models\Group::pluck('title')->take(10)->implode(', ');
-                    throw new \Exception("Groupe '{$data['group_title']}' introuvable à la ligne $lineNumber. Exemples: {$available}");
+                    throw new \Exception(
+                        "Aucun groupe valide trouvé pour '{$data['group_title']}' à la ligne $lineNumber. " .
+                        "Groupes recherchés: " . implode(', ', $titles) . ". Exemples: {$available}"
+                    );
                 }
-                $data['group_id'] = $group->id;
+
+                // Compatibilité: on garde un group_id principal
+                $data['group_id'] = $groupIds[0];
+                // Multi-groupes: tableau de tous les groupes
+                $data['group_ids'] = $groupIds;
+
+                if (!empty($notFoundGroups)) {
+                    \Log::warning(
+                        "Certaines groupes non trouvés à la ligne $lineNumber: " . implode(', ', $notFoundGroups)
+                    );
+                }
             }
         }
 
@@ -928,6 +971,7 @@ class ExamenController extends Controller
     {
         $createdCount = 0;
         $sallesAttached = 0;
+        $groupsAttached = 0;
         $errors = [];
         
         foreach ($examens as $index => $examenData) {
@@ -935,6 +979,10 @@ class ExamenController extends Controller
                 // Extraire les salle_ids si présents
                 $salleIds = $examenData['salle_ids'] ?? [];
                 unset($examenData['salle_ids']); // Retirer de l'array pour l'insertion
+
+                // Extraire les group_ids si présents
+                $groupIds = $examenData['group_ids'] ?? [];
+                unset($examenData['group_ids']); // Retirer de l'array pour l'insertion
                 
                 // Créer l'examen
                 $examen = Examen::create($examenData);
@@ -944,6 +992,12 @@ class ExamenController extends Controller
                 if (!empty($salleIds)) {
                     $examen->salles()->sync($salleIds);
                     $sallesAttached += count($salleIds);
+                }
+
+                // Attacher tous les groupes via la relation many-to-many (si définis)
+                if (!empty($groupIds)) {
+                    $examen->groups()->sync($groupIds);
+                    $groupsAttached += count($groupIds);
                 }
             } catch (\Exception $e) {
                 $errors[] = [
@@ -957,6 +1011,7 @@ class ExamenController extends Controller
         return [
             'created_count' => $createdCount,
             'salles_attached' => $sallesAttached,
+            'groups_attached' => $groupsAttached,
             'errors' => $errors
         ];
     }

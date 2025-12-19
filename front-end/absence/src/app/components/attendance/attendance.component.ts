@@ -9,7 +9,7 @@ import { NotificationService } from '../../services/notification.service';
 import { ConfigurationAutoService } from '../../services/configuration-auto.service';
 import { BiostarAttendanceService } from '../../services/biostar-attendance.service';
 import { QrAttendanceService, QrAttendanceStudent } from '../../services/qr-attendance.service';
-import { Subject, takeUntil, interval } from 'rxjs';
+import { Subject, takeUntil, interval, Subscription } from 'rxjs';
 import * as XLSX from 'xlsx';
 
 @Component({
@@ -82,6 +82,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   // Propriétés pour l'actualisation automatique
   autoRefreshInterval = 30000; // 30 secondes en millisecondes
   lastRefreshTime: Date | null = null;
+  private autoRefreshSub?: Subscription;
   
   // Propriétés pour l'état de la configuration Biostar
   biostarConfigStatus: 'loading' | 'success' | 'error' | 'none' = 'loading';
@@ -156,6 +157,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.autoRefreshSub?.unsubscribe();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -688,12 +690,41 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   startAutoRefresh(): void {
     console.log('🔄 Démarrage de l\'actualisation automatique (toutes les 30s)');
     
-    interval(this.autoRefreshInterval)
+    this.autoRefreshSub = interval(this.autoRefreshInterval)
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
+        if (this.isExamenTermine()) {
+          console.log('⏹️ Examen terminé - arrêt du rafraîchissement automatique');
+          this.autoRefreshSub?.unsubscribe();
+          return;
+        }
         console.log('⏰ Actualisation automatique déclenchée');
         this.loadAttendance();
       });
+  }
+
+  /**
+   * Vérifie si l'examen est terminé (dans le passé)
+   */
+  private isExamenTermine(): boolean {
+    if (!this.examDate || !this.examEndTime) return false;
+    
+    const now = new Date();
+    const examDate = new Date(this.examDate);
+    const nowDate = now.toISOString().split('T')[0];
+    const examDateOnly = examDate.toISOString().split('T')[0];
+    
+    // Si la date est dans le passé
+    if (examDateOnly < nowDate) return true;
+    
+    // Si c'est aujourd'hui, vérifier l'heure de fin
+    if (examDateOnly === nowDate) {
+      const dateOnly = examDate.toISOString().split('T')[0];
+      const heureFin = new Date(dateOnly + 'T' + this.examEndTime);
+      return now > heureFin;
+    }
+    
+    return false;
   }
 
   /**
