@@ -132,129 +132,125 @@
     <div *ngIf="activeTab === 'affectation'">
       <!-- Filtres -->
       <div class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm mb-8">
-        <div class="max-w-7xl mx-auto px-4 py-4">
-          <!-- Aide pour les filtres -->
-          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <div class="flex items-start gap-3">
-              <span class="material-icons text-blue-600 text-lg">info</span>
-              <div>
-                <p class="text-sm text-blue-800">
-                  <strong>Astuce :</strong> Modifiez les filtres ci-dessous puis cliquez sur <strong>"Rechercher"</strong> ou appuyez sur <strong>Entrée</strong> pour appliquer les critères de recherche.
-                </p>
-              </div>
-            </div>
-          </div>
-          
-          <div class="flex flex-col lg:flex-row gap-4 lg:gap-6 items-end">
-            <div class="flex-1">
-              <label for="search" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                <span class="material-icons text-blue-600 text-lg">search</span>
-                Recherche
-              </label>
-              <div class="relative">
-                <input type="text" 
-                       id="search"
-                       #searchInput
-                       [(ngModel)]="searchTerm" 
-                       (input)="onSearchChange(searchInput.value)"
-                       (keyup.enter)="searchStudents()"
-                       placeholder="Nom, prénom ou matricule..."
-                       class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 pr-10"
-                       [class.searching]="isSearching">
-                <div class="absolute right-3 top-1/2 transform -translate-y-1/2" *ngIf="isSearching">
-                  <div class="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <div class="max-w-7xl mx-auto px-8 py-8">
+          <div class="flex flex-col gap-6">
+            <!-- Première rangée -->
+            <div class="flex flex-col lg:flex-row gap-6 lg:gap-8 items-end">
+              <div class="flex-1">
+                <label for="search" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                  <span class="material-icons text-blue-600 text-lg">search</span>
+                  Recherche
+                </label>
+                <div class="relative">
+                  <input type="text" 
+                         id="search"
+                         #searchInput
+                         [(ngModel)]="searchTerm" 
+                         (input)="onSearchChange(searchInput.value)"
+                         (keyup.enter)="searchStudents()"
+                         placeholder="Nom, prénom, matricule ou plusieurs matricules (séparés par espaces)..."
+                         class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 pr-10"
+                         [class.searching]="isSearching">
+                  <div class="absolute right-3 top-1/2 transform -translate-y-1/2" *ngIf="isSearching">
+                    <div class="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                  </div>
                 </div>
               </div>
+
+              <div class="flex-1">
+                <label for="promotion" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                  <span class="material-icons text-green-600 text-lg">school</span>
+                  Promotion
+                </label>
+                <select id="promotion"
+                        [(ngModel)]="selectedPromotion" 
+                        (change)="onFilterChange()"
+                        (keyup.enter)="searchStudents()"
+                        class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+                  <option [value]="null">Toutes les promotions</option>
+                  <option *ngFor="let promotion of promotions" [value]="promotion.id">{{ promotion.name }}</option>
+                </select>
+              </div>
+
+              <div class="flex-1">
+                <label for="etablissement" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                  <span class="material-icons text-yellow-600 text-lg">business</span>
+                  Établissement
+                </label>
+                <select id="etablissement"
+                        [(ngModel)]="selectedEtablissement" 
+                        (change)="onFilterChange()"
+                        (keyup.enter)="searchStudents()"
+                        class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+                  <option [value]="null">Tous les établissements</option>
+                  <option *ngFor="let etablissement of etablissements" [value]="etablissement.id">{{ etablissement.name }}</option>
+                </select>
+              </div>
+
+              <div class="flex-1">
+                <label for="option" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                  <span class="material-icons text-purple-600 text-lg">category</span>
+                  Option
+                </label>
+                <select id="option"
+                        [(ngModel)]="selectedOption" 
+                        (change)="onFilterChange()"
+                        (keyup.enter)="searchStudents()"
+                        class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+                  <option [value]="null">Toutes les options</option>
+                  <option *ngFor="let option of options" [value]="option.id">{{ option.name }}</option>
+                </select>
+              </div>
             </div>
 
-            <div class="flex-1">
-              <label for="promotion" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                <span class="material-icons text-green-600 text-lg">school</span>
-                Promotion
-              </label>
-              <select id="promotion"
-                      [(ngModel)]="selectedPromotion" 
-                      (change)="onFilterChange()"
-                      (keyup.enter)="searchStudents()"
-                      class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
-                <option [value]="null">Toutes les promotions</option>
-                <option *ngFor="let promotion of promotions" [value]="promotion.id">{{ promotion.name }}</option>
-              </select>
-            </div>
+            <!-- Deuxième rangée -->
+            <div class="flex flex-col lg:flex-row gap-6 lg:gap-8 items-end">
+              <div class="flex-1">
+                <label for="group" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                  <span class="material-icons text-cyan-600 text-lg">groups</span>
+                  Groupe
+                </label>
+                <select id="group"
+                        [(ngModel)]="selectedGroup" 
+                        (change)="onFilterChange()"
+                        (keyup.enter)="searchStudents()"
+                        class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+                  <option [value]="null">Tous les groupes</option>
+                  <option *ngFor="let group of groups" [value]="group.id">{{ group.title }}</option>
+                </select>
+              </div>
 
-            <div class="flex-1">
-              <label for="etablissement" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                <span class="material-icons text-yellow-600 text-lg">business</span>
-                Établissement
-              </label>
-              <select id="etablissement"
-                      [(ngModel)]="selectedEtablissement" 
-                      (change)="onFilterChange()"
-                      (keyup.enter)="searchStudents()"
-                      class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
-                <option [value]="null">Tous les établissements</option>
-                <option *ngFor="let etablissement of etablissements" [value]="etablissement.id">{{ etablissement.name }}</option>
-              </select>
-            </div>
+              <div class="flex-1">
+                <label for="ville" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                  <span class="material-icons text-red-600 text-lg">location_on</span>
+                  Ville
+                </label>
+                <select id="ville"
+                        [(ngModel)]="selectedVille" 
+                        (change)="onFilterChange()"
+                        (keyup.enter)="searchStudents()"
+                        class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+                  <option [value]="null">Toutes les villes</option>
+                  <option *ngFor="let ville of villes" [value]="ville.id">{{ ville.name }}</option>
+                </select>
+              </div>
 
-            <div class="flex-1">
-              <label for="option" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                <span class="material-icons text-purple-600 text-lg">category</span>
-                Option
-              </label>
-              <select id="option"
-                      [(ngModel)]="selectedOption" 
-                      (change)="onFilterChange()"
-                      (keyup.enter)="searchStudents()"
-                      class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
-                <option [value]="null">Toutes les options</option>
-                <option *ngFor="let option of options" [value]="option.id">{{ option.name }}</option>
-              </select>
+              <div class="flex gap-4">
+                <button class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-all duration-300 flex items-center gap-2"
+                        (click)="clearFilters()">
+                  <span class="material-icons">restart_alt</span>
+                  Réinitialiser
+                </button>
+                
+                <button class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 disabled:opacity-50"
+                        (click)="searchStudents()"
+                        [disabled]="loading">
+                  <span class="material-icons text-sm" [class.animate-spin]="loading">search</span>
+                  <span *ngIf="loading">Recherche...</span>
+                  <span *ngIf="!loading">Rechercher</span>
+                </button>
+              </div>
             </div>
-
-            <div class="flex-1">
-              <label for="group" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                <span class="material-icons text-cyan-600 text-lg">groups</span>
-                Groupe
-              </label>
-              <select id="group"
-                      [(ngModel)]="selectedGroup" 
-                      (change)="onFilterChange()"
-                      (keyup.enter)="searchStudents()"
-                      class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
-                <option [value]="null">Tous les groupes</option>
-                <option *ngFor="let group of groups" [value]="group.id">{{ group.title }}</option>
-              </select>
-            </div>
-
-            <div class="flex-1">
-              <label for="ville" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                <span class="material-icons text-red-600 text-lg">location_on</span>
-                Ville
-              </label>
-              <select id="ville"
-                      [(ngModel)]="selectedVille" 
-                      (change)="onFilterChange()"
-                      (keyup.enter)="searchStudents()"
-                      class="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
-                <option [value]="null">Toutes les villes</option>
-                <option *ngFor="let ville of villes" [value]="ville.id">{{ ville.name }}</option>
-              </select>
-            </div>
-
-            <button class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-all duration-300 flex items-center gap-2"
-                    (click)="clearFilters()">
-              <span class="material-icons">restart_alt</span>
-              Réinitialiser
-            </button>
-            
-            <button class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 disabled:opacity-50"
-                    (click)="searchStudents()"
-                    [disabled]="loading">
-              <span class="material-icons text-sm" [class.animate-spin]="loading">search</span>
-              <span *ngIf="loading">Recherche...</span>
-              <span *ngIf="!loading">Rechercher</span>
-            </button>
           </div>
         </div>
       </div>
@@ -993,6 +989,104 @@
             </div>
             <div class="text-red-500 text-sm mt-1" *ngIf="rattrapageForm.get('tolerance')?.invalid && rattrapageForm.get('tolerance')?.touched">
               La tolérance doit être comprise entre 0 et 60 minutes
+            </div>
+          </div>
+
+          <div>
+            <label for="ville_id" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <span class="material-icons text-red-600 text-lg">location_on</span>
+              Ville *
+            </label>
+            <select 
+              id="ville_id"
+              formControlName="ville_id"
+              (change)="onVilleChangeForRattrapage()"
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-200"
+              [class.border-red-500]="rattrapageForm.get('ville_id')?.invalid && rattrapageForm.get('ville_id')?.touched">
+              <option [value]="null">Sélectionner une ville</option>
+              <option *ngFor="let ville of villes" [value]="ville.id">
+                {{ ville.name }}
+              </option>
+            </select>
+            <div class="text-red-500 text-sm mt-1" *ngIf="rattrapageForm.get('ville_id')?.invalid && rattrapageForm.get('ville_id')?.touched">
+              La sélection d'une ville est requise
+            </div>
+          </div>
+
+          <div>
+            <label for="etablissement_id" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <span class="material-icons text-yellow-600 text-lg">business</span>
+              Établissement *
+            </label>
+            <select 
+              id="etablissement_id"
+              formControlName="etablissement_id"
+              (change)="onEtablissementChangeForRattrapage()"
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-200"
+              [class.border-red-500]="rattrapageForm.get('etablissement_id')?.invalid && rattrapageForm.get('etablissement_id')?.touched">
+              <option [value]="null">Sélectionner un établissement</option>
+              <option *ngFor="let etablissement of etablissements" [value]="etablissement.id">
+                {{ etablissement.name }}
+              </option>
+            </select>
+            <div class="text-red-500 text-sm mt-1" *ngIf="rattrapageForm.get('etablissement_id')?.invalid && rattrapageForm.get('etablissement_id')?.touched">
+              La sélection d'un établissement est requise
+            </div>
+          </div>
+
+          <div>
+            <label for="salle_id" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <span class="material-icons text-indigo-600 text-lg">meeting_room</span>
+              Salle (pour le face ID) *
+            </label>
+            
+            <!-- Champ de recherche pour les salles -->
+            <div class="relative mb-2" *ngIf="selectedVilleForRattrapage">
+              <input 
+                type="text"
+                [(ngModel)]="salleSearchTerm"
+                (input)="onSalleSearchChange()"
+                placeholder="Rechercher une salle par nom, bâtiment ou établissement..."
+                class="w-full px-4 py-2 pl-10 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-200 text-sm"
+                [disabled]="!selectedVilleForRattrapage">
+              <span class="material-icons absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-lg">search</span>
+              <button 
+                type="button"
+                *ngIf="salleSearchTerm"
+                (click)="salleSearchTerm = ''; onSalleSearchChange()"
+                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                <span class="material-icons text-sm">clear</span>
+              </button>
+            </div>
+            
+            <select 
+              id="salle_id"
+              formControlName="salle_id"
+              [disabled]="!selectedVilleForRattrapage"
+              [attr.aria-disabled]="!selectedVilleForRattrapage"
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-200 disabled:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-60"
+              [class.border-red-500]="rattrapageForm.get('salle_id')?.invalid && rattrapageForm.get('salle_id')?.touched"
+              [class.border-gray-300]="!selectedVilleForRattrapage">
+              <option [value]="null" disabled>
+                <span *ngIf="!selectedVilleForRattrapage">Sélectionnez d'abord une ville</span>
+                <span *ngIf="selectedVilleForRattrapage && filteredSalles.length === 0">
+                  <span *ngIf="salleSearchTerm">Aucune salle trouvée pour "{{ salleSearchTerm }}"</span>
+                  <span *ngIf="!salleSearchTerm">Aucune salle disponible</span>
+                </span>
+                <span *ngIf="selectedVilleForRattrapage && filteredSalles.length > 0">Sélectionner une salle ({{ filteredSalles.length }} disponible{{ filteredSalles.length > 1 ? 's' : '' }})</span>
+              </option>
+              <option *ngFor="let salle of filteredSalles" [value]="salle.id" [disabled]="!selectedVilleForRattrapage">
+                {{ salle.name }} 
+                <span *ngIf="salle.batiment"> - {{ salle.batiment }}</span>
+                <span *ngIf="salle.etage"> - Étage {{ salle.etage }}</span>
+                <span *ngIf="salle.etablissement"> - {{ salle.etablissement.name }}</span>
+              </option>
+            </select>
+            <div class="text-gray-500 text-xs mt-1" *ngIf="selectedVilleForRattrapage">
+              La salle où les étudiants doivent effectuer le face ID sur le device de la salle.
+            </div>
+            <div class="text-red-500 text-sm mt-1" *ngIf="rattrapageForm.get('salle_id')?.invalid && rattrapageForm.get('salle_id')?.touched">
+              La sélection d'une salle est requise
             </div>
           </div>
         </div>

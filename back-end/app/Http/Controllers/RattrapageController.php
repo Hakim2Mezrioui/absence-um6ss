@@ -92,7 +92,10 @@ class RattrapageController extends Controller
                 'start_hour' => 'required|date_format:H:i',
                 'end_hour' => 'required|date_format:H:i|after:start_hour',
                 'date' => 'required|date',
-                'tolerance' => 'nullable|integer|min:0|max:60'
+                'tolerance' => 'nullable|integer|min:0|max:60',
+                'ville_id' => 'nullable|exists:villes,id',
+                'etablissement_id' => 'nullable|exists:etablissements,id',
+                'salle_id' => 'nullable|exists:salles,id'
             ]);
 
             // Log des données validées

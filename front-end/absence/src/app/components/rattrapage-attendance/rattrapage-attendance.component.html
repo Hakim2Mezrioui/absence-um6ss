@@ -51,6 +51,27 @@
           
           <div class="w-px h-8 bg-white/30"></div>
           
+          <!-- Bouton de rafraîchissement -->
+          <button 
+            (click)="refreshAttendance()"
+            [disabled]="loading"
+            class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center gap-2 disabled:opacity-50"
+            title="Actualiser les données">
+            <span class="material-icons text-sm" [class.animate-spin]="loading">refresh</span>
+            <span class="text-sm" *ngIf="!loading">Actualiser</span>
+            <span class="text-sm" *ngIf="loading">Chargement...</span>
+          </button>
+          
+          <div class="w-px h-8 bg-white/30"></div>
+          
+          <!-- Informations de dernière actualisation -->
+          <div class="text-center" *ngIf="lastRefreshTime">
+            <div class="text-xs text-purple-200">Dernière actualisation</div>
+            <div class="text-sm font-medium">{{ getTimeSinceLastRefresh() }}</div>
+          </div>
+          
+          <div class="w-px h-8 bg-white/30"></div>
+          
           <div class="text-center">
             <div class="text-lg font-bold">{{ rattrapage.pointage_start_hour }}</div>
             <div class="text-sm text-purple-200">Pointage</div>
@@ -64,6 +85,11 @@
           <div class="text-center">
             <div class="text-lg font-bold">{{ rattrapage.end_hour }}</div>
             <div class="text-sm text-purple-200">Fin</div>
+          </div>
+          <div class="w-px h-8 bg-white/30" *ngIf="rattrapage.tolerance"></div>
+          <div class="text-center" *ngIf="rattrapage.tolerance">
+            <div class="text-lg font-bold">{{ rattrapage.tolerance }} min</div>
+            <div class="text-sm text-purple-200">Tolérance</div>
           </div>
         </div>
       </div>
@@ -94,6 +120,23 @@
 
   <!-- Main Content -->
   <div class="max-w-7xl mx-auto px-4 py-8" *ngIf="!loading && !error">
+    <!-- Statut Biostar -->
+    <div class="bg-white rounded-xl shadow-lg p-4 mb-6" *ngIf="biostarConfigStatus !== 'none'">
+      <div class="flex items-center gap-3">
+        <span class="material-icons" 
+              [class.text-blue-600]="biostarConfigStatus === 'loading'"
+              [class.text-green-600]="biostarConfigStatus === 'success'"
+              [class.text-red-600]="biostarConfigStatus === 'error'"
+              [class.animate-spin]="biostarConfigStatus === 'loading'">
+          {{ biostarConfigStatus === 'loading' ? 'refresh' : biostarConfigStatus === 'success' ? 'check_circle' : 'error' }}
+        </span>
+        <div>
+          <div class="font-semibold text-gray-800">Configuration Biostar</div>
+          <div class="text-sm text-gray-600">{{ biostarConfigMessage }}</div>
+        </div>
+      </div>
+    </div>
+    
     <!-- Statistics Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <div class="bg-white rounded-xl shadow-lg p-6 text-center">
@@ -132,6 +175,18 @@
 
     <!-- Filters and Search -->
     <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+      <!-- Aide pour la recherche -->
+      <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <div class="flex items-start gap-3">
+          <span class="material-icons text-blue-600 text-lg">info</span>
+          <div>
+            <p class="text-sm text-blue-800">
+              <strong>Recherche avancée :</strong> Vous pouvez rechercher plusieurs étudiants par leurs matricules en les séparant par des espaces (ex: 243962 234134 123415 6421243).
+            </p>
+          </div>
+        </div>
+      </div>
+      
       <div class="flex flex-col lg:flex-row gap-4 items-end">
         <div class="flex-1">
           <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
@@ -142,7 +197,7 @@
             type="text" 
             [(ngModel)]="searchTerm"
             (input)="onSearchChange()"
-            placeholder="Nom, prénom ou matricule..."
+            placeholder="Nom, prénom, matricule ou plusieurs matricules (séparés par espaces)..."
             class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
         </div>
         
@@ -232,20 +287,28 @@
                 <div>{{ student.group.title }}</div>
               </div>
               
-              <!-- Heure de pointage -->
+              <!-- Heure de pointage (Face ID) -->
               <div class="border-t border-gray-200 pt-3">
                 <div *ngIf="student.punch_time" class="flex items-center gap-2 text-sm">
-                  <span class="material-icons text-green-600 text-sm">schedule</span>
-                  <div>
-                    <div class="font-medium text-gray-900">{{ formatPunchTime(student.punch_time.time) }}</div>
-                    <div class="text-xs text-gray-500" *ngIf="student.punch_time.device">
+                  <span class="material-icons text-green-600 text-sm">face</span>
+                  <div class="flex-1">
+                    <div class="font-medium text-gray-900 flex items-center gap-1">
+                      <span class="material-icons text-xs text-green-600">check_circle</span>
+                      Face ID effectué
+                    </div>
+                    <div class="text-xs text-gray-600 mt-1">
+                      <span class="material-icons text-xs align-middle">schedule</span>
+                      {{ formatPunchTime(student.punch_time.time) }}
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1" *ngIf="student.punch_time.device">
+                      <span class="material-icons text-xs align-middle">devices</span>
                       {{ student.punch_time.device }}
                     </div>
                   </div>
                 </div>
                 <div *ngIf="!student.punch_time" class="flex items-center gap-2 text-sm text-gray-400">
                   <span class="material-icons text-sm">cancel</span>
-                  <span>Non pointé</span>
+                  <span>Face ID non effectué</span>
                 </div>
               </div>
             </div>
@@ -296,17 +359,25 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 <div *ngIf="student.punch_time" class="flex items-center gap-2">
-                  <span class="material-icons text-green-600 text-sm">schedule</span>
+                  <span class="material-icons text-green-600 text-sm">face</span>
                   <div>
-                    <div class="font-medium text-gray-900">{{ formatPunchTime(student.punch_time.time) }}</div>
-                    <div class="text-xs text-gray-500" *ngIf="student.punch_time.device">
+                    <div class="font-medium text-gray-900 flex items-center gap-1">
+                      <span class="material-icons text-xs text-green-600">check_circle</span>
+                      Face ID effectué
+                    </div>
+                    <div class="text-xs text-gray-600 mt-1">
+                      <span class="material-icons text-xs align-middle">schedule</span>
+                      {{ formatPunchTime(student.punch_time.time) }}
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1" *ngIf="student.punch_time.device">
+                      <span class="material-icons text-xs align-middle">devices</span>
                       {{ student.punch_time.device }}
                     </div>
                   </div>
                 </div>
                 <div *ngIf="!student.punch_time" class="flex items-center gap-2 text-gray-400">
                   <span class="material-icons text-sm">cancel</span>
-                  <span class="text-sm">Non pointé</span>
+                  <span class="text-sm">Face ID non effectué</span>
                 </div>
               </td>
             </tr>

@@ -36,6 +36,48 @@ class EtudiantController extends Controller
     }
 
     /**
+     * Applique la logique de recherche (simple ou multiple matricules) à une requête
+     */
+    private function applySearchFilter($query, $searchValue)
+    {
+        if (empty($searchValue)) {
+            return;
+        }
+
+        $searchValue = trim($searchValue);
+        
+        // Vérifier si c'est une recherche par plusieurs matricules (nombres séparés par des espaces)
+        $matricules = preg_split('/\s+/', $searchValue);
+        
+        // Si tous les éléments sont des nombres (matricules), rechercher par matricules exacts
+        $allMatricules = true;
+        foreach ($matricules as $mat) {
+            $trimmedMat = trim($mat);
+            if (!is_numeric($trimmedMat) || empty($trimmedMat)) {
+                $allMatricules = false;
+                break;
+            }
+        }
+        
+        if ($allMatricules && count($matricules) > 1) {
+            // Recherche par plusieurs matricules exacts
+            $matricules = array_map('trim', $matricules);
+            $matricules = array_filter($matricules); // Enlever les valeurs vides
+            if (!empty($matricules)) {
+                $query->whereIn('matricule', $matricules);
+            }
+        } else {
+            // Recherche normale (nom, prénom, email, matricule avec LIKE)
+            $query->where(function($q) use ($searchValue) {
+                $q->where('first_name', 'LIKE', "%{$searchValue}%")
+                  ->orWhere('last_name', 'LIKE', "%{$searchValue}%")
+                  ->orWhere('email', 'LIKE', "%{$searchValue}%")
+                  ->orWhere('matricule', 'LIKE', "%{$searchValue}%");
+            });
+        }
+    }
+
+    /**
      * Display a listing of the resource (filtered by user context).
      */
     public function index(Request $request)
@@ -50,13 +92,7 @@ class EtudiantController extends Controller
         
         // Appliquer les filtres
         if ($request->has('searchValue') && !empty($request->get('searchValue'))) {
-            $searchValue = $request->get('searchValue');
-            $query->where(function($q) use ($searchValue) {
-                $q->where('first_name', 'LIKE', "%{$searchValue}%")
-                  ->orWhere('last_name', 'LIKE', "%{$searchValue}%")
-                  ->orWhere('email', 'LIKE', "%{$searchValue}%")
-                  ->orWhere('matricule', 'LIKE', "%{$searchValue}%");
-            });
+            $this->applySearchFilter($query, $request->get('searchValue'));
         }
         
         if ($request->has('promotion_id') && !empty($request->get('promotion_id')) && $request->get('promotion_id') != 'null') {
@@ -1731,13 +1767,7 @@ class EtudiantController extends Controller
             
             // Appliquer les filtres
             if ($request->has('searchValue') && !empty($request->get('searchValue'))) {
-                $searchValue = $request->get('searchValue');
-                $query->where(function($q) use ($searchValue) {
-                    $q->where('first_name', 'LIKE', "%{$searchValue}%")
-                      ->orWhere('last_name', 'LIKE', "%{$searchValue}%")
-                      ->orWhere('email', 'LIKE', "%{$searchValue}%")
-                      ->orWhere('matricule', 'LIKE', "%{$searchValue}%");
-                });
+                $this->applySearchFilter($query, $request->get('searchValue'));
             }
             
             if ($request->has('promotion_id') && !empty($request->get('promotion_id'))) {
@@ -1988,13 +2018,7 @@ class EtudiantController extends Controller
             
             // Appliquer les filtres (même logique que la méthode principale)
             if ($request->has('searchValue') && !empty($request->get('searchValue'))) {
-                $searchValue = $request->get('searchValue');
-                $query->where(function($q) use ($searchValue) {
-                    $q->where('first_name', 'LIKE', "%{$searchValue}%")
-                      ->orWhere('last_name', 'LIKE', "%{$searchValue}%")
-                      ->orWhere('email', 'LIKE', "%{$searchValue}%")
-                      ->orWhere('matricule', 'LIKE', "%{$searchValue}%");
-                });
+                $this->applySearchFilter($query, $request->get('searchValue'));
             }
             
             if ($request->has('promotion_id') && !empty($request->get('promotion_id'))) {

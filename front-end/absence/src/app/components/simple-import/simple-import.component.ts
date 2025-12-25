@@ -206,7 +206,7 @@ export class SimpleStudentImportComponent implements OnInit, OnDestroy {
           cellDates: true,
           cellNF: false,
           cellText: false,
-          raw: false,
+          raw: true,
           dateNF: 'yyyy-mm-dd'
         });
         
@@ -217,7 +217,7 @@ export class SimpleStudentImportComponent implements OnInit, OnDestroy {
         for (const name of workbook.SheetNames) {
           const ws = workbook.Sheets[name];
           if (!ws || !ws['!ref']) continue;
-          const probe = utils.sheet_to_json<any[]>(ws, { header: 1, defval: '', raw: false, blankrows: false });
+          const probe = utils.sheet_to_json<any[]>(ws, { header: 1, defval: '', raw: true, blankrows: false });
           // au moins 2 lignes: 1 header + 1 data
           if (probe.length >= 2 && probe.some((r, idx) => idx > 0 && r.some((c: any) => (c ?? '').toString().trim() !== ''))) {
             targetSheetName = name;
@@ -231,7 +231,7 @@ export class SimpleStudentImportComponent implements OnInit, OnDestroy {
           throw new Error('La feuille Excel est vide ou inaccessible.');
         }
         if (!rows.length) {
-          rows = utils.sheet_to_json<any[]>(worksheet, { header: 1, defval: '', raw: false, blankrows: false });
+          rows = utils.sheet_to_json<any[]>(worksheet, { header: 1, defval: '', raw: true, blankrows: false });
         }
         
         // rows déjà prêt ci-dessus
@@ -267,23 +267,77 @@ export class SimpleStudentImportComponent implements OnInit, OnDestroy {
           this.tableHeaders.push('ville_name');
         }
 
-        // Traiter les données avec une meilleure gestion des types
+        // Traiter les données avec préservation des types date/heure
         this.tableRows = dataRows.map((row, rowIndex) => {
           const rowObject: StudentRow = {};
           this.tableHeaders.forEach((header, index) => {
             let cellValue = row[index];
             
-            // Convertir les valeurs en string et nettoyer
+            // Détecter le type de colonne basé sur le nom
+            const headerLower = header.toLowerCase();
+            const isDateColumn = headerLower.includes('date');
+            const isTimeColumn = headerLower.includes('heure') || headerLower.includes('hour') || headerLower.includes('time');
+            
             if (cellValue === null || cellValue === undefined) {
               cellValue = '';
-            } else if (typeof cellValue === 'number') {
-              // Préserver les nombres comme string pour éviter les problèmes de format
-              cellValue = cellValue.toString();
-            } else if (cellValue instanceof Date) {
-              // Convertir les dates en format ISO
-              cellValue = cellValue.toISOString().split('T')[0];
+            } else if (isDateColumn) {
+              // Gérer les dates
+              if (cellValue instanceof Date) {
+                cellValue = cellValue.toISOString().split('T')[0]; // YYYY-MM-DD
+              } else if (typeof cellValue === 'number') {
+                // Date Excel en format serial (nombre de jours depuis 1900-01-01)
+                const excelEpoch = new Date(1899, 11, 30); // 30 décembre 1899
+                const date = new Date(excelEpoch.getTime() + (cellValue - 1) * 86400000);
+                cellValue = date.toISOString().split('T')[0];
+              } else {
+                // Si c'est déjà une string, normaliser le format
+                const dateStr = String(cellValue).trim();
+                if (dateStr.includes('/')) {
+                  const parts = dateStr.split('/');
+                  if (parts.length === 3) {
+                    cellValue = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                  } else {
+                    cellValue = dateStr;
+                  }
+                } else {
+                  cellValue = dateStr;
+                }
+              }
+            } else if (isTimeColumn) {
+              // Gérer les heures
+              if (cellValue instanceof Date) {
+                // Extraire seulement l'heure
+                const hours = cellValue.getHours().toString().padStart(2, '0');
+                const minutes = cellValue.getMinutes().toString().padStart(2, '0');
+                const seconds = cellValue.getSeconds().toString().padStart(2, '0');
+                cellValue = `${hours}:${minutes}:${seconds}`;
+              } else if (typeof cellValue === 'number') {
+                // Heure Excel en format décimal (0.5 = 12:00:00, 0.25 = 06:00:00)
+                const totalSeconds = Math.round(cellValue * 86400);
+                const hours = Math.floor(totalSeconds / 3600);
+                const minutes = Math.floor((totalSeconds % 3600) / 60);
+                const seconds = totalSeconds % 60;
+                cellValue = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+              } else {
+                // Si c'est déjà une string, normaliser le format
+                const timeStr = String(cellValue).trim().replace(/\s/g, '');
+                if (/^\d{1,2}:\d{2}$/.test(timeStr)) {
+                  cellValue = timeStr + ':00';
+                } else if (/^\d{1,2}h\d{2}$/.test(timeStr)) {
+                  cellValue = timeStr.replace('h', ':') + ':00';
+                } else if (/^\d{1,2}\.\d{2}$/.test(timeStr)) {
+                  cellValue = timeStr.replace('.', ':') + ':00';
+                } else {
+                  cellValue = timeStr;
+                }
+              }
             } else {
-              cellValue = String(cellValue).trim();
+              // Autres colonnes : conversion standard
+              if (typeof cellValue === 'number') {
+                cellValue = cellValue.toString();
+              } else {
+                cellValue = String(cellValue).trim();
+              }
             }
             
             rowObject[header] = cellValue;

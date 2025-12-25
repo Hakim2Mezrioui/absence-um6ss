@@ -21,6 +21,7 @@ import { EtablissementsComponent } from './components/etablissements/etablisseme
 import { SallesComponent } from './components/salles/salles.component';
 import { RattrapageComponent } from './components/rattrapage/rattrapage.component';
 import { RattrapageStudentsComponent } from './components/rattrapage-students/rattrapage-students.component';
+import { RattrapageAttendanceComponent } from './components/rattrapage-attendance/rattrapage-attendance.component';
 import { ProfileComponent } from './components/profile/profile.component';
 import { CoursComponent } from './components/cours/cours.component';
 import { AddCoursComponent } from './components/add-cours/add-cours.component';
@@ -126,6 +127,7 @@ export const routes: Routes = [
 
             { path: "rattrapages", component: RattrapageComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien'] } },
             { path: "rattrapages/:id/students", component: RattrapageStudentsComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien'] } },
+            { path: "rattrapages/:id/attendance", component: RattrapageAttendanceComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien'] } },
 
             // Cours: scolarite and enseignant (and admins, super-admin)
             { path: "cours", component: CoursComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'enseignant', 'doyen', 'technicien', 'defilement'] } },

@@ -313,14 +313,14 @@ export class SimpleExamensImportComponent implements OnInit, OnDestroy {
             } else if (isDateColumn) {
               // Gérer les dates
               if (cellValue instanceof Date) {
-                cellValue = cellValue.toISOString().split('T')[0]; // YYYY-MM-DD
+                cellValue = this.formatDateLocal(cellValue); // YYYY-MM-DD en local
               } else if (typeof cellValue === 'number') {
                 // Date Excel en format serial (nombre de jours depuis 1900-01-01)
                 // Excel compte le 1er janvier 1900 comme jour 1, mais JavaScript compte depuis 1970
                 // Correction: Excel a un bug connu (considère 1900 comme année bissextile)
                 const excelEpoch = new Date(1899, 11, 30); // 30 décembre 1899
                 const date = new Date(excelEpoch.getTime() + (cellValue - 1) * 86400000);
-                cellValue = date.toISOString().split('T')[0];
+                cellValue = this.formatDateLocal(date);
               } else {
                 // Si c'est déjà une string, utiliser formatDate pour normaliser
                 cellValue = this.formatDate(String(cellValue).trim());
@@ -1272,6 +1272,14 @@ export class SimpleExamensImportComponent implements OnInit, OnDestroy {
       .filter(title => title.length > 0);
   }
 
+  // Formater une date en local (pas UTC) pour éviter le décalage d'un jour
+  private formatDateLocal(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   private formatDate(dateString: string): string {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -1282,7 +1290,7 @@ export class SimpleExamensImportComponent implements OnInit, OnDestroy {
       }
       return dateString;
     }
-    return date.toISOString().split('T')[0];
+    return this.formatDateLocal(date);
   }
 
   private formatTime(timeString: string): string {

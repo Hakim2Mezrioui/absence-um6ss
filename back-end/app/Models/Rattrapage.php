@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Rattrapage extends Model
 {
@@ -14,7 +15,10 @@ class Rattrapage extends Model
         'start_hour',
         'end_hour',
         'date',
-        'tolerance'
+        'tolerance',
+        'ville_id',
+        'etablissement_id',
+        'salle_id'
     ];
 
     protected $casts = [
@@ -31,6 +35,30 @@ class Rattrapage extends Model
     public function listStudents(): HasMany
     {
         return $this->hasMany(ListStudent::class);
+    }
+
+    /**
+     * Relation avec la salle
+     */
+    public function salle(): BelongsTo
+    {
+        return $this->belongsTo(Salle::class);
+    }
+
+    /**
+     * Relation avec la ville
+     */
+    public function ville(): BelongsTo
+    {
+        return $this->belongsTo(Ville::class);
+    }
+
+    /**
+     * Relation avec l'établissement
+     */
+    public function etablissement(): BelongsTo
+    {
+        return $this->belongsTo(Etablissement::class);
     }
 
     /**

@@ -5,7 +5,8 @@ import { Router } from '@angular/router';
 import { RattrapageService, Etudiant, Rattrapage } from '../../services/rattrapage.service';
 import { NotificationService } from '../../services/notification.service';
 import { AuthService } from '../../services/auth.service';
-import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
+import { SallesService, Salle } from '../../services/salles.service';
+import { Subject, debounceTime, distinctUntilChanged, firstValueFrom } from 'rxjs';
 
 // Angular Material imports
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -100,6 +101,7 @@ export class RattrapageComponent implements OnInit, OnDestroy {
   private notificationService = inject(NotificationService);
   private cdr = inject(ChangeDetectorRef);
   public authService = inject(AuthService);
+  private sallesService = inject(SallesService);
   
   // Data
   etudiants: EtudiantWithSelection[] = [];
@@ -129,6 +131,11 @@ export class RattrapageComponent implements OnInit, OnDestroy {
   options: Option[] = [];
   groups: Group[] = [];
   villes: Ville[] = [];
+  salles: Salle[] = [];
+  filteredSalles: Salle[] = [];
+  selectedVilleForRattrapage: number | null = null;
+  selectedEtablissementForRattrapage: number | null = null;
+  salleSearchTerm: string = '';
   
   // Filter values pour étudiants
   selectedPromotion: number | null = null;
@@ -183,7 +190,10 @@ export class RattrapageComponent implements OnInit, OnDestroy {
       start_hour: ['', [Validators.required, Validators.pattern(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/)]],
       end_hour: ['', [Validators.required, Validators.pattern(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/)]],
       date: ['', [Validators.required]],
-      tolerance: [5, [Validators.required, Validators.min(0), Validators.max(60)]]
+      tolerance: [5, [Validators.required, Validators.min(0), Validators.max(60)]],
+      ville_id: [null, [Validators.required]],
+      etablissement_id: [null, [Validators.required]],
+      salle_id: [null, [Validators.required]]
     });
   }
   
@@ -193,6 +203,15 @@ export class RattrapageComponent implements OnInit, OnDestroy {
     this.markForCheck();
     this.setupSearchDebounce();
     
+    // Timeout de sécurité pour éviter que l'écran reste bloqué
+    const timeoutPromise = new Promise((resolve) => {
+      setTimeout(() => {
+        console.warn('⏰ Timeout de chargement atteint (30s)');
+        resolve(null);
+      }, 30000); // 30 secondes
+    });
+    
+    try {
     // Charger toutes les données en parallèle
     console.log('📋 Chargement des données de filtrage...');
     const filterDataPromise = this.loadFilterData();
@@ -203,9 +222,15 @@ export class RattrapageComponent implements OnInit, OnDestroy {
     console.log('📚 Chargement des rattrapages...');
     const rattrapagesPromise = this.loadRattrapages();
     
-    // Attendre que toutes les données soient chargées
-    try {
-      await Promise.all([filterDataPromise, etudiantsPromise, rattrapagesPromise]);
+    console.log('🏢 Chargement des salles...');
+    const sallesPromise = this.loadSalles();
+    
+    // Attendre que toutes les données soient chargées ou le timeout
+    await Promise.race([
+      Promise.all([filterDataPromise, etudiantsPromise, rattrapagesPromise, sallesPromise]),
+      timeoutPromise
+    ]);
+      
       console.log('✅ Toutes les données chargées avec succès');
     } catch (error) {
       console.error('❌ Erreur lors du chargement des données:', error);
@@ -214,9 +239,10 @@ export class RattrapageComponent implements OnInit, OnDestroy {
         'Impossible de charger certaines données. Veuillez recharger la page.'
       );
     } finally {
+      // Toujours mettre à jour l'état, même en cas d'erreur ou de timeout
       this.initializing = false;
       this.markForCheck();
-      console.log('✅ Initialisation terminée');
+      console.log('✅ Initialisation terminée - initializing:', this.initializing);
     }
   }
   
@@ -245,7 +271,7 @@ export class RattrapageComponent implements OnInit, OnDestroy {
     try {
       console.log('📋 Chargement des données de filtrage...');
       
-      const filterOptions = await this.rattrapageService.getFilterOptions().toPromise();
+      const filterOptions = await firstValueFrom(this.rattrapageService.getFilterOptions());
       
       if (filterOptions) {
         this.promotions = filterOptions.promotions || [];
@@ -273,6 +299,127 @@ export class RattrapageComponent implements OnInit, OnDestroy {
       this.markForCheck();
     }
   }
+
+  async loadSalles() {
+    try {
+      console.log('🏢 Chargement des salles...');
+      const response = await firstValueFrom(this.sallesService.getSalles());
+      
+      if (response && response.salles) {
+        this.salles = response.salles;
+        this.filteredSalles = [...this.salles];
+        console.log('✅ Salles chargées:', this.salles.length);
+      }
+    } catch (error) {
+      console.error('❌ Erreur lors du chargement des salles:', error);
+      this.notificationService.error(
+        'Erreur de chargement',
+        'Impossible de charger les salles.'
+      );
+    } finally {
+      this.markForCheck();
+    }
+  }
+
+  onVilleChangeForRattrapage() {
+    const villeId = this.rattrapageForm.get('ville_id')?.value;
+    this.selectedVilleForRattrapage = villeId;
+    
+    console.log('🏙️ Ville sélectionnée pour rattrapage:', villeId);
+    console.log('📋 Total salles disponibles:', this.salles.length);
+    
+    // Réinitialiser l'établissement et la salle si la ville change
+    this.rattrapageForm.patchValue({ etablissement_id: null });
+    this.rattrapageForm.patchValue({ salle_id: null });
+    this.selectedEtablissementForRattrapage = null;
+    
+    // Filtrer les salles par ville
+    this.filterSalles();
+    
+    this.markForCheck();
+  }
+
+  onEtablissementChangeForRattrapage() {
+    const etablissementId = this.rattrapageForm.get('etablissement_id')?.value;
+    this.selectedEtablissementForRattrapage = etablissementId;
+    
+    console.log('🏢 Établissement sélectionné pour rattrapage:', etablissementId);
+    
+    // Réinitialiser la salle si l'établissement change
+    this.rattrapageForm.patchValue({ salle_id: null });
+    
+    // Filtrer les salles par ville et établissement
+    this.filterSalles();
+    
+    this.markForCheck();
+  }
+
+  filterSalles() {
+    const villeId = this.rattrapageForm.get('ville_id')?.value;
+    const etablissementId = this.rattrapageForm.get('etablissement_id')?.value;
+    
+    console.log('🔍 Filtrage des salles - Ville ID:', villeId, 'Établissement ID:', etablissementId);
+    console.log('📊 Salles avant filtrage:', this.salles.length);
+    console.log('📋 Exemple de salle:', this.salles[0] ? {
+      id: this.salles[0].id,
+      name: this.salles[0].name,
+      ville_id: this.salles[0].ville_id,
+      ville_id_type: typeof this.salles[0].ville_id,
+      etablissement_id: this.salles[0].etablissement_id,
+      etablissement_id_type: typeof this.salles[0].etablissement_id
+    } : 'Aucune salle');
+    
+    let filtered = [...this.salles];
+    
+    // Filtrer par ville (conversion en nombre pour la comparaison)
+    if (villeId) {
+      const villeIdNum = Number(villeId);
+      filtered = filtered.filter(salle => {
+        const salleVilleId = Number(salle.ville_id);
+        const match = salleVilleId === villeIdNum;
+        if (!match) {
+          console.log(`❌ Salle ${salle.name} (ville_id: ${salle.ville_id}, type: ${typeof salle.ville_id}) ne correspond pas à ${villeIdNum}`);
+        }
+        return match;
+      });
+      console.log('✅ Salles après filtrage par ville:', filtered.length);
+    }
+    
+    // Filtrer par établissement (conversion en nombre pour la comparaison)
+    if (etablissementId) {
+      const etablissementIdNum = Number(etablissementId);
+      filtered = filtered.filter(salle => {
+        const salleEtablissementId = Number(salle.etablissement_id);
+        return salleEtablissementId === etablissementIdNum;
+      });
+      console.log('✅ Salles après filtrage par établissement:', filtered.length);
+    }
+    
+    // Filtrer par terme de recherche
+    if (this.salleSearchTerm.trim()) {
+      const searchLower = this.salleSearchTerm.trim().toLowerCase();
+      filtered = filtered.filter(salle => {
+        const nameMatch = salle.name.toLowerCase().includes(searchLower);
+        const batimentMatch = salle.batiment?.toLowerCase().includes(searchLower);
+        const etablissementMatch = salle.etablissement?.name?.toLowerCase().includes(searchLower);
+        return nameMatch || batimentMatch || etablissementMatch;
+      });
+      console.log('✅ Salles après filtrage par recherche:', filtered.length);
+    }
+    
+    this.filteredSalles = filtered;
+    console.log('📋 Salles filtrées finales:', this.filteredSalles.length);
+    
+    // Réinitialiser la sélection de salle si elle n'est plus dans la liste filtrée
+    const currentSalleId = this.rattrapageForm.get('salle_id')?.value;
+    if (currentSalleId && !this.filteredSalles.find(s => s.id === currentSalleId)) {
+      this.rattrapageForm.patchValue({ salle_id: null });
+    }
+  }
+
+  onSalleSearchChange() {
+    this.filterSalles();
+  }
   
   async loadEtudiants(page: number = 1, showLoading: boolean = true) {
     try {
@@ -285,7 +432,7 @@ export class RattrapageComponent implements OnInit, OnDestroy {
       
       const filters = this.getCurrentFilters();
       console.log('🔍 Filtres appliqués:', filters);
-      const response = await this.rattrapageService.getEtudiants(page, this.perPage, filters).toPromise();
+      const response = await firstValueFrom(this.rattrapageService.getEtudiants(page, this.perPage, filters));
       
       console.log('📊 Réponse API:', response);
       
@@ -469,6 +616,10 @@ export class RattrapageComponent implements OnInit, OnDestroy {
   closeCreateModal() {
     this.showCreateModal = false;
     this.rattrapageForm.reset();
+    this.selectedVilleForRattrapage = null;
+    this.selectedEtablissementForRattrapage = null;
+    this.salleSearchTerm = '';
+    this.filteredSalles = [...this.salles];
   }
   
   async createRattrapage() {
@@ -510,7 +661,7 @@ export class RattrapageComponent implements OnInit, OnDestroy {
       
       // 1. Create rattrapage
       const rattrapageData = this.rattrapageForm.value;
-      const rattrapageResponse = await this.rattrapageService.createRattrapage(rattrapageData).toPromise();
+      const rattrapageResponse = await firstValueFrom(this.rattrapageService.createRattrapage(rattrapageData));
       
       if (!rattrapageResponse?.success) {
         throw new Error(rattrapageResponse?.message || 'Erreur lors de la création du rattrapage');
@@ -523,7 +674,7 @@ export class RattrapageComponent implements OnInit, OnDestroy {
       
       // 2. Assign students to rattrapage
       const assignmentPromises = this.selectedEtudiants.map(etudiant => 
-        this.rattrapageService.assignStudentToRattrapage(etudiant.id, rattrapageId).toPromise()
+        firstValueFrom(this.rattrapageService.assignStudentToRattrapage(etudiant.id, rattrapageId))
       );
       
       await Promise.all(assignmentPromises);
@@ -560,13 +711,13 @@ export class RattrapageComponent implements OnInit, OnDestroy {
 
   viewRattrapageStudents(rattrapage: RattrapageWithDuration) {
     if (rattrapage.id) {
-      this.router.navigate(['/dashboard/rattrapages', rattrapage.id, 'students']);
+      this.router.navigate(['/rattrapages', rattrapage.id, 'students']);
     }
   }
 
   viewRattrapageAttendance(rattrapage: RattrapageWithDuration) {
     if (rattrapage.id) {
-      this.router.navigate(['/dashboard/rattrapages', rattrapage.id, 'attendance']);
+      this.router.navigate(['/rattrapages', rattrapage.id, 'attendance']);
     }
   }
 
@@ -577,12 +728,12 @@ export class RattrapageComponent implements OnInit, OnDestroy {
       this.studentsLoading = true;
       this.studentsCurrentPage = page;
       
-      const response = await this.rattrapageService.getStudentsByRattrapage(
+      const response = await firstValueFrom(this.rattrapageService.getStudentsByRattrapage(
         this.selectedRattrapage.id,
         page,
         this.studentsPerPage,
         this.studentsSearchTerm || undefined
-      ).toPromise();
+      ));
       
              if (response?.success) {
          // Extraire les données d'étudiants de la structure imbriquée
@@ -712,7 +863,7 @@ export class RattrapageComponent implements OnInit, OnDestroy {
       
       const filters = this.getRattrapagesFilters();
       console.log('🔍 Filtres rattrapages:', filters);
-      const response = await this.rattrapageService.getAllRattrapages(page, this.rattrapagesPerPage, filters).toPromise();
+      const response = await firstValueFrom(this.rattrapageService.getAllRattrapages(page, this.rattrapagesPerPage, filters));
       
       console.log('📊 Réponse API rattrapages:', response);
       
