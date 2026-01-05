@@ -26,20 +26,6 @@
         </mat-error>
       </mat-form-field>
 
-      <!-- Établissement -->
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-select formControlName="etablissement_id" placeholder="Établissement">
-          <mat-option value="">Sélectionner un établissement</mat-option>
-          <mat-option *ngFor="let etablissement of data.etablissements" [value]="etablissement.id">
-            {{ etablissement.name }}
-          </mat-option>
-        </mat-select>
-        <mat-icon matSuffix>business</mat-icon>
-        <mat-error *ngIf="etablissementControl?.hasError('required')">
-          L'établissement est obligatoire
-        </mat-error>
-      </mat-form-field>
-
       <!-- Ville -->
       <mat-form-field appearance="outline" class="full-width">
         <mat-select formControlName="ville_id" placeholder="Ville">

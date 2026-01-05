@@ -9,18 +9,12 @@ export interface Salle {
   name: string;
   etage: number;
   batiment: string;
-  etablissement_id: number;
   ville_id: number;
   capacite?: number;
   description?: string;
   devices?: { devid: string | number; devnm: string }[];
   created_at?: string;
   updated_at?: string;
-  etablissement?: {
-    id: number;
-    name: string;
-    ville_id: number;
-  };
   ville?: {
     id: number;
     name: string;
@@ -39,7 +33,6 @@ export interface CreateSalleRequest {
   name: string;
   etage: number;
   batiment: string;
-  etablissement_id: number;
   ville_id: number;
   capacite?: number;
   description?: string;
@@ -143,7 +136,7 @@ export class SallesService {
   }
 
   /**
-   * Récupérer tous les établissements pour les formulaires
+   * Récupérer tous les établissements pour les formulaires (optionnel, pour filtres)
    */
   getEtablissements(): Observable<{etablissements: any[]; status: string}> {
     return this.http.get<{etablissements: any[]; status: string}>(`${environment.apiUrl}/etablissements`);

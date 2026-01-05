@@ -55,9 +55,13 @@ class CoursController extends Controller
 
         // Appliquer le filtrage par contexte utilisateur
         $userContext = $this->userContextService->getUserContext();
+        $user = \Illuminate\Support\Facades\Auth::user();
         
-        // Si l'utilisateur n'est pas super-admin, appliquer les filtres de contexte
-        if (!$this->userContextService->isSuperAdmin()) {
+        // Exception pour technicien (role_id = 5) sans établissement : voir tous les cours
+        $isTechnicienWithoutEtablissement = $user && $user->role_id == 5 && is_null($user->etablissement_id);
+        
+        // Si l'utilisateur n'est pas super-admin et n'est pas technicien sans établissement, appliquer les filtres
+        if (!$this->userContextService->isSuperAdmin() && !$isTechnicienWithoutEtablissement) {
             if ($userContext['ville_id']) {
                 $query->where('ville_id', $userContext['ville_id']);
             }
@@ -558,8 +562,8 @@ class CoursController extends Controller
                 ->get();
 
             // Récupérer les salles avec toutes les informations nécessaires
-            $salles = \App\Models\Salle::select('id', 'name', 'etablissement_id', 'ville_id', 'batiment', 'etage', 'capacite', 'description')
-                ->with(['etablissement:id,name', 'ville:id,name'])
+            $salles = \App\Models\Salle::select('id', 'name', 'ville_id', 'batiment', 'etage', 'capacite', 'description')
+                ->with(['ville:id,name'])
                 ->orderBy('name')
                 ->get();
 
@@ -1567,9 +1571,13 @@ class CoursController extends Controller
 
         // Appliquer le filtrage par contexte utilisateur
         $userContext = $this->userContextService->getUserContext();
+        $user = \Illuminate\Support\Facades\Auth::user();
         
-        // Si l'utilisateur n'est pas super-admin, appliquer les filtres de contexte
-        if (!$this->userContextService->isSuperAdmin()) {
+        // Exception pour technicien (role_id = 5) sans établissement : voir tous les cours
+        $isTechnicienWithoutEtablissement = $user && $user->role_id == 5 && is_null($user->etablissement_id);
+        
+        // Si l'utilisateur n'est pas super-admin et n'est pas technicien sans établissement, appliquer les filtres
+        if (!$this->userContextService->isSuperAdmin() && !$isTechnicienWithoutEtablissement) {
             if ($userContext['ville_id']) {
                 $query->where('ville_id', $userContext['ville_id']);
             }

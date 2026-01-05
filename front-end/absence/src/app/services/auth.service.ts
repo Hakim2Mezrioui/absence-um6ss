@@ -311,13 +311,13 @@ export class AuthService {
 
   /**
    * Vérifier si l'utilisateur peut ajouter/modifier/supprimer
-   * Le technicien (ID 5) ne peut que consulter
+   * Le technicien (ID 5) et defilement (ID 8) ne peuvent que consulter
    */
   canEdit(): boolean {
     if (!this.isBrowser()) return false;
     const userRole = localStorage.getItem('userRole');
-    // Le technicien ne peut que consulter (lecture seule)
-    return userRole !== 'technicien';
+    // Le technicien et defilement ne peuvent que consulter (lecture seule)
+    return userRole !== 'technicien' && userRole !== 'defilement' && userRole !== 'défilement';
   }
 
   /**
@@ -347,7 +347,6 @@ export class AuthService {
       4: 'doyen',       // ID 4: Doyen
       5: 'technicien',  // ID 5: Technicien SI
       6: 'enseignant',   // ID 6: Enseignant
-      7: 'affichage-public',  // ID 7: Affichage Public
       8: 'defilement'        // ID 8: Défilement
     };
     

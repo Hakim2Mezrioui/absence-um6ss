@@ -218,6 +218,12 @@ export class ExamensComponent implements OnInit, OnDestroy {
 
   // Supprimer un examen
   deleteExamen(examen: Examen): void {
+    // Empêcher la suppression pour les comptes de défilement
+    if (this.isDefilementRole()) {
+      console.warn('Les comptes de défilement ne peuvent pas supprimer des examens');
+      return;
+    }
+    
     // Import dynamique pour compat SSR (évite document is not defined)
     import('sweetalert2').then(({ default: Swal }) => {
       Swal.fire({

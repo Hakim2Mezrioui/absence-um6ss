@@ -231,7 +231,6 @@ export class SidebarComponent implements OnInit {
       4: 'doyen',       // ID 4: Doyen
       5: 'technicien',  // ID 5: Technicien SI
       6: 'enseignant',   // ID 6: Enseignant
-      7: 'affichage-public', // ID 7: Affichage public
       8: 'defilement'        // ID 8: Défilement
     };
     
@@ -247,7 +246,6 @@ export class SidebarComponent implements OnInit {
       4: 'Gestion de la faculté',   // Doyen
       5: 'Accès aux fonctionnalités techniques',  // Technicien SI
       6: 'Accès enseignants',
-      7: 'Consultation de l\'affichage public',
       8: 'Compte dédié au défilement des écrans publics'
     };
     

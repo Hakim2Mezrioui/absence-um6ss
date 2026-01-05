@@ -723,7 +723,6 @@ export class EditCoursComponent implements OnInit, OnDestroy {
       name: this.newSalleForm.value.name,
       batiment: this.newSalleForm.value.batiment || '',
       etage: Number(this.newSalleForm.value.etage) || 0,
-      etablissement_id: Number(this.newSalleForm.value.etablissement_id),
       ville_id: Number(this.newSalleForm.value.ville_id),
       capacite: this.newSalleForm.value.capacite ? Number(this.newSalleForm.value.capacite) : undefined,
       description: this.newSalleForm.value.description || undefined,

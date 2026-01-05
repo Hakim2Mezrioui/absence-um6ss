@@ -203,7 +203,7 @@ class CoursService
      */
     public function getAvailableSalles(int $jourSemaine, string $heureDebut, string $heureFin): Collection
     {
-        $salles = \App\Models\Salle::with(['etablissement', 'ville'])->get();
+        $salles = \App\Models\Salle::with(['ville'])->get();
         $availableSalles = collect();
 
         foreach ($salles as $salle) {

@@ -179,6 +179,12 @@ export class CoursComponent implements OnInit {
   }
 
   deleteCours(cours: Cours) {
+    // Empêcher la suppression pour les comptes de défilement
+    if (this.isDefilementRole()) {
+      console.warn('Les comptes de défilement ne peuvent pas supprimer des cours');
+      return;
+    }
+    
     if (confirm(`Êtes-vous sûr de vouloir supprimer le cours "${cours.name}" ?`)) {
       this.coursService.deleteCours(cours.id).subscribe({
         next: () => {

@@ -90,6 +90,7 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
   successMessage = '';
   isProcessing = false;
   isImporting = false;
+  isDragging = false;
 
   // User context and role management
   currentUser: User | null = null;
@@ -403,6 +404,46 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
     }, this.debounceMs);
   }
 
+  onZoneClick(fileInput: HTMLInputElement): void {
+    fileInput.click();
+  }
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragging = true;
+  }
+
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragging = false;
+  }
+
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragging = false;
+    const file = event.dataTransfer?.files?.[0];
+    if (file) {
+      // Créer un événement artificiel pour utiliser la méthode existante
+      const input = document.createElement('input');
+      input.type = 'file';
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(file);
+      input.files = dataTransfer.files;
+      const fakeEvent = { target: input } as any;
+      this.onFileSelected(fakeEvent);
+    }
+  }
+
+  addEmptyRow(): void {
+    if (!this.tableHeaders.length) {
+      this.tableHeaders = [...this.templateHeaders];
+    }
+    const newRow: Record<string, string> = {};
+    this.tableHeaders.forEach((h) => (newRow[h] = ''));
+    this.tableRows = [...this.tableRows, newRow];
+    this.validateRows();
+  }
+
   clearTable(): void {
     this.fileName = '';
     this.tableHeaders = [];
@@ -594,6 +635,11 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
       'annee_universitaire': '180px'
     };
     return columnWidths[header] || '180px';
+  }
+
+  getMinColumnWidth(header: string): string {
+    // Retourne la largeur minimale (même valeur que getColumnWidth)
+    return this.getColumnWidth(header);
   }
 
   getColumnMinWidth(header: string): string {

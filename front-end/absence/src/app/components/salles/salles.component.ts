@@ -44,7 +44,6 @@ export class SallesComponent implements OnInit, OnDestroy {
   // Données
   allSalles: Salle[] = []; // Toutes les salles
   salles: Salle[] = []; // Salles filtrées et paginées
-  etablissements: any[] = [];
   villes: Ville[] = [];
   totalSalles = 0;
 
@@ -55,7 +54,6 @@ export class SallesComponent implements OnInit, OnDestroy {
 
   // Filtres et recherche
   searchValue = '';
-  selectedEtablissement: number | string = '';
   selectedBatiment = '';
   selectedEtage: number | string = '';
   searchResults: number | null = null;
@@ -122,7 +120,6 @@ export class SallesComponent implements OnInit, OnDestroy {
   private initializeForm(): void {
     this.salleForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(2)]],
-      etablissement_id: ['', [Validators.required]],
       ville_id: ['', [Validators.required]],
       batiment: ['', [Validators.required]],
       etage: ['', [Validators.required]],
@@ -169,7 +166,6 @@ export class SallesComponent implements OnInit, OnDestroy {
 
   private loadInitialData(): void {
     this.loadVilles();
-    this.loadEtablissements();
     this.loadSalles();
   }
 
@@ -230,11 +226,6 @@ export class SallesComponent implements OnInit, OnDestroy {
       );
     }
 
-    // Filtre par établissement
-    if (this.selectedEtablissement && this.selectedEtablissement !== '') {
-      const etablissementId = Number(this.selectedEtablissement);
-      filtered = filtered.filter(salle => salle.etablissement_id === etablissementId);
-    }
 
     // Filtre par bâtiment
     if (this.selectedBatiment && this.selectedBatiment !== '') {
@@ -266,20 +257,6 @@ export class SallesComponent implements OnInit, OnDestroy {
     this.salles = filtered.slice(startIndex, endIndex);
   }
 
-  loadEtablissements(): void {
-    this.sallesService.getEtablissements()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-      next: (response) => {
-          console.log('✅ Établissements chargés:', response);
-        this.etablissements = response.etablissements || [];
-      },
-      error: (error) => {
-          console.error('❌ Erreur lors du chargement des établissements:', error);
-          this.showError('Erreur lors du chargement des établissements');
-      }
-    });
-  }
 
   // ===== RECHERCHE ET FILTRES =====
 
@@ -295,7 +272,6 @@ export class SallesComponent implements OnInit, OnDestroy {
 
   clearFilters(): void {
     this.searchValue = '';
-    this.selectedEtablissement = '';
     this.selectedBatiment = '';
     this.selectedEtage = '';
     this.searchResults = null;
@@ -305,7 +281,6 @@ export class SallesComponent implements OnInit, OnDestroy {
 
   hasActiveFilters(): boolean {
     return this.searchValue.trim() !== '' || 
-           this.selectedEtablissement !== '' || 
            this.selectedBatiment !== '' || 
            this.selectedEtage !== '';
   }
@@ -313,7 +288,6 @@ export class SallesComponent implements OnInit, OnDestroy {
   getActiveFiltersCount(): number {
     let count = 0;
     if (this.searchValue.trim() !== '') count++;
-    if (this.selectedEtablissement !== '') count++;
     if (this.selectedBatiment !== '') count++;
     if (this.selectedEtage !== '') count++;
     return count;
@@ -328,10 +302,6 @@ export class SallesComponent implements OnInit, OnDestroy {
     return Array.from(new Set(this.allSalles.map(s => s.etage))).sort((a, b) => a - b);
   }
 
-  getEtablissementName(id: number | string): string {
-    const etablissement = this.etablissements.find(e => e.id === Number(id));
-    return etablissement ? etablissement.name : 'Inconnu';
-  }
 
   // ===== PAGINATION =====
 
@@ -397,7 +367,6 @@ export class SallesComponent implements OnInit, OnDestroy {
     this.selectedSalle = salle;
     this.salleForm.patchValue({
       name: salle.name,
-      etablissement_id: salle.etablissement_id,
       ville_id: salle.ville_id,
       batiment: salle.batiment,
       etage: salle.etage,
@@ -448,7 +417,6 @@ export class SallesComponent implements OnInit, OnDestroy {
     this.dialogLoading = true;
     const formData: CreateSalleRequest = {
       name: this.salleForm.value.name.trim(),
-      etablissement_id: Number(this.salleForm.value.etablissement_id),
       ville_id: Number(this.salleForm.value.ville_id),
       batiment: this.salleForm.value.batiment.trim(),
       etage: Number(this.salleForm.value.etage),
@@ -684,4 +652,5 @@ export class SallesComponent implements OnInit, OnDestroy {
     this.salleForm.get('devices')?.setValue(selected);
     this.salleForm.get('devices')?.markAsTouched();
   }
+
 }

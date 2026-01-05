@@ -601,9 +601,8 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
    * Confirmer la suppression
    */
   confirmDelete(etudiant: Etudiant): void {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer l'étudiant ${etudiant.first_name} ${etudiant.last_name} ?`)) {
-      this.deleteEtudiant();
-    }
+    this.selectedEtudiant = etudiant;
+    this.deleteEtudiant();
   }
 
   /**
@@ -630,22 +629,53 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
   deleteEtudiant(): void {
     if (!this.selectedEtudiant) return;
 
-    this.loading = true;
-    this.etudiantsService.deleteEtudiant(this.selectedEtudiant.id)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response) => {
-          this.success = response.message;
-          this.closeModals();
-          this.loadAllEtudiants(); // Recharger tous les étudiants
-          this.loading = false;
-        },
-        error: (err) => {
-          console.error('Erreur lors de la suppression:', err);
-          this.error = 'Erreur lors de la suppression de l\'étudiant';
-          this.loading = false;
+    // Import dynamique pour compat SSR (évite document is not defined)
+    import('sweetalert2').then(({ default: Swal }) => {
+      Swal.fire({
+        title: 'Supprimer cet étudiant ?',
+        text: `"${this.selectedEtudiant!.first_name} ${this.selectedEtudiant!.last_name}" sera définitivement supprimé.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Oui, supprimer',
+        cancelButtonText: 'Annuler',
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6b7280',
+        reverseButtons: true
+      }).then((result) => {
+        if (result.isConfirmed && this.selectedEtudiant) {
+          this.loading = true;
+          this.etudiantsService.deleteEtudiant(this.selectedEtudiant.id)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+              next: (response) => {
+                this.success = response.message;
+                this.closeModals();
+                this.loadAllEtudiants(); // Recharger tous les étudiants
+                this.loading = false;
+                
+                Swal.fire({
+                  title: 'Supprimé',
+                  text: 'Étudiant supprimé avec succès',
+                  icon: 'success',
+                  timer: 1500,
+                  showConfirmButton: false
+                });
+              },
+              error: (err) => {
+                console.error('Erreur lors de la suppression:', err);
+                this.error = 'Erreur lors de la suppression de l\'étudiant';
+                this.loading = false;
+                
+                Swal.fire({
+                  title: 'Erreur',
+                  text: err.error?.message || 'Erreur lors de la suppression de l\'étudiant',
+                  icon: 'error'
+                });
+              }
+            });
         }
       });
+    });
   }
 
   /**
@@ -654,34 +684,68 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
   deleteSelectedEtudiants(): void {
     if (this.selectedEtudiants.length === 0) return;
 
-    if (confirm(`Êtes-vous sûr de vouloir supprimer ${this.selectedEtudiants.length} étudiant(s) ?`)) {
-      this.loading = true;
-      this.error = '';
-      this.success = '';
+    // Import dynamique pour compat SSR (évite document is not defined)
+    import('sweetalert2').then(({ default: Swal }) => {
+      Swal.fire({
+        title: 'Supprimer ces étudiants ?',
+        text: `${this.selectedEtudiants.length} étudiant(s) seront définitivement supprimé(s).`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Oui, supprimer',
+        cancelButtonText: 'Annuler',
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6b7280',
+        reverseButtons: true
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.loading = true;
+          this.error = '';
+          this.success = '';
 
-      const ids = Array.from(this.selectedEtudiantIds);
-      
-      this.etudiantsService.deleteMultipleEtudiants(ids)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (response) => {
-            this.success = `${response.deleted_count} étudiant(s) supprimé(s) avec succès`;
-            this.resetSelection();
-            this.loadAllEtudiants(); // Recharger tous les étudiants
-            this.loading = false;
-            
-            // Afficher les erreurs s'il y en a
-            if (response.errors && response.errors.length > 0) {
-              console.warn('Erreurs lors de la suppression:', response.errors);
-            }
-          },
-          error: (err) => {
-            console.error('Erreur lors de la suppression multiple:', err);
-            this.error = 'Erreur lors de la suppression des étudiants';
-            this.loading = false;
-          }
-        });
-    }
+          const ids = Array.from(this.selectedEtudiantIds);
+          
+          this.etudiantsService.deleteMultipleEtudiants(ids)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+              next: (response) => {
+                this.success = `${response.deleted_count} étudiant(s) supprimé(s) avec succès`;
+                this.resetSelection();
+                this.loadAllEtudiants(); // Recharger tous les étudiants
+                this.loading = false;
+                
+                // Afficher les erreurs s'il y en a
+                if (response.errors && response.errors.length > 0) {
+                  console.warn('Erreurs lors de la suppression:', response.errors);
+                  Swal.fire({
+                    title: 'Suppression partielle',
+                    text: `${response.deleted_count} étudiant(s) supprimé(s). Certains étudiants n'ont pas pu être supprimés.`,
+                    icon: 'warning'
+                  });
+                } else {
+                  Swal.fire({
+                    title: 'Supprimé',
+                    text: `${response.deleted_count} étudiant(s) supprimé(s) avec succès`,
+                    icon: 'success',
+                    timer: 1500,
+                    showConfirmButton: false
+                  });
+                }
+              },
+              error: (err) => {
+                console.error('Erreur lors de la suppression multiple:', err);
+                this.error = 'Erreur lors de la suppression des étudiants';
+                this.loading = false;
+                
+                Swal.fire({
+                  title: 'Erreur',
+                  text: err.error?.message || 'Erreur lors de la suppression des étudiants',
+                  icon: 'error'
+                });
+              }
+            });
+        }
+      });
+    });
   }
 
   /**

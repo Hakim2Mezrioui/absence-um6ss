@@ -35,6 +35,13 @@ class UserContextScope implements Scope
             return;
         }
 
+        // Exception pour technicien (role_id = 5) sans établissement : voir tous les examens/cours
+        // Si le technicien n'a pas d'établissement, il peut voir tous les examens et cours de toutes les villes et établissements
+        if ($user->role_id == 5 && is_null($user->etablissement_id)) {
+            // Ne pas appliquer de filtres pour les techniciens sans établissement
+            return;
+        }
+
         // Apply ville filter if user has a ville
         if (!is_null($user->ville_id)) {
             if (Schema::hasColumn($table, 'ville_id')) {

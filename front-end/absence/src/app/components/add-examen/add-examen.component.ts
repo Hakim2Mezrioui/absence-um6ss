@@ -412,7 +412,7 @@ export class AddExamenComponent implements OnInit, OnDestroy {
         etablissementId,
         villeId,
         sallesDisponibles: this.salles.length,
-        salles: this.salles.map(s => ({ id: s.id, name: s.name, etablissement_id: s.etablissement_id, ville_id: s.ville_id }))
+          salles: this.salles.map(s => ({ id: s.id, name: s.name, ville_id: s.ville_id }))
       });
       
       // Mettre à jour les salles filtrées
@@ -565,7 +565,6 @@ export class AddExamenComponent implements OnInit, OnDestroy {
             console.log('✅ Salle correspondante trouvée:', {
               salleId: salle.id,
               salleName: salle.name,
-              salleEtablissementId: salle.etablissement_id,
               salleVilleId: salle.ville_id,
               formEtablissementId: etablissementId,
               formVilleId: villeId
@@ -599,8 +598,7 @@ export class AddExamenComponent implements OnInit, OnDestroy {
       });
 
       this.salles = this.allSalles.filter((salle: any) => {
-        const match = Number(salle.etablissement_id) === Number(this.currentUser!.etablissement_id) && 
-                     Number(salle.ville_id) === Number(this.currentUser!.ville_id);
+        const match = Number(salle.ville_id) === Number(this.currentUser!.ville_id);
         
         if (match) {
           console.log('✅ Salle correspondante trouvée:', {
@@ -617,7 +615,6 @@ export class AddExamenComponent implements OnInit, OnDestroy {
       });
       
       console.log('🔒 Filtrage des salles par établissement et ville (pré-définis):', {
-        etablissementId: this.currentUser.etablissement_id,
         villeId: this.currentUser.ville_id,
         sallesOriginales: this.allSalles.length,
         sallesFiltrees: this.salles.length,
@@ -651,7 +648,6 @@ export class AddExamenComponent implements OnInit, OnDestroy {
       etage: 0,
       capacite: null,
       description: '',
-      etablissement_id: etabId,
       ville_id: villeId,
       devices: []
     });
@@ -890,7 +886,6 @@ export class AddExamenComponent implements OnInit, OnDestroy {
       name: this.newSalleForm.value.name,
       batiment: this.newSalleForm.value.batiment || '',
       etage: Number(this.newSalleForm.value.etage) || 0,
-      etablissement_id: Number(this.newSalleForm.value.etablissement_id),
       ville_id: Number(this.newSalleForm.value.ville_id),
       capacite: this.newSalleForm.value.capacite ? Number(this.newSalleForm.value.capacite) : undefined,
       description: this.newSalleForm.value.description || undefined,
@@ -911,7 +906,7 @@ export class AddExamenComponent implements OnInit, OnDestroy {
           const currentEtablissementId = this.examenForm.get('etablissement_id')?.value;
           const currentVilleId = this.examenForm.get('ville_id')?.value;
           const shouldAddSalle = this.isSuperAdmin || 
-            (created.etablissement_id === currentEtablissementId && created.ville_id === currentVilleId);
+            (created.ville_id === currentVilleId);
           
           if (shouldAddSalle) {
             this.allSalles = [created, ...this.allSalles];

@@ -1014,27 +1014,6 @@
           </div>
 
           <div>
-            <label for="etablissement_id" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-              <span class="material-icons text-yellow-600 text-lg">business</span>
-              Établissement *
-            </label>
-            <select 
-              id="etablissement_id"
-              formControlName="etablissement_id"
-              (change)="onEtablissementChangeForRattrapage()"
-              class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-200"
-              [class.border-red-500]="rattrapageForm.get('etablissement_id')?.invalid && rattrapageForm.get('etablissement_id')?.touched">
-              <option [value]="null">Sélectionner un établissement</option>
-              <option *ngFor="let etablissement of etablissements" [value]="etablissement.id">
-                {{ etablissement.name }}
-              </option>
-            </select>
-            <div class="text-red-500 text-sm mt-1" *ngIf="rattrapageForm.get('etablissement_id')?.invalid && rattrapageForm.get('etablissement_id')?.touched">
-              La sélection d'un établissement est requise
-            </div>
-          </div>
-
-          <div>
             <label for="salle_id" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
               <span class="material-icons text-indigo-600 text-lg">meeting_room</span>
               Salle (pour le face ID) *
@@ -1079,7 +1058,6 @@
                 {{ salle.name }} 
                 <span *ngIf="salle.batiment"> - {{ salle.batiment }}</span>
                 <span *ngIf="salle.etage"> - Étage {{ salle.etage }}</span>
-                <span *ngIf="salle.etablissement"> - {{ salle.etablissement.name }}</span>
               </option>
             </select>
             <div class="text-gray-500 text-xs mt-1" *ngIf="selectedVilleForRattrapage">

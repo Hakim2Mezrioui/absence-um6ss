@@ -24,13 +24,12 @@ export class DisplayPublicGuard implements CanActivate {
     // Normaliser le nom du rôle (insensible à la casse, sans espaces et tirets)
     const normalizedRole = userRole ? userRole.toLowerCase().replace(/[\s-]/g, '') : '';
     
-    // Autoriser uniquement le rôle "Affichage Public" et les admins
+    // Autoriser uniquement le rôle "Defilement" et les admins
     const allowedRoles = [
-      'affichagepublic',
-      'superadmin',
-      'admin',
       'defilement',
-      'défilement'
+      'défilement',
+      'superadmin',
+      'admin'
     ];
 
     if (allowedRoles.includes(normalizedRole)) {

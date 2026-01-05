@@ -16,11 +16,11 @@ class SalleService
     }
 
     /**
-     * Get all salles (filtered by user context: ville_id and etablissement_id)
+     * Get all salles (filtered by user context: ville_id)
      */
     public function getAllSalles(): Collection
     {
-        return Salle::with(['etablissement', 'ville'])
+        return Salle::with(['ville'])
             ->orderBy('name')
             ->get();
     }
@@ -30,7 +30,7 @@ class SalleService
      */
     public function getSalleById(int $id): ?Salle
     {
-        return Salle::with('etablissement')->find($id);
+        return Salle::with(['ville'])->find($id);
     }
 
     /**
@@ -95,12 +95,12 @@ class SalleService
     }
 
     /**
-     * Get salles by establishment
+     * Get salles by establishment (deprecated - salles are now independent)
      */
     public function getSallesByEtablissement(int $etablissementId): Collection
     {
-        return Salle::with('etablissement')
-                   ->where('etablissement_id', $etablissementId)
+        // Les salles ne sont plus liées aux établissements
+        return Salle::with(['ville'])
                    ->orderBy('name')
                    ->get();
     }

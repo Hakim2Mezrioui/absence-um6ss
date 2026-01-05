@@ -528,7 +528,7 @@ export class EditExamenComponent implements OnInit, OnDestroy {
               etablissementId,
               villeId,
               sallesDisponibles: this.salles.length,
-              salles: this.salles.map(s => ({ id: s.id, name: s.name, etablissement_id: s.etablissement_id, ville_id: s.ville_id }))
+              salles: this.salles.map(s => ({ id: s.id, name: s.name, ville_id: s.ville_id }))
             });
             
             // Mettre à jour les salles filtrées
@@ -646,7 +646,7 @@ export class EditExamenComponent implements OnInit, OnDestroy {
       if (etablissementId && villeId) {
         const originalSalles = [...this.salles];
         this.salles = this.salles.filter((salle: any) => {
-          return salle.etablissement_id == etablissementId && salle.ville_id == villeId;
+          return salle.ville_id == villeId;
         });
         
         console.log('🔓 Super Admin: Filtrage par établissement et ville:', {
@@ -684,7 +684,7 @@ export class EditExamenComponent implements OnInit, OnDestroy {
     if (etablissementId && villeId) {
       const originalSalles = [...this.salles];
       this.salles = this.salles.filter((salle: any) => {
-        return salle.etablissement_id == etablissementId && salle.ville_id == villeId;
+        return salle.ville_id == villeId;
       });
       
       console.log('🔒 Filtrage des salles par établissement et ville:', {
@@ -727,7 +727,6 @@ export class EditExamenComponent implements OnInit, OnDestroy {
       etage: 0,
       capacite: null,
       description: '',
-      etablissement_id: etabId,
       ville_id: villeId
     });
     this.showAddSalleModal = true;
@@ -802,10 +801,10 @@ export class EditExamenComponent implements OnInit, OnDestroy {
       name: this.newSalleForm.value.name,
       batiment: this.newSalleForm.value.batiment || '',
       etage: Number(this.newSalleForm.value.etage) || 0,
-      etablissement_id: Number(this.newSalleForm.value.etablissement_id),
       ville_id: Number(this.newSalleForm.value.ville_id),
       capacite: this.newSalleForm.value.capacite ? Number(this.newSalleForm.value.capacite) : undefined,
-      description: this.newSalleForm.value.description || undefined
+      description: this.newSalleForm.value.description || undefined,
+      devices: [] // Devices requis mais non gérés dans ce formulaire rapide
     };
 
     this.loading = true;
@@ -819,7 +818,7 @@ export class EditExamenComponent implements OnInit, OnDestroy {
           const currentEtablissementId = this.examenForm.get('etablissement_id')?.value;
           const currentVilleId = this.examenForm.get('ville_id')?.value;
           const shouldAddSalle = this.isSuperAdmin || 
-            (created.etablissement_id === currentEtablissementId && created.ville_id === currentVilleId);
+            (created.ville_id === currentVilleId);
           
           if (shouldAddSalle) {
             this.salles = [created, ...this.salles];

@@ -134,7 +134,6 @@ export class RattrapageComponent implements OnInit, OnDestroy {
   salles: Salle[] = [];
   filteredSalles: Salle[] = [];
   selectedVilleForRattrapage: number | null = null;
-  selectedEtablissementForRattrapage: number | null = null;
   salleSearchTerm: string = '';
   
   // Filter values pour étudiants
@@ -192,7 +191,6 @@ export class RattrapageComponent implements OnInit, OnDestroy {
       date: ['', [Validators.required]],
       tolerance: [5, [Validators.required, Validators.min(0), Validators.max(60)]],
       ville_id: [null, [Validators.required]],
-      etablissement_id: [null, [Validators.required]],
       salle_id: [null, [Validators.required]]
     });
   }
@@ -328,10 +326,8 @@ export class RattrapageComponent implements OnInit, OnDestroy {
     console.log('🏙️ Ville sélectionnée pour rattrapage:', villeId);
     console.log('📋 Total salles disponibles:', this.salles.length);
     
-    // Réinitialiser l'établissement et la salle si la ville change
-    this.rattrapageForm.patchValue({ etablissement_id: null });
+    // Réinitialiser la salle si la ville change
     this.rattrapageForm.patchValue({ salle_id: null });
-    this.selectedEtablissementForRattrapage = null;
     
     // Filtrer les salles par ville
     this.filterSalles();
@@ -339,34 +335,16 @@ export class RattrapageComponent implements OnInit, OnDestroy {
     this.markForCheck();
   }
 
-  onEtablissementChangeForRattrapage() {
-    const etablissementId = this.rattrapageForm.get('etablissement_id')?.value;
-    this.selectedEtablissementForRattrapage = etablissementId;
-    
-    console.log('🏢 Établissement sélectionné pour rattrapage:', etablissementId);
-    
-    // Réinitialiser la salle si l'établissement change
-    this.rattrapageForm.patchValue({ salle_id: null });
-    
-    // Filtrer les salles par ville et établissement
-    this.filterSalles();
-    
-    this.markForCheck();
-  }
-
   filterSalles() {
     const villeId = this.rattrapageForm.get('ville_id')?.value;
-    const etablissementId = this.rattrapageForm.get('etablissement_id')?.value;
     
-    console.log('🔍 Filtrage des salles - Ville ID:', villeId, 'Établissement ID:', etablissementId);
+    console.log('🔍 Filtrage des salles - Ville ID:', villeId);
     console.log('📊 Salles avant filtrage:', this.salles.length);
     console.log('📋 Exemple de salle:', this.salles[0] ? {
       id: this.salles[0].id,
       name: this.salles[0].name,
       ville_id: this.salles[0].ville_id,
-      ville_id_type: typeof this.salles[0].ville_id,
-      etablissement_id: this.salles[0].etablissement_id,
-      etablissement_id_type: typeof this.salles[0].etablissement_id
+      ville_id_type: typeof this.salles[0].ville_id
     } : 'Aucune salle');
     
     let filtered = [...this.salles];
@@ -385,24 +363,13 @@ export class RattrapageComponent implements OnInit, OnDestroy {
       console.log('✅ Salles après filtrage par ville:', filtered.length);
     }
     
-    // Filtrer par établissement (conversion en nombre pour la comparaison)
-    if (etablissementId) {
-      const etablissementIdNum = Number(etablissementId);
-      filtered = filtered.filter(salle => {
-        const salleEtablissementId = Number(salle.etablissement_id);
-        return salleEtablissementId === etablissementIdNum;
-      });
-      console.log('✅ Salles après filtrage par établissement:', filtered.length);
-    }
-    
     // Filtrer par terme de recherche
     if (this.salleSearchTerm.trim()) {
       const searchLower = this.salleSearchTerm.trim().toLowerCase();
       filtered = filtered.filter(salle => {
         const nameMatch = salle.name.toLowerCase().includes(searchLower);
         const batimentMatch = salle.batiment?.toLowerCase().includes(searchLower);
-        const etablissementMatch = salle.etablissement?.name?.toLowerCase().includes(searchLower);
-        return nameMatch || batimentMatch || etablissementMatch;
+        return nameMatch || batimentMatch;
       });
       console.log('✅ Salles après filtrage par recherche:', filtered.length);
     }
@@ -617,7 +584,6 @@ export class RattrapageComponent implements OnInit, OnDestroy {
     this.showCreateModal = false;
     this.rattrapageForm.reset();
     this.selectedVilleForRattrapage = null;
-    this.selectedEtablissementForRattrapage = null;
     this.salleSearchTerm = '';
     this.filteredSalles = [...this.salles];
   }
@@ -1150,10 +1116,10 @@ export class RattrapageComponent implements OnInit, OnDestroy {
     try {
       const data = await loadFn();
       updateFn(data);
-      this.markForCheck();
+      this.cdr.markForCheck();
     } catch (error) {
       console.error('Erreur lors du chargement:', error);
-      this.markForCheck();
+      this.cdr.markForCheck();
     }
   }
 }

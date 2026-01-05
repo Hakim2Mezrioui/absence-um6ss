@@ -197,7 +197,7 @@ export class AddStudentComponent implements OnInit, OnDestroy {
           
           // Rediriger vers la liste des étudiants après 2 secondes
           setTimeout(() => {
-            this.router.navigate(['/dashboard/etudiants']);
+            this.router.navigate(['/etudiants']);
           }, 2000);
           
           this.loading = false;

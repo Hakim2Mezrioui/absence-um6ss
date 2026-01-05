@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CoursService, Cours } from '../../services/cours.service';
+import { AuthService, User } from '../../services/auth.service';
+import { UserContextService, UserContext } from '../../services/user-context.service';
 import { Subject, takeUntil } from 'rxjs';
 
 interface FilePreviewItem {
@@ -45,6 +47,12 @@ export class ImportCoursComponent implements OnInit, OnDestroy {
   typesCours: any[] = [];
   anneesUniversitaires: string[] = [];
   
+  // User context and role management
+  currentUser: User | null = null;
+  userContext: UserContext | null = null;
+  isSuperAdmin = false;
+  isAdminEtablissement = false;
+  
   // Résultats de l'import
   importResults: ImportResults = {
     total: 0,
@@ -58,7 +66,9 @@ export class ImportCoursComponent implements OnInit, OnDestroy {
   constructor(
     private coursService: CoursService,
     private fb: FormBuilder,
-    private router: Router
+    private router: Router,
+    private authService: AuthService,
+    private userContextService: UserContextService
   ) {
     this.importForm = this.fb.group({
       etablissement_id: ['', Validators.required],
@@ -75,13 +85,34 @@ export class ImportCoursComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.initializeUserContext();
     this.loadFilterOptions();
     this.generateAnneesUniversitaires();
+    this.setupFormListeners();
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  initializeUserContext() {
+    this.currentUser = this.authService.getCurrentUser();
+    this.userContext = this.userContextService.getCurrentUserContext();
+    
+    if (this.currentUser) {
+      this.isSuperAdmin = this.currentUser.role_id === 1;
+      this.isAdminEtablissement = [2, 3, 4, 6].includes(this.currentUser.role_id);
+      
+      console.log('🔐 Contexte utilisateur initialisé (import-cours):', {
+        user: this.currentUser.email,
+        role_id: this.currentUser.role_id,
+        isSuperAdmin: this.isSuperAdmin,
+        isAdminEtablissement: this.isAdminEtablissement,
+        ville_id: this.currentUser.ville_id,
+        etablissement_id: this.currentUser.etablissement_id
+      });
+    }
   }
 
   // Charger les options de filtre
@@ -97,11 +128,82 @@ export class ImportCoursComponent implements OnInit, OnDestroy {
           this.groups = response.groups || [];
           this.villes = response.villes || [];
           this.typesCours = response.types_cours || [];
+          
+          // Filtrer les salles selon le rôle et l'établissement
+          this.filterSallesByRoleAndEtablissement();
         },
         error: (err) => {
           console.error('Erreur lors du chargement des options:', err);
           this.error = 'Erreur lors du chargement des options';
         }
+      });
+  }
+
+  /**
+   * Filtrer les salles selon le rôle de l'utilisateur, l'établissement et la ville sélectionnés
+   */
+  filterSallesByRoleAndEtablissement(): void {
+    if (!this.salles || this.salles.length === 0) {
+      return;
+    }
+
+    const etablissementId = this.importForm.get('etablissement_id')?.value;
+    const villeId = this.importForm.get('ville_id')?.value;
+
+    // Super Admin voit toutes les salles, mais peut filtrer par établissement et ville sélectionnés
+    if (this.isSuperAdmin) {
+      if (etablissementId && villeId) {
+        const originalSalles = [...this.salles];
+        this.salles = this.salles.filter((salle: any) => {
+          return salle.ville_id === villeId;
+        });
+        
+        console.log('🔓 Super Admin: Filtrage par ville:', {
+          etablissementId,
+          villeId,
+          sallesOriginales: originalSalles.length,
+          sallesFiltrees: this.salles.length,
+          sallesDetails: this.salles.map(s => ({ id: s.id, name: s.name, ville_id: s.ville_id }))
+        });
+      } else {
+        console.log('🔓 Super Admin: Affichage de toutes les salles (aucun filtre)');
+      }
+      return;
+    }
+
+    // Les autres rôles voient seulement les salles de leur ville
+    if (villeId) {
+      const originalSalles = [...this.salles];
+      this.salles = this.salles.filter((salle: any) => {
+        return salle.ville_id === villeId;
+      });
+      
+      console.log('🔒 Filtrage des salles par ville:', {
+        villeId,
+        sallesOriginales: originalSalles.length,
+        sallesFiltrees: this.salles.length,
+        sallesDetails: this.salles.map(s => ({ id: s.id, name: s.name, ville_id: s.ville_id }))
+      });
+    } else {
+      console.log('⚠️ Ville non sélectionnée pour le filtrage des salles');
+    }
+  }
+
+  /**
+   * Configurer les écouteurs de changement de formulaire pour filtrer les salles
+   */
+  setupFormListeners(): void {
+    // Écouter les changements d'établissement et ville pour refiltrer les salles
+    this.importForm.get('etablissement_id')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.filterSallesByRoleAndEtablissement();
+      });
+
+    this.importForm.get('ville_id')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.filterSallesByRoleAndEtablissement();
       });
   }
 
@@ -170,8 +272,11 @@ export class ImportCoursComponent implements OnInit, OnDestroy {
 
   // Vérifier si le type de fichier est valide
   private isValidFileType(file: File): boolean {
-    const validTypes = ['text/csv', 'text/plain', 'application/csv'];
-    const validExtensions = ['.csv', '.txt'];
+    const validTypes = [
+      'text/csv',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ];
+    const validExtensions = ['.csv', '.xlsx'];
     
     return validTypes.includes(file.type) || 
            validExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
@@ -181,12 +286,21 @@ export class ImportCoursComponent implements OnInit, OnDestroy {
   previewFile(file: File): void {
     if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
       this.previewCSV(file);
-    } else if (file.name.endsWith('.txt')) {
-      this.previewCSV(file);
+    } else if (file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || 
+               file.name.endsWith('.xlsx')) {
+      this.previewExcel(file);
     } else {
-      this.error = 'Format de fichier non supporté. Utilisez CSV ou TXT';
+      this.error = 'Format de fichier non supporté. Utilisez CSV ou Excel (.xlsx)';
       this.selectedFile = null;
     }
+  }
+
+  // Prévisualiser un fichier Excel (simulation)
+  previewExcel(file: File): void {
+    // Pour l'instant, on simule la lecture Excel
+    // En production, vous pourriez utiliser une librairie comme xlsx
+    this.error = 'La prévisualisation Excel n\'est pas encore disponible. Utilisez CSV pour la prévisualisation.';
+    this.selectedFile = file;
   }
 
   // Prévisualiser un fichier CSV

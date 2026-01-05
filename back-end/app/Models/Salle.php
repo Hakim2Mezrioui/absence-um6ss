@@ -7,16 +7,11 @@ use App\Scopes\UserContextScope;
 
 class Salle extends Model
 {
-    protected $fillable = ['name', 'etage', 'batiment', 'etablissement_id', 'capacite', 'description', 'ville_id', 'devices'];
+    protected $fillable = ['name', 'etage', 'batiment', 'capacite', 'description', 'ville_id', 'devices'];
 
     protected $casts = [
         'devices' => 'array',
     ];
-    
-    public function etablissement()
-    {
-        return $this->belongsTo(Etablissement::class);
-    }
 
     public function ville()
     {

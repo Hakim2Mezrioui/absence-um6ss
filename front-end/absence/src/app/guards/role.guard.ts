@@ -18,7 +18,6 @@ export class RoleGuard implements CanActivate {
       case 4: return 'doyen';       // ID 4: Doyen
       case 5: return 'technicien';  // ID 5: Technicien SI
       case 6: return 'enseignant';  // ID 6: Enseignant
-      case 7: return 'affichage-public'; // ID 7: Affichage public
       case 8: return 'defilement'; // ID 8: Défilement
       default: return null;
     }

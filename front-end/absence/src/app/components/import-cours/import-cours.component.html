@@ -11,7 +11,7 @@
               <!-- Logo Professionnel -->
               <div class="relative group">
                 <div class="w-20 h-20 bg-[#4f46e5] rounded-2xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-                  <span class="material-icons text-white text-3xl">school</span>
+                  <span class="material-icons text-white text-3xl">cloud_upload</span>
                 </div>
                 <!-- Status Indicator -->
                 <div class="absolute -top-1 -right-1 w-7 h-7 bg-[#10b981] rounded-full flex items-center justify-center border-2 border-white">
@@ -21,328 +21,359 @@
               
               <!-- Titre et Description -->
               <div class="space-y-3">
-                <h1 class="text-4xl font-black text-[#1e293b] leading-tight">
-                  Importation des Cours
-                </h1>
-                <p class="text-xl text-[#475569] font-medium">
-                  Importez vos cours depuis un fichier CSV avec une interface moderne et intuitive
-                </p>
                 <div class="flex items-center gap-4">
-                  <div class="flex items-center gap-2 px-4 py-2 bg-[#eef3ff] rounded-full border border-[#c7d2fe]">
-                    <div class="w-2 h-2 bg-[#4f46e5] rounded-full"></div>
-                    <span class="text-sm font-semibold text-[#4f46e5]">Format CSV</span>
+                  <h1 class="text-5xl font-black text-[#1e293b] leading-tight">
+                    Import des Cours
+                  </h1>
+                  <div class="px-4 py-2 bg-[#eef3ff] rounded-full border border-[#c7d2fe]">
+                    <span class="text-sm font-bold text-[#4f46e5] uppercase tracking-wider">PRO</span>
                   </div>
-                  <div class="flex items-center gap-2 px-4 py-2 bg-[#f0f9ff] rounded-full border border-[#bae6fd]">
-                    <div class="w-2 h-2 bg-[#0ea5e9] rounded-full"></div>
-                    <span class="text-sm font-semibold text-[#0c4a6e]">Validation Automatique</span>
+                </div>
+                <p class="text-xl text-[#475569] font-medium max-w-2xl">
+                  Système d'importation avancé pour la gestion des cours universitaires
+                </p>
+                <div class="flex items-center gap-6">
+                  <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 bg-[#10b981] rounded-full"></div>
+                    <span class="text-sm font-semibold text-[#475569]">Système opérationnel</span>
                   </div>
-                  <div class="flex items-center gap-2 px-4 py-2 bg-[#f0fdf4] rounded-full border border-[#bbf7d0]">
-                    <div class="w-2 h-2 bg-[#22c55e] rounded-full"></div>
-                    <span class="text-sm font-semibold text-[#166534]">Prévisualisation</span>
+                  <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 bg-[#4f46e5] rounded-full"></div>
+                    <span class="text-sm font-semibold text-[#475569]">Interface professionnelle</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 bg-[#64748b] rounded-full"></div>
+                    <span class="text-sm font-semibold text-[#475569]">Sécurisé & fiable</span>
                   </div>
                 </div>
               </div>
             </div>
             
-            <!-- Bouton Fermer -->
-            <button 
-              (click)="goBack()"
-              class="group relative w-12 h-12 bg-white/80 hover:bg-white border border-[#d1d9ff] rounded-2xl flex items-center justify-center transition-all duration-300 hover:scale-105 hover:shadow-lg"
-            >
-              <svg class="h-6 w-6 text-[#64748b] group-hover:text-[#ef4444] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Configuration du Formulaire -->
-    <div class="relative mb-10">
-      <div class="absolute inset-0 bg-gradient-to-br from-[#eef3ff] via-[#f0f4ff] to-[#e8f2ff] rounded-3xl opacity-80"></div>
-      <div class="relative bg-white/90 backdrop-blur-sm border border-[#d1d9ff] rounded-3xl p-10">
-        <div class="flex items-center gap-6 mb-8 pb-6 border-b-2 border-[#e0e7ff]">
-          <div class="relative group">
-            <div class="w-16 h-16 bg-[#4f46e5] rounded-2xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-              <span class="material-icons text-white text-2xl">settings</span>
-            </div>
-          </div>
-          <div>
-            <h2 class="text-3xl font-black text-[#1e293b] mb-2">Configuration de l'Import</h2>
-            <p class="text-lg text-[#475569] font-medium">Définissez les paramètres par défaut pour vos cours</p>
-          </div>
-        </div>
-
-        <form [formGroup]="importForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <!-- Établissement -->
-          <div class="space-y-2">
-            <label class="block text-sm font-semibold text-[#374151]">Établissement *</label>
-            <select 
-              formControlName="etablissement_id"
-              [class.border-red-500]="isFieldInvalid('etablissement_id')"
-              class="w-full px-4 py-3 bg-white/80 border border-[#d1d9ff] rounded-xl text-[#374151] focus:outline-none focus:ring-2 focus:ring-[#4f46e5] focus:border-transparent transition-all duration-300"
-            >
-              <option value="">Sélectionner un établissement</option>
-              <option *ngFor="let etablissement of etablissements" [value]="etablissement.id">
-                {{ etablissement.name }}
-              </option>
-            </select>
-            <p *ngIf="isFieldInvalid('etablissement_id')" class="text-sm text-red-600">
-              {{ getErrorMessage('etablissement_id') }}
-            </p>
-          </div>
-
-          <!-- Promotion -->
-          <div class="space-y-2">
-            <label class="block text-sm font-semibold text-[#374151]">Promotion *</label>
-            <select 
-              formControlName="promotion_id"
-              [class.border-red-500]="isFieldInvalid('promotion_id')"
-              class="w-full px-4 py-3 bg-white/80 border border-[#d1d9ff] rounded-xl text-[#374151] focus:outline-none focus:ring-2 focus:ring-[#4f46e5] focus:border-transparent transition-all duration-300"
-            >
-              <option value="">Sélectionner une promotion</option>
-              <option *ngFor="let promotion of promotions" [value]="promotion.id">
-                {{ promotion.name }}
-              </option>
-            </select>
-            <p *ngIf="isFieldInvalid('promotion_id')" class="text-sm text-red-600">
-              {{ getErrorMessage('promotion_id') }}
-            </p>
-          </div>
-
-          <!-- Type de cours -->
-          <div class="space-y-2">
-            <label class="block text-sm font-semibold text-[#374151]">Type de cours *</label>
-            <select 
-              formControlName="type_cours_id"
-              [class.border-red-500]="isFieldInvalid('type_cours_id')"
-              class="w-full px-4 py-3 bg-white/80 border border-[#d1d9ff] rounded-xl text-[#374151] focus:outline-none focus:ring-2 focus:ring-[#4f46e5] focus:border-transparent transition-all duration-300"
-            >
-              <option value="">Sélectionner un type</option>
-              <option *ngFor="let type of typesCours" [value]="type.id">
-                {{ type.name }}
-              </option>
-            </select>
-            <p *ngIf="isFieldInvalid('type_cours_id')" class="text-sm text-red-600">
-              {{ getErrorMessage('type_cours_id') }}
-            </p>
-          </div>
-
-          <!-- Salle -->
-          <div class="space-y-2">
-            <label class="block text-sm font-semibold text-[#374151]">Salle *</label>
-            <select 
-              formControlName="salle_id"
-              [class.border-red-500]="isFieldInvalid('salle_id')"
-              class="w-full px-4 py-3 bg-white/80 border border-[#d1d9ff] rounded-xl text-[#374151] focus:outline-none focus:ring-2 focus:ring-[#4f46e5] focus:border-transparent transition-all duration-300"
-            >
-              <option value="">Sélectionner une salle</option>
-              <option *ngFor="let salle of salles" [value]="salle.id">
-                {{ salle.name }}
-              </option>
-            </select>
-            <p *ngIf="isFieldInvalid('salle_id')" class="text-sm text-red-600">
-              {{ getErrorMessage('salle_id') }}
-            </p>
-          </div>
-
-          <!-- Groupe -->
-          <div class="space-y-2">
-            <label class="block text-sm font-semibold text-[#374151]">Groupe *</label>
-            <select 
-              formControlName="group_id"
-              [class.border-red-500]="isFieldInvalid('group_id')"
-              class="w-full px-4 py-3 bg-white/80 border border-[#d1d9ff] rounded-xl text-[#374151] focus:outline-none focus:ring-2 focus:ring-[#4f46e5] focus:border-transparent transition-all duration-300"
-            >
-              <option value="">Sélectionner un groupe</option>
-              <option *ngFor="let group of groups" [value]="group.id">
-                {{ group.name }}
-              </option>
-            </select>
-            <p *ngIf="isFieldInvalid('group_id')" class="text-sm text-red-600">
-              {{ getErrorMessage('group_id') }}
-            </p>
-          </div>
-
-          <!-- Ville -->
-          <div class="space-y-2">
-            <label class="block text-sm font-semibold text-[#374151]">Ville *</label>
-            <select 
-              formControlName="ville_id"
-              [class.border-red-500]="isFieldInvalid('ville_id')"
-              class="w-full px-4 py-3 bg-white/80 border border-[#d1d9ff] rounded-xl text-[#374151] focus:outline-none focus:ring-2 focus:ring-[#4f46e5] focus:border-transparent transition-all duration-300"
-            >
-              <option value="">Sélectionner une ville</option>
-              <option *ngFor="let ville of villes" [value]="ville.id">
-                {{ ville.name }}
-              </option>
-            </select>
-            <p *ngIf="isFieldInvalid('ville_id')" class="text-sm text-red-600">
-              {{ getErrorMessage('ville_id') }}
-            </p>
-          </div>
-
-          <!-- Option -->
-          <div class="space-y-2">
-            <label class="block text-sm font-semibold text-[#374151]">Option</label>
-            <select 
-              formControlName="option_id"
-              class="w-full px-4 py-3 bg-white/80 border border-[#d1d9ff] rounded-xl text-[#374151] focus:outline-none focus:ring-2 focus:ring-[#4f46e5] focus:border-transparent transition-all duration-300"
-            >
-              <option value="">Sélectionner une option</option>
-              <option *ngFor="let option of options" [value]="option.id">
-                {{ option.name }}
-              </option>
-            </select>
-          </div>
-
-          <!-- Année universitaire -->
-          <div class="space-y-2">
-            <label class="block text-sm font-semibold text-[#374151]">Année universitaire *</label>
-            <select 
-              formControlName="annee_universitaire"
-              [class.border-red-500]="isFieldInvalid('annee_universitaire')"
-              class="w-full px-4 py-3 bg-white/80 border border-[#d1d9ff] rounded-xl text-[#374151] focus:outline-none focus:ring-2 focus:ring-[#4f46e5] focus:border-transparent transition-all duration-300"
-            >
-              <option value="">Sélectionner une année</option>
-              <option *ngFor="let annee of anneesUniversitaires" [value]="annee">
-                {{ annee }}
-              </option>
-            </select>
-            <p *ngIf="isFieldInvalid('annee_universitaire')" class="text-sm text-red-600">
-              {{ getErrorMessage('annee_universitaire') }}
-            </p>
-          </div>
-
-          <!-- Mode Bi-Check -->
-          <div class="lg:col-span-3">
-            <div class="bg-orange-50 border border-orange-200 rounded-2xl p-6">
-              <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div>
-                  <p class="text-xs font-semibold text-orange-700 uppercase tracking-wide">Mode de pointage</p>
-                  <p class="text-base text-orange-900 font-semibold">Exiger une sortie Face ID</p>
-                  <p class="text-sm text-orange-800">Activez le mode bi-check pour obliger les étudiants à pointer à l'entrée et à la sortie.</p>
-                </div>
-                <label class="inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    class="sr-only peer"
-                    [checked]="importForm.get('attendance_mode')?.value === 'bicheck'"
-                    (change)="onAttendanceModeToggle($event)"
-                  >
-                  <div class="w-16 h-8 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:bg-orange-500 peer-checked:after:translate-x-8 after:content-[''] after:absolute after:w-6 after:h-6 after:rounded-full after:bg-white after:left-1 after:top-1 after:transition-all relative"></div>
-                  <span class="ml-3 text-sm font-medium text-gray-700">
-                    {{ importForm.get('attendance_mode')?.value === 'bicheck' ? 'Mode Bi-Check activé' : 'Mode normal' }}
-                  </span>
-                </label>
-              </div>
-
-              <div class="mt-4 max-w-sm">
-                <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                  <span class="material-icons text-sm text-orange-600">timer</span>
-                  Fenêtre de capture sortie (minutes)
-                </label>
-                <div class="relative">
-                  <input
-                    type="number"
-                    formControlName="exit_capture_window"
-                    min="0"
-                    max="120"
-                    [readonly]="importForm.get('attendance_mode')?.value !== 'bicheck'"
-                    class="w-full px-4 py-3 pl-12 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition"
-                    [class.bg-gray-100]="importForm.get('attendance_mode')?.value !== 'bicheck'"
-                    [class.bg-white]="importForm.get('attendance_mode')?.value === 'bicheck'"
-                  >
-                  <span class="material-icons absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">schedule</span>
-                </div>
-                <p class="text-xs text-gray-600 mt-2">
-                  Délai après la fin du cours pendant lequel le Face ID de sortie est accepté (1 à 120 minutes).
-                </p>
-                <p *ngIf="isFieldInvalid('exit_capture_window')" class="text-xs text-red-600 mt-2">
-                  {{ getErrorMessage('exit_capture_window') }}
-                </p>
-              </div>
-            </div>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- Instructions et Template -->
-    <div class="relative mb-10">
-      <div class="absolute inset-0 bg-gradient-to-br from-[#eef3ff] via-[#f0f4ff] to-[#e8f2ff] rounded-3xl opacity-80"></div>
-      <div class="relative bg-white/90 backdrop-blur-sm border border-[#d1d9ff] rounded-3xl p-10">
-        <div class="flex items-center gap-6 mb-8 pb-6 border-b-2 border-[#e0e7ff]">
-          <div class="relative group">
-            <div class="w-16 h-16 bg-[#4f46e5] rounded-2xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-              <span class="material-icons text-white text-2xl">info</span>
-            </div>
-          </div>
-          <div>
-            <h2 class="text-3xl font-black text-[#1e293b] mb-2">Instructions d'Importation</h2>
-            <p class="text-lg text-[#475569] font-medium">Format requis et modèle de fichier</p>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <!-- Instructions -->
-          <div class="space-y-4">
-            <h3 class="text-xl font-bold text-[#1e293b]">Format CSV Requis</h3>
-            <div class="bg-[#f8fafc] border border-[#e2e8f0] rounded-xl p-6">
-              <div class="space-y-3">
-                <div class="flex items-center gap-3">
-                  <div class="w-2 h-2 bg-[#4f46e5] rounded-full"></div>
-                  <span class="text-sm font-semibold text-[#374151]"><strong>title</strong> : Nom du cours</span>
-                </div>
-                <div class="flex items-center gap-3">
-                  <div class="w-2 h-2 bg-[#4f46e5] rounded-full"></div>
-                  <span class="text-sm font-semibold text-[#374151]"><strong>date</strong> : Date (DD/MM/YYYY)</span>
-                </div>
-                <div class="flex items-center gap-3">
-                  <div class="w-2 h-2 bg-[#4f46e5] rounded-full"></div>
-                  <span class="text-sm font-semibold text-[#374151]"><strong>hour_debut</strong> : Heure début (HH:MM)</span>
-                </div>
-                <div class="flex items-center gap-3">
-                  <div class="w-2 h-2 bg-[#4f46e5] rounded-full"></div>
-                  <span class="text-sm font-semibold text-[#374151]"><strong>hour_fin</strong> : Heure fin (HH:MM)</span>
-                </div>
-                <div class="flex items-center gap-3">
-                  <div class="w-2 h-2 bg-[#4f46e5] rounded-full"></div>
-                  <span class="text-sm font-semibold text-[#374151]"><strong>tolerance</strong> : Tolérance (HH:MM)</span>
-                </div>
-                <div class="flex items-center gap-3">
-                  <div class="w-2 h-2 bg-[#4f46e5] rounded-full"></div>
-                  <span class="text-sm font-semibold text-[#374151]"><strong>attendance_mode</strong> : normal ou bicheck</span>
-                </div>
-                <div class="flex items-center gap-3">
-                  <div class="w-2 h-2 bg-[#4f46e5] rounded-full"></div>
-                  <span class="text-sm font-semibold text-[#374151]"><strong>exit_capture_window</strong> : Fenêtre de capture sortie (minutes)</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Template Download -->
-          <div class="space-y-4">
-            <h3 class="text-xl font-bold text-[#1e293b]">Modèle CSV</h3>
-            <div class="bg-[#f8fafc] border border-[#e2e8f0] rounded-xl p-6">
-              <p class="text-sm text-[#64748b] mb-4">
-                Téléchargez notre modèle CSV pré-formaté pour commencer rapidement.
-              </p>
+            <!-- Actions Professionnelles -->
+            <div class="flex gap-2">
               <button 
                 (click)="downloadTemplate()"
-                class="group relative bg-[#4f46e5] hover:bg-[#4338ca] text-white px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-300 hover:-translate-y-0.5 hover:scale-105 border border-[#4f46e5]/20 flex items-center gap-2"
+                class="group relative bg-[#4f46e5] hover:bg-[#4338ca] text-white px-4 py-2 rounded-lg font-medium text-xs transition-all duration-300 hover:-translate-y-0.5"
               >
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                Télécharger le modèle
+                <div class="relative flex items-center gap-1.5">
+                  <span class="material-icons text-sm group-hover:scale-110 transition-transform duration-300">download</span>
+                  <span>Modèle CSV</span>
+                </div>
+              </button>
+              <button 
+                (click)="resetForm()"
+                class="group relative bg-[#64748b] hover:bg-[#475569] text-white px-4 py-2 rounded-lg font-medium text-xs transition-all duration-300 hover:-translate-y-0.5"
+              >
+                <div class="relative flex items-center gap-1.5">
+                  <span class="material-icons text-sm group-hover:rotate-180 transition-transform duration-500">refresh</span>
+                  <span>Réinitialiser</span>
+                </div>
               </button>
             </div>
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Formulaire d'import Professionnel -->
+    <div class="relative mb-10">
+      <div class="absolute inset-0 bg-gradient-to-br from-[#eef3ff] to-[#f0f4ff] rounded-3xl opacity-80"></div>
+      
+      <div class="relative bg-white/90 backdrop-blur-sm border border-[#d1d9ff] rounded-3xl p-10">
+        <!-- Header Professionnel -->
+        <div class="flex items-center justify-between mb-10 pb-8 border-b-2 border-[#e0e7ff]">
+          <div class="flex items-center gap-6">
+            <div class="relative group">
+              <div class="w-16 h-16 bg-[#4f46e5] rounded-2xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                <span class="material-icons text-white text-2xl">settings</span>
+              </div>
+            </div>
+            <div>
+              <h2 class="text-3xl font-black text-[#1e293b] mb-2">Configuration de l'import</h2>
+              <p class="text-lg text-[#475569] font-medium">Paramètres avancés pour l'importation des cours</p>
+              <div class="flex items-center gap-4 mt-3">
+                <div class="flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-[#eef3ff] to-[#f0f4ff] rounded-full border border-[#c7d2fe]">
+                  <div class="w-2 h-2 bg-gradient-to-r from-[#4f46e5] to-[#6366f1] rounded-full"></div>
+                  <span class="text-sm font-semibold text-[#4f46e5]">Configuration requise</span>
+                </div>
+                <div class="flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-[#f8fafc] to-[#f1f5f9] rounded-full border border-[#e2e8f0]">
+                  <div class="w-2 h-2 bg-gradient-to-r from-[#64748b] to-[#475569] rounded-full"></div>
+                  <span class="text-sm font-semibold text-[#475569]">Validation automatique</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      
+      <form [formGroup]="importForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Établissement -->
+        <div class="group relative">
+          <label class="flex items-center gap-3 text-sm font-bold text-[#475569] uppercase tracking-wider mb-4">
+            <div class="w-8 h-8 bg-[#4f46e5] rounded-lg flex items-center justify-center">
+              <span class="material-icons text-white text-sm">business</span>
+            </div>
+            Établissement *
+          </label>
+          <div class="relative">
+            <div class="relative">
+              <select
+                formControlName="etablissement_id"
+                class="w-full px-4 py-3 pr-10 bg-white border border-[#d1d5db] text-[#1e293b] font-medium focus:border-[#4f46e5] focus:ring-1 focus:ring-[#4f46e5] focus:outline-none transition-all duration-200 hover:border-[#9ca3af] appearance-none cursor-pointer"
+                [class.border-red-400]="isFieldInvalid('etablissement_id')"
+                [class.focus:border-red-500]="isFieldInvalid('etablissement_id')"
+              >
+                <option value="">Sélectionner un établissement</option>
+                <option *ngFor="let etablissement of etablissements" [value]="etablissement.id">
+                  {{ etablissement.name }}
+                </option>
+              </select>
+              <div class="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                <svg class="w-5 h-5 text-[#6b7280]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+          <p *ngIf="isFieldInvalid('etablissement_id')" class="flex items-center gap-2 mt-3 text-sm font-semibold text-red-600 bg-red-50 px-4 py-2 rounded-xl border border-red-200">
+            <span class="material-icons text-sm">error</span>
+            {{ getErrorMessage('etablissement_id') }}
+          </p>
+        </div>
+
+        <!-- Promotion -->
+        <div class="group relative">
+          <label class="flex items-center gap-3 text-sm font-bold text-[#475569] uppercase tracking-wider mb-4">
+            <div class="w-8 h-8 bg-[#10b981] rounded-lg flex items-center justify-center">
+              <span class="material-icons text-white text-sm">school</span>
+            </div>
+            Promotion *
+          </label>
+          <div class="relative">
+            <div class="relative">
+              <select formControlName="promotion_id" class="w-full px-4 py-3 pr-10 bg-white border border-[#d1d5db] text-[#1e293b] font-medium focus:border-[#10b981] focus:ring-1 focus:ring-[#10b981] focus:outline-none transition-all duration-200 hover:border-[#9ca3af] appearance-none cursor-pointer" [class.border-red-400]="isFieldInvalid('promotion_id')">
+                <option value="">Sélectionner une promotion</option>
+                <option *ngFor="let promotion of promotions" [value]="promotion.id">{{ promotion.name }}</option>
+              </select>
+              <div class="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                <svg class="w-5 h-5 text-[#6b7280]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+          <p *ngIf="isFieldInvalid('promotion_id')" class="flex items-center gap-2 mt-3 text-sm font-semibold text-red-600 bg-red-50 px-4 py-2 rounded-xl border border-red-200">
+            <span class="material-icons text-sm">error</span>
+            {{ getErrorMessage('promotion_id') }}
+          </p>
+        </div>
+
+        <!-- Année universitaire -->
+        <div class="group relative">
+          <label class="flex items-center gap-3 text-sm font-bold text-[#475569] uppercase tracking-wider mb-4">
+            <div class="w-8 h-8 bg-[#64748b] rounded-lg flex items-center justify-center">
+              <span class="material-icons text-white text-sm">calendar_today</span>
+            </div>
+            Année universitaire *
+          </label>
+          <div class="relative">
+            <div class="relative">
+              <select formControlName="annee_universitaire" class="w-full px-4 py-3 pr-10 bg-white border border-[#d1d5db] text-[#1e293b] font-medium focus:border-[#64748b] focus:ring-1 focus:ring-[#64748b] focus:outline-none transition-all duration-200 hover:border-[#9ca3af] appearance-none cursor-pointer" [class.border-red-400]="isFieldInvalid('annee_universitaire')">
+                <option value="">Sélectionner une année</option>
+                <option *ngFor="let annee of anneesUniversitaires" [value]="annee">{{ annee }}</option>
+              </select>
+              <div class="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                <span class="material-icons text-[#6b7280] text-xl">date_range</span>
+              </div>
+            </div>
+          </div>
+          <p *ngIf="isFieldInvalid('annee_universitaire')" class="flex items-center gap-2 mt-3 text-sm font-semibold text-red-600 bg-red-50 px-4 py-2 rounded-xl border border-red-200">
+            <span class="material-icons text-sm">error</span>
+            {{ getErrorMessage('annee_universitaire') }}
+          </p>
+        </div>
+
+        <!-- Type de cours -->
+        <div class="group relative">
+          <label class="flex items-center gap-3 text-sm font-bold text-[#475569] uppercase tracking-wider mb-4">
+            <div class="w-8 h-8 bg-[#4f46e5] rounded-lg flex items-center justify-center">
+              <span class="material-icons text-white text-sm">menu_book</span>
+            </div>
+            Type de cours *
+          </label>
+          <div class="relative">
+            <div class="relative">
+              <select formControlName="type_cours_id" class="w-full px-4 py-3 pr-10 bg-white border border-[#d1d5db] text-[#1e293b] font-medium focus:border-[#4f46e5] focus:ring-1 focus:ring-[#4f46e5] focus:outline-none transition-all duration-200 hover:border-[#9ca3af] appearance-none cursor-pointer" [class.border-red-400]="isFieldInvalid('type_cours_id')">
+                <option value="">Sélectionner un type</option>
+                <option *ngFor="let type of typesCours" [value]="type.id">{{ type.name }}</option>
+              </select>
+              <div class="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                <svg class="w-5 h-5 text-[#6b7280]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+          <p *ngIf="isFieldInvalid('type_cours_id')" class="flex items-center gap-2 mt-3 text-sm font-semibold text-red-600 bg-red-50 px-4 py-2 rounded-xl border border-red-200">
+            <span class="material-icons text-sm">error</span>
+            {{ getErrorMessage('type_cours_id') }}
+          </p>
+        </div>
+
+        <!-- Option -->
+        <div class="group relative">
+          <label class="flex items-center gap-3 text-sm font-bold text-[#475569] uppercase tracking-wider mb-4">
+            <div class="w-8 h-8 bg-[#64748b] rounded-lg flex items-center justify-center">
+              <span class="material-icons text-white text-sm">tune</span>
+            </div>
+            Option
+          </label>
+          <div class="relative">
+            <div class="relative">
+              <select formControlName="option_id" class="w-full px-4 py-3 pr-10 bg-white border border-[#d1d5db] text-[#1e293b] font-medium focus:border-[#64748b] focus:ring-1 focus:ring-[#64748b] focus:outline-none transition-all duration-200 hover:border-[#9ca3af] appearance-none cursor-pointer">
+                <option value="">Aucune option</option>
+                <option *ngFor="let option of options" [value]="option.id">{{ option.name }}</option>
+              </select>
+              <div class="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                <svg class="w-5 h-5 text-[#6b7280]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Salle -->
+        <div class="group relative">
+          <label class="flex items-center gap-3 text-sm font-bold text-[#475569] uppercase tracking-wider mb-4">
+            <div class="w-8 h-8 bg-[#10b981] rounded-lg flex items-center justify-center">
+              <span class="material-icons text-white text-sm">meeting_room</span>
+            </div>
+            Salle *
+          </label>
+          <div class="relative">
+            <div class="relative">
+              <select formControlName="salle_id" class="w-full px-4 py-3 pr-10 bg-white border border-[#d1d5db] text-[#1e293b] font-medium focus:border-[#10b981] focus:ring-1 focus:ring-[#10b981] focus:outline-none transition-all duration-200 hover:border-[#9ca3af] appearance-none cursor-pointer" [class.border-red-400]="isFieldInvalid('salle_id')">
+                <option value="">Sélectionner une salle</option>
+                <option *ngFor="let salle of salles" [value]="salle.id">{{ salle.name }}</option>
+              </select>
+              <div class="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                <svg class="w-5 h-5 text-[#6b7280]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+          <p *ngIf="isFieldInvalid('salle_id')" class="flex items-center gap-2 mt-3 text-sm font-semibold text-red-600 bg-red-50 px-4 py-2 rounded-xl border border-red-200">
+            <span class="material-icons text-sm">error</span>
+            {{ getErrorMessage('salle_id') }}
+          </p>
+        </div>
+
+        <!-- Groupe -->
+        <div class="group relative">
+          <label class="flex items-center gap-3 text-sm font-bold text-[#475569] uppercase tracking-wider mb-4">
+            <div class="w-8 h-8 bg-[#4f46e5] rounded-lg flex items-center justify-center">
+              <span class="material-icons text-white text-sm">group</span>
+            </div>
+            Groupe *
+          </label>
+          <div class="relative">
+            <div class="relative">
+              <select formControlName="group_id" class="w-full px-4 py-3 pr-10 bg-white border border-[#d1d5db] text-[#1e293b] font-medium focus:border-[#4f46e5] focus:ring-1 focus:ring-[#4f46e5] focus:outline-none transition-all duration-200 hover:border-[#9ca3af] appearance-none cursor-pointer" [class.border-red-400]="isFieldInvalid('group_id')">
+                <option value="">Sélectionner un groupe</option>
+                <option *ngFor="let group of groups" [value]="group.id">{{ group.title }}</option>
+              </select>
+              <div class="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                <svg class="w-5 h-5 text-[#6b7280]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+          <p *ngIf="isFieldInvalid('group_id')" class="flex items-center gap-2 mt-3 text-sm font-semibold text-red-600 bg-red-50 px-4 py-2 rounded-xl border border-red-200">
+            <span class="material-icons text-sm">error</span>
+            {{ getErrorMessage('group_id') }}
+          </p>
+        </div>
+
+        <!-- Ville -->
+        <div class="group relative">
+          <label class="flex items-center gap-3 text-sm font-bold text-[#475569] uppercase tracking-wider mb-4">
+            <div class="w-8 h-8 bg-[#64748b] rounded-lg flex items-center justify-center">
+              <span class="material-icons text-white text-sm">location_city</span>
+            </div>
+            Ville *
+          </label>
+          <div class="relative">
+            <div class="relative">
+              <select formControlName="ville_id" class="w-full px-4 py-3 pr-10 bg-white border border-[#d1d5db] text-[#1e293b] font-medium focus:border-[#64748b] focus:ring-1 focus:ring-[#64748b] focus:outline-none transition-all duration-200 hover:border-[#9ca3af] appearance-none cursor-pointer" [class.border-red-400]="isFieldInvalid('ville_id')">
+                <option value="">Sélectionner une ville</option>
+                <option *ngFor="let ville of villes" [value]="ville.id">{{ ville.name }}</option>
+              </select>
+              <div class="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                <svg class="w-5 h-5 text-[#6b7280]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+          <p *ngIf="isFieldInvalid('ville_id')" class="flex items-center gap-2 mt-3 text-sm font-semibold text-red-600 bg-red-50 px-4 py-2 rounded-xl border border-red-200">
+            <span class="material-icons text-sm">error</span>
+            {{ getErrorMessage('ville_id') }}
+          </p>
+        </div>
+
+        <!-- Mode Bi-Check -->
+        <div class="lg:col-span-3">
+          <div class="bg-orange-50 border border-orange-200 rounded-2xl p-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <p class="text-xs font-semibold text-orange-700 uppercase tracking-wide">Mode de pointage</p>
+                <p class="text-base text-orange-900 font-semibold">Exiger une sortie Face ID</p>
+                <p class="text-sm text-orange-800">Activez le mode bi-check pour obliger les étudiants à pointer à l'entrée et à la sortie.</p>
+              </div>
+              <label class="inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  class="sr-only peer"
+                  [checked]="importForm.get('attendance_mode')?.value === 'bicheck'"
+                  (change)="onAttendanceModeToggle($event)"
+                >
+                <div class="w-16 h-8 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:bg-orange-500 peer-checked:after:translate-x-8 after:content-[''] after:absolute after:w-6 after:h-6 after:rounded-full after:bg-white after:left-1 after:top-1 after:transition-all relative"></div>
+                <span class="ml-3 text-sm font-medium text-gray-700">
+                  {{ importForm.get('attendance_mode')?.value === 'bicheck' ? 'Mode Bi-Check activé' : 'Mode normal' }}
+                </span>
+              </label>
+            </div>
+
+            <div class="mt-4 max-w-sm">
+              <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                <span class="material-icons text-sm text-orange-600">timer</span>
+                Fenêtre de capture sortie (minutes)
+              </label>
+              <div class="relative">
+                <input
+                  type="number"
+                  formControlName="exit_capture_window"
+                  min="0"
+                  max="120"
+                  [readonly]="importForm.get('attendance_mode')?.value !== 'bicheck'"
+                  class="w-full px-4 py-3 pl-12 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition"
+                  [class.bg-gray-100]="importForm.get('attendance_mode')?.value !== 'bicheck'"
+                  [class.bg-white]="importForm.get('attendance_mode')?.value === 'bicheck'"
+                >
+                <span class="material-icons absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">schedule</span>
+              </div>
+              <p class="text-xs text-gray-600 mt-2">
+                Délai après la fin du cours pendant lequel le Face ID de sortie est accepté (1 à 120 minutes).
+              </p>
+              <p *ngIf="isFieldInvalid('exit_capture_window')" class="text-xs text-red-600 mt-2">
+                {{ getErrorMessage('exit_capture_window') }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </form>
     </div>
 
     <!-- Sélection de fichier Professionnelle -->
@@ -365,7 +396,7 @@
               </div>
               <div class="flex items-center gap-2 px-3 py-1 bg-[#f0f9ff] rounded-full border border-[#bae6fd]">
                 <div class="w-2 h-2 bg-[#0ea5e9] rounded-full"></div>
-                <span class="text-sm font-semibold text-[#0c4a6e]">Format CSV/TXT</span>
+                <span class="text-sm font-semibold text-[#0c4a6e]">Format CSV/Excel</span>
               </div>
             </div>
           </div>
@@ -392,148 +423,246 @@
           <h3 class="text-3xl font-black text-[#1e293b] mb-4 transition-colors duration-300" [class.text-[#4f46e5]]="isDragOver">
             {{ isDragOver ? 'Déposez votre fichier ici' : 'Sélectionnez un fichier' }}
           </h3>
-          <p class="text-lg text-[#475569] mb-8 font-medium">Formats supportés : CSV, TXT</p>
+          <p class="text-lg text-[#475569] mb-8 font-medium">Formats supportés : CSV, Excel (.xlsx)</p>
           
-          <input type="file" (change)="onFileSelected($event)" accept=".csv,.txt" class="hidden" #fileInput>
+          <input type="file" (change)="onFileSelected($event)" accept=".csv,.xlsx" class="hidden" #fileInput>
           
           <button (click)="fileInput.click()" class="group relative bg-[#4f46e5] hover:bg-[#4338ca] text-white px-6 py-3 rounded-lg font-semibold text-base transition-all duration-300 hover:-translate-y-0.5 hover:scale-105 border border-[#4f46e5]/20">
-            <span class="material-icons mr-2">upload_file</span>
-            Parcourir les fichiers
+            <div class="relative flex items-center gap-2">
+              <span class="material-icons text-lg group-hover:scale-110 transition-transform duration-300">folder_open</span>
+              <span>Choisir un fichier</span>
+            </div>
           </button>
-        </div>
-
-        <!-- Fichier sélectionné -->
-        <div *ngIf="selectedFile" class="mt-8 bg-[#f0f9ff] border border-[#bae6fd] rounded-2xl p-6">
-          <div class="flex items-center justify-between">
+          
+          <div *ngIf="selectedFile" class="mt-8 bg-[#eef3ff] border-2 border-[#c7d2fe] rounded-2xl p-6">
             <div class="flex items-center gap-4">
-              <div class="w-12 h-12 bg-[#0ea5e9] rounded-xl flex items-center justify-center">
-                <span class="material-icons text-white">description</span>
+              <div class="w-12 h-12 bg-[#4f46e5] rounded-xl flex items-center justify-center">
+                <span class="material-icons text-white text-xl">description</span>
               </div>
+              <div class="flex-1 text-left">
+                <p class="text-lg font-bold text-[#1e293b]">{{ selectedFile.name }}</p>
+                <p class="text-sm text-[#64748b]">{{ (selectedFile.size / 1024).toFixed(1) }} KB</p>
+              </div>
+              <div class="w-10 h-10 bg-[#10b981] rounded-full flex items-center justify-center">
+                <span class="material-icons text-white">check</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <!-- Prévisualisation du fichier Professionnelle -->
+    <div *ngIf="filePreview.length > 0" class="relative mb-8">
+      <div class="absolute inset-0 bg-gradient-to-br from-[#eef3ff] to-[#f0f4ff] rounded-3xl opacity-80"></div>
+      <div class="relative bg-white/90 backdrop-blur-sm border border-[#d1d9ff] rounded-3xl p-8 shadow-xl">
+        <div class="flex items-center gap-3 mb-8 pb-6 border-b-2 border-[#e0e7ff]">
+          <div class="w-10 h-10 bg-gradient-to-br from-[#4f46e5] to-[#6366f1] rounded-xl flex items-center justify-center shadow-lg">
+            <span class="material-icons text-white text-lg">preview</span>
+          </div>
+          <div>
+            <h2 class="text-2xl font-bold text-[#1e293b]">Prévisualisation</h2>
+            <p class="text-sm text-[#64748b]">Aperçu des 5 premières lignes de votre fichier</p>
+          </div>
+        </div>
+      
+        <div class="preview-container">
+          <div class="table-wrapper">
+            <table class="w-full border-collapse bg-white rounded-2xl overflow-hidden">
+              <thead>
+                <tr class="bg-gradient-to-r from-[#eef3ff] to-[#f0f4ff]">
+                  <th *ngFor="let header of getHeaders()" class="px-6 py-4 text-left text-sm font-bold text-[#4f46e5] uppercase tracking-wider border-b-2 border-[#e0e7ff]">
+                    <div class="flex items-center">
+                      <span class="material-icons text-sm mr-2">view_column</span>
+                      {{ header }}
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of filePreview; let i = index" class="hover:bg-[#f8fafc] transition-colors duration-200" [class.bg-[#f8fafc]/50]="i % 2 === 0">
+                  <td *ngFor="let header of getHeaders()" class="px-6 py-4 text-sm text-[#1e293b] border-b border-[#e2e8f0]">
+                    <div class="flex items-center">
+                      {{ item.row[header] || '' }}
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <div class="mt-6 flex justify-center">
+            <div class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#eef3ff] to-[#f0f4ff] rounded-full border border-[#c7d2fe]">
+              <span class="material-icons text-[#4f46e5] text-sm">info</span>
+              <span class="text-sm font-semibold text-[#4f46e5]">Total des lignes à importer : <strong>{{ importResults.total }}</strong></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bouton d'import Professionnel -->
+    <div class="relative mb-10">
+      <div class="absolute inset-0 bg-gradient-to-br from-[#eef3ff] to-[#f0f4ff] rounded-3xl opacity-80"></div>
+      <div class="relative bg-white/90 backdrop-blur-sm border border-[#d1d9ff] rounded-3xl p-10">
+        <div class="text-center">
+          <button
+            (click)="importFile()"
+            [disabled]="loading || !selectedFile || importForm.invalid"
+            class="group relative bg-[#4f46e5] hover:bg-[#4338ca] disabled:bg-[#94a3b8] text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-500 hover:-translate-y-1 hover:scale-105 disabled:hover:translate-y-0 disabled:hover:scale-100 border border-[#4f46e5]/20 disabled:border-[#cbd5e1]"
+          >
+            <div class="relative flex items-center gap-3">
+              <span *ngIf="loading" class="material-icons animate-spin text-lg">hourglass_empty</span>
+              <span *ngIf="!loading" class="material-icons text-lg group-hover:scale-110 transition-transform duration-300">cloud_upload</span>
+              <span class="text-lg font-semibold">
+                {{ loading ? 'Import en cours...' : 'Importer les cours' }}
+              </span>
+            </div>
+            <div *ngIf="loading" class="absolute bottom-0 left-0 h-1.5 bg-white/40 rounded-b-xl animate-pulse"></div>
+          </button>
+          <p class="mt-6 text-lg text-[#64748b] font-medium">Système d'importation sécurisé et fiable</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Messages Professionnels -->
+    <div *ngIf="error" class="mb-8">
+      <div class="bg-gradient-to-r from-red-50 to-red-100 border-l-4 border-red-500 rounded-xl p-6 shadow-lg">
+        <div class="flex items-center">
+          <div class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center mr-4 shadow-lg">
+            <span class="material-icons text-white text-xl">error</span>
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-red-800">Erreur d'import</h3>
+            <p class="text-red-700 mt-1">{{ error }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="success" class="mb-8">
+      <div class="bg-gradient-to-r from-green-50 to-emerald-100 border-l-4 border-green-500 rounded-xl p-6 shadow-lg">
+        <div class="flex items-center">
+          <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mr-4 shadow-lg">
+            <span class="material-icons text-white text-xl">check_circle</span>
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-green-800">Import réussi</h3>
+            <p class="text-green-700 mt-1">{{ success }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Résultats Professionnels -->
+    <div *ngIf="importResults.total > 0" class="relative mb-8">
+      <div class="absolute inset-0 bg-gradient-to-br from-[#eef3ff] to-[#f0f4ff] rounded-3xl opacity-80"></div>
+      <div class="relative bg-white/90 backdrop-blur-sm border border-[#d1d9ff] rounded-3xl p-8 shadow-xl">
+        <div class="flex items-center gap-3 mb-8 pb-6 border-b-2 border-[#e0e7ff]">
+          <div class="w-10 h-10 bg-gradient-to-br from-[#4f46e5] to-[#6366f1] rounded-xl flex items-center justify-center shadow-lg">
+            <span class="material-icons text-white text-lg">analytics</span>
+          </div>
+          <div>
+            <h2 class="text-2xl font-bold text-[#1e293b]">Résultats de l'import</h2>
+            <p class="text-sm text-[#64748b]">Statistiques détaillées de l'opération d'import</p>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div class="bg-[#eef3ff] border border-[#c7d2fe] rounded-2xl p-6 text-center transition-all duration-300">
+            <div class="w-16 h-16 bg-[#4f46e5] rounded-full flex items-center justify-center mx-auto mb-4">
+              <span class="material-icons text-white text-2xl">assessment</span>
+            </div>
+            <p class="text-3xl font-bold text-[#4f46e5] mb-2">{{ importResults.total }}</p>
+            <p class="text-sm font-medium text-[#4f46e5]">Total</p>
+          </div>
+          <div class="bg-green-50 border border-green-200 rounded-2xl p-6 text-center transition-all duration-300">
+            <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span class="material-icons text-white text-2xl">check_circle</span>
+            </div>
+            <p class="text-3xl font-bold text-green-600 mb-2">{{ importResults.success }}</p>
+            <p class="text-sm font-medium text-green-800">Succès</p>
+          </div>
+          <div class="bg-red-50 border border-red-200 rounded-2xl p-6 text-center transition-all duration-300">
+            <div class="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span class="material-icons text-white text-2xl">error</span>
+            </div>
+            <p class="text-3xl font-bold text-red-600 mb-2">{{ importResults.errors }}</p>
+            <p class="text-sm font-medium text-red-800">Erreurs</p>
+          </div>
+        </div>
+
+        <!-- Détails des erreurs -->
+        <div *ngIf="importResults.details.length > 0">
+          <h3 class="text-lg font-bold text-[#1e293b] mb-4 flex items-center">
+            <span class="material-icons text-red-500 mr-2">list</span>
+            Détails des erreurs
+          </h3>
+          <div class="bg-[#f8fafc] rounded-2xl p-6 max-h-64 overflow-y-auto">
+            <ul class="space-y-3">
+              <li *ngFor="let detail of importResults.details" class="flex items-start text-sm text-[#475569] bg-white rounded-lg p-3">
+                <span class="material-icons text-red-400 text-sm mr-2 mt-0.5">error_outline</span>
+                {{ detail }}
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Instructions Professionnelles -->
+    <div class="bg-[#eef3ff] border border-[#c7d2fe] rounded-2xl p-8">
+      <div class="flex items-center gap-4 mb-6">
+        <div class="w-12 h-12 bg-[#4f46e5] rounded-xl flex items-center justify-center">
+          <span class="material-icons text-white text-xl">info</span>
+        </div>
+        <h3 class="text-2xl font-bold bg-gradient-to-r from-[#4f46e5] to-[#6366f1] bg-clip-text text-transparent">
+          Instructions d'import
+        </h3>
+      </div>
+      <div class="text-[#475569] space-y-4">
+        <div class="bg-white rounded-xl p-6">
+          <p class="font-bold text-lg mb-3 text-[#1e293b]">Format CSV attendu :</p>
+          <p class="mb-4">Le fichier doit contenir les colonnes suivantes :</p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="flex items-center gap-3 p-3 bg-gradient-to-r from-[#eef3ff] to-[#f0f4ff] rounded-lg border border-[#c7d2fe]">
+              <span class="material-icons text-[#4f46e5]">title</span>
               <div>
-                <h4 class="text-lg font-bold text-[#0c4a6e]">{{ selectedFile.name }}</h4>
-                <p class="text-sm text-[#0369a1]">{{ (selectedFile.size / 1024).toFixed(1) }} KB</p>
+                <strong class="text-[#4f46e5]">title</strong>
+                <p class="text-sm text-[#6366f1]">Titre du cours (obligatoire)</p>
               </div>
             </div>
-            <button 
-              (click)="removeFile()"
-              class="w-10 h-10 bg-red-100 hover:bg-red-200 text-red-600 rounded-xl flex items-center justify-center transition-colors"
-            >
-              <span class="material-icons">close</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Prévisualisation des données -->
-    <div *ngIf="filePreview.length > 0" class="relative mb-10">
-      <div class="absolute inset-0 bg-gradient-to-br from-[#eef3ff] via-[#f0f4ff] to-[#e8f2ff] rounded-3xl opacity-80"></div>
-      <div class="relative bg-white/90 backdrop-blur-sm border border-[#d1d9ff] rounded-3xl p-10">
-        <div class="flex items-center gap-6 mb-8 pb-6 border-b-2 border-[#e0e7ff]">
-          <div class="relative group">
-            <div class="w-16 h-16 bg-[#4f46e5] rounded-2xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-              <span class="material-icons text-white text-2xl">preview</span>
+            <div class="flex items-center gap-3 p-3 bg-gradient-to-r from-[#f0f9ff] to-[#e0f2fe] rounded-lg border border-[#bae6fd]">
+              <span class="material-icons text-[#0ea5e9]">date_range</span>
+              <div>
+                <strong class="text-[#0c4a6e]">date</strong>
+                <p class="text-sm text-[#0284c7]">YYYY-MM-DD ou DD/MM/YYYY</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3 p-3 bg-gradient-to-r from-[#eef3ff] to-[#f0f4ff] rounded-lg border border-[#c7d2fe]">
+              <span class="material-icons text-[#4f46e5]">schedule</span>
+              <div>
+                <strong class="text-[#4f46e5]">hour_debut</strong>
+                <p class="text-sm text-[#6366f1]">HH:MM, HHhMM, ou HH.MM</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3 p-3 bg-gradient-to-r from-[#f0f9ff] to-[#e0f2fe] rounded-lg border border-[#bae6fd]">
+              <span class="material-icons text-[#0ea5e9]">schedule</span>
+              <div>
+                <strong class="text-[#0c4a6e]">hour_fin</strong>
+                <p class="text-sm text-[#0284c7]">HH:MM, HHhMM, ou HH.MM</p>
+              </div>
             </div>
           </div>
-          <div>
-            <h2 class="text-3xl font-black text-[#1e293b] mb-2">Prévisualisation des données</h2>
-            <p class="text-lg text-[#475569] font-medium">{{ filePreview.length }} ligne(s) détectée(s)</p>
-          </div>
         </div>
-
-        <div class="overflow-x-auto">
-          <table class="w-full">
-            <thead>
-              <tr class="border-b-2 border-[#e0e7ff]">
-                <th *ngFor="let header of getHeaders()" class="text-left py-4 px-4 font-bold text-[#374151]">
-                  {{ header }}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let item of filePreview" class="border-b border-[#f1f5f9] hover:bg-[#f8fafc]">
-                <td *ngFor="let header of getHeaders()" class="py-3 px-4 text-[#64748b]">
-                  {{ item.row[header] }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="bg-gradient-to-r from-[#fef3c7] to-[#fde68a] border border-[#f59e0b] rounded-xl p-4">
+          <p class="font-medium text-[#92400e]">
+            <span class="material-icons text-[#f59e0b] mr-2">lightbulb</span>
+            <strong>Note :</strong> Les autres informations (établissement, promotion, salle, etc.) seront appliquées à tous les cours importés selon la configuration ci-dessus.
+          </p>
         </div>
       </div>
-    </div>
-
-    <!-- Messages d'erreur et de succès -->
-    <div *ngIf="error || success" class="relative mb-10">
-      <div class="absolute inset-0 bg-gradient-to-br from-[#eef3ff] via-[#f0f4ff] to-[#e8f2ff] rounded-3xl opacity-80"></div>
-      <div class="relative bg-white/90 backdrop-blur-sm border border-[#d1d9ff] rounded-3xl p-8">
-        <!-- Message d'erreur -->
-        <div *ngIf="error" class="flex items-start gap-4 p-6 bg-red-50 border border-red-200 rounded-2xl">
-          <div class="flex-shrink-0 w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
-            <span class="material-icons text-red-600">error</span>
-          </div>
-          <div>
-            <h3 class="text-lg font-bold text-red-800 mb-2">Erreur d'importation</h3>
-            <p class="text-red-700 whitespace-pre-line">{{ error }}</p>
-          </div>
-        </div>
-
-        <!-- Message de succès -->
-        <div *ngIf="success" class="flex items-start gap-4 p-6 bg-green-50 border border-green-200 rounded-2xl">
-          <div class="flex-shrink-0 w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-            <span class="material-icons text-green-600">check_circle</span>
-          </div>
-          <div>
-            <h3 class="text-lg font-bold text-green-800 mb-2">Importation réussie</h3>
-            <p class="text-green-700 whitespace-pre-line">{{ success }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- État de chargement -->
-    <div *ngIf="loading" class="relative mb-10">
-      <div class="absolute inset-0 bg-gradient-to-br from-[#eef3ff] via-[#f0f4ff] to-[#e8f2ff] rounded-3xl opacity-80"></div>
-      <div class="relative bg-white/90 backdrop-blur-sm border border-[#d1d9ff] rounded-3xl p-10">
-        <div class="flex items-center justify-center gap-6">
-          <div class="loading-spinner rounded-full h-12 w-12 border-b-2 border-[#4f46e5]"></div>
-          <div>
-            <h3 class="text-xl font-bold text-[#1e293b]">Importation en cours...</h3>
-            <p class="text-[#64748b]">{{ loadingMessage || 'Traitement des données...' }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Actions -->
-    <div class="flex items-center justify-end gap-4">
-      <button 
-        (click)="resetForm()"
-        class="px-8 py-4 text-lg font-semibold text-[#64748b] bg-white/80 border border-[#d1d9ff] rounded-2xl hover:bg-white hover:border-[#c7d2fe] transition-all duration-300 hover:-translate-y-0.5"
-        [disabled]="loading"
-      >
-        Réinitialiser
-      </button>
-      <button 
-        (click)="goBack()"
-        class="px-8 py-4 text-lg font-semibold text-[#64748b] bg-white/80 border border-[#d1d9ff] rounded-2xl hover:bg-white hover:border-[#c7d2fe] transition-all duration-300 hover:-translate-y-0.5"
-        [disabled]="loading"
-      >
-        Retour aux cours
-      </button>
-      <button 
-        (click)="importFile()"
-        [disabled]="!selectedFile || loading || importForm.invalid"
-        class="px-8 py-4 text-lg font-semibold text-white bg-[#4f46e5] hover:bg-[#4338ca] rounded-2xl transition-all duration-300 hover:-translate-y-0.5 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:scale-100"
-      >
-        <span *ngIf="loading" class="flex items-center gap-2">
-          <div class="loading-spinner rounded-full h-5 w-5 border-b-2 border-white"></div>
-          Importation...
-        </span>
-        <span *ngIf="!loading" class="flex items-center gap-2">
-          <span class="material-icons">upload</span>
-          Importer les cours
-        </span>
-      </button>
     </div>
   </div>
 </div>
