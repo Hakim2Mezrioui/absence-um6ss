@@ -27,6 +27,7 @@ class Cours extends Model
         'salle_id',
         'option_id',
         'ville_id',
+        'enseignant_id',
         'archived_at'
     ];
 
@@ -109,6 +110,14 @@ class Cours extends Model
     public function ville(): BelongsTo
     {
         return $this->belongsTo(Ville::class);
+    }
+
+    /**
+     * Get the enseignant (user) that owns the cours.
+     */
+    public function enseignant(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'enseignant_id');
     }
 
     protected static function booted(): void

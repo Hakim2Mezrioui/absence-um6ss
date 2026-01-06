@@ -466,7 +466,7 @@
                 Salles <span class="text-red-500">*</span>
               </label>
               <div class="relative">
-                <button type="button" (click)="multiSallesOpen = !multiSallesOpen" class="w-full px-4 py-3 pl-12 text-left border-2 border-gray-300 rounded-xl shadow-sm bg-white hover:border-cyan-400 transition-all duration-200">
+                <button type="button" (click)="multiSallesOpen = !multiSallesOpen" class="salle-dropdown-button w-full px-4 py-3 pl-12 text-left border-2 border-gray-300 rounded-xl shadow-sm bg-white hover:border-cyan-400 transition-all duration-200">
                   <span class="material-icons absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">room</span>
                   <span class="text-gray-700" *ngIf="selectedSalles.length === 0">Sélectionner une ou plusieurs salles</span>
                   <span class="text-gray-900" *ngIf="selectedSalles.length > 0">
@@ -475,7 +475,7 @@
                   <span class="material-icons absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">arrow_drop_down</span>
                 </button>
 
-                <div *ngIf="multiSallesOpen" class="absolute z-50 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+                <div *ngIf="multiSallesOpen" class="salle-dropdown absolute z-50 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
                   <!-- Search -->
                   <div class="px-3 py-2 border-b border-gray-100 bg-gray-50">
                     <div class="relative">
@@ -560,6 +560,86 @@
                 📍 {{ getSelectedVilleName() }}
               </div>
             </div>
+            
+            <!-- Enseignant (optionnel) -->
+            <div>
+              <label for="enseignant_id" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <span class="material-icons text-indigo-600 text-lg">person</span>
+                Enseignant (optionnel)
+              </label>
+              <div class="relative">
+                <button 
+                  type="button" 
+                  id="enseignant-dropdown-button"
+                  (click)="toggleEnseignantDropdown()" 
+                  class="w-full px-4 py-3 pl-12 text-left border-2 border-gray-300 rounded-xl shadow-sm bg-white hover:border-indigo-400 transition-all duration-200"
+                >
+                  <span class="material-icons absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">person</span>
+                  <span *ngIf="!cours.enseignant_id" class="text-gray-700">Sélectionner un enseignant</span>
+                  <span *ngIf="cours.enseignant_id" class="text-gray-900">{{ getSelectedEnseignantName() }}</span>
+                  <span class="material-icons absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">arrow_drop_down</span>
+                </button>
+
+                <div *ngIf="enseignantDropdownOpen" class="enseignant-dropdown absolute z-50 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+                  <!-- Search -->
+                  <div class="px-3 py-2 border-b border-gray-100 bg-gray-50">
+                    <div class="relative">
+                      <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+                      <input 
+                        type="text" 
+                        [value]="enseignantSearchTerm" 
+                        (input)="onEnseignantSearch($event.target.value)" 
+                        placeholder="Rechercher un enseignant..." 
+                        class="w-full pl-10 pr-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" 
+                      />
+                    </div>
+                  </div>
+
+                  <!-- Options list -->
+                  <div class="max-h-64 overflow-auto">
+                    <!-- Option "Aucun enseignant" -->
+                    <button 
+                      type="button" 
+                      (click)="clearEnseignant()" 
+                      class="w-full text-left px-4 py-2 hover:bg-indigo-50 flex items-center gap-3 border-b border-gray-100"
+                      [class.bg-indigo-50]="!cours.enseignant_id"
+                    >
+                      <span class="material-icons" [class.text-indigo-600]="!cours.enseignant_id" [class.text-gray-400]="cours.enseignant_id">
+                        {{ !cours.enseignant_id ? 'check_circle' : 'radio_button_unchecked' }}
+                      </span>
+                      <span class="text-gray-700">Aucun enseignant</span>
+                    </button>
+
+                    <!-- Liste des enseignants -->
+                    <ng-container *ngIf="filteredEnseignants.length; else noEnseignant">
+                      <button 
+                        type="button" 
+                        *ngFor="let enseignant of filteredEnseignants" 
+                        (click)="selectEnseignant(enseignant)" 
+                        class="w-full text-left px-4 py-2 hover:bg-indigo-50 flex items-center gap-3"
+                        [class.bg-indigo-50]="cours.enseignant_id === enseignant.id"
+                      >
+                        <span class="material-icons" [class.text-indigo-600]="cours.enseignant_id === enseignant.id" [class.text-gray-400]="cours.enseignant_id !== enseignant.id">
+                          {{ cours.enseignant_id === enseignant.id ? 'check_circle' : 'radio_button_unchecked' }}
+                        </span>
+                        <div class="flex-1">
+                          <div class="text-gray-900 font-medium">{{ enseignant.name }}</div>
+                          <div class="text-xs text-gray-500" *ngIf="enseignant.email">{{ enseignant.email }}</div>
+                        </div>
+                      </button>
+                    </ng-container>
+                    <ng-template #noEnseignant>
+                      <div class="px-4 py-3 text-sm text-gray-500">Aucun enseignant trouvé</div>
+                    </ng-template>
+                  </div>
+                </div>
+              </div>
+              <p class="mt-2 text-xs text-gray-500 flex items-center gap-1">
+                <span class="material-icons text-xs">info</span>
+                Affecter un enseignant à ce cours (optionnel)
+              </p>
+            </div>
+            
             <div>
               <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
                 <span class="material-icons text-cyan-600 text-lg">groups</span>
@@ -571,8 +651,8 @@
                   (click)="toggleGroupsDropdown()" 
                   [disabled]="!cours.ville_id || !cours.etablissement_id"
                   [class]="(!cours.ville_id || !cours.etablissement_id) 
-                    ? 'w-full px-4 py-3 pl-12 text-left border-2 border-gray-200 rounded-xl shadow-sm bg-gray-100 cursor-not-allowed opacity-60'
-                    : 'w-full px-4 py-3 pl-12 text-left border-2 border-gray-300 rounded-xl shadow-sm bg-white hover:border-cyan-400 transition-all duration-200'"
+                    ? 'groups-dropdown-button w-full px-4 py-3 pl-12 text-left border-2 border-gray-200 rounded-xl shadow-sm bg-gray-100 cursor-not-allowed opacity-60'
+                    : 'groups-dropdown-button w-full px-4 py-3 pl-12 text-left border-2 border-gray-300 rounded-xl shadow-sm bg-white hover:border-cyan-400 transition-all duration-200'"
                 >
                   <span class="material-icons absolute left-4 top-1/2 -translate-y-1/2" 
                         [class]="(!cours.ville_id || !cours.etablissement_id) ? 'text-gray-300' : 'text-gray-400'">groups</span>
@@ -590,7 +670,7 @@
                 </button>
 
                 <!-- Groups dropdown -->
-                <div *ngIf="groupsDropdownOpen && cours.ville_id && cours.etablissement_id" class="absolute z-50 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+                <div *ngIf="groupsDropdownOpen && cours.ville_id && cours.etablissement_id" class="groups-dropdown absolute z-50 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
                   <!-- Search -->
                   <div class="px-3 py-2 border-b border-gray-100 bg-gray-50">
                     <div class="relative">

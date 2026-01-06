@@ -143,49 +143,11 @@ export class ImportCoursComponent implements OnInit, OnDestroy {
    * Filtrer les salles selon le rôle de l'utilisateur, l'établissement et la ville sélectionnés
    */
   filterSallesByRoleAndEtablissement(): void {
-    if (!this.salles || this.salles.length === 0) {
-      return;
-    }
-
-    const etablissementId = this.importForm.get('etablissement_id')?.value;
-    const villeId = this.importForm.get('ville_id')?.value;
-
-    // Super Admin voit toutes les salles, mais peut filtrer par établissement et ville sélectionnés
-    if (this.isSuperAdmin) {
-      if (etablissementId && villeId) {
-        const originalSalles = [...this.salles];
-        this.salles = this.salles.filter((salle: any) => {
-          return salle.ville_id === villeId;
-        });
-        
-        console.log('🔓 Super Admin: Filtrage par ville:', {
-          etablissementId,
-          villeId,
-          sallesOriginales: originalSalles.length,
-          sallesFiltrees: this.salles.length,
-          sallesDetails: this.salles.map(s => ({ id: s.id, name: s.name, ville_id: s.ville_id }))
-        });
-      } else {
-        console.log('🔓 Super Admin: Affichage de toutes les salles (aucun filtre)');
-      }
-      return;
-    }
-
-    // Les autres rôles voient seulement les salles de leur ville
-    if (villeId) {
-      const originalSalles = [...this.salles];
-      this.salles = this.salles.filter((salle: any) => {
-        return salle.ville_id === villeId;
-      });
-      
-      console.log('🔒 Filtrage des salles par ville:', {
-        villeId,
-        sallesOriginales: originalSalles.length,
-        sallesFiltrees: this.salles.length,
-        sallesDetails: this.salles.map(s => ({ id: s.id, name: s.name, ville_id: s.ville_id }))
-      });
+    // Afficher toutes les salles sans filtrage par établissement/faculté
+    if (this.salles && this.salles.length > 0) {
+      console.log('📋 Affichage de toutes les salles:', this.salles.length);
     } else {
-      console.log('⚠️ Ville non sélectionnée pour le filtrage des salles');
+      console.log('⚠️ Aucune salle disponible');
     }
   }
 

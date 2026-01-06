@@ -52,6 +52,11 @@ export interface Examen {
     id: number;
     name: string;
   };
+  groups?: {
+    id: number;
+    name?: string;
+    title?: string;
+  }[];
   ville?: {
     id: number;
     name: string;

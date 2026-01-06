@@ -42,7 +42,7 @@ class CoursController extends Controller
         $date = $request->query('date');
 
         // Charger les relations, avec salles en option (peut ne pas exister pour les anciens cours)
-        $relations = ['etablissement', 'promotion', 'type_cours', 'salle', 'option', 'groups', 'ville'];
+        $relations = ['etablissement', 'promotion', 'type_cours', 'salle', 'option', 'groups', 'ville', 'enseignant'];
         // Ajouter salles seulement si la table existe
         try {
             \DB::select('SELECT 1 FROM cours_salle LIMIT 1');
@@ -60,8 +60,11 @@ class CoursController extends Controller
         // Exception pour technicien (role_id = 5) sans établissement : voir tous les cours
         $isTechnicienWithoutEtablissement = $user && $user->role_id == 5 && is_null($user->etablissement_id);
         
-        // Si l'utilisateur n'est pas super-admin et n'est pas technicien sans établissement, appliquer les filtres
-        if (!$this->userContextService->isSuperAdmin() && !$isTechnicienWithoutEtablissement) {
+        // Si l'utilisateur est un enseignant (role_id = 6), ne montrer que ses cours
+        if ($user && $user->role_id == 6) {
+            $query->where('enseignant_id', $user->id);
+        } elseif (!$this->userContextService->isSuperAdmin() && !$isTechnicienWithoutEtablissement) {
+            // Si l'utilisateur n'est pas super-admin et n'est pas technicien sans établissement, appliquer les filtres
             if ($userContext['ville_id']) {
                 $query->where('ville_id', $userContext['ville_id']);
             }
@@ -127,7 +130,7 @@ class CoursController extends Controller
     public function show($id)
     {
         // Charger les relations, avec salles en option
-        $relations = ['etablissement', 'promotion', 'type_cours', 'salle', 'option', 'groups', 'ville'];
+        $relations = ['etablissement', 'promotion', 'type_cours', 'salle', 'option', 'groups', 'ville', 'enseignant'];
         try {
             \DB::select('SELECT 1 FROM cours_salle LIMIT 1');
             $relations[] = 'salles';
@@ -137,6 +140,12 @@ class CoursController extends Controller
         $cours = Cours::with($relations)->find($id);
         if (!$cours) {
             return response()->json(['message' => 'Cours non trouvé'], 404);
+        }
+        
+        // Si l'utilisateur est un enseignant, vérifier qu'il a accès à ce cours
+        $user = \Illuminate\Support\Facades\Auth::user();
+        if ($user && $user->role_id == 6 && $cours->enseignant_id != $user->id) {
+            return response()->json(['message' => 'Accès non autorisé'], 403);
         }
         
         return response()->json($cours);
@@ -167,6 +176,7 @@ class CoursController extends Controller
             'group_ids' => 'nullable|array',
             'group_ids.*' => 'exists:groups,id',
             'ville_id' => 'required|exists:villes,id',
+            'enseignant_id' => 'nullable|exists:users,id',
             'annee_universitaire' => 'required|string|max:9'
         ]);
         
@@ -211,7 +221,7 @@ class CoursController extends Controller
             $cours->groups()->attach($groupIds);
         }
         
-        $cours->load(['etablissement', 'promotion', 'type_cours', 'salle', 'salles', 'option', 'groups', 'ville']);
+        $cours->load(['etablissement', 'promotion', 'type_cours', 'salle', 'salles', 'option', 'groups', 'ville', 'enseignant']);
 
         return response()->json(['message' => 'Cours ajouté avec succès', 'cours' => $cours], 201);
     }
@@ -284,6 +294,7 @@ class CoursController extends Controller
             'group_ids' => 'nullable|array',
             'group_ids.*' => 'exists:groups,id',
             'ville_id' => 'sometimes|exists:villes,id',
+            'enseignant_id' => 'nullable|exists:users,id',
             'annee_universitaire' => 'sometimes|string|max:9'
         ]);
 
@@ -321,7 +332,7 @@ class CoursController extends Controller
             $cours->groups()->sync($groupIds);
         }
         
-        $cours->load(['etablissement', 'promotion', 'type_cours', 'salle', 'salles', 'option', 'groups', 'ville']);
+        $cours->load(['etablissement', 'promotion', 'type_cours', 'salle', 'salles', 'option', 'groups', 'ville', 'enseignant']);
 
         return response()->json(['message' => 'Cours mis à jour avec succès', 'cours' => $cours]);
     }
@@ -587,6 +598,20 @@ class CoursController extends Controller
                 ->orderBy('name')
                 ->get();
 
+            // Récupérer les enseignants (users avec role_id = 6)
+            $enseignants = \App\Models\User::select('id', 'first_name', 'last_name', 'email')
+                ->where('role_id', 6)
+                ->orderBy('first_name')
+                ->orderBy('last_name')
+                ->get()
+                ->map(function ($user) {
+                    return [
+                        'id' => $user->id,
+                        'name' => $user->first_name . ' ' . $user->last_name,
+                        'email' => $user->email
+                    ];
+                });
+
             return response()->json([
                 'etablissements' => $etablissements,
                 'promotions' => $promotions,
@@ -594,6 +619,7 @@ class CoursController extends Controller
                 'types_cours' => $typesCours,
                 'options' => $options,
                 'groups' => $groups,
+                'enseignants' => $enseignants,
                 'villes' => $villes
             ]);
         } catch (\Exception $e) {
@@ -1559,7 +1585,7 @@ class CoursController extends Controller
         $date = $request->query('date');
 
         // Charger les relations, avec salles en option
-        $relations = ['etablissement', 'promotion', 'type_cours', 'salle', 'option', 'groups', 'ville'];
+        $relations = ['etablissement', 'promotion', 'type_cours', 'salle', 'option', 'groups', 'ville', 'enseignant'];
         try {
             \DB::select('SELECT 1 FROM cours_salle LIMIT 1');
             $relations[] = 'salles';
@@ -1576,8 +1602,11 @@ class CoursController extends Controller
         // Exception pour technicien (role_id = 5) sans établissement : voir tous les cours
         $isTechnicienWithoutEtablissement = $user && $user->role_id == 5 && is_null($user->etablissement_id);
         
-        // Si l'utilisateur n'est pas super-admin et n'est pas technicien sans établissement, appliquer les filtres
-        if (!$this->userContextService->isSuperAdmin() && !$isTechnicienWithoutEtablissement) {
+        // Si l'utilisateur est un enseignant (role_id = 6), ne montrer que ses cours
+        if ($user && $user->role_id == 6) {
+            $query->where('enseignant_id', $user->id);
+        } elseif (!$this->userContextService->isSuperAdmin() && !$isTechnicienWithoutEtablissement) {
+            // Si l'utilisateur n'est pas super-admin et n'est pas technicien sans établissement, appliquer les filtres
             if ($userContext['ville_id']) {
                 $query->where('ville_id', $userContext['ville_id']);
             }

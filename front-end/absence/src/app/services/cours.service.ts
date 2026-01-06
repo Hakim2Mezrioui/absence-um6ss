@@ -23,6 +23,7 @@ export interface Cours {
   salles_ids?: number[]; // Pour la sélection multiple de salles
   option_id?: number;
   ville_id?: number;
+  enseignant_id?: number | null;
   group_ids?: number[];
   annee_universitaire: string;
   statut_temporel?: 'passé' | 'en_cours' | 'futur'; // Calculé côté frontend
@@ -62,6 +63,13 @@ export interface Cours {
   ville?: {
     id: number;
     name: string;
+  };
+  enseignant?: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    email: string;
+    name?: string; // Pour compatibilité avec le format retourné par getFilterOptions
   };
 }
 

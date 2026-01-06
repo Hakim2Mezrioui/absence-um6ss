@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
@@ -34,6 +34,11 @@ export class AddExamenComponent implements OnInit, OnDestroy {
   options: any[] = [];
   filteredOptions: any[] = [];
   groups: any[] = [];
+  filteredGroups: any[] = [];
+  selectedGroups: number[] = [];
+  groupsDropdownOpen = false;
+  groupSearchTerm = '';
+  allGroupsSelected = false;
   villes: any[] = [];
   typesExamen: TypeExamen[] = [];
   anneesUniversitaires: string[] = [];
@@ -100,7 +105,8 @@ export class AddExamenComponent implements OnInit, OnDestroy {
       option_id: [''],
       salle_id: [''], // Déprécié, gardé pour compatibilité
       salles_ids: [[], Validators.required], // Au moins une salle requise
-      group_id: [''], // Permet null pour "Tous"
+      group_id: [''], // Déprécié, gardé pour compatibilité
+      group_ids: [[]], // Pour la sélection multiple de groupes
       ville_id: ['', Validators.required],
       annee_universitaire: ['', Validators.required],
       all_groups: [false],
@@ -133,6 +139,31 @@ export class AddExamenComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event): void {
+    const target = event.target as HTMLElement;
+    
+    // Fermer le dropdown des salles si on clique en dehors
+    if (this.multiSallesOpen) {
+      const salleDropdown = target.closest('.salle-dropdown');
+      const salleButton = target.closest('.salle-dropdown-button');
+      
+      if (!salleDropdown && !salleButton) {
+        this.multiSallesOpen = false;
+      }
+    }
+    
+    // Fermer le dropdown des groupes si on clique en dehors
+    if (this.groupsDropdownOpen) {
+      const groupsDropdown = target.closest('.groups-dropdown');
+      const groupsButton = target.closest('.groups-dropdown-button');
+      
+      if (!groupsDropdown && !groupsButton) {
+        this.groupsDropdownOpen = false;
+      }
+    }
   }
 
   /**
@@ -389,47 +420,15 @@ export class AddExamenComponent implements OnInit, OnDestroy {
         ville_id: s.ville_id
       })));
       
-      // Filtrer les salles par établissement et ville
-      this.salles = this.allSalles.filter((salle: any) => {
-        const match = Number(salle.etablissement_id) === Number(etablissementId) && 
-                     Number(salle.ville_id) === Number(villeId);
-        
-        if (match) {
-          console.log('✅ Salle correspondante trouvée:', {
-            salleId: salle.id,
-            salleName: salle.name,
-            salleEtablissementId: salle.etablissement_id,
-            salleVilleId: salle.ville_id,
-            formEtablissementId: etablissementId,
-            formVilleId: villeId
-          });
-        }
-        
-        return match;
-      });
+      // Afficher toutes les salles sans filtrage
+      this.salles = [...this.allSalles];
       
-      console.log('🔄 Salles filtrées:', {
-        etablissementId,
-        villeId,
-        sallesDisponibles: this.salles.length,
-          salles: this.salles.map(s => ({ id: s.id, name: s.name, ville_id: s.ville_id }))
+      console.log('🔄 Toutes les salles disponibles:', {
+        sallesDisponibles: this.salles.length
       });
       
       // Mettre à jour les salles filtrées
       this.updateFilteredSalles();
-      
-      // Réinitialiser la sélection de salles si elles n'appartiennent pas au nouvel établissement/ville
-      const currentSallesIds = this.examenForm.get('salles_ids')?.value || [];
-      if (currentSallesIds.length > 0) {
-        const validSalles = currentSallesIds.filter((id: any) => 
-          this.salles.find(s => s.id === id)
-        );
-        if (validSalles.length !== currentSallesIds.length) {
-          this.examenForm.patchValue({ salles_ids: validSalles });
-          this.selectedSalles = this.salles.filter(s => validSalles.includes(s.id));
-          console.log('🔄 Sélection de salles réinitialisée');
-        }
-      }
     }
   }
 
@@ -463,6 +462,7 @@ export class AddExamenComponent implements OnInit, OnDestroy {
           this.salles = [...this.allSalles]; // Copie pour le filtrage
           this.options = response.options || [];
           this.groups = response.groups || [];
+          this.filteredGroups = [...this.groups];
           this.villes = response.villes || [];
           
           console.log('📊 Données chargées:', {
@@ -530,99 +530,12 @@ export class AddExamenComponent implements OnInit, OnDestroy {
    * Filtrer les salles selon le rôle de l'utilisateur, l'établissement et la ville sélectionnés
    */
   filterSallesByRoleAndEtablissement(): void {
-    if (!this.allSalles || this.allSalles.length === 0) {
-      console.log('⚠️ Aucune salle disponible pour le filtrage');
-      return;
-    }
-
-    console.log('🔍 Début du filtrage des salles:', {
-      allSallesCount: this.allSalles.length,
-      isSuperAdmin: this.isSuperAdmin,
-      currentUser: this.currentUser ? {
-        etablissement_id: this.currentUser.etablissement_id,
-        ville_id: this.currentUser.ville_id
-      } : null
-    });
-
-    // Super Admin voit toutes les salles, mais peut filtrer par établissement et ville sélectionnés
-    if (this.isSuperAdmin) {
-      const etablissementId = this.examenForm.get('etablissement_id')?.value;
-      const villeId = this.examenForm.get('ville_id')?.value;
-      
-      console.log('🔓 Super Admin - Valeurs du formulaire:', {
-        etablissementId,
-        villeId,
-        etablissementIdType: typeof etablissementId,
-        villeIdType: typeof villeId
-      });
-      
-      if (etablissementId && villeId) {
-        this.salles = this.allSalles.filter((salle: any) => {
-          const match = Number(salle.etablissement_id) === Number(etablissementId) && 
-                       Number(salle.ville_id) === Number(villeId);
-          
-          if (match) {
-            console.log('✅ Salle correspondante trouvée:', {
-              salleId: salle.id,
-              salleName: salle.name,
-              salleVilleId: salle.ville_id,
-              formEtablissementId: etablissementId,
-              formVilleId: villeId
-            });
-          }
-          
-          return match;
-        });
-        
-        console.log('🔓 Super Admin: Filtrage par établissement et ville:', {
-          etablissementId,
-          villeId,
-          sallesOriginales: this.allSalles.length,
-          sallesFiltrees: this.salles.length,
-          sallesDetails: this.salles.map(s => ({ id: s.id, name: s.name, etablissement_id: s.etablissement_id, ville_id: s.ville_id }))
-        });
-      } else {
-        this.salles = [...this.allSalles];
-        console.log('🔓 Super Admin: Affichage de toutes les salles (aucun filtre)');
-      }
-      return;
-    }
-
-    // Les autres rôles voient seulement les salles de leur établissement et ville (pré-définis)
-    if (this.currentUser && this.currentUser.etablissement_id && this.currentUser.ville_id) {
-      console.log('🔒 Admin - Valeurs utilisateur:', {
-        userEtablissementId: this.currentUser.etablissement_id,
-        userVilleId: this.currentUser.ville_id,
-        userEtablissementIdType: typeof this.currentUser.etablissement_id,
-        userVilleIdType: typeof this.currentUser.ville_id
-      });
-
-      this.salles = this.allSalles.filter((salle: any) => {
-        const match = Number(salle.ville_id) === Number(this.currentUser!.ville_id);
-        
-        if (match) {
-          console.log('✅ Salle correspondante trouvée:', {
-            salleId: salle.id,
-            salleName: salle.name,
-            salleEtablissementId: salle.etablissement_id,
-            salleVilleId: salle.ville_id,
-            userEtablissementId: this.currentUser!.etablissement_id,
-            userVilleId: this.currentUser!.ville_id
-          });
-        }
-        
-        return match;
-      });
-      
-      console.log('🔒 Filtrage des salles par établissement et ville (pré-définis):', {
-        villeId: this.currentUser.ville_id,
-        sallesOriginales: this.allSalles.length,
-        sallesFiltrees: this.salles.length,
-        sallesDetails: this.salles.map(s => ({ id: s.id, name: s.name, etablissement_id: s.etablissement_id, ville_id: s.ville_id }))
-      });
-    } else {
+    // Afficher toutes les salles sans filtrage par établissement/faculté
+    if (this.allSalles && this.allSalles.length > 0) {
       this.salles = [...this.allSalles];
-      console.log('⚠️ Utilisateur sans établissement ou ville défini pour le filtrage des salles');
+      console.log('📋 Affichage de toutes les salles:', this.salles.length);
+    } else {
+      console.log('⚠️ Aucune salle disponible');
     }
   }
 
@@ -829,6 +742,71 @@ export class AddExamenComponent implements OnInit, OnDestroy {
     this.salleDropdownOpen = false;
   }
 
+  // Groupes multiples helpers
+  onGroupSearch(term: string): void {
+    this.groupSearchTerm = term || '';
+    this.updateFilteredGroups();
+  }
+
+  updateFilteredGroups(): void {
+    const term = this.groupSearchTerm.trim().toLowerCase();
+    if (!term) {
+      this.filteredGroups = this.groups;
+      return;
+    }
+    
+    this.filteredGroups = this.groups.filter((g: any) => {
+      const name = (g?.name || g?.title || '').toString().toLowerCase();
+      return name.includes(term);
+    });
+  }
+
+  toggleGroupsDropdown(): void {
+    this.groupsDropdownOpen = !this.groupsDropdownOpen;
+    if (this.groupsDropdownOpen) {
+      this.updateFilteredGroups();
+    }
+  }
+
+  isGroupSelected(groupId: number): boolean {
+    return this.selectedGroups.includes(groupId);
+  }
+
+  toggleGroupSelection(groupId: number): void {
+    const index = this.selectedGroups.indexOf(groupId);
+    if (index > -1) {
+      this.selectedGroups.splice(index, 1);
+    } else {
+      this.selectedGroups.push(groupId);
+    }
+    this.allGroupsSelected = this.areAllGroupsSelected();
+  }
+
+  areAllGroupsSelected(): boolean {
+    return this.filteredGroups.length > 0 && 
+           this.filteredGroups.every(g => this.selectedGroups.includes(g.id));
+  }
+
+  toggleAllGroups(): void {
+    if (this.areAllGroupsSelected()) {
+      // Désélectionner tous les groupes filtrés
+      this.filteredGroups.forEach(g => {
+        const index = this.selectedGroups.indexOf(g.id);
+        if (index > -1) {
+          this.selectedGroups.splice(index, 1);
+        }
+      });
+    } else {
+      // Sélectionner tous les groupes filtrés
+      this.filteredGroups.forEach(g => {
+        if (!this.selectedGroups.includes(g.id)) {
+          this.selectedGroups.push(g.id);
+        }
+      });
+    }
+    this.allGroupsSelected = this.areAllGroupsSelected();
+  }
+
   selectSalle(salle: any): void {
     if (!salle) {
       this.examenForm.patchValue({ salle_id: '' });
@@ -1008,11 +986,8 @@ export class AddExamenComponent implements OnInit, OnDestroy {
       console.log('📋 Option par défaut définie:', generalOption.name);
     }
     
-    // Définir group_id par défaut (Tous)
-    if (!this.examenForm.get('group_id')?.value) {
-      this.examenForm.patchValue({ group_id: 'ALL' });
-      console.log('👥 Groupe par défaut défini: Tous');
-    }
+    // Pas besoin de définir group_id par défaut car les groupes sont optionnels
+    // Si aucun groupe n'est sélectionné, cela signifie "Tous"
     
     // Définir type_examen_id par défaut (Contrôle continu)
     const controleContinu = this.typesExamen.find(t => 
@@ -1053,11 +1028,16 @@ export class AddExamenComponent implements OnInit, OnDestroy {
         formData.salles_ids = [parseInt(formData.salle_id)];
       }
       
-      if (formData.group_id === 'ALL' || formData.group_id === '' || formData.group_id === null) {
-        formData.all_groups = true;
+      // Gérer les groupes multiples
+      if (this.selectedGroups.length > 0) {
+        formData.group_ids = this.selectedGroups;
+        formData.group_id = null; // Ne plus utiliser group_id
+        formData.all_groups = false;
+      } else {
+        // Si aucun groupe sélectionné, considérer "Tous"
+        formData.group_ids = [];
         formData.group_id = null;
-      } else if (formData.group_id) {
-        formData.group_id = parseInt(formData.group_id);
+        formData.all_groups = true;
       }
       
       // Validation de la date et heure

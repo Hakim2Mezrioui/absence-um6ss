@@ -35,6 +35,7 @@ export class AddCoursComponent implements OnInit, OnDestroy {
     salle_id: 0,
     option_id: undefined,
     ville_id: 0,
+    enseignant_id: null,
     annee_universitaire: '' // Sera défini dans generateAnneesUniversitaires()
   };
 
@@ -67,6 +68,10 @@ export class AddCoursComponent implements OnInit, OnDestroy {
   groupSearchTerm = '';
   allGroupsSelected = false;
   villes: any[] = [];
+  enseignants: any[] = [];
+  filteredEnseignants: any[] = [];
+  enseignantDropdownOpen = false;
+  enseignantSearchTerm = '';
   salleSearchTerm = '';
 
   // Années universitaires
@@ -227,14 +232,35 @@ export class AddCoursComponent implements OnInit, OnDestroy {
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: Event): void {
+    const target = event.target as HTMLElement;
+    
     // Fermer le dropdown des salles si on clique en dehors
-    if (this.salleDropdownOpen) {
-      const target = event.target as HTMLElement;
+    if (this.multiSallesOpen) {
       const salleDropdown = target.closest('.salle-dropdown');
-      const salleButton = target.closest('#salle-dropdown-button');
+      const salleButton = target.closest('.salle-dropdown-button');
       
       if (!salleDropdown && !salleButton) {
-        this.closeSalleDropdown();
+        this.multiSallesOpen = false;
+      }
+    }
+    
+    // Fermer le dropdown des enseignants si on clique en dehors
+    if (this.enseignantDropdownOpen) {
+      const enseignantDropdown = target.closest('.enseignant-dropdown');
+      const enseignantButton = target.closest('#enseignant-dropdown-button');
+      
+      if (!enseignantDropdown && !enseignantButton) {
+        this.closeEnseignantDropdown();
+      }
+    }
+    
+    // Fermer le dropdown des groupes si on clique en dehors
+    if (this.groupsDropdownOpen) {
+      const groupsDropdown = target.closest('.groups-dropdown');
+      const groupsButton = target.closest('.groups-dropdown-button');
+      
+      if (!groupsDropdown && !groupsButton) {
+        this.groupsDropdownOpen = false;
       }
     }
   }
@@ -263,6 +289,8 @@ export class AddCoursComponent implements OnInit, OnDestroy {
           this.groups = options.groups || [];
           this.filteredGroups = this.groups || []; // Charger tous les groupes par défaut
           this.villes = options.villes || [];
+          this.enseignants = options.enseignants || [];
+          this.filteredEnseignants = [...this.enseignants];
           
           // Après le chargement des options, s'assurer que les champs sont bien pré-sélectionnés
           this.ensureFieldsArePreSelected();
@@ -369,50 +397,11 @@ export class AddCoursComponent implements OnInit, OnDestroy {
    * Filtrer les salles selon le rôle de l'utilisateur, l'établissement et la ville sélectionnés
    */
   filterSallesByRoleAndEtablissement(): void {
-    if (!this.salles || this.salles.length === 0) {
-      return;
-    }
-
-    const etablissementId = this.cours.etablissement_id;
-    const villeId = this.cours.ville_id;
-
-    // Super Admin voit toutes les salles, mais peut filtrer par établissement et ville sélectionnés
-    if (this.isSuperAdmin) {
-      if (etablissementId && villeId) {
-        const originalSalles = [...this.salles];
-        this.salles = this.salles.filter((salle: any) => {
-          return salle.etablissement_id === etablissementId && salle.ville_id === villeId;
-        });
-        
-        console.log('🔓 Super Admin: Filtrage par établissement et ville:', {
-          etablissementId,
-          villeId,
-          sallesOriginales: originalSalles.length,
-          sallesFiltrees: this.salles.length,
-          sallesDetails: this.salles.map(s => ({ id: s.id, name: s.name, etablissement_id: s.etablissement_id, ville_id: s.ville_id }))
-        });
-      } else {
-        console.log('🔓 Super Admin: Affichage de toutes les salles (aucun filtre)');
-      }
-      return;
-    }
-
-    // Les autres rôles voient seulement les salles de leur établissement et ville
-    if (etablissementId && villeId) {
-      const originalSalles = [...this.salles];
-      this.salles = this.salles.filter((salle: any) => {
-        return salle.etablissement_id === etablissementId && salle.ville_id === villeId;
-      });
-      
-      console.log('🔒 Filtrage des salles par établissement et ville:', {
-        etablissementId,
-        villeId,
-        sallesOriginales: originalSalles.length,
-        sallesFiltrees: this.salles.length,
-        sallesDetails: this.salles.map(s => ({ id: s.id, name: s.name, etablissement_id: s.etablissement_id, ville_id: s.ville_id }))
-      });
+    // Afficher toutes les salles sans filtrage par établissement/faculté
+    if (this.salles && this.salles.length > 0) {
+      console.log('📋 Affichage de toutes les salles:', this.salles.length);
     } else {
-      console.log('⚠️ Établissement ou ville non sélectionné pour le filtrage des salles');
+      console.log('⚠️ Aucune salle disponible');
     }
   }
 
@@ -462,6 +451,7 @@ export class AddCoursComponent implements OnInit, OnDestroy {
       salles_ids: sallesIds.length > 0 ? sallesIds : (this.cours.salle_id ? [Number(this.cours.salle_id)] : []),
       option_id: this.cours.option_id ? Number(this.cours.option_id) : undefined,
       ville_id: Number(this.cours.ville_id),
+      enseignant_id: this.cours.enseignant_id ? Number(this.cours.enseignant_id) : null,
       tolerance: this.formatToleranceToTime(this.toleranceMinutes),
       attendance_mode: (this.isBiCheckMode ? 'bicheck' : 'normal') as 'normal' | 'bicheck',
       exit_capture_window: this.isBiCheckMode ? Number(this.exitCaptureWindow) : 0,
@@ -620,6 +610,7 @@ export class AddCoursComponent implements OnInit, OnDestroy {
       salles_ids: [],
       option_id: undefined,
       ville_id: 0,
+      enseignant_id: null,
       annee_universitaire: `${currentYear}-${currentYear + 1}`
     };
     this.toleranceMinutes = 15;
@@ -711,6 +702,56 @@ export class AddCoursComponent implements OnInit, OnDestroy {
   onSalleSearch(term: string): void {
     this.salleSearchTerm = term || '';
     this.updateFilteredSalles();
+  }
+
+  onEnseignantSearch(term: string): void {
+    this.enseignantSearchTerm = term || '';
+    this.updateFilteredEnseignants();
+  }
+
+  updateFilteredEnseignants(): void {
+    const term = this.enseignantSearchTerm.trim().toLowerCase();
+    if (!term) {
+      this.filteredEnseignants = this.enseignants;
+      return;
+    }
+    
+    this.filteredEnseignants = this.enseignants.filter((e: any) => {
+      const name = (e?.name || '').toString().toLowerCase();
+      const email = (e?.email || '').toString().toLowerCase();
+      return name.includes(term) || email.includes(term);
+    });
+  }
+
+  selectEnseignant(enseignant: any): void {
+    this.cours.enseignant_id = enseignant.id;
+    this.enseignantDropdownOpen = false;
+    this.enseignantSearchTerm = '';
+    this.updateFilteredEnseignants();
+  }
+
+  clearEnseignant(): void {
+    this.cours.enseignant_id = null;
+    this.enseignantDropdownOpen = false;
+    this.enseignantSearchTerm = '';
+    this.updateFilteredEnseignants();
+  }
+
+  getSelectedEnseignantName(): string {
+    if (!this.cours.enseignant_id) return '';
+    const enseignant = this.enseignants.find(e => e.id === this.cours.enseignant_id);
+    return enseignant ? enseignant.name : '';
+  }
+
+  toggleEnseignantDropdown(): void {
+    this.enseignantDropdownOpen = !this.enseignantDropdownOpen;
+    if (this.enseignantDropdownOpen) {
+      this.updateFilteredEnseignants();
+    }
+  }
+
+  closeEnseignantDropdown(): void {
+    this.enseignantDropdownOpen = false;
   }
   
   toggleSalleSelection(salle: any): void {

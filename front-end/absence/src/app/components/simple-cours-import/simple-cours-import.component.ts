@@ -476,7 +476,70 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
 
   getSuggestions(rowIndex: number, header: string): Suggestion[] { return this.suggestionsByCell[rowIndex]?.[header] ?? []; }
   isCellInvalid(rowIndex: number, header: string): boolean { return !!this.invalidCells[rowIndex]?.[header]; }
-  applySuggestion(rowIndex: number, header: string, suggestion: Suggestion): void { this.updateCell(rowIndex, header, suggestion.label); }
+  applySuggestion(rowIndex: number, header: string, suggestion: Suggestion): void {
+    const suggestionLabel = suggestion.label || '';
+
+    // Cas spécial pour salle_name et group_title : gérer plusieurs valeurs séparées par virgule
+    if (header === 'salle_name' || header === 'group_title') {
+      // Suggestion spéciale : supprimer les doublons
+      if (suggestionLabel === 'Supprimer les doublons') {
+        const current = this.tableRows[rowIndex]?.[header] || '';
+        const parts = current.split(',').map(p => p.trim()).filter(p => p.length > 0);
+
+        const deduped = Array.from(
+          new Map(
+            parts
+              .filter(Boolean)
+              .map(v => [v.toLowerCase(), v])
+          ).values()
+        );
+
+        const newValue = deduped.join(', ');
+        this.updateCell(rowIndex, header, newValue);
+        return;
+      }
+
+      // Nettoyer le label pour retirer "(pour "xxx")"
+      const baseLabel = suggestionLabel.replace(/\s*\(pour\s+"[^"]*"\)\s*$/i, '').trim();
+
+      const current = this.tableRows[rowIndex]?.[header] || '';
+      const parts = current.split(',').map(p => p.trim()).filter(p => p.length > 0);
+
+      // Tenter de cibler le token concerné si indiqué dans le label "(pour "xxx")"
+      const match = suggestionLabel.match(/\(pour\s+"([^"]+)"\)/i);
+      const target = match?.[1]?.trim().toLowerCase();
+
+      let replaced = false;
+      const updated = parts.map(p => {
+        if (!replaced && target && p.toLowerCase() === target) {
+          replaced = true;
+          return baseLabel;
+        }
+        return p;
+      });
+
+      // Si on n'a pas remplacé (token introuvable), on ajoute la valeur proposée
+      if (!replaced) {
+        updated.push(baseLabel);
+      }
+
+      // Supprimer les doublons (insensible à la casse) avant de reconstruire la valeur
+      const deduped = Array.from(
+        new Map(
+          updated
+            .filter(Boolean)
+            .map(v => [v.toLowerCase(), v]) // clé normalisée, valeur originale
+        ).values()
+      );
+
+      const newValue = deduped.join(', ');
+      this.updateCell(rowIndex, header, newValue);
+      return;
+    }
+
+    // Cas général (autres colonnes)
+    this.updateCell(rowIndex, header, suggestionLabel);
+  }
 
   getPlaceholder(header: string): string {
     const placeholders: Record<string, string> = {
@@ -490,8 +553,8 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
       'etablissement_name': 'Ex: Université A',
       'promotion_name': 'Ex: Promotion 1',
       'type_cours_name': 'Ex: Cours Magistral',
-      'salle_name': 'Ex: C401, C501, 506',
-      'group_title': 'Ex: Groupe A',
+      'salle_name': 'Ex: C401, C501 (séparées par virgule)',
+      'group_title': 'Ex: Groupe A, Groupe B (séparés par virgule) ou "Tous"',
       'ville_name': 'Ex: Casablanca',
       'option_name': 'Ex: Option 1',
       'annee_universitaire': 'Ex: 2024-2025'
@@ -628,8 +691,8 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
       'etablissement_name': '220px',
       'promotion_name': '180px',
       'type_cours_name': '160px',
-      'salle_name': '220px',  // Augmenté pour supporter plusieurs salles (C401, C501, 506)
-      'group_title': '140px',
+      'salle_name': '220px',   // Augmenté pour supporter plusieurs salles (C401, C501, 506)
+      'group_title': '220px',  // Augmenté pour supporter plusieurs groupes (Groupe A, Groupe B)
       'ville_name': '140px',
       'option_name': '160px',
       'annee_universitaire': '180px'
@@ -986,6 +1049,14 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
     }
 
     const value = this.tableRows[rowIndex]?.[header] ?? '';
+
+    // Cas spécial pour group_title : accepter "Tous" comme valeur valide
+    if (header === 'group_title' && this.normalize(value) === 'tous') {
+      this.suggestionsByCell[rowIndex][header] = [];
+      this.invalidCells[rowIndex][header] = false;
+      return;
+    }
+
     const referenceEntries = this.referenceData[header];
 
     if (!referenceEntries || referenceEntries.length === 0) {
@@ -994,32 +1065,61 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Cas spécial pour salle_name : valider plusieurs salles séparées par virgule
-    if (header === 'salle_name' && value.includes(',')) {
-      const salleNames = this.parseSalleNames(value);
+    // Cas spécial pour salle_name et group_title : valider plusieurs valeurs séparées par virgule
+    if ((header === 'salle_name' || header === 'group_title') && value.includes(',')) {
+      const valueNames =
+        header === 'salle_name'
+          ? this.parseSalleNames(value)
+          : this.parseGroupTitles(value);
+
       let allValid = true;
       const allSuggestions: Suggestion[] = [];
-      
-      salleNames.forEach((salleName: string) => {
-        const { isValid, suggestions } = this.computeSuggestions(referenceEntries, salleName);
+
+      valueNames.forEach((val: string) => {
+        // Cas spécial pour group_title : accepter "Tous" comme valeur valide
+        if (header === 'group_title' && this.normalize(val) === 'tous') {
+          // "Tous" est valide, pas besoin de suggestions
+          return;
+        }
+        const { isValid, suggestions } = this.computeSuggestions(referenceEntries, val);
         if (!isValid) {
           allValid = false;
-          // Ajouter les suggestions pour cette salle
+          // Ajouter les suggestions pour cette valeur
           if (suggestions.length > 0) {
-            allSuggestions.push(...suggestions.map(s => ({ ...s, label: `${s.label} (pour "${salleName}")` })));
+            allSuggestions.push(
+              ...suggestions.map(s => ({ ...s, label: `${s.label} (pour "${val}")` }))
+            );
           }
         }
       });
-      
-      // Si toutes les salles sont valides, pas de suggestions
-      if (allValid) {
-        this.suggestionsByCell[rowIndex][header] = [];
-        this.invalidCells[rowIndex][header] = false;
-      } else {
-        // Prendre les meilleures suggestions (limitées à 5)
-        this.suggestionsByCell[rowIndex][header] = allSuggestions.slice(0, 5);
-        this.invalidCells[rowIndex][header] = true;
+
+      // Détection de redondance (doublons) dans les valeurs
+      const seen: Record<string, number> = {};
+      let hasDuplicates = false;
+      valueNames.forEach((val: string) => {
+        const key = this.normalize(val);
+        seen[key] = (seen[key] || 0) + 1;
+        if (seen[key] > 1) {
+          hasDuplicates = true;
+        }
+      });
+
+      const suggestions: Suggestion[] = [];
+
+      // Ajouter une suggestion spéciale pour supprimer les doublons
+      if (hasDuplicates) {
+        suggestions.push({
+          label: 'Supprimer les doublons',
+        });
       }
+
+      // Suggestions de correspondance (valeurs non trouvées)
+      if (!allValid) {
+        suggestions.push(...allSuggestions.slice(0, 5));
+      }
+
+      this.suggestionsByCell[rowIndex][header] = suggestions;
+      this.invalidCells[rowIndex][header] = hasDuplicates || !allValid;
     } else {
       // Validation normale pour les autres champs ou une seule salle
       const { isValid, suggestions } = this.computeSuggestions(referenceEntries, value);
@@ -1036,6 +1136,17 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
       .split(',')
       .map(name => name.trim())
       .filter(name => name.length > 0);
+  }
+
+  // Parser les titres de groupes séparés par virgule
+  private parseGroupTitles(groupTitlesString: string): string[] {
+    if (!groupTitlesString || !groupTitlesString.trim()) {
+      return [];
+    }
+    return groupTitlesString
+      .split(',')
+      .map(title => title.trim())
+      .filter(title => title.length > 0);
   }
 
   private computeSuggestions(reference: ReferenceEntry[], rawValue: string): { isValid: boolean; suggestions: Suggestion[] } {

@@ -121,7 +121,7 @@ class ExamenController extends Controller
     }
 
     function show($id) {
-        $examen = Examen::with(['etablissement', 'promotion', 'typeExamen', 'salle', 'salles', 'option', 'group', 'ville'])->find($id);
+        $examen = Examen::with(['etablissement', 'promotion', 'typeExamen', 'salle', 'salles', 'option', 'group', 'groups', 'ville'])->find($id);
         if (!$examen) {
             return response()->json(["message" => "Examen not found", "status" => 404], 404);
         }
@@ -160,6 +160,8 @@ class ExamenController extends Controller
             'annee_universitaire' => 'required|string|max:255',
             'ville_id' => 'required|exists:villes,id',
             'all_groups' => 'nullable|boolean',
+            'group_ids' => 'nullable|array',
+            'group_ids.*' => 'exists:groups,id',
         ];
 
         // Validation : au moins une salle doit être fournie (salle_id ou salles_ids)
@@ -177,9 +179,22 @@ class ExamenController extends Controller
         // Validate the request input
         $request->validate($rules);
 
-        // Si group_id est null et all_groups n'est pas défini, interpréter comme "Tous"
+        // Gérer les groupes multiples
+        $groupIds = $request->group_ids ?? [];
         $group_id = $request->group_id;
-        $all_groups = $request->boolean('all_groups') || ($group_id === null);
+        $all_groups = $request->boolean('all_groups');
+        
+        // Si group_ids est fourni, l'utiliser; sinon utiliser group_id ou "Tous"
+        if (!empty($groupIds)) {
+            $all_groups = false;
+            $group_id = null; // Ne plus utiliser group_id quand group_ids est fourni
+        } elseif ($group_id === null || $group_id === 'ALL' || $group_id === '') {
+            $all_groups = true;
+            $group_id = null;
+        } else {
+            $all_groups = false;
+            $group_id = $group_id;
+        }
 
         // Create a new Examen
         $examen = Examen::create([
@@ -196,7 +211,7 @@ class ExamenController extends Controller
             'type_examen_id' => $request->type_examen_id,
             'etablissement_id' => $request->etablissement_id,
             'annee_universitaire' => $request->annee_universitaire,
-            'group_id' => $all_groups ? null : $group_id,
+            'group_id' => $all_groups ? null : ($group_id ?? null),
             'ville_id' => $request->ville_id,
         ]);
 
@@ -208,8 +223,16 @@ class ExamenController extends Controller
             $examen->salles()->sync([$request->salle_id]);
         }
 
+        // Synchroniser les groupes multiples si group_ids est fourni
+        if (!empty($groupIds)) {
+            $examen->groups()->sync($groupIds);
+        } elseif ($group_id) {
+            // Si seulement group_id est fourni, créer l'association dans le pivot aussi
+            $examen->groups()->sync([$group_id]);
+        }
+
         // Charger les relations pour la réponse
-        $examen->load(['salles', 'salle']);
+        $examen->load(['salles', 'salle', 'groups']);
 
         // Return the newly created Examen as a JSON response
         return response()->json(['response' => $examen], 201);
@@ -242,6 +265,8 @@ class ExamenController extends Controller
             'etablissement_id' => 'required|exists:etablissements,id',
             'ville_id' => 'required|exists:villes,id',
             'all_groups' => 'nullable|boolean',
+            'group_ids' => 'nullable|array',
+            'group_ids.*' => 'exists:groups,id',
         ];
 
         // Validation : au moins une salle doit être fournie (salle_id ou salles_ids)
@@ -272,9 +297,22 @@ class ExamenController extends Controller
             ], 403);
         }
 
-        // Si group_id est null et all_groups n'est pas défini, interpréter comme "Tous"
+        // Gérer les groupes multiples
+        $groupIds = $request->group_ids ?? [];
         $group_id = $request->group_id;
-        $all_groups = $request->boolean('all_groups') || ($group_id === null);
+        $all_groups = $request->boolean('all_groups');
+        
+        // Si group_ids est fourni, l'utiliser; sinon utiliser group_id ou "Tous"
+        if (!empty($groupIds)) {
+            $all_groups = false;
+            $group_id = null; // Ne plus utiliser group_id quand group_ids est fourni
+        } elseif ($group_id === null || $group_id === 'ALL' || $group_id === '') {
+            $all_groups = true;
+            $group_id = null;
+        } else {
+            $all_groups = false;
+            $group_id = $group_id;
+        }
 
         // Update the Examen with the new data
         $payload = $request->only([
@@ -294,7 +332,7 @@ class ExamenController extends Controller
         ]);
         
         // Mettre à jour group_id selon all_groups
-        $payload['group_id'] = $all_groups ? null : $group_id;
+        $payload['group_id'] = $all_groups ? null : ($group_id ?? null);
         
         // Si salle_id n'est pas dans le payload mais salles_ids est fourni, utiliser la première salle pour salle_id (compatibilité)
         if (!isset($payload['salle_id']) && !empty($request->salles_ids)) {
@@ -311,8 +349,19 @@ class ExamenController extends Controller
             $examen->salles()->sync([$request->salle_id]);
         }
 
+        // Synchroniser les groupes multiples si group_ids est fourni
+        if (!empty($groupIds)) {
+            $examen->groups()->sync($groupIds);
+        } elseif ($group_id) {
+            // Si seulement group_id est fourni, créer l'association dans le pivot aussi
+            $examen->groups()->sync([$group_id]);
+        } elseif ($all_groups) {
+            // Si "Tous", supprimer toutes les associations de groupes
+            $examen->groups()->sync([]);
+        }
+
         // Charger les relations pour la réponse
-        $examen->load(['salles', 'salle']);
+        $examen->load(['salles', 'salle', 'groups']);
 
         // Return the updated Examen as a JSON response
         return response()->json($examen, 200);
