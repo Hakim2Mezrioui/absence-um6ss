@@ -786,43 +786,17 @@ export class AddCoursComponent implements OnInit, OnDestroy {
 
   updateFilteredSalles(): void {
     const term = this.salleSearchTerm.trim().toLowerCase();
-    const etablissementId = this.cours?.etablissement_id;
-    const villeId = this.cours?.ville_id;
     
-    // Filtrer d'abord par établissement et ville
-    let filteredByLocation = [...this.allSalles];
-    if (etablissementId && villeId) {
-      filteredByLocation = (this.allSalles || []).filter((s: any) => {
-        return s?.etablissement_id == etablissementId && s?.ville_id == villeId;
-      });
-      console.log('🏢 Salles filtrées par établissement et ville (add-cours):', {
-        etablissementId: etablissementId,
-        villeId: villeId,
-        totalSalles: this.allSalles.length,
-        sallesFiltrees: filteredByLocation.length
-      });
-    } else if (etablissementId) {
-      // Si seulement l'établissement est sélectionné
-      filteredByLocation = (this.allSalles || []).filter((s: any) => {
-        return s?.etablissement_id == etablissementId;
-      });
-      console.log('🏢 Salles filtrées par établissement seulement (add-cours):', {
-        etablissementId: etablissementId,
-        totalSalles: this.allSalles.length,
-        sallesFiltrees: filteredByLocation.length
-      });
-    }
+    // Afficher toutes les salles sans filtrage par établissement/faculté
+    this.salles = [...this.allSalles];
     
-    // Mettre à jour la liste des salles disponibles
-    this.salles = filteredByLocation;
-    
-    // Ensuite filtrer par terme de recherche
+    // Filtrer uniquement par terme de recherche si nécessaire
     if (!term) {
-      this.filteredSalles = filteredByLocation;
+      this.filteredSalles = [...this.allSalles];
       return;
     }
     
-    this.filteredSalles = filteredByLocation.filter((s: any) => {
+    this.filteredSalles = this.allSalles.filter((s: any) => {
       const name = (s?.name || '').toString().toLowerCase();
       const batiment = (s?.batiment || '').toString().toLowerCase();
       return name.includes(term) || batiment.includes(term);

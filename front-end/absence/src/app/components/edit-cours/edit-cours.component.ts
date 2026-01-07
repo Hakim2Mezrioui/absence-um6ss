@@ -419,32 +419,17 @@ export class EditCoursComponent implements OnInit, OnDestroy {
 
   updateFilteredSalles(): void {
     const term = (this.salleSearchTerm || '').trim().toLowerCase();
-    const etablissementId = this.cours?.etablissement_id;
-    const villeId = this.cours?.ville_id;
     
-    // Filtrer d'abord par établissement et ville
-    let filteredByLocation = [...this.allSalles];
-    if (etablissementId && villeId) {
-      filteredByLocation = (this.allSalles || []).filter((s: any) => {
-        return s?.etablissement_id == etablissementId && s?.ville_id == villeId;
-      });
-    } else if (etablissementId) {
-      // Si seulement l'établissement est sélectionné
-      filteredByLocation = (this.allSalles || []).filter((s: any) => {
-        return s?.etablissement_id == etablissementId;
-      });
-    }
+    // Afficher toutes les salles sans filtrage par établissement/faculté
+    this.salles = [...this.allSalles];
     
-    // Mettre à jour la liste des salles disponibles
-    this.salles = filteredByLocation;
-    
-    // Ensuite filtrer par terme de recherche
+    // Filtrer uniquement par terme de recherche si nécessaire
     if (!term) {
-      this.filteredSalles = filteredByLocation;
+      this.filteredSalles = [...this.allSalles];
       return;
     }
     
-    this.filteredSalles = filteredByLocation.filter((s: any) => {
+    this.filteredSalles = this.allSalles.filter((s: any) => {
       const name = (s?.name || '').toString().toLowerCase();
       const batiment = (s?.batiment || '').toString().toLowerCase();
       return name.includes(term) || batiment.includes(term);
