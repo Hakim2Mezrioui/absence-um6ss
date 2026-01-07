@@ -52,6 +52,9 @@ export class CoursDisplayComponent implements OnInit, AfterViewInit, OnDestroy {
   isPaused: boolean = false;
   faceIdDisplayDuration = 5000; // 5 secondes par étudiant
   
+  // Filtre d'affichage
+  displayFilter: 'all' | 'absent-only' = 'all'; // 'all' = absents + en retard, 'absent-only' = seulement absents
+  
   // Exposer Math pour le template
   Math = Math;
 
@@ -150,10 +153,20 @@ export class CoursDisplayComponent implements OnInit, AfterViewInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          // Filtrer uniquement les absents
-          const absentStudents = (response.students || []).filter((s: StudentAttendance) => 
-            s.status === 'absent' || s.status === 'late'
-          ) as AbsentStudent[];
+          // Filtrer selon le filtre sélectionné
+          let absentStudents: AbsentStudent[];
+          
+          if (this.displayFilter === 'absent-only') {
+            // Afficher uniquement les absents
+            absentStudents = (response.students || []).filter((s: StudentAttendance) => 
+              s.status === 'absent'
+            ) as AbsentStudent[];
+          } else {
+            // Afficher absents + en retard
+            absentStudents = (response.students || []).filter((s: StudentAttendance) => 
+              s.status === 'absent' || s.status === 'late'
+            ) as AbsentStudent[];
+          }
           
           if (isRefresh) {
             console.log(`📊 Rafraîchissement: ${absentStudents.length} étudiant(s) absent(s) trouvé(s)`);
@@ -534,6 +547,40 @@ export class CoursDisplayComponent implements OnInit, AfterViewInit, OnDestroy {
    */
   getStatusLabel(status: string): string {
     return status === 'late' ? 'En Retard' : 'Absent';
+  }
+
+  /**
+   * Obtenir le nombre d'étudiants absents (sans les en retard)
+   */
+  getAbsentCount(): number {
+    if (!this.currentSegment) return 0;
+    return this.currentSegment.students.filter(s => s.status === 'absent').length;
+  }
+
+  /**
+   * Obtenir le nombre d'étudiants en retard
+   */
+  getLateCount(): number {
+    if (!this.currentSegment) return 0;
+    return this.currentSegment.students.filter(s => s.status === 'late').length;
+  }
+
+  /**
+   * Obtenir le nombre total d'absences (absents + en retard)
+   */
+  getTotalAbsencesCount(): number {
+    if (!this.currentSegment) return 0;
+    return this.currentSegment.students.length;
+  }
+
+  /**
+   * Changer le filtre d'affichage
+   */
+  changeDisplayFilter(filter: 'all' | 'absent-only'): void {
+    this.displayFilter = filter;
+    // Recharger les données avec le nouveau filtre
+    this.currentPageIndex = 0; // Réinitialiser à la première page
+    this.loadAbsentStudents();
   }
 
   /**

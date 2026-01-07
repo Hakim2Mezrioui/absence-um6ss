@@ -14,12 +14,34 @@
       <div class="header-inner">
         <div class="logo-section">
           <div class="logo-badge">
-            <span class="material-icons">school</span>
+            <img src="assets/logo_um6ss.png" alt="UM6SS Logo" class="logo-image">
           </div>
           <div class="brand-info">
             <h1 class="brand-title">UM6SS</h1>
             <p class="brand-subtitle">Système de Gestion des Absences</p>
           </div>
+        </div>
+        
+        <!-- Boutons de filtre -->
+        <div class="filter-controls">
+          <button 
+            class="filter-button"
+            [class.active]="displayFilter === 'all'"
+            (click)="changeDisplayFilter('all')"
+            title="Afficher absents et en retard"
+          >
+            <span class="material-icons">people</span>
+            <span>Tous</span>
+          </button>
+          <button 
+            class="filter-button"
+            [class.active]="displayFilter === 'absent-only'"
+            (click)="changeDisplayFilter('absent-only')"
+            title="Afficher uniquement les absents"
+          >
+            <span class="material-icons">cancel</span>
+            <span>Absents</span>
+          </button>
         </div>
         
         <div class="exam-info" *ngIf="coursData">
@@ -83,8 +105,18 @@
           </div>
           <div class="segment-meta">
             <div class="meta-badge">
-              <span class="material-icons meta-icon">person</span>
-              <span class="meta-text">{{ currentSegment.students.length }} étudiant(s) absent(s)</span>
+              <span class="material-icons meta-icon" style="color: #dc2626;">cancel</span>
+              <span class="meta-text" style="font-weight: 600;">{{ getAbsentCount() }} absent(s)</span>
+            </div>
+            <div class="meta-divider"></div>
+            <div class="meta-badge">
+              <span class="material-icons meta-icon" style="color: #d97706;">schedule</span>
+              <span class="meta-text" style="font-weight: 600;">{{ getLateCount() }} en retard</span>
+            </div>
+            <div class="meta-divider"></div>
+            <div class="meta-badge">
+              <span class="material-icons meta-icon">person_off</span>
+              <span class="meta-text" style="font-weight: 600;">{{ getTotalAbsencesCount() }} total</span>
             </div>
             <div class="meta-divider"></div>
             <div class="meta-badge">
