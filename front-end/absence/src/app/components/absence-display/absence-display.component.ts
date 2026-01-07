@@ -54,6 +54,9 @@ export class AbsenceDisplayComponent implements OnInit, AfterViewInit, OnDestroy
   isPaused: boolean = false;
   faceIdDisplayDuration = 5000; // 5 secondes par étudiant
   
+  // Filtre d'affichage
+  displayFilter: 'all' | 'absent-only' = 'all'; // 'all' = absents + en retard, 'absent-only' = seulement absents
+  
   // Exposer Math pour le template
   Math = Math;
 
@@ -170,10 +173,20 @@ export class AbsenceDisplayComponent implements OnInit, AfterViewInit, OnDestroy
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          // Filtrer uniquement les absents
-          const absentStudents = (response.etudiants || []).filter((s: StudentAttendance) => 
-            s.status === 'absent' || s.status === 'en retard'
-          ) as AbsentStudent[];
+          // Filtrer selon le filtre sélectionné
+          let absentStudents: AbsentStudent[];
+          
+          if (this.displayFilter === 'absent-only') {
+            // Afficher uniquement les absents
+            absentStudents = (response.etudiants || []).filter((s: StudentAttendance) => 
+              s.status === 'absent'
+            ) as AbsentStudent[];
+          } else {
+            // Afficher absents + en retard
+            absentStudents = (response.etudiants || []).filter((s: StudentAttendance) => 
+              s.status === 'absent' || s.status === 'en retard'
+            ) as AbsentStudent[];
+          }
           
           if (isRefresh) {
             console.log(`📊 Rafraîchissement: ${absentStudents.length} étudiant(s) absent(s) trouvé(s)`);
@@ -707,6 +720,16 @@ export class AbsenceDisplayComponent implements OnInit, AfterViewInit, OnDestroy
       hour: '2-digit', 
       minute: '2-digit'
     });
+  }
+
+  /**
+   * Changer le filtre d'affichage
+   */
+  changeDisplayFilter(filter: 'all' | 'absent-only'): void {
+    this.displayFilter = filter;
+    // Recharger les données avec le nouveau filtre
+    this.currentPageIndex = 0; // Réinitialiser à la première page
+    this.loadAbsentStudents();
   }
 }
 

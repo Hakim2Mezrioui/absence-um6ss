@@ -22,6 +22,28 @@
           </div>
         </div>
         
+        <!-- Boutons de filtre -->
+        <div class="filter-controls">
+          <button 
+            class="filter-button"
+            [class.active]="displayFilter === 'all'"
+            (click)="changeDisplayFilter('all')"
+            title="Afficher absents et en retard"
+          >
+            <span class="material-icons">people</span>
+            <span>Tous</span>
+          </button>
+          <button 
+            class="filter-button"
+            [class.active]="displayFilter === 'absent-only'"
+            (click)="changeDisplayFilter('absent-only')"
+            title="Afficher uniquement les absents"
+          >
+            <span class="material-icons">cancel</span>
+            <span>Absents</span>
+          </button>
+        </div>
+        
         <div class="exam-info" *ngIf="examenData">
           <div class="info-card">
             <span class="material-icons info-icon">event_note</span>
