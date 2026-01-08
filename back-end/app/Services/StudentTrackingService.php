@@ -8,6 +8,7 @@ use App\Models\Examen;
 use App\Models\Absence;
 use App\Services\BiostarAttendanceService;
 use App\Services\ConfigurationService;
+use App\Services\AttendanceStateService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
@@ -16,13 +17,16 @@ class StudentTrackingService
 {
     protected $biostarAttendanceService;
     protected $configurationService;
+    protected $attendanceStateService;
 
     public function __construct(
         BiostarAttendanceService $biostarAttendanceService,
-        ConfigurationService $configurationService
+        ConfigurationService $configurationService,
+        AttendanceStateService $attendanceStateService
     ) {
         $this->biostarAttendanceService = $biostarAttendanceService;
         $this->configurationService = $configurationService;
+        $this->attendanceStateService = $attendanceStateService;
     }
 
     /**
@@ -51,13 +55,17 @@ class StudentTrackingService
             $cours = Cours::withoutGlobalScopes()
                 ->whereBetween('date', [$fromDate, $toDate])
                 ->where('etablissement_id', $studentEtablissementId) // Filtrer par établissement de l'étudiant
-                ->with(['salle', 'salles', 'type_cours', 'promotion', 'etablissement', 'ville'])
+                ->with(['salle', 'salles' => function($query) {
+                    $query->withoutGlobalScopes();
+                }, 'type_cours', 'promotion', 'etablissement', 'ville'])
                 ->get();
 
             $examens = Examen::withoutGlobalScopes()
                 ->whereBetween('date', [$fromDate, $toDate])
                 ->where('etablissement_id', $studentEtablissementId) // Filtrer par établissement de l'étudiant
-                ->with(['salle', 'salles', 'typeExamen', 'promotion', 'etablissement', 'ville'])
+                ->with(['salle', 'salles' => function($query) {
+                    $query->withoutGlobalScopes();
+                }, 'typeExamen', 'promotion', 'etablissement', 'ville'])
                 ->get();
 
             $results = [];
@@ -180,23 +188,22 @@ class StudentTrackingService
      */
     private function getTrackingDataForCours($student, $cours)
     {
-        // Check for manual absence record
-        $absence = Absence::where('etudiant_id', $student->id)
-            ->where('cours_id', $cours->id)
-            ->where('date_absence', $cours->date)
-            ->first();
-
-        $status = 'absent';
+        // Vérifier d'abord s'il y a un état manuellement défini dans la table absences
+        // Utiliser AttendanceStateService pour obtenir l'état exact
+        $manualState = $this->attendanceStateService->getStudentAttendanceState($cours->id, $student->id);
+        
+        $status = 'absent'; // Par défaut absent
         $punchTime = null;
         $device = null;
+        $absence = $manualState['absence'];
 
-        // Always try to get punch data from Biostar (even if there's a manual absence)
-        $punchData = $this->getPunchDataForCours($student, $cours);
-        
         // Variables pour bi-check
         $punchIn = null;
         $punchOut = null;
         $attendanceMode = $cours->attendance_mode ?? 'normal';
+        
+        // Toujours récupérer les données Biostar pour avoir le punch_time
+        $punchData = $this->getPunchDataForCours($student, $cours);
         
         if ($punchData) {
             $punchTime = $punchData['punch_time'];
@@ -209,30 +216,18 @@ class StudentTrackingService
             if (isset($punchData['punch_out'])) {
                 $punchOut = $punchData['punch_out'];
             }
-            
-            // Only use Biostar status if there's no manual absence
-            if (!$absence) {
-                $status = $punchData['status'];
-            }
         }
 
-        // If there's a manual absence, use its status (but keep punch data if available)
-        if ($absence) {
-            // Map absence type to status
-            switch ($absence->type_absence) {
-                case 'Absence':
-                    $status = 'absent';
-                    break;
-                case 'Retard':
-                    $status = 'late';
-                    break;
-                case 'Départ anticipé':
-                    $status = 'left_early';
-                    break;
-                case 'Présence confirmée':
-                    $status = 'present';
-                    break;
-            }
+        // Si un état manuel existe (absence enregistrée), l'utiliser en priorité absolue
+        if ($manualState['absence']) {
+            // L'état manuel a la priorité absolue (override manuel)
+            $status = $manualState['status'];
+        } elseif ($punchData) {
+            // Pas d'état manuel ET pointage Biostar trouvé : utiliser le statut Biostar
+            $status = $punchData['status'];
+        } else {
+            // Pas d'état manuel ET pas de pointage Biostar : absent
+            $status = 'absent';
         }
 
         // Format date as Y-m-d string
@@ -244,6 +239,21 @@ class StudentTrackingService
         $heureDebutFormatted = $this->formatTime($cours->heure_debut);
         $heureFinFormatted = $this->formatTime($cours->heure_fin);
 
+        // Préparer les informations des salles
+        $salleName = null;
+        $sallesList = null;
+        
+        if ($cours->salles && $cours->salles->isNotEmpty()) {
+            // Salles multiples (priorité)
+            $sallesList = $cours->salles->map(function($salle) { 
+                return ['id' => $salle->id, 'name' => $salle->name]; 
+            })->toArray();
+            $salleName = $cours->salles->pluck('name')->join(', '); // Noms séparés par virgule
+        } elseif ($cours->salle) {
+            // Salle unique (fallback)
+            $salleName = $cours->salle->name;
+        }
+
         $result = [
             'type' => 'cours',
             'id' => $cours->id,
@@ -254,7 +264,8 @@ class StudentTrackingService
             'status' => $status,
             'punch_time' => $punchTime,
             'device' => $device,
-            'salle' => $cours->salle ? $cours->salle->name : null,
+            'salle' => $salleName,
+            'salles' => $sallesList,
             'type_cours' => $cours->type_cours ? $cours->type_cours->name : null,
             'absence' => $absence,
             'attendance_mode' => $attendanceMode
@@ -274,46 +285,33 @@ class StudentTrackingService
      */
     private function getTrackingDataForExamen($student, $examen)
     {
-        // Check for manual absence record
-        $absence = Absence::where('etudiant_id', $student->id)
-            ->where('examen_id', $examen->id)
-            ->where('date_absence', $examen->date)
-            ->first();
-
-        $status = 'absent';
+        // Vérifier d'abord s'il y a un état manuellement défini dans la table absences
+        // Utiliser AttendanceStateService pour obtenir l'état exact
+        $manualState = $this->attendanceStateService->getStudentExamAttendanceState($examen->id, $student->id);
+        
+        $status = 'absent'; // Par défaut absent
         $punchTime = null;
         $device = null;
+        $absence = $manualState['absence'];
 
-        // Always try to get punch data from Biostar (even if there's a manual absence)
+        // Toujours récupérer les données Biostar pour avoir le punch_time
         $punchData = $this->getPunchDataForExamen($student, $examen);
         
         if ($punchData) {
             $punchTime = $punchData['punch_time'];
             $device = $punchData['device'];
-            
-            // Only use Biostar status if there's no manual absence
-            if (!$absence) {
-                $status = $punchData['status'];
-            }
         }
 
-        // If there's a manual absence, use its status (but keep punch data if available)
-        if ($absence) {
-            // Map absence type to status
-            switch ($absence->type_absence) {
-                case 'Absence':
-                    $status = 'absent';
-                    break;
-                case 'Retard':
-                    $status = 'late';
-                    break;
-                case 'Départ anticipé':
-                    $status = 'left_early';
-                    break;
-                case 'Présence confirmée':
-                    $status = 'present';
-                    break;
-            }
+        // Si un état manuel existe (absence enregistrée), l'utiliser en priorité absolue
+        if ($manualState['absence']) {
+            // L'état manuel a la priorité absolue (override manuel)
+            $status = $manualState['status'];
+        } elseif ($punchData) {
+            // Pas d'état manuel ET pointage Biostar trouvé : utiliser le statut Biostar
+            $status = $punchData['status'];
+        } else {
+            // Pas d'état manuel ET pas de pointage Biostar : absent
+            $status = 'absent';
         }
 
         // Format date as Y-m-d string
@@ -325,6 +323,26 @@ class StudentTrackingService
         $heureDebutFormatted = $this->formatTime($examen->heure_debut);
         $heureFinFormatted = $this->formatTime($examen->heure_fin);
 
+        // Préparer les informations des salles
+        $salleName = null;
+        $sallesList = null;
+        
+        // Load salles if not already loaded
+        if (!$examen->relationLoaded('salles')) {
+            $examen->load('salles');
+        }
+        
+        if ($examen->salles && $examen->salles->isNotEmpty()) {
+            // Salles multiples (priorité)
+            $sallesList = $examen->salles->map(function($salle) { 
+                return ['id' => $salle->id, 'name' => $salle->name]; 
+            })->toArray();
+            $salleName = $examen->salles->pluck('name')->join(', '); // Noms séparés par virgule
+        } elseif ($examen->salle) {
+            // Salle unique (fallback)
+            $salleName = $examen->salle->name;
+        }
+
         return [
             'type' => 'examen',
             'id' => $examen->id,
@@ -335,7 +353,8 @@ class StudentTrackingService
             'status' => $status,
             'punch_time' => $punchTime,
             'device' => $device,
-            'salle' => $examen->salle ? $examen->salle->name : null,
+            'salle' => $salleName,
+            'salles' => $sallesList,
             'type_examen' => $examen->typeExamen ? $examen->typeExamen->name : null,
             'absence' => $absence
         ];
@@ -907,19 +926,45 @@ class StudentTrackingService
                 return null;
             }
 
-            // Get allowed devices from salle
+            // Get allowed devices from salle(s) - support for multiple salles
             $allowedDeviceIds = [];
             $allowedDeviceNames = [];
             
-            if ($examen->salle && is_array($examen->salle->devices)) {
-                foreach ($examen->salle->devices as $d) {
-                    if (is_array($d)) {
-                        if (isset($d['devid'])) {
-                            $allowedDeviceIds[] = (string)$d['devid'];
+            // Load salles relation if not already loaded
+            if (!$examen->relationLoaded('salles')) {
+                $examen->load('salles');
+            }
+            
+            // Priority: multiple salles (many-to-many), then single salle
+            if (method_exists($examen, 'salles') && $examen->relationLoaded('salles') && $examen->salles && $examen->salles->isNotEmpty()) {
+                // Multi-salles: collect devices from all salles
+                foreach ($examen->salles as $salle) {
+                    if (is_array($salle->devices)) {
+                        foreach ($salle->devices as $d) {
+                            if (is_array($d)) {
+                                if (isset($d['devid'])) {
+                                    $allowedDeviceIds[] = (string)$d['devid'];
+                                }
+                                if (isset($d['devnm'])) {
+                                    // Normaliser immédiatement pour comparaison cohérente avec Biostar
+                                    $allowedDeviceNames[] = strtolower(trim((string)$d['devnm']));
+                                }
+                            }
                         }
-                        if (isset($d['devnm'])) {
-                            // Normaliser immédiatement pour comparaison cohérente avec Biostar
-                            $allowedDeviceNames[] = strtolower(trim((string)$d['devnm']));
+                    }
+                }
+            } elseif ($examen->salle_id && $examen->salle) {
+                // Fallback: single salle
+                if (is_array($examen->salle->devices)) {
+                    foreach ($examen->salle->devices as $d) {
+                        if (is_array($d)) {
+                            if (isset($d['devid'])) {
+                                $allowedDeviceIds[] = (string)$d['devid'];
+                            }
+                            if (isset($d['devnm'])) {
+                                // Normaliser immédiatement pour comparaison cohérente avec Biostar
+                                $allowedDeviceNames[] = strtolower(trim((string)$d['devnm']));
+                            }
                         }
                     }
                 }
@@ -929,8 +974,9 @@ class StudentTrackingService
             $allowedDeviceIds = !empty($allowedDeviceIds) ? array_values(array_unique(array_filter($allowedDeviceIds))) : [];
             $allowedDeviceNames = !empty($allowedDeviceNames) ? array_values(array_unique(array_filter($allowedDeviceNames))) : [];
 
-            // Vérifier si l'examen a une salle
-            $hasSalle = $examen->salle_id && $examen->salle;
+            // Vérifier si l'examen a une salle (une ou plusieurs)
+            $hasSalle = (method_exists($examen, 'salles') && $examen->relationLoaded('salles') && $examen->salles && $examen->salles->isNotEmpty()) 
+                        || ($examen->salle_id && $examen->salle);
 
             // Déterminer les devices à passer à la requête Biostar
             if ($hasSalle && empty($allowedDeviceIds) && empty($allowedDeviceNames)) {
@@ -1048,7 +1094,8 @@ class StudentTrackingService
                         'ids' => $deviceIdsForQuery,
                         'names' => $deviceNamesForQuery
                     ],
-                    'has_salle' => $hasSalle
+                    'has_salle' => $hasSalle,
+                    'salles_count' => method_exists($examen, 'salles') && $examen->relationLoaded('salles') ? $examen->salles->count() : 0
                 ]);
                 return null;
             }

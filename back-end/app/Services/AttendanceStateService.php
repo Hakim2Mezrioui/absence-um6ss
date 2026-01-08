@@ -286,16 +286,26 @@ class AttendanceStateService
      */
     private function getStatusFromAbsenceType(string $typeAbsence): string
     {
-        switch ($typeAbsence) {
+        // Normaliser le type d'absence (insensible à la casse et aux espaces)
+        $normalizedType = trim($typeAbsence);
+        
+        switch ($normalizedType) {
             case self::ABSENCE_TYPE_ABSENT:
+            case 'Absence':
+            case 'Absence non justifiée':
+            case 'Absence justifiée':
                 return self::STATUS_ABSENT;
             case self::ABSENCE_TYPE_LATE:
+            case 'Retard':
                 return self::STATUS_LATE;
             case self::ABSENCE_TYPE_LEFT_EARLY:
+            case 'Départ anticipé':
                 return self::STATUS_LEFT_EARLY;
             case 'Présence confirmée':
+            case 'present':
                 return self::STATUS_PRESENT;
             default:
+                // Par défaut, considérer comme absent
                 return self::STATUS_ABSENT;
         }
     }
