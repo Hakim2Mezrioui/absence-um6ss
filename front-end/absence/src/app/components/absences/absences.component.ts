@@ -11,6 +11,9 @@ import {
   AbsenceFilters
 } from '../../services/absence.service';
 import { AuthService } from '../../services/auth.service';
+import { EtablissementsService } from '../../services/etablissements.service';
+import { PromotionsService } from '../../services/promotions.service';
+import { environment } from '../../../environments/environment';
 
 // Angular Material Imports
 import { MatButtonModule } from '@angular/material/button';
@@ -79,6 +82,23 @@ export class AbsencesComponent implements OnInit, OnDestroy {
     { value: 'false', label: 'Non justifiées seulement' }
   ];
   
+  typeOptions = [
+    { value: '', label: 'Tous' },
+    { value: 'cours', label: 'Cours seulement' },
+    { value: 'examen', label: 'Examens seulement' }
+  ];
+  
+  typeAbsenceOptions = [
+    { value: '', label: 'Tous les types' },
+    { value: 'Absence non justifiée', label: 'Absence' },
+    { value: 'Retard', label: 'Retard' },
+    { value: 'Départ anticipé', label: 'Départ anticipé' }
+  ];
+  
+  // Options de filtre chargées
+  etablissements: any[] = [];
+  promotions: any[] = [];
+  
   pageSizeOptions = [5, 10, 25, 50];
   
   // États
@@ -99,7 +119,9 @@ export class AbsencesComponent implements OnInit, OnDestroy {
     private absenceService: AbsenceService,
     private fb: FormBuilder,
     private dialog: MatDialog,
-    public authService: AuthService
+    public authService: AuthService,
+    private etablissementsService: EtablissementsService,
+    private promotionsService: PromotionsService
   ) {
     this.initializeFilters();
   }
@@ -107,6 +129,7 @@ export class AbsencesComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.setupSearchSubscription();
     this.testApiConnection();
+    this.loadFilterOptions();
     this.loadAbsences();
   }
 
@@ -116,7 +139,13 @@ export class AbsencesComponent implements OnInit, OnDestroy {
   private initializeFilters(): void {
     this.filtersForm = this.fb.group({
       justifiee: [''],
-      searchValue: ['']
+      searchValue: [''],
+      date_debut: [''],
+      date_fin: [''],
+      type: [''], // 'cours' | 'examen' | ''
+      type_absence: [''],
+      etablissement_id: [''],
+      promotion_id: ['']
     });
 
     // Surveiller les changements de filtres
@@ -129,6 +158,35 @@ export class AbsencesComponent implements OnInit, OnDestroy {
       .subscribe(() => {
         this.currentPage = 1; // Reset à la première page
         this.loadAbsences();
+      });
+  }
+
+  /**
+   * Charger les options de filtre
+   */
+  loadFilterOptions(): void {
+    // Charger les établissements
+    this.etablissementsService.getAllEtablissements()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          this.etablissements = response.etablissements || response.data || [];
+        },
+        error: (err) => {
+          console.error('Erreur chargement établissements:', err);
+        }
+      });
+
+    // Charger les promotions
+    this.promotionsService.getAllPromotions()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          this.promotions = response.promotions || response.data || [];
+        },
+        error: (err) => {
+          console.error('Erreur chargement promotions:', err);
+        }
       });
   }
 
@@ -178,12 +236,19 @@ export class AbsencesComponent implements OnInit, OnDestroy {
       size: this.pageSize,
       page: this.currentPage,
       searchValue: formValue.searchValue || '',
-      justifiee: formValue.justifiee !== '' ? formValue.justifiee === 'true' : undefined
+      justifiee: formValue.justifiee !== '' ? formValue.justifiee === 'true' : undefined,
+      date_debut: formValue.date_debut || undefined,
+      date_fin: formValue.date_fin || undefined,
+      type: formValue.type || undefined,
+      type_absence: formValue.type_absence || undefined,
+      etablissement_id: formValue.etablissement_id ? parseInt(formValue.etablissement_id) : undefined,
+      promotion_id: formValue.promotion_id ? parseInt(formValue.promotion_id) : undefined
     };
     
     // Nettoyer les valeurs vides
     Object.keys(filters).forEach(key => {
-      if (filters[key as keyof AbsenceFilters] === '' || filters[key as keyof AbsenceFilters] === undefined) {
+      const value = filters[key as keyof AbsenceFilters];
+      if (value === '' || value === undefined || value === null) {
         delete filters[key as keyof AbsenceFilters];
       }
     });
@@ -259,18 +324,6 @@ export class AbsencesComponent implements OnInit, OnDestroy {
    */
   getStudentMatricule(absence: Absence): string {
     return absence.etudiant?.matricule || 'N/A';
-  }
-
-  /**
-   * Obtenir les initiales de l'étudiant pour l'avatar
-   */
-  getStudentInitials(absence: Absence): string {
-    if (absence.etudiant) {
-      const firstName = absence.etudiant.first_name?.charAt(0) || '';
-      const lastName = absence.etudiant.last_name?.charAt(0) || '';
-      return `${firstName}${lastName}`.toUpperCase();
-    }
-    return '??';
   }
 
   /**
@@ -591,5 +644,57 @@ export class AbsencesComponent implements OnInit, OnDestroy {
   onJustificationChange(event: any): void {
     const value = event.target.value;
     this.filtersForm.patchValue({ justifiee: value });
+  }
+
+  /**
+   * Vérifier si l'absence a été créée automatiquement
+   */
+  isAutoCreated(absence: Absence): boolean {
+    if (!absence.motif) return false;
+    const motif = absence.motif.toLowerCase();
+    return motif.includes('absence à l\'examen') || 
+           motif.includes('absence au cours') ||
+           motif.includes('retard à l\'examen') ||
+           motif.includes('retard au cours');
+  }
+
+  /**
+   * Obtenir le nombre d'absences aujourd'hui
+   */
+  getTodayAbsencesCount(): number {
+    const today = new Date().toISOString().split('T')[0];
+    return this.absences.filter(a => a.date_absence === today).length;
+  }
+
+  /**
+   * Obtenir le nombre de retards
+   */
+  getRetardsCount(): number {
+    return this.absences.filter(a => 
+      a.type_absence === 'Retard' || a.type_absence === 'retard'
+    ).length;
+  }
+
+  /**
+   * Obtenir l'URL de la photo de l'étudiant
+   */
+  getStudentPhotoUrl(absence: Absence): string {
+    if (absence.etudiant?.photo) {
+      return absence.etudiant.photo.startsWith('http') 
+        ? absence.etudiant.photo 
+        : `${environment.apiUrl}/${absence.etudiant.photo}`;
+    }
+    return '';
+  }
+
+  /**
+   * Obtenir les initiales de l'étudiant
+   */
+  getStudentInitials(absence: Absence): string {
+    const firstName = absence.etudiant?.first_name || '';
+    const lastName = absence.etudiant?.last_name || '';
+    const firstInitial = firstName.charAt(0).toUpperCase();
+    const lastInitial = lastName.charAt(0).toUpperCase();
+    return firstInitial + lastInitial;
   }
 }

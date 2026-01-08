@@ -407,7 +407,7 @@ export class SidebarComponent implements OnInit {
       icon: 'meeting_room',
       route: '/salles',
       tooltip: 'Gestion des salles',
-      roles: ['super-admin', 'admin', 'scolarite', 'doyen']
+      roles: ['super-admin', 'admin', 'doyen']
     },
     {
       label: 'Rattrapages',

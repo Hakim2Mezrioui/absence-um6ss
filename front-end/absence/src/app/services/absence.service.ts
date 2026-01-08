@@ -183,6 +183,10 @@ export interface AbsenceFilters {
   justifiee?: boolean | string;
   date_debut?: string;
   date_fin?: string;
+  type?: string; // 'cours' | 'examen' | ''
+  type_absence?: string; // 'Absence' | 'Retard' | ''
+  etablissement_id?: number;
+  promotion_id?: number;
 }
 
 // Interface pour créer/modifier une absence

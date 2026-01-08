@@ -30,9 +30,10 @@ class ExamenController extends Controller
         $query = Examen::with(['etablissement', 'promotion', 'typeExamen', 'salle', 'salles', 'option', 'group', 'ville'])
                         ->whereNull('archived_at'); // Exclure les examens archivés
 
-        // Vérifier le rôle defilement (role_id = 8) et verrouiller le filtrage par etablissement_id
+        // Verrouiller le filtrage par etablissement_id pour tous les utilisateurs qui ont un établissement
+        // SAUF super-admin (role_id = 1) et ceux sans établissement
         $user = \Illuminate\Support\Facades\Auth::user();
-        if ($user && $user->role_id == 8 && !is_null($user->etablissement_id)) {
+        if ($user && $user->role_id != 1 && !is_null($user->etablissement_id)) {
             // Forcer le filtrage par etablissement_id de l'utilisateur
             $query->where('etablissement_id', $user->etablissement_id);
             // Ignorer le paramètre etablissement_id de la requête pour éviter le contournement
@@ -72,15 +73,15 @@ class ExamenController extends Controller
     }
 
     private function applyFilters($query, $etablissement_id, $promotion_id, $salle_id, $group_id, $ville_id, $searchValue, $date) {
-        // Vérifier le rôle defilement pour verrouiller etablissement_id
+        // Vérifier si l'établissement est verrouillé (tous sauf super-admin avec établissement)
         $user = \Illuminate\Support\Facades\Auth::user();
-        $isDefilement = $user && $user->role_id == 8 && !is_null($user->etablissement_id);
+        $isEtablissementLocked = $user && $user->role_id != 1 && !is_null($user->etablissement_id);
         
-        // Apply establishment filter by ID (sauf pour defilement qui est déjà filtré)
-        if (!empty($etablissement_id) && !$isDefilement) {
+        // Apply establishment filter by ID (sauf si verrouillé, car déjà filtré)
+        if (!empty($etablissement_id) && !$isEtablissementLocked) {
             $query->where('etablissement_id', $etablissement_id);
         }
-        // Pour defilement, on ignore le paramètre etablissement_id car il est déjà forcé
+        // Si verrouillé, on ignore le paramètre etablissement_id car il est déjà forcé
 
         // Apply promotion filter by ID
         if (!empty($promotion_id)) {
@@ -635,9 +636,10 @@ class ExamenController extends Controller
         $query = Examen::with(['etablissement', 'promotion', 'typeExamen', 'salle', 'salles', 'option', 'group', 'ville'])
                         ->whereNotNull('archived_at'); // Seulement les examens archivés
 
-        // Vérifier le rôle defilement (role_id = 8) et verrouiller le filtrage par etablissement_id
+        // Verrouiller le filtrage par etablissement_id pour tous les utilisateurs qui ont un établissement
+        // SAUF super-admin (role_id = 1) et ceux sans établissement
         $user = \Illuminate\Support\Facades\Auth::user();
-        if ($user && $user->role_id == 8 && !is_null($user->etablissement_id)) {
+        if ($user && $user->role_id != 1 && !is_null($user->etablissement_id)) {
             // Forcer le filtrage par etablissement_id de l'utilisateur
             $query->where('etablissement_id', $user->etablissement_id);
             // Ignorer le paramètre etablissement_id de la requête pour éviter le contournement

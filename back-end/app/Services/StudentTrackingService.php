@@ -43,14 +43,20 @@ class StudentTrackingService
                 ];
             }
 
-            // Get all cours and examens in date range
+            // Récupérer l'établissement de l'étudiant
+            $studentEtablissementId = $student->etablissement_id;
+
+            // Get cours and examens in date range, filtered by student's etablissement
+            // Un étudiant ne peut voir que les cours et examens de son établissement
             $cours = Cours::withoutGlobalScopes()
                 ->whereBetween('date', [$fromDate, $toDate])
+                ->where('etablissement_id', $studentEtablissementId) // Filtrer par établissement de l'étudiant
                 ->with(['salle', 'salles', 'type_cours', 'promotion', 'etablissement', 'ville'])
                 ->get();
 
             $examens = Examen::withoutGlobalScopes()
                 ->whereBetween('date', [$fromDate, $toDate])
+                ->where('etablissement_id', $studentEtablissementId) // Filtrer par établissement de l'étudiant
                 ->with(['salle', 'salles', 'typeExamen', 'promotion', 'etablissement', 'ville'])
                 ->get();
 

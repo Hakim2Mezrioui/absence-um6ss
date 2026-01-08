@@ -68,19 +68,22 @@ export class CoursArchivedComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     console.log('🎯 CoursArchivedComponent initialisé');
     
-    // Vérifier si l'utilisateur est defilement et verrouiller l'établissement
-    if (this.isDefilementRole()) {
-      this.userEtablissementId = this.authService.getUserEtablissementId();
+    // Verrouiller l'établissement pour tous les utilisateurs qui ont un établissement_id
+    // SAUF super-admin (role_id = 1) et ceux sans établissement
+    const userRoleId = this.authService.getUserRole();
+    const userEtablissementId = this.authService.getUserEtablissementId();
+    const isSuperAdmin = userRoleId === 1;
+    
+    if (!isSuperAdmin && userEtablissementId > 0) {
+      this.userEtablissementId = userEtablissementId;
       this.isEtablissementLocked = true;
       
       // Forcer la valeur de l'établissement dans le formulaire
-      if (this.userEtablissementId) {
-        this.filtersForm.patchValue({
-          etablissement_id: this.userEtablissementId
-        });
-        // Désactiver le champ
-        this.filtersForm.get('etablissement_id')?.disable();
-      }
+      this.filtersForm.patchValue({
+        etablissement_id: this.userEtablissementId
+      });
+      // Désactiver le champ
+      this.filtersForm.get('etablissement_id')?.disable();
     }
     
     this.checkPermissions();
@@ -175,9 +178,9 @@ export class CoursArchivedComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.error = '';
 
-    // Pour defilement, forcer l'établissement de l'utilisateur
+    // Forcer l'établissement de l'utilisateur si verrouillé
     let formValue = { ...this.filtersForm.value };
-    if (this.isDefilementRole() && this.userEtablissementId) {
+    if (this.isEtablissementLocked && this.userEtablissementId) {
       formValue.etablissement_id = this.userEtablissementId;
     }
 
@@ -238,8 +241,8 @@ export class CoursArchivedComponent implements OnInit, OnDestroy {
   }
 
   clearFilters(): void {
-    // Pour defilement, ne pas réinitialiser l'établissement
-    if (this.isDefilementRole() && this.userEtablissementId) {
+    // Si l'établissement est verrouillé, ne pas le réinitialiser
+    if (this.isEtablissementLocked && this.userEtablissementId) {
       this.filtersForm.patchValue({
         etablissement_id: this.userEtablissementId,
         promotion_id: '',
@@ -255,15 +258,6 @@ export class CoursArchivedComponent implements OnInit, OnDestroy {
     this.searchValue = '';
     this.currentPage = 1;
     this.loadArchivedCours();
-  }
-
-  /**
-   * Vérifie si l'utilisateur connecté est un compte Défilement
-   */
-  public isDefilementRole(): boolean {
-    const userRole = this.authService.getUserRoleName();
-    const normalizedRole = userRole ? userRole.toLowerCase().replace(/[\s-]/g, '') : '';
-    return normalizedRole === 'defilement' || normalizedRole === 'défilement';
   }
 
   getPageNumbers(): number[] {

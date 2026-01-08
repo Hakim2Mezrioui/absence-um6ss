@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { StudentTrackingService, TrackingResult } from '../../services/student-tracking.service';
 import { EtudiantsService } from '../../services/etudiants.service';
+import { AuthService } from '../../services/auth.service';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -33,7 +34,8 @@ export class TrackerComponent implements OnInit {
 
   constructor(
     private trackingService: StudentTrackingService,
-    private etudiantsService: EtudiantsService
+    private etudiantsService: EtudiantsService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -51,9 +53,12 @@ export class TrackerComponent implements OnInit {
   }
 
   loadStudents(): void {
-    this.etudiantsService.getEtudiants(1, 1000, {}).subscribe({
-      next: (response: any) => {
-        this.students = response.data || [];
+    // Utiliser getAllEtudiants() qui applique automatiquement le filtrage par établissement
+    // Le backend filtre déjà les étudiants selon l'établissement de l'utilisateur
+    // (sauf super-admin et ceux sans établissement)
+    this.etudiantsService.getAllEtudiants().subscribe({
+      next: (students: any[]) => {
+        this.students = students || [];
         this.filteredStudents = this.students;
       },
       error: (error) => {

@@ -60,8 +60,8 @@ class CoursController extends Controller
         // Exception pour technicien (role_id = 5) sans établissement : voir tous les cours
         $isTechnicienWithoutEtablissement = $user && $user->role_id == 5 && is_null($user->etablissement_id);
         
-        // Vérifier le rôle defilement (role_id = 8) et verrouiller le filtrage par etablissement_id
-        $isDefilement = $user && $user->role_id == 8 && !is_null($user->etablissement_id);
+        // Vérifier si l'établissement doit être verrouillé (tous sauf super-admin avec établissement)
+        $isEtablissementLocked = $user && $user->role_id != 1 && !is_null($user->etablissement_id);
         
         // Si l'utilisateur est un enseignant (role_id = 6), ne montrer que ses cours
         if ($user && $user->role_id == 6) {
@@ -76,15 +76,15 @@ class CoursController extends Controller
             }
         }
         
-        // Pour defilement, forcer et verrouiller le filtrage par etablissement_id
-        if ($isDefilement) {
+        // Verrouiller le filtrage par etablissement_id si nécessaire
+        if ($isEtablissementLocked) {
             $query->where('etablissement_id', $user->etablissement_id);
             // Ignorer le paramètre etablissement_id de la requête pour éviter le contournement
             $etablissement_id = $user->etablissement_id;
         }
 
-        // Appliquer les filtres (etablissement_id sera ignoré pour defilement)
-        if (!empty($etablissement_id) && !$isDefilement) {
+        // Appliquer les filtres (etablissement_id sera ignoré si verrouillé)
+        if (!empty($etablissement_id) && !$isEtablissementLocked) {
             $query->where('etablissement_id', $etablissement_id);
         }
 
@@ -1612,8 +1612,8 @@ class CoursController extends Controller
         // Exception pour technicien (role_id = 5) sans établissement : voir tous les cours
         $isTechnicienWithoutEtablissement = $user && $user->role_id == 5 && is_null($user->etablissement_id);
         
-        // Vérifier le rôle defilement (role_id = 8) et verrouiller le filtrage par etablissement_id
-        $isDefilement = $user && $user->role_id == 8 && !is_null($user->etablissement_id);
+        // Vérifier si l'établissement doit être verrouillé (tous sauf super-admin avec établissement)
+        $isEtablissementLocked = $user && $user->role_id != 1 && !is_null($user->etablissement_id);
         
         // Si l'utilisateur est un enseignant (role_id = 6), ne montrer que ses cours
         if ($user && $user->role_id == 6) {
@@ -1628,15 +1628,15 @@ class CoursController extends Controller
             }
         }
         
-        // Pour defilement, forcer et verrouiller le filtrage par etablissement_id
-        if ($isDefilement) {
+        // Verrouiller le filtrage par etablissement_id si nécessaire
+        if ($isEtablissementLocked) {
             $query->where('etablissement_id', $user->etablissement_id);
             // Ignorer le paramètre etablissement_id de la requête pour éviter le contournement
             $etablissement_id = $user->etablissement_id;
         }
 
-        // Appliquer les filtres (etablissement_id sera ignoré pour defilement)
-        if (!empty($etablissement_id) && !$isDefilement) {
+        // Appliquer les filtres (etablissement_id sera ignoré si verrouillé)
+        if (!empty($etablissement_id) && !$isEtablissementLocked) {
             $query->where('etablissement_id', $etablissement_id);
         }
 

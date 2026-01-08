@@ -123,7 +123,7 @@ export const routes: Routes = [
             { path: "tracker", component: TrackerComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen'] } } ,
             { path: "promotions", component: PromotionsComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite'] } },
             { path: "etablissements", component: EtablissementsComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin'] } },
-            { path: "salles", component: SallesComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen'] } },
+            { path: "salles", component: SallesComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'doyen'] } },
 
             { path: "rattrapages", component: RattrapageComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien'] } },
             { path: "rattrapages/:id/students", component: RattrapageStudentsComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien'] } },

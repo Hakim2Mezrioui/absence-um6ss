@@ -90,6 +90,18 @@ class EtudiantController extends Controller
         // Le filtrage par contexte utilisateur est déjà appliqué par le global scope UserContextScope
         $query = Etudiant::with(['ville', 'group', 'option', 'etablissement', 'promotion']);
         
+        // Verrouiller le filtrage par etablissement_id pour tous les utilisateurs qui ont un établissement
+        // SAUF super-admin (role_id = 1) et ceux sans établissement
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $isEtablissementLocked = $user && $user->role_id != 1 && !is_null($user->etablissement_id);
+        
+        if ($isEtablissementLocked) {
+            // Forcer le filtrage par etablissement_id de l'utilisateur
+            $query->where('etablissement_id', $user->etablissement_id);
+            // Ignorer le paramètre etablissement_id de la requête pour éviter le contournement
+            $request->merge(['etablissement_id' => $user->etablissement_id]);
+        }
+        
         // Appliquer les filtres
         if ($request->has('searchValue') && !empty($request->get('searchValue'))) {
             $this->applySearchFilter($query, $request->get('searchValue'));
@@ -107,7 +119,8 @@ class EtudiantController extends Controller
             $query->where('ville_id', $request->get('ville_id'));
         }
         
-        if ($request->has('etablissement_id') && !empty($request->get('etablissement_id')) && $request->get('etablissement_id') != 'null') {
+        // Appliquer le filtre établissement seulement si non verrouillé
+        if (!$isEtablissementLocked && $request->has('etablissement_id') && !empty($request->get('etablissement_id')) && $request->get('etablissement_id') != 'null') {
             $query->where('etablissement_id', $request->get('etablissement_id'));
         }
         
@@ -1765,6 +1778,18 @@ class EtudiantController extends Controller
             // Construire la requête avec les relations
             $query = Etudiant::with(['ville', 'group', 'option', 'etablissement', 'promotion']);
             
+            // Verrouiller le filtrage par etablissement_id pour tous les utilisateurs qui ont un établissement
+            // SAUF super-admin (role_id = 1) et ceux sans établissement
+            $user = \Illuminate\Support\Facades\Auth::user();
+            $isEtablissementLocked = $user && $user->role_id != 1 && !is_null($user->etablissement_id);
+            
+            if ($isEtablissementLocked) {
+                // Forcer le filtrage par etablissement_id de l'utilisateur
+                $query->where('etablissement_id', $user->etablissement_id);
+                // Ignorer le paramètre etablissement_id de la requête pour éviter le contournement
+                $request->merge(['etablissement_id' => $user->etablissement_id]);
+            }
+            
             // Appliquer les filtres
             if ($request->has('searchValue') && !empty($request->get('searchValue'))) {
                 $this->applySearchFilter($query, $request->get('searchValue'));
@@ -1782,7 +1807,8 @@ class EtudiantController extends Controller
                 $query->where('ville_id', $request->get('ville_id'));
             }
             
-            if ($request->has('etablissement_id') && !empty($request->get('etablissement_id'))) {
+            // Appliquer le filtre établissement seulement si non verrouillé
+            if (!$isEtablissementLocked && $request->has('etablissement_id') && !empty($request->get('etablissement_id'))) {
                 $query->where('etablissement_id', $request->get('etablissement_id'));
             }
             

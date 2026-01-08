@@ -55,15 +55,18 @@ export class CoursComponent implements OnInit {
       return;
     }
 
-    // Vérifier si l'utilisateur est defilement et verrouiller l'établissement
-    if (this.isDefilementRole()) {
-      this.userEtablissementId = this.authService.getUserEtablissementId();
+    // Verrouiller l'établissement pour tous les utilisateurs qui ont un établissement_id
+    // SAUF super-admin (role_id = 1) et ceux sans établissement
+    const userRoleId = this.authService.getUserRole();
+    const userEtablissementId = this.authService.getUserEtablissementId();
+    const isSuperAdmin = userRoleId === 1;
+    
+    if (!isSuperAdmin && userEtablissementId > 0) {
+      this.userEtablissementId = userEtablissementId;
       this.isEtablissementLocked = true;
       
       // Forcer la valeur de l'établissement dans les filtres
-      if (this.userEtablissementId) {
-        this.filters.etablissement_id = this.userEtablissementId;
-      }
+      this.filters.etablissement_id = this.userEtablissementId;
     }
 
     this.loadCours();
@@ -85,8 +88,8 @@ export class CoursComponent implements OnInit {
     this.filters.size = this.itemsPerPage;
     this.filters.page = this.currentPage;
 
-    // Pour defilement, forcer l'établissement de l'utilisateur
-    if (this.isDefilementRole() && this.userEtablissementId) {
+    // Forcer l'établissement de l'utilisateur si verrouillé
+    if (this.isEtablissementLocked && this.userEtablissementId) {
       this.filters.etablissement_id = this.userEtablissementId;
     }
 
@@ -151,8 +154,8 @@ export class CoursComponent implements OnInit {
   }
 
   onFilterChange() {
-    // Pour defilement, forcer l'établissement de l'utilisateur
-    if (this.isDefilementRole() && this.userEtablissementId) {
+    // Forcer l'établissement de l'utilisateur si verrouillé
+    if (this.isEtablissementLocked && this.userEtablissementId) {
       this.filters.etablissement_id = this.userEtablissementId;
     }
     
@@ -165,8 +168,8 @@ export class CoursComponent implements OnInit {
     // Obtenir la date d'aujourd'hui au format YYYY-MM-DD
     const today = new Date().toISOString().split('T')[0];
     
-    // Pour defilement, ne pas réinitialiser l'établissement
-    if (this.isDefilementRole() && this.userEtablissementId) {
+    // Si l'établissement est verrouillé, ne pas le réinitialiser
+    if (this.isEtablissementLocked && this.userEtablissementId) {
       this.filters = {
         size: this.itemsPerPage,
         page: 1,

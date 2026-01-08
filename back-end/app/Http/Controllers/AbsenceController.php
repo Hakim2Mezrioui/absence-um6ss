@@ -30,6 +30,10 @@ class AbsenceController extends Controller
         $justifiee = $request->query("justifiee", "");
         $dateDebut = $request->query("date_debut", "");
         $dateFin = $request->query("date_fin", "");
+        $type = $request->query("type", ""); // 'cours' | 'examen' | ''
+        $type_absence = $request->query("type_absence", ""); // 'Absence' | 'Retard' | ''
+        $etablissement_id = $request->query("etablissement_id", "");
+        $promotion_id = $request->query("promotion_id", "");
 
         $skip = ($page - 1) * $size;
 
@@ -66,6 +70,34 @@ class AbsenceController extends Controller
 
         if (!empty($dateFin)) {
             $query->where('date_absence', '<=', $dateFin);
+        }
+
+        // Filtre par type (cours ou examen)
+        if (!empty($type)) {
+            if ($type === 'cours') {
+                $query->whereNotNull('cours_id')->whereNull('examen_id');
+            } elseif ($type === 'examen') {
+                $query->whereNotNull('examen_id')->whereNull('cours_id');
+            }
+        }
+
+        // Filtre par type d'absence
+        if (!empty($type_absence)) {
+            $query->where('type_absence', $type_absence);
+        }
+
+        // Filtre par établissement
+        if (!empty($etablissement_id)) {
+            $query->whereHas('etudiant', function($q) use ($etablissement_id) {
+                $q->where('etablissement_id', $etablissement_id);
+            });
+        }
+
+        // Filtre par promotion
+        if (!empty($promotion_id)) {
+            $query->whereHas('etudiant', function($q) use ($promotion_id) {
+                $q->where('promotion_id', $promotion_id);
+            });
         }
 
         // Appliquer le filtre de recherche si nécessaire

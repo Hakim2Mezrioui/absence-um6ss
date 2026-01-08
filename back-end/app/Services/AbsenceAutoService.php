@@ -4,12 +4,30 @@ namespace App\Services;
 
 use App\Models\Absence;
 use App\Models\Examen;
+use App\Models\Cours;
 use App\Models\Etudiant;
+use App\Services\AttendanceStateService;
+use App\Services\BiostarAttendanceService;
+use App\Services\ConfigurationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class AbsenceAutoService
 {
+    protected $attendanceStateService;
+    protected $biostarService;
+    protected $configurationService;
+
+    public function __construct(
+        AttendanceStateService $attendanceStateService,
+        BiostarAttendanceService $biostarService,
+        ConfigurationService $configurationService
+    ) {
+        $this->attendanceStateService = $attendanceStateService;
+        $this->biostarService = $biostarService;
+        $this->configurationService = $configurationService;
+    }
+
     /**
      * Crée automatiquement les absences pour un examen donné
      * basé sur les étudiants absents ou en retard
@@ -280,5 +298,178 @@ class AbsenceAutoService
                 ];
             })
         ];
+    }
+
+    /**
+     * Crée automatiquement les absences pour un cours donné
+     * basé sur les étudiants absents ou en retard
+     */
+    public function createAbsencesForCours(int $coursId): array
+    {
+        try {
+            DB::beginTransaction();
+
+            // Récupérer le cours avec ses informations
+            $cours = Cours::withoutGlobalScopes()
+                ->with(['promotion', 'groups', 'etablissement', 'ville', 'option'])
+                ->find($coursId);
+
+            if (!$cours) {
+                throw new \Exception("Cours non trouvé avec l'ID: {$coursId}");
+            }
+
+            // Construire la liste des groupes concernés
+            $groupIds = $cours->groups ? $cours->groups->pluck('id')->filter()->values() : collect();
+            if ($cours->group_id) {
+                $groupIds->push($cours->group_id);
+            }
+            $groupIds = $groupIds->unique()->values();
+
+            // Récupérer tous les étudiants attendus
+            $etudiantsQuery = Etudiant::withoutGlobalScopes()
+                ->where('promotion_id', $cours->promotion_id)
+                ->where('etablissement_id', $cours->etablissement_id)
+                ->where('ville_id', $cours->ville_id);
+
+            if ($cours->option_id) {
+                $etudiantsQuery->where('option_id', $cours->option_id);
+            }
+
+            if ($groupIds->isNotEmpty()) {
+                $etudiantsQuery->whereIn('group_id', $groupIds);
+            }
+
+            $etudiants = $etudiantsQuery->get();
+
+            if ($etudiants->isEmpty()) {
+                throw new \Exception("Aucun étudiant trouvé pour ce cours");
+            }
+
+            // Récupérer les données de présence depuis AttendanceStateService
+            $absencesCreees = [];
+            $absencesExistant = 0;
+            $absencesMisesAJour = 0;
+
+            foreach ($etudiants as $etudiant) {
+                // Vérifier si une absence existe déjà
+                $absenceExistante = Absence::where('etudiant_id', $etudiant->id)
+                    ->where('cours_id', $coursId)
+                    ->where('date_absence', $cours->date)
+                    ->first();
+
+                // Récupérer le statut de présence actuel
+                $attendanceState = $this->attendanceStateService->getStudentAttendanceState($cours->id, $etudiant->id);
+                $status = $attendanceState['status'] ?? 'absent';
+
+                // Créer une absence seulement si absent ou en retard
+                if (in_array($status, ['absent', 'late', 'pending_entry', 'pending_exit', 'left_early'])) {
+                    $typeAbsence = $this->getAbsenceTypeFromStatus($status);
+
+                    if ($absenceExistante) {
+                        // Mettre à jour si le statut a changé
+                        if ($absenceExistante->type_absence !== $typeAbsence) {
+                            $absenceExistante->update([
+                                'type_absence' => $typeAbsence,
+                                'motif' => $this->genererMotifAbsenceCours($typeAbsence, $cours)
+                            ]);
+                            $absencesMisesAJour++;
+                        } else {
+                            $absencesExistant++;
+                        }
+                    } else {
+                        // Créer une nouvelle absence
+                        $absence = Absence::create([
+                            'type_absence' => $typeAbsence,
+                            'etudiant_id' => $etudiant->id,
+                            'cours_id' => $coursId,
+                            'examen_id' => null,
+                            'date_absence' => $cours->date,
+                            'justifiee' => false,
+                            'motif' => $this->genererMotifAbsenceCours($typeAbsence, $cours),
+                            'justificatif' => null,
+                        ]);
+
+                        $absencesCreees[] = [
+                            'id' => $absence->id,
+                            'etudiant' => $etudiant->first_name . ' ' . $etudiant->last_name,
+                            'matricule' => $etudiant->matricule,
+                            'type_absence' => $typeAbsence,
+                            'date_absence' => $cours->date,
+                        ];
+
+                        Log::info("Absence créée automatiquement pour l'étudiant {$etudiant->matricule} - {$typeAbsence} (cours {$coursId})");
+                    }
+                } elseif ($absenceExistante && $status === 'present') {
+                    // Si l'étudiant est présent mais qu'une absence existe, la supprimer
+                    $absenceExistante->delete();
+                    Log::info("Absence supprimée pour l'étudiant {$etudiant->matricule} - Présence confirmée (cours {$coursId})");
+                }
+            }
+
+            DB::commit();
+
+            return [
+                'success' => true,
+                'message' => "Absences créées avec succès",
+                'cours' => [
+                    'id' => $cours->id,
+                    'name' => $cours->name,
+                    'date' => $cours->date,
+                    'heure_debut' => $cours->heure_debut,
+                    'heure_fin' => $cours->heure_fin,
+                ],
+                'statistiques' => [
+                    'total_etudiants' => $etudiants->count(),
+                    'absences_creees' => count($absencesCreees),
+                    'absences_existantes' => $absencesExistant,
+                    'absences_mises_a_jour' => $absencesMisesAJour,
+                ],
+                'absences' => $absencesCreees
+            ];
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Erreur lors de la création des absences pour cours {$coursId}: " . $e->getMessage());
+            
+            return [
+                'success' => false,
+                'message' => "Erreur lors de la création des absences: " . $e->getMessage(),
+                'absences' => []
+            ];
+        }
+    }
+
+    /**
+     * Convertir le statut de présence en type d'absence
+     */
+    private function getAbsenceTypeFromStatus(string $status): string
+    {
+        switch ($status) {
+            case 'late':
+                return 'Retard';
+            case 'left_early':
+                return 'Départ anticipé';
+            case 'pending_entry':
+            case 'pending_exit':
+            case 'absent':
+            default:
+                return 'Absence non justifiée';
+        }
+    }
+
+    /**
+     * Génère un motif d'absence pour un cours
+     */
+    private function genererMotifAbsenceCours(string $typeAbsence, Cours $cours): string
+    {
+        $dateFormatee = \Carbon\Carbon::parse($cours->date)->format('d/m/Y');
+        
+        $motifs = [
+            'Absence non justifiée' => "Absence au cours '{$cours->name}' du {$dateFormatee} de {$cours->heure_debut} à {$cours->heure_fin}",
+            'Retard' => "Retard au cours '{$cours->name}' du {$dateFormatee}",
+            'Départ anticipé' => "Départ anticipé du cours '{$cours->name}' du {$dateFormatee}",
+        ];
+
+        return $motifs[$typeAbsence] ?? "Absence au cours '{$cours->name}' du {$dateFormatee}";
     }
 }

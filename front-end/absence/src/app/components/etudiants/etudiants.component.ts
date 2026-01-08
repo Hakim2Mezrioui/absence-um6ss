@@ -88,7 +88,9 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
   selectedEtudiantIds: Set<number> = new Set(); // Garder trace des IDs sélectionnés
   selectAll = false;
 
-
+  // Propriétés pour verrouiller l'établissement
+  userEtablissementId: number | null = null;
+  isEtablissementLocked = false;
 
   // Modal
   showAddModal = false;
@@ -129,6 +131,24 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnInit(): void {
+    // Verrouiller l'établissement pour tous les utilisateurs qui ont un établissement_id
+    // SAUF super-admin (role_id = 1) et ceux sans établissement
+    const userRoleId = this.authService.getUserRole();
+    const userEtablissementId = this.authService.getUserEtablissementId();
+    const isSuperAdmin = userRoleId === 1;
+    
+    if (!isSuperAdmin && userEtablissementId > 0) {
+      this.userEtablissementId = userEtablissementId;
+      this.isEtablissementLocked = true;
+      
+      // Forcer la valeur de l'établissement dans le formulaire
+      this.filtersForm.patchValue({
+        etablissement_id: this.userEtablissementId
+      });
+      // Désactiver le champ
+      this.filtersForm.get('etablissement_id')?.disable();
+    }
+    
     this.loadFilterOptions();
     this.loadAllEtudiants();
     this.setupFiltersListener();
@@ -329,7 +349,13 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
     const promotionId = this.toNumberOrNull(formValue.promotion_id);
     const groupId = this.toNumberOrNull(formValue.group_id);
     const villeId = this.toNumberOrNull(formValue.ville_id);
-    const etablissementId = this.toNumberOrNull(formValue.etablissement_id);
+    
+    // Forcer l'établissement si verrouillé
+    let etablissementId = this.toNumberOrNull(formValue.etablissement_id);
+    if (this.isEtablissementLocked && this.userEtablissementId) {
+      etablissementId = this.userEtablissementId;
+    }
+    
     const optionId = this.toNumberOrNull(formValue.option_id);
 
     if (promotionId !== null) {
@@ -406,6 +432,12 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
         distinctUntilChanged()
       )
       .subscribe(() => {
+        // Forcer l'établissement si verrouillé
+        if (this.isEtablissementLocked && this.userEtablissementId) {
+          this.filtersForm.patchValue({
+            etablissement_id: this.userEtablissementId
+          }, { emitEvent: false }); // Éviter la boucle infinie
+        }
         this.resetToFirstPage();
         this.applyFiltersAndPagination();
       });
@@ -1079,7 +1111,18 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
    * Réinitialiser les filtres
    */
   resetFilters(): void {
-    this.filtersForm.reset();
+    // Si l'établissement est verrouillé, ne pas le réinitialiser
+    if (this.isEtablissementLocked && this.userEtablissementId) {
+      this.filtersForm.patchValue({
+        etablissement_id: this.userEtablissementId,
+        promotion_id: '',
+        group_id: '',
+        ville_id: '',
+        option_id: ''
+      });
+    } else {
+      this.filtersForm.reset();
+    }
     this.globalFilterValue = '';
     this.resetToFirstPage();
     this.applyFiltersAndPagination();

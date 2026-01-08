@@ -27,6 +27,21 @@ class StudentTrackingController extends Controller
             'status_filter' => 'nullable|string|in:all,present,absent'
         ]);
 
+        // Vérifier que l'étudiant appartient à l'établissement de l'utilisateur
+        // SAUF super-admin (role_id = 1) et ceux sans établissement
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $isEtablissementLocked = $user && $user->role_id != 1 && !is_null($user->etablissement_id);
+        
+        if ($isEtablissementLocked) {
+            $student = \App\Models\Etudiant::find($validatedData['student_id']);
+            if (!$student || $student->etablissement_id != $user->etablissement_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Vous ne pouvez tracker que les étudiants de votre établissement'
+                ], 403);
+            }
+        }
+
         $result = $this->trackingService->trackStudent(
             $validatedData['student_id'],
             $validatedData['from'],
