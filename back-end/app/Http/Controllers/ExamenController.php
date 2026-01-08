@@ -30,6 +30,15 @@ class ExamenController extends Controller
         $query = Examen::with(['etablissement', 'promotion', 'typeExamen', 'salle', 'salles', 'option', 'group', 'ville'])
                         ->whereNull('archived_at'); // Exclure les examens archivés
 
+        // Vérifier le rôle defilement (role_id = 8) et verrouiller le filtrage par etablissement_id
+        $user = \Illuminate\Support\Facades\Auth::user();
+        if ($user && $user->role_id == 8 && !is_null($user->etablissement_id)) {
+            // Forcer le filtrage par etablissement_id de l'utilisateur
+            $query->where('etablissement_id', $user->etablissement_id);
+            // Ignorer le paramètre etablissement_id de la requête pour éviter le contournement
+            $etablissement_id = $user->etablissement_id;
+        }
+
         // Apply filters
         $this->applyFilters($query, $etablissement_id, $promotion_id, $salle_id, $group_id, $ville_id, $searchValue, $date);
 
@@ -63,10 +72,15 @@ class ExamenController extends Controller
     }
 
     private function applyFilters($query, $etablissement_id, $promotion_id, $salle_id, $group_id, $ville_id, $searchValue, $date) {
-        // Apply establishment filter by ID
-        if (!empty($etablissement_id)) {
+        // Vérifier le rôle defilement pour verrouiller etablissement_id
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $isDefilement = $user && $user->role_id == 8 && !is_null($user->etablissement_id);
+        
+        // Apply establishment filter by ID (sauf pour defilement qui est déjà filtré)
+        if (!empty($etablissement_id) && !$isDefilement) {
             $query->where('etablissement_id', $etablissement_id);
         }
+        // Pour defilement, on ignore le paramètre etablissement_id car il est déjà forcé
 
         // Apply promotion filter by ID
         if (!empty($promotion_id)) {
@@ -620,6 +634,15 @@ class ExamenController extends Controller
 
         $query = Examen::with(['etablissement', 'promotion', 'typeExamen', 'salle', 'salles', 'option', 'group', 'ville'])
                         ->whereNotNull('archived_at'); // Seulement les examens archivés
+
+        // Vérifier le rôle defilement (role_id = 8) et verrouiller le filtrage par etablissement_id
+        $user = \Illuminate\Support\Facades\Auth::user();
+        if ($user && $user->role_id == 8 && !is_null($user->etablissement_id)) {
+            // Forcer le filtrage par etablissement_id de l'utilisateur
+            $query->where('etablissement_id', $user->etablissement_id);
+            // Ignorer le paramètre etablissement_id de la requête pour éviter le contournement
+            $etablissement_id = $user->etablissement_id;
+        }
 
         // Apply filters
         $this->applyFilters($query, $etablissement_id, $promotion_id, $salle_id, $group_id, $ville_id, $searchValue, $date);

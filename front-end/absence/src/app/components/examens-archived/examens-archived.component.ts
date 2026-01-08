@@ -5,6 +5,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { RouterModule, Router } from '@angular/router';
 import { ExamensService, Examen, ExamenResponse, ExamenFilters } from '../../services/examens.service';
 import { NotificationService } from '../../services/notification.service';
+import { AuthService } from '../../services/auth.service';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 
 @Component({
@@ -40,13 +41,18 @@ export class ExamensArchivedComponent implements OnInit, OnDestroy {
   // Permissions
   canUnarchive = false;
   
+  // Propriétés pour verrouiller l'établissement pour le rôle defilement
+  userEtablissementId: number | null = null;
+  isEtablissementLocked = false;
+  
   private destroy$ = new Subject<void>();
 
   constructor(
     private examensService: ExamensService,
     private notificationService: NotificationService,
     private fb: FormBuilder,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) {
     this.filtersForm = this.fb.group({
       etablissement_id: [''],
@@ -58,6 +64,21 @@ export class ExamensArchivedComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     console.log('🎯 ExamensArchivedComponent initialisé');
+    
+    // Vérifier si l'utilisateur est defilement et verrouiller l'établissement
+    if (this.isDefilementRole()) {
+      this.userEtablissementId = this.authService.getUserEtablissementId();
+      this.isEtablissementLocked = true;
+      
+      // Forcer la valeur de l'établissement dans le formulaire
+      if (this.userEtablissementId) {
+        this.filtersForm.patchValue({
+          etablissement_id: this.userEtablissementId
+        });
+        // Désactiver le champ
+        this.filtersForm.get('etablissement_id')?.disable();
+      }
+    }
     
     this.checkPermissions();
     this.loadArchivedExamens();
@@ -148,11 +169,17 @@ export class ExamensArchivedComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.error = '';
 
+    // Pour defilement, forcer l'établissement de l'utilisateur
+    let formValue = { ...this.filtersForm.value };
+    if (this.isDefilementRole() && this.userEtablissementId) {
+      formValue.etablissement_id = this.userEtablissementId;
+    }
+
     const filters: ExamenFilters = {
       size: this.perPage,
       page: this.currentPage,
       searchValue: this.searchValue,
-      ...this.filtersForm.value
+      ...formValue
     };
 
     // Remove empty values
@@ -212,10 +239,29 @@ export class ExamensArchivedComponent implements OnInit, OnDestroy {
   }
 
   clearFilters(): void {
-    this.filtersForm.reset();
+    // Pour defilement, ne pas réinitialiser l'établissement
+    if (this.isDefilementRole() && this.userEtablissementId) {
+      this.filtersForm.patchValue({
+        etablissement_id: this.userEtablissementId,
+        promotion_id: '',
+        salle_id: '',
+        date: ''
+      });
+    } else {
+      this.filtersForm.reset();
+    }
     this.searchValue = '';
     this.currentPage = 1;
     this.loadArchivedExamens();
+  }
+
+  /**
+   * Vérifie si l'utilisateur connecté est un compte Défilement
+   */
+  public isDefilementRole(): boolean {
+    const userRole = this.authService.getUserRoleName();
+    const normalizedRole = userRole ? userRole.toLowerCase().replace(/[\s-]/g, '') : '';
+    return normalizedRole === 'defilement' || normalizedRole === 'défilement';
   }
 
   getPageNumbers(): number[] {

@@ -42,6 +42,10 @@ export class CoursArchivedComponent implements OnInit, OnDestroy {
   // Permissions
   canUnarchive = false;
   
+  // Propriétés pour verrouiller l'établissement pour le rôle defilement
+  userEtablissementId: number | null = null;
+  isEtablissementLocked = false;
+  
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -63,6 +67,21 @@ export class CoursArchivedComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     console.log('🎯 CoursArchivedComponent initialisé');
+    
+    // Vérifier si l'utilisateur est defilement et verrouiller l'établissement
+    if (this.isDefilementRole()) {
+      this.userEtablissementId = this.authService.getUserEtablissementId();
+      this.isEtablissementLocked = true;
+      
+      // Forcer la valeur de l'établissement dans le formulaire
+      if (this.userEtablissementId) {
+        this.filtersForm.patchValue({
+          etablissement_id: this.userEtablissementId
+        });
+        // Désactiver le champ
+        this.filtersForm.get('etablissement_id')?.disable();
+      }
+    }
     
     this.checkPermissions();
     this.loadArchivedCours();
@@ -156,11 +175,17 @@ export class CoursArchivedComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.error = '';
 
+    // Pour defilement, forcer l'établissement de l'utilisateur
+    let formValue = { ...this.filtersForm.value };
+    if (this.isDefilementRole() && this.userEtablissementId) {
+      formValue.etablissement_id = this.userEtablissementId;
+    }
+
     const filters: CoursFilters = {
       size: this.perPage,
       page: this.currentPage,
       searchValue: this.searchValue,
-      ...this.filtersForm.value
+      ...formValue
     };
 
     // Remove empty values
@@ -213,10 +238,32 @@ export class CoursArchivedComponent implements OnInit, OnDestroy {
   }
 
   clearFilters(): void {
-    this.filtersForm.reset();
+    // Pour defilement, ne pas réinitialiser l'établissement
+    if (this.isDefilementRole() && this.userEtablissementId) {
+      this.filtersForm.patchValue({
+        etablissement_id: this.userEtablissementId,
+        promotion_id: '',
+        salle_id: '',
+        type_cours_id: '',
+        group_id: '',
+        ville_id: '',
+        date: ''
+      });
+    } else {
+      this.filtersForm.reset();
+    }
     this.searchValue = '';
     this.currentPage = 1;
     this.loadArchivedCours();
+  }
+
+  /**
+   * Vérifie si l'utilisateur connecté est un compte Défilement
+   */
+  public isDefilementRole(): boolean {
+    const userRole = this.authService.getUserRoleName();
+    const normalizedRole = userRole ? userRole.toLowerCase().replace(/[\s-]/g, '') : '';
+    return normalizedRole === 'defilement' || normalizedRole === 'défilement';
   }
 
   getPageNumbers(): number[] {

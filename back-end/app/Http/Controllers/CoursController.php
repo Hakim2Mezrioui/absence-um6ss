@@ -60,6 +60,9 @@ class CoursController extends Controller
         // Exception pour technicien (role_id = 5) sans établissement : voir tous les cours
         $isTechnicienWithoutEtablissement = $user && $user->role_id == 5 && is_null($user->etablissement_id);
         
+        // Vérifier le rôle defilement (role_id = 8) et verrouiller le filtrage par etablissement_id
+        $isDefilement = $user && $user->role_id == 8 && !is_null($user->etablissement_id);
+        
         // Si l'utilisateur est un enseignant (role_id = 6), ne montrer que ses cours
         if ($user && $user->role_id == 6) {
             $query->where('enseignant_id', $user->id);
@@ -72,9 +75,16 @@ class CoursController extends Controller
                 $query->where('etablissement_id', $userContext['etablissement_id']);
             }
         }
+        
+        // Pour defilement, forcer et verrouiller le filtrage par etablissement_id
+        if ($isDefilement) {
+            $query->where('etablissement_id', $user->etablissement_id);
+            // Ignorer le paramètre etablissement_id de la requête pour éviter le contournement
+            $etablissement_id = $user->etablissement_id;
+        }
 
-        // Appliquer les filtres
-        if (!empty($etablissement_id)) {
+        // Appliquer les filtres (etablissement_id sera ignoré pour defilement)
+        if (!empty($etablissement_id) && !$isDefilement) {
             $query->where('etablissement_id', $etablissement_id);
         }
 
@@ -1602,6 +1612,9 @@ class CoursController extends Controller
         // Exception pour technicien (role_id = 5) sans établissement : voir tous les cours
         $isTechnicienWithoutEtablissement = $user && $user->role_id == 5 && is_null($user->etablissement_id);
         
+        // Vérifier le rôle defilement (role_id = 8) et verrouiller le filtrage par etablissement_id
+        $isDefilement = $user && $user->role_id == 8 && !is_null($user->etablissement_id);
+        
         // Si l'utilisateur est un enseignant (role_id = 6), ne montrer que ses cours
         if ($user && $user->role_id == 6) {
             $query->where('enseignant_id', $user->id);
@@ -1614,9 +1627,16 @@ class CoursController extends Controller
                 $query->where('etablissement_id', $userContext['etablissement_id']);
             }
         }
+        
+        // Pour defilement, forcer et verrouiller le filtrage par etablissement_id
+        if ($isDefilement) {
+            $query->where('etablissement_id', $user->etablissement_id);
+            // Ignorer le paramètre etablissement_id de la requête pour éviter le contournement
+            $etablissement_id = $user->etablissement_id;
+        }
 
-        // Appliquer les filtres
-        if (!empty($etablissement_id)) {
+        // Appliquer les filtres (etablissement_id sera ignoré pour defilement)
+        if (!empty($etablissement_id) && !$isDefilement) {
             $query->where('etablissement_id', $etablissement_id);
         }
 

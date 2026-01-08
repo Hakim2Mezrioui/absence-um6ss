@@ -25,7 +25,8 @@ export class CoursComponent implements OnInit {
   filters: CoursFilters = {
     size: 12,
     page: 1,
-    searchValue: ''
+    searchValue: '',
+    date: new Date().toISOString().split('T')[0] // Date d'aujourd'hui par défaut
   };
 
   // Options pour les filtres
@@ -35,6 +36,10 @@ export class CoursComponent implements OnInit {
   typesCours: any[] = [];
   groups: any[] = [];
   villes: any[] = [];
+
+  // Propriétés pour verrouiller l'établissement pour le rôle defilement
+  userEtablissementId: number | null = null;
+  isEtablissementLocked = false;
 
   constructor(
     private coursService: CoursService,
@@ -48,6 +53,17 @@ export class CoursComponent implements OnInit {
       console.log('Utilisateur non authentifié, redirection vers la connexion');
       this.router.navigate(['/login']);
       return;
+    }
+
+    // Vérifier si l'utilisateur est defilement et verrouiller l'établissement
+    if (this.isDefilementRole()) {
+      this.userEtablissementId = this.authService.getUserEtablissementId();
+      this.isEtablissementLocked = true;
+      
+      // Forcer la valeur de l'établissement dans les filtres
+      if (this.userEtablissementId) {
+        this.filters.etablissement_id = this.userEtablissementId;
+      }
     }
 
     this.loadCours();
@@ -68,6 +84,11 @@ export class CoursComponent implements OnInit {
     // Synchroniser les filtres avec les paramètres de pagination
     this.filters.size = this.itemsPerPage;
     this.filters.page = this.currentPage;
+
+    // Pour defilement, forcer l'établissement de l'utilisateur
+    if (this.isDefilementRole() && this.userEtablissementId) {
+      this.filters.etablissement_id = this.userEtablissementId;
+    }
 
     console.log('Chargement des cours avec les filtres:', this.filters);
 
@@ -130,17 +151,37 @@ export class CoursComponent implements OnInit {
   }
 
   onFilterChange() {
+    // Pour defilement, forcer l'établissement de l'utilisateur
+    if (this.isDefilementRole() && this.userEtablissementId) {
+      this.filters.etablissement_id = this.userEtablissementId;
+    }
+    
     this.filters.page = 1;
     this.currentPage = 1; // Synchroniser la page courante
     this.loadCours();
   }
 
   clearFilters() {
-    this.filters = {
-      size: this.itemsPerPage,
-      page: 1,
-      searchValue: ''
-    };
+    // Obtenir la date d'aujourd'hui au format YYYY-MM-DD
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Pour defilement, ne pas réinitialiser l'établissement
+    if (this.isDefilementRole() && this.userEtablissementId) {
+      this.filters = {
+        size: this.itemsPerPage,
+        page: 1,
+        searchValue: '',
+        etablissement_id: this.userEtablissementId,
+        date: today // Remettre la date d'aujourd'hui
+      };
+    } else {
+      this.filters = {
+        size: this.itemsPerPage,
+        page: 1,
+        searchValue: '',
+        date: today // Remettre la date d'aujourd'hui
+      };
+    }
     this.currentPage = 1; // Réinitialiser la page courante
     this.loadCours();
   }

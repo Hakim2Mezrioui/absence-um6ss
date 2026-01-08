@@ -44,6 +44,9 @@ export class ExamensComponent implements OnInit, OnDestroy {
   typesExamen: TypeExamen[] = [];
   selectedStatus = '';
   
+  // Propriétés pour verrouiller l'établissement pour le rôle defilement
+  userEtablissementId: number | null = null;
+  isEtablissementLocked = false;
 
   
   private destroy$ = new Subject<void>();
@@ -56,16 +59,34 @@ export class ExamensComponent implements OnInit, OnDestroy {
     private router: Router,
     public authService: AuthService
   ) {
+    // Obtenir la date d'aujourd'hui au format YYYY-MM-DD
+    const today = new Date().toISOString().split('T')[0];
+    
     this.filtersForm = this.fb.group({
       etablissement_id: [''],
       promotion_id: [''],
       salle_id: [''],
-      date: ['']
+      date: [today] // Date d'aujourd'hui par défaut
     });
   }
 
   ngOnInit(): void {
     console.log('🎯 ExamensComponent initialisé');
+    
+    // Vérifier si l'utilisateur est defilement et verrouiller l'établissement
+    if (this.isDefilementRole()) {
+      this.userEtablissementId = this.authService.getUserEtablissementId();
+      this.isEtablissementLocked = true;
+      
+      // Forcer la valeur de l'établissement dans le formulaire
+      if (this.userEtablissementId) {
+        this.filtersForm.patchValue({
+          etablissement_id: this.userEtablissementId
+        });
+        // Désactiver le champ
+        this.filtersForm.get('etablissement_id')?.disable();
+      }
+    }
     
     // Test de navigation - charger des données de test d'abord
     this.loadTestData();
@@ -313,11 +334,17 @@ export class ExamensComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.error = '';
 
+    // Pour defilement, forcer l'établissement de l'utilisateur
+    let formValue = { ...this.filtersForm.value };
+    if (this.isDefilementRole() && this.userEtablissementId) {
+      formValue.etablissement_id = this.userEtablissementId;
+    }
+
     const filters: ExamenFilters = {
       size: this.perPage,
       page: this.currentPage,
       searchValue: this.searchValue,
-      ...this.filtersForm.value
+      ...formValue
     };
 
     // Remove empty values
@@ -380,7 +407,25 @@ export class ExamensComponent implements OnInit, OnDestroy {
   }
 
   clearFilters(): void {
-    this.filtersForm.reset();
+    // Obtenir la date d'aujourd'hui au format YYYY-MM-DD
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Pour defilement, ne pas réinitialiser l'établissement
+    if (this.isDefilementRole() && this.userEtablissementId) {
+      this.filtersForm.patchValue({
+        etablissement_id: this.userEtablissementId,
+        promotion_id: '',
+        salle_id: '',
+        date: today // Remettre la date d'aujourd'hui
+      });
+    } else {
+      this.filtersForm.reset({
+        etablissement_id: '',
+        promotion_id: '',
+        salle_id: '',
+        date: today // Remettre la date d'aujourd'hui
+      });
+    }
     this.searchValue = '';
     this.selectedStatus = '';
     this.currentPage = 1;
