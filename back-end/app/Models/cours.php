@@ -7,9 +7,20 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Carbon\Carbon;
 use App\Scopes\UserContextScope;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class Cours extends Model
 {
+    use LogsActivity;
+    
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['name', 'date', 'heure_debut', 'heure_fin', 'promotion_id', 'etablissement_id', 'type_cours_id', 'salle_id', 'archived_at'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
     protected $fillable = [
         'name',
         'date',

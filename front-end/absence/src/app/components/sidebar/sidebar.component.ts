@@ -52,6 +52,11 @@ export class SidebarComponent implements OnInit {
     this.setupKeyboardNavigation();
     this.loadUserData();
     
+    // Filtrer immédiatement avec le rôle du localStorage si disponible
+    setTimeout(() => {
+      this.filterSidebarItems();
+    }, 100);
+    
     // Recharger les données utilisateur périodiquement pour s'assurer qu'elles sont à jour
     setInterval(() => {
       this.loadUserData();
@@ -146,9 +151,13 @@ export class SidebarComponent implements OnInit {
 
   // Méthode pour filtrer les éléments de sidebar selon le rôle
   private filterSidebarItems(): void {
-    const userRole = localStorage.getItem('userRole') || this.userData.role?.toLowerCase();
+    const normalizedRole = this.getNormalizedRole();
     
-    if (!userRole) {
+    console.log('🔍 Filtrage sidebar - Rôle utilisateur normalisé:', normalizedRole);
+    console.log('🔍 Sidebar items totaux:', this.sidebarItems.length);
+    
+    if (!normalizedRole) {
+      console.warn('⚠️ Aucun rôle utilisateur trouvé');
       this.filteredSidebarItems = [];
       return;
     }
@@ -159,9 +168,23 @@ export class SidebarComponent implements OnInit {
         return true;
       }
       
+      // Normaliser les rôles de l'item pour comparaison
+      const normalizedItemRoles = item.roles.map(r => r.toLowerCase().trim().replace(/\s+/g, '-'));
+      const hasAccess = normalizedItemRoles.includes(normalizedRole);
+      
+      // Log spécifique pour Traçabilité
+      if (item.label === 'Traçabilité') {
+        console.log('🔍 [Traçabilité] Rôles item:', normalizedItemRoles);
+        console.log('🔍 [Traçabilité] Rôle user:', normalizedRole);
+        console.log('🔍 [Traçabilité] Accès:', hasAccess);
+      }
+      
       // Vérifier si le rôle de l'utilisateur est dans la liste des rôles autorisés
-      return item.roles.includes(userRole);
+      return hasAccess;
     });
+    
+    console.log('🔍 Items filtrés:', this.filteredSidebarItems.length);
+    console.log('🔍 Labels des items filtrés:', this.filteredSidebarItems.map(i => i.label));
   }
 
   // Méthode pour formater le nom de l'utilisateur de manière professionnelle
@@ -220,6 +243,15 @@ export class SidebarComponent implements OnInit {
     }
     
     return 'Utilisateur';
+  }
+  
+  // Méthode pour obtenir le rôle normalisé (pour comparaison)
+  private getNormalizedRole(): string | null {
+    const userRole = localStorage.getItem('userRole') || this.userData.role?.toLowerCase();
+    if (!userRole) return null;
+    
+    // Normaliser : enlever les espaces, mettre en minuscule, remplacer espaces par tirets
+    return userRole.toLowerCase().trim().replace(/\s+/g, '-');
   }
 
   // Méthode pour mapper les IDs de rôles vers les noms avec icônes
@@ -421,6 +453,13 @@ export class SidebarComponent implements OnInit {
       icon: 'admin_panel_settings',
       route: '/user-management',
       tooltip: 'Gestion complète des utilisateurs et rôles',
+      roles: ['super-admin']
+    },
+    {
+      label: 'Traçabilité',
+      icon: 'history',
+      route: '/activity-logs',
+      tooltip: 'Journal des activités du système',
       roles: ['super-admin']
     },
     {

@@ -608,19 +608,24 @@ class CoursController extends Controller
                 ->orderBy('name')
                 ->get();
 
-            // Récupérer les enseignants (users avec role_id = 6)
-            $enseignants = \App\Models\User::select('id', 'first_name', 'last_name', 'email')
-                ->where('role_id', 6)
-                ->orderBy('first_name')
-                ->orderBy('last_name')
+            // Récupérer les enseignants depuis la table enseignant avec relation user
+            $enseignants = \App\Models\Enseignant::with('user')
                 ->get()
-                ->map(function ($user) {
+                ->map(function ($enseignant) {
+                    $user = $enseignant->user;
+                    if (!$user) {
+                        return null; // Ignorer les enseignants sans user associé
+                    }
                     return [
-                        'id' => $user->id,
+                        'id' => $user->id, // Utiliser user_id car enseignant_id dans cours pointe vers User
                         'name' => $user->first_name . ' ' . $user->last_name,
                         'email' => $user->email
                     ];
-                });
+                })
+                ->filter() // Retirer les null
+                ->values() // Réindexer
+                ->sortBy('name') // Trier par nom
+                ->values(); // Réindexer après tri
 
             return response()->json([
                 'etablissements' => $etablissements,

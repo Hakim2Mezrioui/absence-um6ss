@@ -367,4 +367,104 @@ class AbsenceService
                       ->orderByDesc('date_absence')
                       ->get();
     }
+
+    /**
+     * Get students ranking by absences count
+     */
+    public function getStudentsRanking(array $filters = []): array
+    {
+        $limit = $filters['limit'] ?? 50;
+        $dateDebut = $filters['date_debut'] ?? null;
+        $dateFin = $filters['date_fin'] ?? null;
+        $etablissementId = $filters['etablissement_id'] ?? null;
+        $promotionId = $filters['promotion_id'] ?? null;
+        $sortBy = $filters['sort_by'] ?? 'total'; // 'total', 'non_justifiees', 'justifiees'
+
+        $query = Absence::selectRaw('
+                etudiant_id,
+                COUNT(*) as total_absences,
+                SUM(CASE WHEN justifiee = 1 THEN 1 ELSE 0 END) as absences_justifiees,
+                SUM(CASE WHEN justifiee = 0 THEN 1 ELSE 0 END) as absences_non_justifiees
+            ')
+            ->with([
+                'etudiant:id,matricule,first_name,last_name,photo,promotion_id,etablissement_id,ville_id,group_id,option_id',
+                'etudiant.promotion:id,name',
+                'etudiant.etablissement:id,name',
+                'etudiant.ville:id,name',
+                'etudiant.group:id,title',
+                'etudiant.option:id,name'
+            ])
+            ->groupBy('etudiant_id');
+
+        // Appliquer les filtres de date
+        if ($dateDebut) {
+            $query->where('date_absence', '>=', $dateDebut);
+        }
+        if ($dateFin) {
+            $query->where('date_absence', '<=', $dateFin);
+        }
+
+        // Filtre par établissement
+        if ($etablissementId) {
+            $query->whereHas('etudiant', function($q) use ($etablissementId) {
+                $q->where('etablissement_id', $etablissementId);
+            });
+        }
+
+        // Filtre par promotion
+        if ($promotionId) {
+            $query->whereHas('etudiant', function($q) use ($promotionId) {
+                $q->where('promotion_id', $promotionId);
+            });
+        }
+
+        // Trier selon le critère
+        switch ($sortBy) {
+            case 'non_justifiees':
+                $query->orderByDesc('absences_non_justifiees');
+                break;
+            case 'justifiees':
+                $query->orderByDesc('absences_justifiees');
+                break;
+            default:
+                $query->orderByDesc('total_absences');
+        }
+
+        $results = $query->limit($limit)->get();
+
+        // Formater les résultats avec le pourcentage de justification
+        $ranking = $results->map(function ($item, $index) {
+            $total = $item->total_absences;
+            $justifiees = $item->absences_justifiees;
+            $nonJustifiees = $item->absences_non_justifiees;
+            $tauxJustification = $total > 0 ? round(($justifiees / $total) * 100, 2) : 0;
+
+            return [
+                'rank' => $index + 1,
+                'etudiant_id' => $item->etudiant_id,
+                'etudiant' => $item->etudiant ? [
+                    'id' => $item->etudiant->id,
+                    'matricule' => $item->etudiant->matricule,
+                    'first_name' => $item->etudiant->first_name,
+                    'last_name' => $item->etudiant->last_name,
+                    'photo' => $item->etudiant->photo,
+                    'promotion' => $item->etudiant->promotion,
+                    'etablissement' => $item->etudiant->etablissement,
+                    'ville' => $item->etudiant->ville,
+                    'group' => $item->etudiant->group,
+                    'option' => $item->etudiant->option,
+                ] : null,
+                'total_absences' => $total,
+                'absences_justifiees' => $justifiees,
+                'absences_non_justifiees' => $nonJustifiees,
+                'taux_justification' => $tauxJustification,
+            ];
+        });
+
+        return [
+            'ranking' => $ranking,
+            'total_students' => $ranking->count(),
+            'filters' => $filters,
+        ];
+    }
 } 

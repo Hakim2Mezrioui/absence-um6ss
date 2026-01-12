@@ -346,4 +346,134 @@ class AbsenceController extends Controller
             'status' => 200
         ]);
     }
+
+    /**
+     * Obtenir le classement des étudiants par nombre d'absences.
+     */
+    public function getStudentsRanking(Request $request)
+    {
+        $filters = [
+            'limit' => $request->query('limit', 50),
+            'date_debut' => $request->query('date_debut'),
+            'date_fin' => $request->query('date_fin'),
+            'etablissement_id' => $request->query('etablissement_id'),
+            'promotion_id' => $request->query('promotion_id'),
+            'sort_by' => $request->query('sort_by', 'total'), // 'total', 'non_justifiees', 'justifiees'
+        ];
+
+        // Nettoyer les valeurs vides
+        $filters = array_filter($filters, function($value) {
+            return $value !== null && $value !== '';
+        });
+
+        $ranking = $this->absenceService->getStudentsRanking($filters);
+        
+        return response()->json([
+            'data' => $ranking,
+            'status' => 200
+        ]);
+    }
+
+    /**
+     * Upload un justificatif pour une absence.
+     */
+    public function uploadJustificatif(Request $request, $id)
+    {
+        $request->validate([
+            'justificatif' => 'required|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120', // 5MB max
+        ]);
+
+        $absence = Absence::find($id);
+        if (!$absence) {
+            return response()->json(['message' => 'Absence non trouvée'], 404);
+        }
+
+        // Supprimer l'ancien fichier s'il existe
+        if ($absence->justificatif) {
+            $oldPath = storage_path('app/justificatifs/' . $absence->justificatif);
+            if (file_exists($oldPath)) {
+                unlink($oldPath);
+            }
+        }
+
+        // Créer le dossier s'il n'existe pas
+        $storagePath = storage_path('app/justificatifs');
+        if (!file_exists($storagePath)) {
+            mkdir($storagePath, 0755, true);
+        }
+
+        // Générer un nom de fichier unique
+        $file = $request->file('justificatif');
+        $extension = $file->getClientOriginalExtension();
+        $fileName = 'absence_' . $id . '_' . time() . '.' . $extension;
+        
+        // Déplacer le fichier
+        $file->move($storagePath, $fileName);
+
+        // Mettre à jour l'absence
+        $absence->update([
+            'justificatif' => $fileName,
+            'justifiee' => true, // Auto-justifier si un document est uploadé
+        ]);
+
+        return response()->json([
+            'message' => 'Justificatif uploadé avec succès',
+            'justificatif' => $fileName,
+            'absence' => $absence->fresh(['etudiant', 'cours', 'examen'])
+        ]);
+    }
+
+    /**
+     * Télécharger un justificatif.
+     */
+    public function downloadJustificatif($id)
+    {
+        $absence = Absence::find($id);
+        if (!$absence) {
+            return response()->json(['message' => 'Absence non trouvée'], 404);
+        }
+
+        if (!$absence->justificatif) {
+            return response()->json(['message' => 'Aucun justificatif disponible'], 404);
+        }
+
+        $filePath = storage_path('app/justificatifs/' . $absence->justificatif);
+        
+        if (!file_exists($filePath)) {
+            return response()->json(['message' => 'Fichier justificatif introuvable'], 404);
+        }
+
+        return response()->download($filePath, $absence->justificatif);
+    }
+
+    /**
+     * Supprimer un justificatif.
+     */
+    public function deleteJustificatif($id)
+    {
+        $absence = Absence::find($id);
+        if (!$absence) {
+            return response()->json(['message' => 'Absence non trouvée'], 404);
+        }
+
+        if (!$absence->justificatif) {
+            return response()->json(['message' => 'Aucun justificatif à supprimer'], 404);
+        }
+
+        $filePath = storage_path('app/justificatifs/' . $absence->justificatif);
+        
+        if (file_exists($filePath)) {
+            unlink($filePath);
+        }
+
+        $absence->update([
+            'justificatif' => null,
+            'justifiee' => false, // Retirer la justification si le document est supprimé
+        ]);
+
+        return response()->json([
+            'message' => 'Justificatif supprimé avec succès',
+            'absence' => $absence->fresh(['etudiant', 'cours', 'examen'])
+        ]);
+    }
 } 

@@ -187,8 +187,83 @@ class ListStudentController extends Controller
     /**
      * Récupérer les étudiants d'un rattrapage spécifique
      */
-    public function getStudentsByRattrapage($rattrapageId): JsonResponse
+    public function getStudentsByRattrapage(Request $request, $rattrapageId): JsonResponse
     {
+        $page = (int) $request->get('page', 1);
+        $perPage = (int) $request->get('per_page', 20);
+        
+        // Utiliser la méthode paginée si des paramètres de pagination sont fournis
+        if ($page > 0 && $perPage > 0) {
+            $paginatedStudents = $this->listStudentService->getStudentsByRattrapagePaginated(
+                (int) $rattrapageId,
+                $perPage,
+                $page
+            );
+            
+            // Structurer les données pour inclure toutes les relations
+            $formattedStudents = $paginatedStudents->map(function ($listStudent) {
+                return [
+                    'id' => $listStudent->id,
+                    'etudiant_id' => $listStudent->etudiant_id,
+                    'rattrapage_id' => $listStudent->rattrapage_id,
+                    'created_at' => $listStudent->created_at,
+                    'updated_at' => $listStudent->updated_at,
+                    'etudiant' => [
+                        'id' => $listStudent->etudiant->id,
+                        'matricule' => $listStudent->etudiant->matricule,
+                        'first_name' => $listStudent->etudiant->first_name,
+                        'last_name' => $listStudent->etudiant->last_name,
+                        'full_name' => $listStudent->etudiant->full_name,
+                        'email' => $listStudent->etudiant->email,
+                        'photo' => $listStudent->etudiant->photo,
+                        'promotion' => $listStudent->etudiant->promotion ? [
+                            'id' => $listStudent->etudiant->promotion->id,
+                            'name' => $listStudent->etudiant->promotion->name,
+                            'year' => $listStudent->etudiant->promotion->year,
+                        ] : null,
+                        'etablissement' => $listStudent->etudiant->etablissement ? [
+                            'id' => $listStudent->etudiant->etablissement->id,
+                            'name' => $listStudent->etudiant->etablissement->name,
+                            'address' => $listStudent->etudiant->etablissement->address,
+                        ] : null,
+                        'ville' => $listStudent->etudiant->ville ? [
+                            'id' => $listStudent->etudiant->ville->id,
+                            'name' => $listStudent->etudiant->ville->name,
+                        ] : null,
+                        'group' => $listStudent->etudiant->group ? [
+                            'id' => $listStudent->etudiant->group->id,
+                            'name' => $listStudent->etudiant->group->title,
+                        ] : null,
+                        'option' => $listStudent->etudiant->option ? [
+                            'id' => $listStudent->etudiant->option->id,
+                            'name' => $listStudent->etudiant->option->name,
+                        ] : null,
+                    ],
+                    'rattrapage' => $listStudent->rattrapage ? [
+                        'id' => $listStudent->rattrapage->id,
+                        'name' => $listStudent->rattrapage->name,
+                        'date' => $listStudent->rattrapage->date,
+                        'start_time' => $listStudent->rattrapage->start_time,
+                        'end_time' => $listStudent->rattrapage->end_time,
+                    ] : null,
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => $formattedStudents,
+                'count' => $paginatedStudents->total(),
+                'pagination' => [
+                    'current_page' => $paginatedStudents->currentPage(),
+                    'last_page' => $paginatedStudents->lastPage(),
+                    'per_page' => $paginatedStudents->perPage(),
+                    'total' => $paginatedStudents->total(),
+                ],
+                'message' => 'Étudiants récupérés avec succès avec toutes leurs relations'
+            ]);
+        }
+        
+        // Fallback: retourner tous les étudiants sans pagination (pour compatibilité)
         $students = $this->listStudentService->getStudentsByRattrapage((int) $rattrapageId);
 
         // Structurer les données pour inclure toutes les relations
@@ -550,6 +625,8 @@ class ListStudentController extends Controller
     {
         try {
             $searchValue = $request->get('search', '');
+            $page = (int) $request->get('page', 1);
+            $perPage = (int) $request->get('per_page', 20);
 
             if (empty($searchValue)) {
                 return response()->json([
@@ -558,6 +635,69 @@ class ListStudentController extends Controller
                 ], 400);
             }
 
+            // Utiliser la méthode paginée si des paramètres de pagination sont fournis
+            if ($page > 0 && $perPage > 0) {
+                $paginatedStudents = $this->listStudentService->searchStudentsInListPaginated(
+                    (int) $rattrapageId,
+                    $searchValue,
+                    $perPage,
+                    $page
+                );
+
+                // Structurer les données
+                $formattedStudents = $paginatedStudents->map(function ($listStudent) {
+                    return [
+                        'id' => $listStudent->id,
+                        'etudiant_id' => $listStudent->etudiant_id,
+                        'rattrapage_id' => $listStudent->rattrapage_id,
+                        'created_at' => $listStudent->created_at,
+                        'updated_at' => $listStudent->updated_at,
+                        'etudiant' => [
+                            'id' => $listStudent->etudiant->id,
+                            'matricule' => $listStudent->etudiant->matricule,
+                            'first_name' => $listStudent->etudiant->first_name,
+                            'last_name' => $listStudent->etudiant->last_name,
+                            'full_name' => $listStudent->etudiant->full_name,
+                            'email' => $listStudent->etudiant->email,
+                            'photo' => $listStudent->etudiant->photo,
+                            'promotion' => $listStudent->etudiant->promotion ? [
+                                'id' => $listStudent->etudiant->promotion->id,
+                                'name' => $listStudent->etudiant->promotion->name,
+                            ] : null,
+                            'etablissement' => $listStudent->etudiant->etablissement ? [
+                                'id' => $listStudent->etudiant->etablissement->id,
+                                'name' => $listStudent->etudiant->etablissement->name,
+                            ] : null,
+                            'ville' => $listStudent->etudiant->ville ? [
+                                'id' => $listStudent->etudiant->ville->id,
+                                'name' => $listStudent->etudiant->ville->name,
+                            ] : null,
+                            'group' => $listStudent->etudiant->group ? [
+                                'id' => $listStudent->etudiant->group->id,
+                                'name' => $listStudent->etudiant->group->title,
+                            ] : null,
+                            'option' => $listStudent->etudiant->option ? [
+                                'id' => $listStudent->etudiant->option->id,
+                                'name' => $listStudent->etudiant->option->name,
+                            ] : null,
+                        ],
+                    ];
+                });
+
+                return response()->json([
+                    'success' => true,
+                    'data' => $formattedStudents,
+                    'count' => $paginatedStudents->total(),
+                    'pagination' => [
+                        'current_page' => $paginatedStudents->currentPage(),
+                        'last_page' => $paginatedStudents->lastPage(),
+                        'per_page' => $paginatedStudents->perPage(),
+                        'total' => $paginatedStudents->total(),
+                    ]
+                ]);
+            }
+
+            // Fallback: retourner tous les résultats sans pagination
             $students = $this->listStudentService->searchStudentsInList(
                 (int) $rattrapageId,
                 $searchValue

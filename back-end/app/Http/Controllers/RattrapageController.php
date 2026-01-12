@@ -95,7 +95,9 @@ class RattrapageController extends Controller
                 'tolerance' => 'nullable|integer|min:0|max:60',
                 'ville_id' => 'nullable|exists:villes,id',
                 'etablissement_id' => 'nullable|exists:etablissements,id',
-                'salle_id' => 'nullable|exists:salles,id'
+                'salle_id' => 'nullable|exists:salles,id', // Déprécié mais gardé pour compatibilité
+                'salles_ids' => 'nullable|array',
+                'salles_ids.*' => 'exists:salles,id'
             ]);
 
             // Log des données validées
@@ -109,9 +111,43 @@ class RattrapageController extends Controller
                 ], 400);
             }
 
+            // Validation : au moins une salle doit être fournie (salle_id ou salles_ids)
+            if (empty($validatedData['salles_ids']) && empty($validatedData['salle_id'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Au moins une salle doit être sélectionnée (salle_id ou salles_ids)'
+                ], 422);
+            }
 
+            // Préparer les IDs de salles
+            $sallesIds = [];
+            if (!empty($validatedData['salles_ids']) && is_array($validatedData['salles_ids'])) {
+                $sallesIds = $validatedData['salles_ids'];
+            } elseif (!empty($validatedData['salle_id'])) {
+                // Si seulement salle_id est fourni, utiliser salle_id
+                $sallesIds = [$validatedData['salle_id']];
+            }
+
+            // Garder salle_id pour compatibilité (première salle)
+            if (empty($validatedData['salle_id']) && !empty($sallesIds)) {
+                $validatedData['salle_id'] = $sallesIds[0];
+            }
+
+            // Retirer salles_ids de validatedData pour l'insertion (on le gère séparément)
+            unset($validatedData['salles_ids']);
 
             $rattrapage = $this->rattrapageService->createRattrapage($validatedData);
+
+            // Associer les salles au rattrapage via la relation many-to-many
+            if (!empty($sallesIds)) {
+                $rattrapage->salles()->sync($sallesIds);
+            } elseif ($validatedData['salle_id']) {
+                // Si seulement salle_id est fourni, créer l'association dans le pivot aussi
+                $rattrapage->salles()->sync([$validatedData['salle_id']]);
+            }
+
+            // Charger les relations pour la réponse
+            $rattrapage->load(['salles', 'salle', 'ville', 'etablissement']);
 
             // Log du rattrapage créé
             \Log::info('Rattrapage created:', $rattrapage->toArray());

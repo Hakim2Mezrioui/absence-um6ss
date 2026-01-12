@@ -42,6 +42,32 @@
       </div>
     </div>
 
+    <!-- Onglets -->
+    <div class="mb-6">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div class="flex border-b border-gray-200">
+          <button
+            (click)="switchTab('list')"
+            [class]="'flex-1 px-6 py-4 text-center font-medium transition-colors ' + 
+                     (isListTab() ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50')"
+          >
+            <mat-icon class="align-middle mr-2">list</mat-icon>
+            Liste des Absences
+          </button>
+          <button
+            (click)="switchTab('ranking')"
+            [class]="'flex-1 px-6 py-4 text-center font-medium transition-colors ' + 
+                     (isRankingTab() ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50')"
+          >
+            <mat-icon class="align-middle mr-2">leaderboard</mat-icon>
+            Classement des Étudiants
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contenu de l'onglet Liste -->
+    <div *ngIf="isListTab()">
     <!-- Statistiques -->
     <div *ngIf="!loading && !error && absences.length > 0" class="mb-8">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -359,6 +385,31 @@
                 
                 <!-- Menu d'actions -->
                 <div class="flex gap-1">
+                  <!-- Bouton Justifier -->
+                  <button 
+                    mat-raised-button
+                    color="primary"
+                    (click)="openJustifyDialog(absence)"
+                    class="text-sm"
+                    matTooltip="Justifier cette absence"
+                    [disabled]="loading"
+                  >
+                    <mat-icon class="text-sm mr-1">description</mat-icon>
+                    Justifier
+                  </button>
+
+                  <!-- Bouton Télécharger justificatif (si présent) -->
+                  <button 
+                    *ngIf="absence.justificatif"
+                    mat-icon-button
+                    (click)="downloadJustificatif(absence)"
+                    class="text-gray-400 hover:text-green-600 hover:bg-green-50"
+                    matTooltip="Télécharger le justificatif"
+                    [disabled]="loading"
+                  >
+                    <mat-icon>download</mat-icon>
+                  </button>
+                  
                   <button 
                     mat-icon-button
                     class="text-gray-400 hover:text-blue-600 hover:bg-blue-50"
@@ -478,8 +529,148 @@
           </div>
         </div>
       </div>
-
     </div>
+    <!-- Fin de l'onglet Liste -->
+
+    <!-- Contenu de l'onglet Classement -->
+    <div *ngIf="isRankingTab()" class="bg-white rounded-xl shadow-lg p-8 border border-gray-100">
+      <div class="mb-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">Classement des Étudiants par Absences</h2>
+        
+        <!-- Filtres pour le classement -->
+        <div class="bg-gray-50 rounded-lg p-4 mb-6">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Date début</mat-label>
+              <input matInput type="date" [(ngModel)]="rankingFilters.date_debut" (change)="loadStudentsRanking()">
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Date fin</mat-label>
+              <input matInput type="date" [(ngModel)]="rankingFilters.date_fin" (change)="loadStudentsRanking()">
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Établissement</mat-label>
+              <mat-select [(ngModel)]="rankingFilters.etablissement_id" (selectionChange)="loadStudentsRanking()">
+                <mat-option value="">Tous</mat-option>
+                <mat-option *ngFor="let etab of etablissements" [value]="etab.id">
+                  {{ etab.name }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Trier par</mat-label>
+              <mat-select [(ngModel)]="rankingFilters.sort_by" (selectionChange)="loadStudentsRanking()">
+                <mat-option value="total">Total absences</mat-option>
+                <mat-option value="non_justifiees">Non justifiées</mat-option>
+                <mat-option value="justifiees">Justifiées</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div *ngIf="rankingLoading" class="text-center py-12">
+        <mat-spinner diameter="40" class="mx-auto mb-4"></mat-spinner>
+        <p class="text-gray-600">Chargement du classement...</p>
+      </div>
+
+      <!-- Tableau de classement -->
+      <div *ngIf="!rankingLoading && studentsRanking.length > 0" class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rang</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Étudiant</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Justifiées</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Non justifiées</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Taux</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr *ngFor="let student of studentsRanking" class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <span class="text-2xl font-bold" [class]="student.rank <= 3 ? 'text-yellow-500' : 'text-gray-400'">
+                    {{ student.rank }}
+                  </span>
+                  <mat-icon *ngIf="student.rank === 1" class="text-yellow-500 ml-2">emoji_events</mat-icon>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div *ngIf="getStudentPhotoUrlRanking(student.etudiant)" 
+                       class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 mr-3">
+                    <img [src]="getStudentPhotoUrlRanking(student.etudiant)" 
+                         [alt]="student.etudiant?.first_name + ' ' + student.etudiant?.last_name"
+                         class="w-full h-full object-cover">
+                  </div>
+                  <div *ngIf="!getStudentPhotoUrlRanking(student.etudiant)" 
+                       class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0 mr-3">
+                    <span class="text-white text-sm font-semibold">{{ getStudentInitialsRanking(student.etudiant) }}</span>
+                  </div>
+                  <div>
+                    <div class="text-sm font-medium text-gray-900">
+                      {{ student.etudiant?.first_name }} {{ student.etudiant?.last_name }}
+                    </div>
+                    <div class="text-sm text-gray-500">{{ student.etudiant?.matricule }}</div>
+                    <div class="text-xs text-gray-400" *ngIf="student.etudiant?.promotion">
+                      {{ student.etudiant.promotion.name }}
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-center">
+                <span class="text-lg font-bold text-gray-900">{{ student.total_absences }}</span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-center">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  {{ student.absences_justifiees }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-center">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                  {{ student.absences_non_justifiees }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-center">
+                <div class="flex items-center justify-center">
+                  <div class="w-16 bg-gray-200 rounded-full h-2 mr-2">
+                    <div class="bg-green-600 h-2 rounded-full" [style.width.%]="student.taux_justification"></div>
+                  </div>
+                  <span class="text-sm font-medium text-gray-700">{{ student.taux_justification }}%</span>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-center">
+                <button 
+                  mat-stroked-button
+                  color="primary"
+                  (click)="viewStudentAbsences(student.etudiant_id)"
+                  class="text-xs"
+                >
+                  <mat-icon class="text-sm mr-1">visibility</mat-icon>
+                  Voir détails
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Message vide -->
+      <div *ngIf="!rankingLoading && studentsRanking.length === 0" class="text-center py-12">
+        <mat-icon class="text-gray-400 text-6xl mb-4">leaderboard</mat-icon>
+        <h3 class="text-xl font-medium text-gray-900 mb-2">Aucun classement disponible</h3>
+        <p class="text-gray-500">Aucun étudiant avec des absences trouvé pour les filtres sélectionnés.</p>
+      </div>
+    </div>
+    <!-- Fin de l'onglet Classement -->
+
   </div>
 </div>
 

@@ -488,6 +488,29 @@ class CoursService
             $coursData['option_id'] = $data['option_id'];
         }
 
+        // Rechercher l'enseignant par nom ou email depuis la table enseignant
+        if (!empty($data['enseignant_name']) || !empty($data['enseignant_email'])) {
+            $searchValue = $data['enseignant_name'] ?? $data['enseignant_email'];
+            
+            // Rechercher dans la table enseignant avec relation user
+            $enseignant = \App\Models\Enseignant::with('user')
+                ->whereHas('user', function($query) use ($searchValue) {
+                    $query->where(function($q) use ($searchValue) {
+                        $q->whereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$searchValue}%"])
+                          ->orWhere('email', 'LIKE', "%{$searchValue}%")
+                          ->orWhere('first_name', 'LIKE', "%{$searchValue}%")
+                          ->orWhere('last_name', 'LIKE', "%{$searchValue}%");
+                    });
+                })
+                ->first();
+            
+            if ($enseignant && $enseignant->user) {
+                $coursData['enseignant_id'] = $enseignant->user->id; // Utiliser user_id car enseignant_id pointe vers User
+            } else {
+                throw new \Exception("Enseignant non trouvé dans la table enseignant: {$searchValue}");
+            }
+        }
+
         // Stocker salle_ids pour l'attachement après création
         $coursData['_salle_ids'] = $salleIds;
 

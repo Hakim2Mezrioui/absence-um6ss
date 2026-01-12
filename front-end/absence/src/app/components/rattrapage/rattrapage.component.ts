@@ -181,6 +181,7 @@ export class RattrapageComponent implements OnInit, OnDestroy {
   // Search debounce
   private searchSubject = new Subject<string>();
   private destroy$ = new Subject<void>();
+  private formCacheSubscription: any = null;
   
   constructor() {
     this.rattrapageForm = this.fb.group({
@@ -191,8 +192,17 @@ export class RattrapageComponent implements OnInit, OnDestroy {
       date: ['', [Validators.required]],
       tolerance: [5, [Validators.required, Validators.min(0), Validators.max(60)]],
       ville_id: [null, [Validators.required]],
-      salle_id: [null, [Validators.required]]
+      salle_ids: [[], [Validators.required, this.atLeastOneSalleValidator]]
     });
+  }
+  
+  // Validator personnalisé pour vérifier qu'au moins une salle est sélectionnée
+  private atLeastOneSalleValidator(control: any) {
+    const value = control.value;
+    if (!value || !Array.isArray(value) || value.length === 0) {
+      return { required: true };
+    }
+    return null;
   }
   
   async ngOnInit() {
@@ -200,6 +210,7 @@ export class RattrapageComponent implements OnInit, OnDestroy {
     this.initializing = true;
     this.markForCheck();
     this.setupSearchDebounce();
+    this.setupFormCacheListener();
     
     // Timeout de sécurité pour éviter que l'écran reste bloqué
     const timeoutPromise = new Promise((resolve) => {
@@ -244,9 +255,34 @@ export class RattrapageComponent implements OnInit, OnDestroy {
     }
   }
   
+  // Configurer le listener pour sauvegarder automatiquement dans le cache
+  private setupFormCacheListener() {
+    // Nettoyer l'ancienne souscription si elle existe
+    if (this.formCacheSubscription) {
+      this.formCacheSubscription.unsubscribe();
+    }
+    
+    // Sauvegarder dans le cache à chaque changement du formulaire (avec debounce)
+    this.formCacheSubscription = this.rattrapageForm.valueChanges
+      .pipe(
+        debounceTime(500), // Attendre 500ms après le dernier changement
+        distinctUntilChanged()
+      )
+      .subscribe(() => {
+        if (this.showCreateModal) {
+          this.saveFormToCache();
+        }
+      });
+  }
+  
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+    
+    // Nettoyer la souscription du cache
+    if (this.formCacheSubscription) {
+      this.formCacheSubscription.unsubscribe();
+    }
   }
   
   private setupSearchDebounce() {
@@ -326,11 +362,14 @@ export class RattrapageComponent implements OnInit, OnDestroy {
     console.log('🏙️ Ville sélectionnée pour rattrapage:', villeId);
     console.log('📋 Total salles disponibles:', this.salles.length);
     
-    // Réinitialiser la salle si la ville change
-    this.rattrapageForm.patchValue({ salle_id: null });
+    // Réinitialiser les salles sélectionnées si la ville change
+    this.rattrapageForm.patchValue({ salle_ids: [] });
     
     // Filtrer les salles par ville
     this.filterSalles();
+    
+    // Sauvegarder dans le cache
+    this.saveFormToCache();
     
     this.markForCheck();
   }
@@ -367,9 +406,11 @@ export class RattrapageComponent implements OnInit, OnDestroy {
     if (this.salleSearchTerm.trim()) {
       const searchLower = this.salleSearchTerm.trim().toLowerCase();
       filtered = filtered.filter(salle => {
-        const nameMatch = salle.name.toLowerCase().includes(searchLower);
-        const batimentMatch = salle.batiment?.toLowerCase().includes(searchLower);
-        return nameMatch || batimentMatch;
+        const nameMatch = salle.name?.toLowerCase().includes(searchLower) || false;
+        const batimentMatch = salle.batiment?.toLowerCase().includes(searchLower) || false;
+        const etageMatch = salle.etage?.toString().includes(searchLower) || false;
+        const descriptionMatch = salle.description?.toLowerCase().includes(searchLower) || false;
+        return nameMatch || batimentMatch || etageMatch || descriptionMatch;
       });
       console.log('✅ Salles après filtrage par recherche:', filtered.length);
     }
@@ -377,15 +418,47 @@ export class RattrapageComponent implements OnInit, OnDestroy {
     this.filteredSalles = filtered;
     console.log('📋 Salles filtrées finales:', this.filteredSalles.length);
     
-    // Réinitialiser la sélection de salle si elle n'est plus dans la liste filtrée
-    const currentSalleId = this.rattrapageForm.get('salle_id')?.value;
-    if (currentSalleId && !this.filteredSalles.find(s => s.id === currentSalleId)) {
-      this.rattrapageForm.patchValue({ salle_id: null });
+    // Vérifier que les salles sélectionnées sont toujours valides (dans la liste complète de la ville)
+    // Mais ne pas les retirer si elles ne sont plus visibles dans les résultats filtrés par recherche
+    const currentSalleIds = this.rattrapageForm.get('salle_ids')?.value || [];
+    
+    // Obtenir la liste complète des salles de la ville (sans filtre de recherche)
+    let sallesByVille = [...this.salles];
+    if (villeId) {
+      const villeIdNum = Number(villeId);
+      sallesByVille = sallesByVille.filter(salle => {
+        const salleVilleId = Number(salle.ville_id);
+        return salleVilleId === villeIdNum;
+      });
+    }
+    
+    // Ne retirer que les salles qui ne sont plus dans la liste complète de la ville
+    // (par exemple, si la ville a changé), mais garder celles qui sont juste masquées par la recherche
+    const validSalleIds = currentSalleIds.filter((id: number) => 
+      sallesByVille.find(s => s.id === id)
+    );
+    
+    // Seulement mettre à jour si des salles ont été retirées (changement de ville)
+    if (validSalleIds.length !== currentSalleIds.length) {
+      this.rattrapageForm.patchValue({ salle_ids: validSalleIds });
+      console.log('⚠️ Salles retirées de la sélection (changement de ville):', currentSalleIds.length - validSalleIds.length);
     }
   }
 
-  onSalleSearchChange() {
+  onSalleSearchInput(value: string) {
+    this.salleSearchTerm = value;
     this.filterSalles();
+    // Sauvegarder le terme de recherche dans le cache
+    this.saveFormToCache();
+    // Forcer la détection de changement avec OnPush
+    this.markForCheck();
+  }
+  
+  clearSalleSearch() {
+    this.salleSearchTerm = '';
+    this.filterSalles();
+    this.saveFormToCache();
+    this.markForCheck();
   }
   
   async loadEtudiants(page: number = 1, showLoading: boolean = true) {
@@ -575,17 +648,141 @@ export class RattrapageComponent implements OnInit, OnDestroy {
     }
     
     this.showCreateModal = true;
-    // Set default date to today
-    const today = new Date().toISOString().split('T')[0];
-    this.rattrapageForm.patchValue({ date: today });
+    
+    // Restaurer les données du cache si disponibles
+    this.loadFormFromCache();
+    
+    // Si pas de date dans le cache, utiliser la date d'aujourd'hui par défaut
+    if (!this.rattrapageForm.get('date')?.value) {
+      const today = new Date().toISOString().split('T')[0];
+      this.rattrapageForm.patchValue({ date: today });
+    }
+    
+    // Si une ville était sauvegardée, filtrer les salles
+    const savedVilleId = this.rattrapageForm.get('ville_id')?.value;
+    if (savedVilleId) {
+      this.selectedVilleForRattrapage = savedVilleId;
+    }
+    
+    // Appliquer le filtrage des salles (par ville et terme de recherche)
+    this.filterSalles();
+    
+    this.markForCheck();
   }
   
   closeCreateModal() {
+    // Sauvegarder les données dans le cache avant de fermer
+    this.saveFormToCache();
+    
     this.showCreateModal = false;
-    this.rattrapageForm.reset();
-    this.selectedVilleForRattrapage = null;
+    // Ne pas réinitialiser le formulaire, on garde les données en cache
+    // this.rattrapageForm.reset();
+    // this.selectedVilleForRattrapage = null;
     this.salleSearchTerm = '';
-    this.filteredSalles = [...this.salles];
+    // Garder le filtre des salles si une ville était sélectionnée
+    if (!this.selectedVilleForRattrapage) {
+      this.filteredSalles = [...this.salles];
+    }
+  }
+  
+  // Méthode pour sauvegarder le formulaire dans le cache
+  private saveFormToCache() {
+    try {
+      const formValue = this.rattrapageForm.value;
+      localStorage.setItem('rattrapage_form_cache', JSON.stringify(formValue));
+      localStorage.setItem('rattrapage_ville_cache', JSON.stringify(this.selectedVilleForRattrapage));
+      localStorage.setItem('rattrapage_salle_search_cache', this.salleSearchTerm);
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde du cache:', error);
+    }
+  }
+  
+  // Méthode pour charger le formulaire depuis le cache
+  private loadFormFromCache() {
+    try {
+      const cachedForm = localStorage.getItem('rattrapage_form_cache');
+      const cachedVille = localStorage.getItem('rattrapage_ville_cache');
+      const cachedSearch = localStorage.getItem('rattrapage_salle_search_cache');
+      
+      if (cachedForm) {
+        const formValue = JSON.parse(cachedForm);
+        // S'assurer que salle_ids est un tableau
+        if (formValue.salle_ids && !Array.isArray(formValue.salle_ids)) {
+          formValue.salle_ids = formValue.salle_id ? [formValue.salle_id] : [];
+        } else if (!formValue.salle_ids) {
+          formValue.salle_ids = formValue.salle_id ? [formValue.salle_id] : [];
+        }
+        // Supprimer l'ancien salle_id si présent
+        delete formValue.salle_id;
+        
+        this.rattrapageForm.patchValue(formValue);
+      }
+      
+      if (cachedVille) {
+        this.selectedVilleForRattrapage = JSON.parse(cachedVille);
+      }
+      
+      if (cachedSearch) {
+        this.salleSearchTerm = cachedSearch;
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement du cache:', error);
+    }
+  }
+  
+  // Méthode pour nettoyer le cache
+  private clearFormCache() {
+    try {
+      localStorage.removeItem('rattrapage_form_cache');
+      localStorage.removeItem('rattrapage_ville_cache');
+      localStorage.removeItem('rattrapage_salle_search_cache');
+    } catch (error) {
+      console.error('Erreur lors du nettoyage du cache:', error);
+    }
+  }
+  
+  // Méthode pour gérer la sélection/désélection d'une salle
+  toggleSalleSelection(salleId: number) {
+    const currentSalleIds = this.rattrapageForm.get('salle_ids')?.value || [];
+    const index = currentSalleIds.indexOf(salleId);
+    
+    if (index > -1) {
+      // Désélectionner
+      currentSalleIds.splice(index, 1);
+    } else {
+      // Sélectionner
+      currentSalleIds.push(salleId);
+    }
+    
+    this.rattrapageForm.patchValue({ salle_ids: currentSalleIds });
+    this.rattrapageForm.get('salle_ids')?.markAsTouched();
+    
+    // Sauvegarder dans le cache
+    this.saveFormToCache();
+    
+    this.markForCheck();
+  }
+  
+  // Vérifier si une salle est sélectionnée
+  isSalleSelected(salleId: number): boolean {
+    const currentSalleIds = this.rattrapageForm.get('salle_ids')?.value || [];
+    return currentSalleIds.includes(salleId);
+  }
+  
+  // Obtenir le nom d'une salle par son ID
+  getSalleName(salleId: number): string {
+    const salle = this.salles.find(s => s.id === salleId);
+    if (salle) {
+      let name = salle.name;
+      if (salle.batiment) {
+        name += ` - ${salle.batiment}`;
+      }
+      if (salle.etage) {
+        name += ` - Étage ${salle.etage}`;
+      }
+      return name;
+    }
+    return `Salle #${salleId}`;
   }
   
   async createRattrapage() {
@@ -626,7 +823,20 @@ export class RattrapageComponent implements OnInit, OnDestroy {
       this.loading = true;
       
       // 1. Create rattrapage
-      const rattrapageData = this.rattrapageForm.value;
+      const rattrapageData = { ...this.rattrapageForm.value };
+      
+      // S'assurer que salle_ids est un tableau et convertir en salles_ids pour le backend
+      if (rattrapageData.salle_ids && Array.isArray(rattrapageData.salle_ids) && rattrapageData.salle_ids.length > 0) {
+        rattrapageData.salles_ids = rattrapageData.salle_ids;
+        // Garder salle_id pour compatibilité (première salle)
+        rattrapageData.salle_id = rattrapageData.salle_ids[0];
+      } else {
+        throw new Error('Au moins une salle doit être sélectionnée');
+      }
+      
+      // Supprimer salle_ids du payload (on utilise salles_ids)
+      delete rattrapageData.salle_ids;
+      
       const rattrapageResponse = await firstValueFrom(this.rattrapageService.createRattrapage(rattrapageData));
       
       if (!rattrapageResponse?.success) {
@@ -639,9 +849,21 @@ export class RattrapageComponent implements OnInit, OnDestroy {
       }
       
       // 2. Assign students to rattrapage
-      const assignmentPromises = this.selectedEtudiants.map(etudiant => 
-        firstValueFrom(this.rattrapageService.assignStudentToRattrapage(etudiant.id, rattrapageId))
-      );
+      const assignmentPromises = this.selectedEtudiants.map(async (etudiant) => {
+        try {
+          const response = await firstValueFrom(
+            this.rattrapageService.assignStudentToRattrapage(etudiant.id, rattrapageId)
+          );
+          if (!response?.success) {
+            console.error(`Erreur lors de l'assignation de l'étudiant ${etudiant.id}:`, response?.message);
+            throw new Error(response?.message || `Impossible d'assigner l'étudiant ${etudiant.first_name} ${etudiant.last_name}`);
+          }
+          return response;
+        } catch (error: any) {
+          console.error(`Erreur lors de l'assignation de l'étudiant ${etudiant.id}:`, error);
+          throw error;
+        }
+      });
       
       await Promise.all(assignmentPromises);
       
@@ -650,8 +872,15 @@ export class RattrapageComponent implements OnInit, OnDestroy {
         `${this.selectedEtudiants.length} étudiant(s) ont été affecté(s) au rattrapage "${rattrapageData.name}".`
       );
       
+      // Nettoyer le cache après création réussie
+      this.clearFormCache();
+      
       // Reset form and selections
-      this.closeCreateModal();
+      this.showCreateModal = false;
+      this.rattrapageForm.reset();
+      this.selectedVilleForRattrapage = null;
+      this.salleSearchTerm = '';
+      this.filteredSalles = [...this.salles];
       this.clearAllSelections();
       
       // Recharger la liste des rattrapages
@@ -1123,3 +1352,4 @@ export class RattrapageComponent implements OnInit, OnDestroy {
     }
   }
 }
+

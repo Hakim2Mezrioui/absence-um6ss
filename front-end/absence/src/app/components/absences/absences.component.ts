@@ -29,6 +29,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 // Angular Material Dialog imports
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { ConfirmDeleteDialogComponent, ConfirmDeleteData } from './confirm-delete-dialog/confirm-delete-dialog.component';
+import { JustifyAbsenceDialogComponent, JustifyAbsenceDialogData } from './justify-absence-dialog/justify-absence-dialog.component';
 
 // Interface pour les suggestions de recherche
 interface SearchSuggestion {
@@ -108,6 +109,21 @@ export class AbsencesComponent implements OnInit, OnDestroy {
   // États pour la recherche avancée
   showSearchSuggestions = false;
   searchSuggestions: SearchSuggestion[] = [];
+  
+  // Onglets
+  activeTab: 'list' | 'ranking' = 'list';
+  
+  // Classement des étudiants
+  studentsRanking: any[] = [];
+  rankingLoading = false;
+  rankingFilters = {
+    limit: 50,
+    date_debut: '',
+    date_fin: '',
+    etablissement_id: '',
+    promotion_id: '',
+    sort_by: 'total' as 'total' | 'non_justifiees' | 'justifiees'
+  };
   
   // Utilitaires pour le template
   Math = Math;
@@ -522,6 +538,56 @@ export class AbsencesComponent implements OnInit, OnDestroy {
     this.error = message;
   }
 
+  /**
+   * Ouvrir le modal de justification d'absence
+   */
+  openJustifyDialog(absence: Absence): void {
+    const dialogData: JustifyAbsenceDialogData = {
+      absence: absence
+    };
+
+    const dialogRef = this.dialog.open(JustifyAbsenceDialogComponent, {
+      width: '850px',
+      maxWidth: '95vw',
+      data: dialogData,
+      disableClose: false,
+      panelClass: 'justify-absence-dialog'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === true) {
+        // Recharger les absences après justification
+        this.loadAbsences();
+      }
+    });
+  }
+
+  /**
+   * Télécharger un justificatif
+   */
+  downloadJustificatif(absence: Absence): void {
+    if (!absence.justificatif) {
+      return;
+    }
+
+    this.absenceService.downloadJustificatif(absence.id)
+      .subscribe({
+        next: (blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = absence.justificatif || 'justificatif';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+        },
+        error: (error) => {
+          this.showErrorMessage('Impossible de télécharger le justificatif');
+        }
+      });
+  }
+
 
   /**
    * Gestion du focus sur le champ de recherche
@@ -696,5 +762,103 @@ export class AbsencesComponent implements OnInit, OnDestroy {
     const firstInitial = firstName.charAt(0).toUpperCase();
     const lastInitial = lastName.charAt(0).toUpperCase();
     return firstInitial + lastInitial;
+  }
+
+  /**
+   * Changer d'onglet
+   */
+  switchTab(tab: 'list' | 'ranking'): void {
+    this.activeTab = tab;
+    if (tab === 'ranking') {
+      this.loadStudentsRanking();
+    }
+  }
+
+  /**
+   * Vérifier si l'onglet liste est actif
+   */
+  isListTab(): boolean {
+    return this.activeTab === 'list';
+  }
+
+  /**
+   * Vérifier si l'onglet classement est actif
+   */
+  isRankingTab(): boolean {
+    return this.activeTab === 'ranking';
+  }
+
+  /**
+   * Charger le classement des étudiants
+   */
+  loadStudentsRanking(): void {
+    this.rankingLoading = true;
+    
+    const filters: any = {
+      limit: this.rankingFilters.limit,
+      sort_by: this.rankingFilters.sort_by
+    };
+
+    if (this.rankingFilters.date_debut) {
+      filters.date_debut = this.rankingFilters.date_debut;
+    }
+    if (this.rankingFilters.date_fin) {
+      filters.date_fin = this.rankingFilters.date_fin;
+    }
+    if (this.rankingFilters.etablissement_id) {
+      filters.etablissement_id = parseInt(this.rankingFilters.etablissement_id);
+    }
+    if (this.rankingFilters.promotion_id) {
+      filters.promotion_id = parseInt(this.rankingFilters.promotion_id);
+    }
+
+    this.absenceService.getStudentsRanking(filters)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.studentsRanking = response.data.ranking || [];
+          this.rankingLoading = false;
+        },
+        error: (error) => {
+          this.rankingLoading = false;
+          this.error = 'Erreur lors du chargement du classement';
+        }
+      });
+  }
+
+  /**
+   * Obtenir la photo de l'étudiant pour le classement
+   */
+  getStudentPhotoUrlRanking(etudiant: any): string {
+    if (etudiant?.photo) {
+      return etudiant.photo.startsWith('http') 
+        ? etudiant.photo 
+        : `${environment.apiUrl}/${etudiant.photo}`;
+    }
+    return '';
+  }
+
+  /**
+   * Obtenir les initiales pour le classement
+   */
+  getStudentInitialsRanking(etudiant: any): string {
+    const firstName = etudiant?.first_name || '';
+    const lastName = etudiant?.last_name || '';
+    const firstInitial = firstName.charAt(0).toUpperCase();
+    const lastInitial = lastName.charAt(0).toUpperCase();
+    return firstInitial + lastInitial;
+  }
+
+  /**
+   * Voir les absences d'un étudiant
+   */
+  viewStudentAbsences(etudiantId: number): void {
+    // Filtrer les absences pour cet étudiant et changer d'onglet
+    this.filtersForm.patchValue({
+      searchValue: '',
+      etudiant_id: etudiantId
+    });
+    this.switchTab('list');
+    this.loadAbsences();
   }
 }

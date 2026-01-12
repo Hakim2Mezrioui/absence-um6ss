@@ -74,6 +74,10 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
   // Filtres
   filtersForm: FormGroup;
   globalFilterValue = '';
+  
+  // Recherche avancée
+  showAdvancedSearch = false;
+  advancedSearchForm: FormGroup;
 
   // États
   loading = false;
@@ -128,6 +132,17 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
       etablissement_id: [''],
       option_id: ['']
     });
+    
+    // Formulaire de recherche avancée
+    this.advancedSearchForm = this.fb.group({
+      first_name: [''],
+      last_name: [''],
+      email: [''],
+      matricule: [''],
+      matricules_multiple: [''], // Pour plusieurs matricules séparés par espaces
+      created_from: [''],
+      created_to: ['']
+    });
   }
 
   ngOnInit(): void {
@@ -153,6 +168,7 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
     this.loadAllEtudiants();
     this.setupFiltersListener();
     this.setupGlobalSearchListener();
+    this.setupAdvancedSearchListener();
     this.loadViewMode();
   }
 
@@ -328,20 +344,103 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
   private filterStudents(students: Etudiant[]): Etudiant[] {
     let filtered = [...students];
     
-    // Filtre de recherche globale
-    if (this.globalFilterValue.trim()) {
-      const searchTerm = this.globalFilterValue.toLowerCase().trim();
-      filtered = filtered.filter(student => 
-        student.first_name.toLowerCase().includes(searchTerm) ||
-        student.last_name.toLowerCase().includes(searchTerm) ||
-        student.email.toLowerCase().includes(searchTerm) ||
-        student.matricule.toLowerCase().includes(searchTerm) ||
-        student.promotion?.name.toLowerCase().includes(searchTerm) ||
-        student.etablissement?.name.toLowerCase().includes(searchTerm) ||
-        student.ville?.name.toLowerCase().includes(searchTerm) ||
-        student.group?.title.toLowerCase().includes(searchTerm) ||
-        student.option?.name.toLowerCase().includes(searchTerm)
-      );
+    // Recherche avancée (priorité sur la recherche globale)
+    const advancedFormValue = this.advancedSearchForm.value;
+    const hasAdvancedSearch = this.showAdvancedSearch && (
+      advancedFormValue.first_name?.trim() ||
+      advancedFormValue.last_name?.trim() ||
+      advancedFormValue.email?.trim() ||
+      advancedFormValue.matricule?.trim() ||
+      advancedFormValue.matricules_multiple?.trim() ||
+      advancedFormValue.created_from ||
+      advancedFormValue.created_to
+    );
+    
+    if (hasAdvancedSearch) {
+      // Recherche par prénom
+      if (advancedFormValue.first_name?.trim()) {
+        const searchTerm = advancedFormValue.first_name.toLowerCase().trim();
+        filtered = filtered.filter(student => 
+          student.first_name.toLowerCase().includes(searchTerm)
+        );
+      }
+      
+      // Recherche par nom
+      if (advancedFormValue.last_name?.trim()) {
+        const searchTerm = advancedFormValue.last_name.toLowerCase().trim();
+        filtered = filtered.filter(student => 
+          student.last_name.toLowerCase().includes(searchTerm)
+        );
+      }
+      
+      // Recherche par email
+      if (advancedFormValue.email?.trim()) {
+        const searchTerm = advancedFormValue.email.toLowerCase().trim();
+        filtered = filtered.filter(student => 
+          student.email.toLowerCase().includes(searchTerm)
+        );
+      }
+      
+      // Recherche par matricule unique
+      if (advancedFormValue.matricule?.trim()) {
+        const searchTerm = advancedFormValue.matricule.toLowerCase().trim();
+        filtered = filtered.filter(student => 
+          student.matricule.toLowerCase().includes(searchTerm)
+        );
+      }
+      
+      // Recherche par plusieurs matricules (séparés par espaces)
+      if (advancedFormValue.matricules_multiple?.trim()) {
+        const matricules = advancedFormValue.matricules_multiple
+          .split(/\s+/)
+          .map((m: string) => m.trim().toLowerCase())
+          .filter((m: string) => m.length > 0);
+        
+        if (matricules.length > 0) {
+          filtered = filtered.filter(student => 
+            matricules.includes(student.matricule.toLowerCase())
+          );
+        }
+      }
+      
+      // Filtre par date de création (du)
+      if (advancedFormValue.created_from) {
+        const fromDate = new Date(advancedFormValue.created_from);
+        fromDate.setHours(0, 0, 0, 0);
+        filtered = filtered.filter(student => {
+          if (!student.created_at) return false;
+          const studentDate = new Date(student.created_at);
+          studentDate.setHours(0, 0, 0, 0);
+          return studentDate >= fromDate;
+        });
+      }
+      
+      // Filtre par date de création (au)
+      if (advancedFormValue.created_to) {
+        const toDate = new Date(advancedFormValue.created_to);
+        toDate.setHours(23, 59, 59, 999);
+        filtered = filtered.filter(student => {
+          if (!student.created_at) return false;
+          const studentDate = new Date(student.created_at);
+          return studentDate <= toDate;
+        });
+      }
+    } else {
+      // Filtre de recherche globale (si recherche avancée non active)
+      if (this.globalFilterValue.trim()) {
+        const searchTerm = this.globalFilterValue.toLowerCase().trim();
+        filtered = filtered.filter(student => 
+          student.first_name.toLowerCase().includes(searchTerm) ||
+          student.last_name.toLowerCase().includes(searchTerm) ||
+          student.email.toLowerCase().includes(searchTerm) ||
+          student.matricule.toLowerCase().includes(searchTerm) ||
+          student.promotion?.name.toLowerCase().includes(searchTerm) ||
+          student.etablissement?.name.toLowerCase().includes(searchTerm) ||
+          student.ville?.name.toLowerCase().includes(searchTerm) ||
+          student.group?.title.toLowerCase().includes(searchTerm) ||
+          student.option?.name.toLowerCase().includes(searchTerm)
+        );
+      }
     }
     
     // Filtres spécifiques (coercition en nombres pour éviter les mismatches string/number)
@@ -471,6 +570,46 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
     this.globalFilterValue = searchValue;
     // Envoyer la valeur au Subject qui gérera le debounce pour la recherche
     this.globalSearchSubject$.next(searchValue);
+  }
+
+  /**
+   * Configurer l'écouteur de recherche avancée avec debounce
+   */
+  setupAdvancedSearchListener(): void {
+    this.advancedSearchForm.valueChanges
+      .pipe(
+        takeUntil(this.destroy$),
+        debounceTime(300),
+        distinctUntilChanged()
+      )
+      .subscribe(() => {
+        if (this.showAdvancedSearch) {
+          this.resetToFirstPage();
+          this.applyFiltersAndPagination();
+        }
+      });
+  }
+
+  /**
+   * Basculer l'affichage de la recherche avancée
+   */
+  toggleAdvancedSearch(): void {
+    this.showAdvancedSearch = !this.showAdvancedSearch;
+    if (!this.showAdvancedSearch) {
+      // Réinitialiser le formulaire de recherche avancée si on le cache
+      this.advancedSearchForm.reset();
+    }
+    this.resetToFirstPage();
+    this.applyFiltersAndPagination();
+  }
+
+  /**
+   * Réinitialiser la recherche avancée
+   */
+  clearAdvancedSearch(): void {
+    this.advancedSearchForm.reset();
+    this.resetToFirstPage();
+    this.applyFiltersAndPagination();
   }
 
   /**
@@ -1087,7 +1226,20 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
     if (formValue.ville_id) count++;
     if (formValue.etablissement_id) count++;
     if (formValue.option_id) count++;
-    if (this.globalFilterValue.trim()) count++;
+    
+    // Compter la recherche globale ou avancée (pas les deux)
+    if (this.showAdvancedSearch) {
+      const advancedFormValue = this.advancedSearchForm.value;
+      if (advancedFormValue.first_name?.trim()) count++;
+      if (advancedFormValue.last_name?.trim()) count++;
+      if (advancedFormValue.email?.trim()) count++;
+      if (advancedFormValue.matricule?.trim()) count++;
+      if (advancedFormValue.matricules_multiple?.trim()) count++;
+      if (advancedFormValue.created_from) count++;
+      if (advancedFormValue.created_to) count++;
+    } else {
+      if (this.globalFilterValue.trim()) count++;
+    }
 
     return count;
   }
@@ -1123,7 +1275,12 @@ export class EtudiantsComponent implements OnInit, OnDestroy, AfterViewInit {
     } else {
       this.filtersForm.reset();
     }
+    
+    // Réinitialiser la recherche globale et avancée
     this.globalFilterValue = '';
+    this.advancedSearchForm.reset();
+    this.showAdvancedSearch = false;
+    
     this.resetToFirstPage();
     this.applyFiltersAndPagination();
 

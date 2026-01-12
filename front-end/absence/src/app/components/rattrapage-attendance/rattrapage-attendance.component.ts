@@ -165,10 +165,12 @@ export class RattrapageAttendanceComponent implements OnInit, OnDestroy {
   autoRefreshInterval = 30000; // 30 secondes en millisecondes
   lastRefreshTime: Date | null = null;
   private autoRefreshSub?: Subscription;
+  private currentVilleId: number | null = null; // Stocker la ville ID pour éviter de la rechercher à chaque fois
   
   // Propriétés pour l'état de la configuration Biostar
   biostarConfigStatus: 'loading' | 'success' | 'error' | 'none' = 'loading';
   biostarConfigMessage: string = 'Initialisation de la configuration Biostar...';
+  biostarConfigVille: string | null = null; // Nom de la ville pour laquelle la configuration est chargée
   
   // Offset configurable appliqué aux heures de pointage Biostar (en minutes)
   biostarTimeOffsetMinutes: number = 0;
@@ -220,14 +222,21 @@ export class RattrapageAttendanceComponent implements OnInit, OnDestroy {
             this.lates = response.lates;
             this.excused = response.excused;
             
-            // Déterminer la ville depuis le premier étudiant si disponible
+            // Déterminer la ville depuis le rattrapage ou le premier étudiant si disponible
             let villeId: number | null = null;
             let villeName: string = '';
             
-            if (this.students.length > 0 && this.students[0].ville) {
+            // Priorité: ville du rattrapage, sinon ville du premier étudiant
+            if (this.rattrapage?.ville?.id) {
+              villeId = this.rattrapage.ville.id;
+              villeName = this.rattrapage.ville.name || '';
+            } else if (this.students.length > 0 && this.students[0].ville) {
               villeId = this.students[0].ville.id;
               villeName = this.students[0].ville.name || '';
             }
+            
+            // Stocker la ville ID pour le rechargement automatique
+            this.currentVilleId = villeId;
             
             // Ajuster l'offset d'affichage selon la ville (Casablanca => +60 minutes, autres => 0)
             if (villeName) {
@@ -235,9 +244,12 @@ export class RattrapageAttendanceComponent implements OnInit, OnDestroy {
               this.biostarTimeOffsetMinutes = villeNameLower === 'casablanca' || villeNameLower === 'casa' ? 60 : 0;
             }
             
-            // Auto-sélectionner la configuration Biostar si disponible
-            if (villeId) {
+            // Auto-sélectionner la configuration Biostar si disponible (seulement si pas déjà chargée)
+            if (villeId && this.biostarConfigStatus !== 'success') {
               this.autoSelectConfigurationForRattrapage(villeId, villeName);
+            } else if (villeId && this.biostarConfigStatus === 'success') {
+              // Si la configuration est déjà chargée, recharger directement les données Biostar
+              this.loadBiostarAttendanceData(villeId);
             } else {
               this.biostarConfigStatus = 'none';
               this.biostarConfigMessage = 'Aucune ville trouvée pour charger la configuration Biostar';
@@ -285,7 +297,14 @@ export class RattrapageAttendanceComponent implements OnInit, OnDestroy {
           if (response.success && response.data) {
             // Mettre à jour l'état de succès
             this.biostarConfigStatus = 'success';
+            this.biostarConfigVille = villeName;
             this.biostarConfigMessage = `Configuration Biostar chargée pour la ville: ${villeName}`;
+            
+            console.log('✅ Configuration Biostar chargée:', {
+              ville_id: villeId,
+              ville_name: villeName,
+              config_data: response.data
+            });
             
             // Ajuster l'offset d'affichage selon la ville (Casablanca => +60 minutes, autres => 0)
             const villeNameLower = villeName.trim().toLowerCase();
@@ -295,7 +314,8 @@ export class RattrapageAttendanceComponent implements OnInit, OnDestroy {
             this.loadBiostarAttendanceData(villeId);
           } else {
             this.biostarConfigStatus = 'error';
-            this.biostarConfigMessage = 'Aucune configuration Biostar trouvée pour cette ville';
+            this.biostarConfigVille = null;
+            this.biostarConfigMessage = `Aucune configuration Biostar trouvée pour la ville: ${villeName}`;
           }
         },
         error: (error) => {
@@ -303,7 +323,8 @@ export class RattrapageAttendanceComponent implements OnInit, OnDestroy {
           
           // Mettre à jour l'état d'erreur
           this.biostarConfigStatus = 'error';
-          this.biostarConfigMessage = 'Aucune configuration Biostar trouvée pour la ville de ce rattrapage. Les données de pointage ne seront pas disponibles.';
+          this.biostarConfigVille = null;
+          this.biostarConfigMessage = `Aucune configuration Biostar trouvée pour la ville: ${villeName}. Les données de pointage ne seront pas disponibles.`;
         }
       });
   }
@@ -394,7 +415,7 @@ export class RattrapageAttendanceComponent implements OnInit, OnDestroy {
 
         student.punch_time = {
           time: punchTimeDate.toISOString(),
-          device: lastPunch.device || lastPunch.device_name || lastPunch.devnm || 'Inconnu'
+          device: lastPunch.device_name || lastPunch.devnm || lastPunch.device || 'Inconnu'
         };
         
         // Recalculer le statut avec la date ajustée
@@ -572,8 +593,32 @@ export class RattrapageAttendanceComponent implements OnInit, OnDestroy {
           return;
         }
         console.log('⏰ Actualisation automatique déclenchée');
-        this.loadRattrapageAttendance();
+        // Recharger les données Biostar directement si la configuration est déjà chargée
+        this.refreshBiostarDataOnly();
       });
+  }
+  
+  /**
+   * Recharge uniquement les données Biostar sans recharger toute la page
+   * Plus efficace que de tout recharger
+   */
+  refreshBiostarDataOnly(): void {
+    if (!this.currentVilleId) {
+      // Si pas de ville stockée, recharger tout
+      console.log('🔄 Rechargement complet (ville non disponible)');
+      this.loadRattrapageAttendance();
+      return;
+    }
+    
+    // Si la configuration est déjà chargée, recharger directement les données Biostar
+    if (this.biostarConfigStatus === 'success') {
+      console.log('🔄 Rechargement des données Biostar uniquement (ville ID:', this.currentVilleId, ')');
+      this.loadBiostarAttendanceData(this.currentVilleId);
+    } else {
+      // Sinon, recharger tout (y compris la configuration)
+      console.log('🔄 Rechargement complet (configuration non chargée)');
+      this.loadRattrapageAttendance();
+    }
   }
 
   /**

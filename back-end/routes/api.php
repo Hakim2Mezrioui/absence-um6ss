@@ -31,6 +31,7 @@ use App\Http\Controllers\StudentTrackingController;
 use App\Http\Controllers\QrCodeAttendanceController;
 use App\Http\Middleware\AuthenticateEtudiant;
 use App\Http\Controllers\EtudiantAuthController;
+use App\Http\Controllers\ActivityLogController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -193,6 +194,11 @@ Route::middleware(['auth:sanctum', 'super.admin'])->group(function () {
     Route::put('user-management/{id}/role', [UserManagementController::class, 'updateRole']);
     Route::get('user-management/statistics', [UserManagementController::class, 'getStatistics']);
     Route::get('user-management/search', [UserManagementController::class, 'search']);
+    
+    // Routes pour les logs d'activité (traçabilité)
+    Route::get('activity-logs', [ActivityLogController::class, 'index']);
+    Route::get('activity-logs/{id}', [ActivityLogController::class, 'show']);
+    Route::get('activity-logs/statistics', [ActivityLogController::class, 'statistics']);
 });
 
 // Public routes for students
@@ -251,6 +257,10 @@ Route::get('absences/cours/{coursId}', [AbsenceController::class, 'getByCours'])
 Route::get('absences/examen/{examenId}', [AbsenceController::class, 'getByExamen']);
 Route::put('absences/{id}/justifier', [AbsenceController::class, 'justifier']);
 Route::get('absences/statistics', [AbsenceController::class, 'getStatistics']);
+Route::get('absences/students/ranking', [AbsenceController::class, 'getStudentsRanking']);
+Route::post('absences/{id}/upload-justificatif', [AbsenceController::class, 'uploadJustificatif']);
+Route::get('absences/{id}/download-justificatif', [AbsenceController::class, 'downloadJustificatif']);
+Route::delete('absences/{id}/justificatif', [AbsenceController::class, 'deleteJustificatif']);
 
 // Routes pour la création automatique des absences
 Route::post('absences/auto/create-for-examen', [AbsenceAutoController::class, 'createAbsencesForExamen']);

@@ -45,6 +45,8 @@ import { AttendanceRapideComponent } from './components/attendance-rapide/attend
 import { TrackerComponent } from './components/tracker/tracker.component';
 import { QrDisplayComponent } from './components/qr-display/qr-display.component';
 import { StudentDashboardComponent } from './components/student-dashboard/student-dashboard.component';
+import { ActivityLogsComponent } from './components/activity-logs/activity-logs.component';
+import { SuperAdminGuard } from './guards/super-admin.guard';
 
 export const routes: Routes = [
     {path: "", redirectTo: "login", pathMatch: "full"},
@@ -102,10 +104,10 @@ export const routes: Routes = [
             // Super-admin and admin and scolarite access; enseignant only to cours-related
             { path: "examens", component: ExamensComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien', 'defilement', 'défilement'] } },
             { path: "examens-archived", component: ExamensArchivedComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien', 'defilement'] } },
-            { path: "add-examen", component: AddExamenComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'doyen'] } },
-            { path: "edit-examen/:id", component: EditExamenComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'doyen'] } },
-            { path: "import-examens", component: ImportExamensComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'doyen'] } },
-            { path: "import-examens-simple", component: SimpleExamensImportComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'doyen'] } },
+            { path: "add-examen", component: AddExamenComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen'] } },
+            { path: "edit-examen/:id", component: EditExamenComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen'] } },
+            { path: "import-examens", component: ImportExamensComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen'] } },
+            { path: "import-examens-simple", component: SimpleExamensImportComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen'] } },
 
             { path: "attendance", component: AttendanceComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'enseignant', 'technicien'] } },
             { path: "attendance/:id", component: AttendanceComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'enseignant', 'technicien'] } },
@@ -143,6 +145,9 @@ export const routes: Routes = [
 
             // Gestion des utilisateurs: super-admin only
             { path: "user-management", component: UserManagementComponent, canActivate: [RoleGuard], data: { roles: ['super-admin'] } },
+            
+            // Traçabilité: super-admin only
+            { path: "activity-logs", component: ActivityLogsComponent, canActivate: [SuperAdminGuard] },
 
             // Enseignants list: admins and above
             { path: "enseignants", component: EnseignantsComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin'] } },

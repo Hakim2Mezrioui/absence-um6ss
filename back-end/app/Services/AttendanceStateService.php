@@ -46,6 +46,14 @@ class AttendanceStateService
                 throw new \Exception('Étudiant non trouvé');
             }
 
+            // Récupérer l'ancien état avant modification
+            $oldAbsence = Absence::where('cours_id', $coursId)
+                                 ->where('etudiant_id', $etudiantId)
+                                 ->where('date_absence', $cours->date)
+                                 ->first();
+            
+            $oldStatus = $oldAbsence ? $this->getStatusFromAbsenceType($oldAbsence->type_absence) : 'present';
+
             // Supprimer les absences existantes pour ce cours et cet étudiant
             Absence::where('cours_id', $coursId)
                    ->where('etudiant_id', $etudiantId)
@@ -61,6 +69,9 @@ class AttendanceStateService
                 // Pour le statut "present", créer une absence avec un type spécial pour marquer la présence
                 $absence = $this->createAbsenceForStatus($coursId, $etudiantId, 'present', $cours->date, 'Présence confirmée manuellement', 'Modification manuelle du statut');
             }
+
+            // Logger l'activité de modification d'état
+            $this->logAttendanceStateChange($cours, $etudiant, $oldStatus, $newStatus, $absence, $motif);
 
             DB::commit();
 
@@ -109,6 +120,14 @@ class AttendanceStateService
                 throw new \Exception('Étudiant non trouvé');
             }
 
+            // Récupérer l'ancien état avant modification
+            $oldAbsence = Absence::where('examen_id', $examenId)
+                                 ->where('etudiant_id', $etudiantId)
+                                 ->where('date_absence', $examen->date)
+                                 ->first();
+            
+            $oldStatus = $oldAbsence ? $this->getStatusFromAbsenceType($oldAbsence->type_absence) : 'present';
+
             // Supprimer les absences existantes pour cet examen et cet étudiant
             Absence::where('examen_id', $examenId)
                    ->where('etudiant_id', $etudiantId)
@@ -121,6 +140,9 @@ class AttendanceStateService
             if (in_array($newStatus, [self::STATUS_ABSENT, self::STATUS_LATE, self::STATUS_LEFT_EARLY])) {
                 $absence = $this->createAbsenceForExamStatus($examenId, $etudiantId, $newStatus, $examen->date, $motif, $justificatif);
             }
+
+            // Logger l'activité de modification d'état
+            $this->logAttendanceStateChange(null, $etudiant, $oldStatus, $newStatus, $absence, $motif, $examen);
 
             DB::commit();
 
@@ -357,5 +379,70 @@ class AttendanceStateService
             self::STATUS_ABSENT => 'Absent',
             self::STATUS_LEFT_EARLY => 'Parti tôt'
         ];
+    }
+
+    /**
+     * Logger la modification d'état de présence
+     */
+    private function logAttendanceStateChange(?Cours $cours, Etudiant $etudiant, string $oldStatus, string $newStatus, ?Absence $absence, ?string $motif = null, ?Examen $examen = null): void
+    {
+        try {
+            $user = auth()->user();
+            $statusLabels = [
+                'present' => 'Présent',
+                'late' => 'En retard',
+                'absent' => 'Absent',
+                'left_early' => 'Parti tôt'
+            ];
+
+            $oldStatusLabel = $statusLabels[$oldStatus] ?? $oldStatus;
+            $newStatusLabel = $statusLabels[$newStatus] ?? $newStatus;
+
+            $description = sprintf(
+                'Modification de l\'état de présence: %s → %s',
+                $oldStatusLabel,
+                $newStatusLabel
+            );
+
+            $properties = [
+                'etudiant_id' => $etudiant->id,
+                'etudiant_nom' => $etudiant->first_name . ' ' . $etudiant->last_name,
+                'etudiant_matricule' => $etudiant->matricule,
+                'old_status' => $oldStatus,
+                'old_status_label' => $oldStatusLabel,
+                'new_status' => $newStatus,
+                'new_status_label' => $newStatusLabel,
+                'motif' => $motif,
+                'absence_id' => $absence ? $absence->id : null,
+            ];
+
+            if ($cours) {
+                $properties['cours_id'] = $cours->id;
+                $properties['cours_name'] = $cours->name;
+                $properties['cours_date'] = $cours->date;
+            }
+
+            if ($examen) {
+                $properties['examen_id'] = $examen->id;
+                $properties['examen_title'] = $examen->title;
+                $properties['examen_date'] = $examen->date;
+            }
+
+            // Créer le log d'activité
+            activity()
+                ->causedBy($user)
+                ->performedOn($absence ?? $etudiant)
+                ->withProperties($properties)
+                ->log($description);
+
+        } catch (\Exception $e) {
+            // Ne pas faire échouer la transaction si le log échoue
+            Log::warning('Erreur lors de l\'enregistrement du log d\'activité pour la modification d\'état', [
+                'error' => $e->getMessage(),
+                'etudiant_id' => $etudiant->id,
+                'old_status' => $oldStatus,
+                'new_status' => $newStatus
+            ]);
+        }
     }
 }

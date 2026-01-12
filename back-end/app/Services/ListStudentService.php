@@ -94,6 +94,24 @@ class ListStudentService extends BaseService
     }
 
     /**
+     * Récupérer les étudiants par rattrapage avec pagination
+     */
+    public function getStudentsByRattrapagePaginated(int $rattrapageId, int $perPage = 20, int $page = 1): LengthAwarePaginator
+    {
+        return ListStudent::with([
+            'etudiant.promotion',
+            'etudiant.etablissement',
+            'etudiant.ville',
+            'etudiant.group',
+            'etudiant.option',
+            'rattrapage'
+        ])
+            ->where('rattrapage_id', $rattrapageId)
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage, ['*'], 'page', $page);
+    }
+
+    /**
      * Récupérer les rattrapages par étudiant
      */
     public function getRattrapagesByStudent(int $etudiantId): Collection
@@ -316,13 +334,44 @@ class ListStudentService extends BaseService
      */
     public function searchStudentsInList(int $rattrapageId, string $searchValue): Collection
     {
-        return ListStudent::with('etudiant')
+        return ListStudent::with([
+            'etudiant.promotion',
+            'etudiant.etablissement',
+            'etudiant.ville',
+            'etudiant.group',
+            'etudiant.option'
+        ])
             ->where('rattrapage_id', $rattrapageId)
             ->whereHas('etudiant', function ($query) use ($searchValue) {
-                $query->where('name', 'like', "%{$searchValue}%")
-                    ->orWhere('matricule', 'like', "%{$searchValue}%");
+                $query->where('first_name', 'like', "%{$searchValue}%")
+                    ->orWhere('last_name', 'like', "%{$searchValue}%")
+                    ->orWhere('matricule', 'like', "%{$searchValue}%")
+                    ->orWhere('email', 'like', "%{$searchValue}%");
             })
             ->get();
+    }
+
+    /**
+     * Rechercher les étudiants dans une liste avec pagination
+     */
+    public function searchStudentsInListPaginated(int $rattrapageId, string $searchValue, int $perPage = 20, int $page = 1): LengthAwarePaginator
+    {
+        return ListStudent::with([
+            'etudiant.promotion',
+            'etudiant.etablissement',
+            'etudiant.ville',
+            'etudiant.group',
+            'etudiant.option'
+        ])
+            ->where('rattrapage_id', $rattrapageId)
+            ->whereHas('etudiant', function ($query) use ($searchValue) {
+                $query->where('first_name', 'like', "%{$searchValue}%")
+                    ->orWhere('last_name', 'like', "%{$searchValue}%")
+                    ->orWhere('matricule', 'like', "%{$searchValue}%")
+                    ->orWhere('email', 'like', "%{$searchValue}%");
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage, ['*'], 'page', $page);
     }
 
     /**

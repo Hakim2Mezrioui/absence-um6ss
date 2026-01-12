@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Rattrapage extends Model
 {
@@ -38,11 +39,20 @@ class Rattrapage extends Model
     }
 
     /**
-     * Relation avec la salle
+     * Relation avec la salle (pour compatibilité - garde la première salle)
      */
     public function salle(): BelongsTo
     {
         return $this->belongsTo(Salle::class);
+    }
+
+    /**
+     * Relation many-to-many avec les salles
+     */
+    public function salles(): BelongsToMany
+    {
+        return $this->belongsToMany(Salle::class, 'rattrapage_salle', 'rattrapage_id', 'salle_id')
+            ->withTimestamps();
     }
 
     /**

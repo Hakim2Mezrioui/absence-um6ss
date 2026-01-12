@@ -4,9 +4,20 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class Absence extends Model
 {
+    use LogsActivity;
+    
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['type_absence', 'justifiee', 'motif', 'date_absence', 'etudiant_id', 'cours_id', 'examen_id'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
     protected $fillable = [
         'type_absence',
         'etudiant_id',

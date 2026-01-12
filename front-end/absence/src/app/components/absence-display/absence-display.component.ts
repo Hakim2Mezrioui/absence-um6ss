@@ -57,6 +57,9 @@ export class AbsenceDisplayComponent implements OnInit, AfterViewInit, OnDestroy
   // Filtre d'affichage
   displayFilter: 'all' | 'absent-only' = 'all'; // 'all' = absents + en retard, 'absent-only' = seulement absents
   
+  // Stocker toutes les données originales (non filtrées) pour les statistiques
+  allStudents: AbsentStudent[] = []; // Tous les étudiants (absents + en retard)
+  
   // Exposer Math pour le template
   Math = Math;
 
@@ -173,29 +176,20 @@ export class AbsenceDisplayComponent implements OnInit, AfterViewInit, OnDestroy
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          // Filtrer selon le filtre sélectionné
-          let absentStudents: AbsentStudent[];
-          
-          if (this.displayFilter === 'absent-only') {
-            // Afficher uniquement les absents
-            absentStudents = (response.etudiants || []).filter((s: StudentAttendance) => 
-              s.status === 'absent'
-            ) as AbsentStudent[];
-          } else {
-            // Afficher absents + en retard
-            absentStudents = (response.etudiants || []).filter((s: StudentAttendance) => 
-              s.status === 'absent' || s.status === 'en retard'
-            ) as AbsentStudent[];
-          }
+          // Stocker TOUS les étudiants (absents + en retard) pour les statistiques
+          this.allStudents = (response.etudiants || []).filter((s: StudentAttendance) => 
+            s.status === 'absent' || s.status === 'en retard'
+          ) as AbsentStudent[];
           
           if (isRefresh) {
-            console.log(`📊 Rafraîchissement: ${absentStudents.length} étudiant(s) absent(s) trouvé(s)`);
+            console.log(`📊 Rafraîchissement: ${this.allStudents.length} étudiant(s) trouvé(s)`);
             
             // Détecter les étudiants qui ont fait le face ID
+            // Utiliser allStudents pour la comparaison (toutes les données, pas seulement filtrées)
             if (this.previousAbsentStudents.length > 0) {
               const studentsWhoDidFaceId = this.previousAbsentStudents.filter(prevStudent => {
                 // Vérifier si l'étudiant n'est plus dans la nouvelle liste
-                return !absentStudents.some(newStudent => 
+                return !this.allStudents.some(newStudent => 
                   newStudent.id === prevStudent.id || 
                   newStudent.matricule === prevStudent.matricule
                 );
@@ -222,8 +216,14 @@ export class AbsenceDisplayComponent implements OnInit, AfterViewInit, OnDestroy
             }
           }
           
+          // Appliquer le filtre actuel aux données (fonctionne pour chargement initial ET rafraîchissement)
+          // Cette méthode gère la création des segments et la mise à jour de l'affichage
+          const filteredStudents = this.displayFilter === 'absent-only'
+            ? this.allStudents.filter(s => s.status === 'absent')
+            : [...this.allStudents];
+          
           // Grouper par segments
-          const newSegments = this.groupStudentsBySegments(absentStudents);
+          const newSegments = this.groupStudentsBySegments(filteredStudents);
           
           if (newSegments.length > 0) {
             if (isRefresh) {
@@ -269,7 +269,7 @@ export class AbsenceDisplayComponent implements OnInit, AfterViewInit, OnDestroy
               this.loading = false;
               
               // Initialiser la liste précédente pour le premier chargement
-              this.previousAbsentStudents = [...absentStudents];
+              this.previousAbsentStudents = [...this.allStudents];
               
               setTimeout(() => {
                 this.calculateStudentsPerPage();
@@ -279,7 +279,7 @@ export class AbsenceDisplayComponent implements OnInit, AfterViewInit, OnDestroy
             
             // Mettre à jour la liste précédente lors du rafraîchissement
             if (isRefresh) {
-              this.previousAbsentStudents = [...absentStudents];
+              this.previousAbsentStudents = [...this.allStudents];
             }
           } else {
             // Plus d'étudiants absents
@@ -654,26 +654,26 @@ export class AbsenceDisplayComponent implements OnInit, AfterViewInit, OnDestroy
 
   /**
    * Obtenir le nombre d'étudiants absents (sans les en retard)
+   * Utiliser les données originales, pas les données filtrées
    */
   getAbsentCount(): number {
-    if (!this.currentSegment) return 0;
-    return this.currentSegment.students.filter(s => s.status === 'absent').length;
+    return this.allStudents.filter(s => s.status === 'absent').length;
   }
 
   /**
    * Obtenir le nombre d'étudiants en retard
+   * Utiliser les données originales, pas les données filtrées
    */
   getLateCount(): number {
-    if (!this.currentSegment) return 0;
-    return this.currentSegment.students.filter(s => s.status === 'en retard').length;
+    return this.allStudents.filter(s => s.status === 'en retard').length;
   }
 
   /**
    * Obtenir le nombre total d'absences (absents + en retard)
+   * Utiliser les données originales, pas les données filtrées
    */
   getTotalAbsencesCount(): number {
-    if (!this.currentSegment) return 0;
-    return this.currentSegment.students.length;
+    return this.allStudents.length;
   }
 
   /**
@@ -724,12 +724,79 @@ export class AbsenceDisplayComponent implements OnInit, AfterViewInit, OnDestroy
 
   /**
    * Changer le filtre d'affichage
+   * Filtre uniquement côté frontend sans refaire de requête HTTP
+   * Ne touche PAS à l'actualisation automatique (refreshInterval)
    */
   changeDisplayFilter(filter: 'all' | 'absent-only'): void {
     this.displayFilter = filter;
-    // Recharger les données avec le nouveau filtre
-    this.currentPageIndex = 0; // Réinitialiser à la première page
-    this.loadAbsentStudents();
+    
+    // Si les données ne sont pas encore chargées, charger d'abord
+    if (this.allStudents.length === 0) {
+      this.currentPageIndex = 0;
+      this.loadAbsentStudents();
+      return;
+    }
+    
+    // Filtrer les données déjà chargées côté frontend
+    // Ne PAS toucher à refreshInterval - il continue de tourner
+    this.applyCurrentFilter();
+  }
+
+  /**
+   * Appliquer le filtre actuel aux données déjà chargées
+   * Méthode helper pour éviter la duplication de code
+   */
+  private applyCurrentFilter(): void {
+    if (this.allStudents.length === 0) {
+      return;
+    }
+    
+    // Filtrer selon le filtre sélectionné
+    let filteredStudents: AbsentStudent[];
+    
+    if (this.displayFilter === 'absent-only') {
+      // Afficher uniquement les absents dans la liste
+      filteredStudents = this.allStudents.filter((s: AbsentStudent) => 
+        s.status === 'absent'
+      );
+    } else {
+      // Afficher absents + en retard dans la liste
+      filteredStudents = [...this.allStudents];
+    }
+    
+    // Grouper par segments avec les données filtrées
+    const newSegments = this.groupStudentsBySegments(filteredStudents);
+    
+    if (newSegments.length > 0) {
+      // Conserver l'index de page actuel si possible
+      const oldTotalPages = this.getTotalPages();
+      const oldPageIndex = this.currentPageIndex;
+      
+      this.segments = newSegments;
+      this.currentSegmentIndex = 0;
+      this.currentSegment = this.segments[0];
+      
+      // Recalculer le nombre d'étudiants par page
+      this.calculateStudentsPerPage();
+      
+      // Ajuster la page si nécessaire (si on était sur une page qui n'existe plus)
+      const newTotalPages = this.getTotalPages();
+      if (oldTotalPages > 0 && oldPageIndex >= newTotalPages) {
+        this.currentPageIndex = Math.max(0, newTotalPages - 1);
+      } else {
+        // Garder la page actuelle si elle existe toujours
+        this.currentPageIndex = Math.min(oldPageIndex, newTotalPages - 1);
+      }
+      
+      // Forcer la détection de changement
+      this.cdr.detectChanges();
+    } else {
+      // Aucun étudiant après filtrage
+      this.segments = [];
+      this.currentSegment = null;
+      this.currentPageIndex = 0;
+      this.cdr.detectChanges();
+    }
   }
 }
 

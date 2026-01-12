@@ -47,6 +47,7 @@ interface FilterOptions {
   groups?: Array<{ id: number; name: string; title?: string }>;
   villes?: Array<{ id: number; name: string }>;
   types_cours?: Array<{ id: number; name: string }>;
+  enseignants?: Array<{ id: number; name: string; email?: string }>;
 }
 
 @Component({
@@ -72,6 +73,7 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
     'group_title',
     'ville_name',
     'option_name',
+    'enseignant_name',
     'annee_universitaire'
   ];
 
@@ -82,7 +84,8 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
     'salle_name',
     'group_title',
     'ville_name',
-    'option_name'
+    'option_name',
+    'enseignant_name'
   ];
 
   fileName = '';
@@ -166,8 +169,8 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
   downloadTemplate(): void {
     const rows = [
       this.templateHeaders,
-      ['Cours de Mathématiques', '15/01/2024', '08:00', '10:00', '00:15', 'normal', '0', 'Université A', 'Promotion 1', 'Cours Magistral', 'C401, C501', 'Groupe A', 'Casablanca', 'Option 1', '2024-2025'],
-      ['Cours de Physique', '16/01/2024', '10:00', '12:00', '00:15', 'bicheck', '15', 'Université B', 'Promotion 2', 'TD', 'C506, A201', 'Groupe B', 'Rabat', 'Option 2', '2024-2025']
+      ['Cours de Mathématiques', '15/01/2024', '08:00', '10:00', '00:15', 'normal', '0', 'Université A', 'Promotion 1', 'Cours Magistral', 'C401, C501', 'Groupe A', 'Casablanca', 'Option 1', 'Ahmed Benali', '2024-2025'],
+      ['Cours de Physique', '16/01/2024', '10:00', '12:00', '00:15', 'bicheck', '15', 'Université B', 'Promotion 2', 'TD', 'C506, A201', 'Groupe B', 'Rabat', 'Option 2', 'Fatima Alaoui', '2024-2025']
     ];
 
     const worksheet = utils.aoa_to_sheet(rows);
@@ -188,6 +191,7 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
       { wch: 12 }, // group_title
       { wch: 15 }, // ville_name
       { wch: 15 }, // option_name
+      { wch: 20 }, // enseignant_name
       { wch: 15 }  // annee_universitaire
     ];
     worksheet['!cols'] = colWidths;
@@ -470,7 +474,8 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
       options: this.filterOptions.options?.map(o => o.name) || [],
       groups: this.filterOptions.groups?.map(g => g.title || g.name) || [],
       villes: this.filterOptions.villes?.map(v => v.name) || [],
-      types_cours: this.filterOptions.types_cours?.map(t => t.name) || []
+      types_cours: this.filterOptions.types_cours?.map(t => t.name) || [],
+      enseignants: this.filterOptions.enseignants?.map(e => e.name) || []
     };
   }
 
@@ -748,6 +753,7 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
         group_title: row['group_title'] || '',
         ville_name: row['ville_name'] || '',
         option_name: row['option_name'] || '',
+        enseignant_name: row['enseignant_name'] || '',
         annee_universitaire: row['annee_universitaire'] || ''
       };
 
@@ -839,6 +845,22 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
           );
         };
 
+        const findEnseignant = (nameOrEmail: string) => {
+          if (!nameOrEmail) return null;
+          const normalized = this.normalize(nameOrEmail);
+          
+          // Recherche par nom complet ou email
+          return this.filterOptions?.enseignants?.find(e => {
+            const normalizedName = this.normalize(e.name);
+            const normalizedEmail = e.email ? this.normalize(e.email) : '';
+            
+            return normalizedName === normalized ||
+                   normalizedName.includes(normalized) ||
+                   normalized.includes(normalizedName) ||
+                   (normalizedEmail && (normalizedEmail === normalized || normalizedEmail.includes(normalized)));
+          });
+        };
+
         const etablissement = findEtablissement(cours.etablissement_name);
         const promotion = findPromotion(cours.promotion_name);
         const typeCours = findTypeCours(cours.type_cours_name);
@@ -856,6 +878,7 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
         const group = findGroup(cours.group_title);
         const ville = findVille(cours.ville_name);
         const option = findOption(cours.option_name);
+        const enseignant = findEnseignant(cours.enseignant_name);
 
         // Assigner les IDs
         if (etablissement) {
@@ -887,6 +910,10 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
         
         if (option) {
           cours.option_id = option.id;
+        }
+        
+        if (enseignant) {
+          cours.enseignant_id = enseignant.id;
         }
         
         // NE PAS supprimer salle_name - le backend en a besoin pour parser toutes les salles
@@ -1018,7 +1045,12 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
       salle_name: filteredSalles.map((s) => this.toReferenceEntry(s.name, s.id)),
       group_title: (options.groups || []).map((g) => this.toReferenceEntry(g.title || g.name, g.id)),
       ville_name: (options.villes || []).map((v) => this.toReferenceEntry(v.name, v.id)),
-      option_name: (options.options || []).map((o) => this.toReferenceEntry(o.name, o.id))
+      option_name: (options.options || []).map((o) => this.toReferenceEntry(o.name, o.id)),
+      enseignant_name: (options.enseignants || []).map((e) => {
+        // Créer une entrée avec nom complet pour recherche flexible
+        // La recherche pourra se faire par nom ou email
+        return this.toReferenceEntry(e.name, e.id);
+      })
     };
   }
 

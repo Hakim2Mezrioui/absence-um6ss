@@ -66,8 +66,12 @@
           
           <!-- Informations de dernière actualisation -->
           <div class="text-center" *ngIf="lastRefreshTime">
-            <div class="text-xs text-purple-200">Dernière actualisation</div>
+            <div class="text-xs text-purple-200 flex items-center justify-center gap-1">
+              <span class="material-icons text-xs animate-pulse" title="Rechargement automatique actif">sync</span>
+              Dernière actualisation
+            </div>
             <div class="text-sm font-medium">{{ getTimeSinceLastRefresh() }}</div>
+            <div class="text-xs text-purple-300 mt-1">Auto: toutes les 30s</div>
           </div>
           
           <div class="w-px h-8 bg-white/30"></div>
@@ -130,9 +134,18 @@
               [class.animate-spin]="biostarConfigStatus === 'loading'">
           {{ biostarConfigStatus === 'loading' ? 'refresh' : biostarConfigStatus === 'success' ? 'check_circle' : 'error' }}
         </span>
-        <div>
-          <div class="font-semibold text-gray-800">Configuration Biostar</div>
+        <div class="flex-1">
+          <div class="font-semibold text-gray-800 flex items-center gap-2">
+            Configuration Biostar
+            <span *ngIf="biostarConfigVille && biostarConfigStatus === 'success'" 
+                  class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-normal">
+              Ville: {{ biostarConfigVille }}
+            </span>
+          </div>
           <div class="text-sm text-gray-600">{{ biostarConfigMessage }}</div>
+          <div class="text-xs text-gray-500 mt-1" *ngIf="biostarConfigStatus === 'success'">
+            ✓ La configuration spécifique à cette ville est utilisée pour récupérer les données de pointage
+          </div>
         </div>
       </div>
     </div>

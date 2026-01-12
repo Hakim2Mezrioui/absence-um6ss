@@ -6,10 +6,20 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 use App\Scopes\UserContextScope;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class Examen extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
+    
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['title', 'date', 'heure_debut', 'heure_fin', 'promotion_id', 'etablissement_id', 'type_examen_id', 'archived_at'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     protected $fillable = ['title', 'date', 'heure_debut', 'heure_fin', 'heure_debut_poigntage', 'annee_universitaire', 'tolerance', 'option_id', 'salle_id', 'promotion_id', 'type_examen_id', 'etablissement_id', 'group_id', 'ville_id', 'archived_at', 'tracking_method'];
 

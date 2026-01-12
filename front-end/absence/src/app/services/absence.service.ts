@@ -335,4 +335,82 @@ export class AbsenceService {
   getStatistics(): Observable<{ statistics: AbsenceStatistics; status: number }> {
     return this.http.get<{ statistics: AbsenceStatistics; status: number }>(`${this.apiUrl}/statistics`);
   }
+
+  /**
+   * Récupérer le classement des étudiants par nombre d'absences
+   */
+  getStudentsRanking(filters?: {
+    limit?: number;
+    date_debut?: string;
+    date_fin?: string;
+    etablissement_id?: number;
+    promotion_id?: number;
+    sort_by?: 'total' | 'non_justifiees' | 'justifiees';
+  }): Observable<{ data: StudentsRankingResponse; status: number }> {
+    let params = new HttpParams();
+    
+    if (filters) {
+      Object.keys(filters).forEach(key => {
+        const value = filters[key as keyof typeof filters];
+        if (value !== undefined && value !== null && value !== '') {
+          params = params.set(key, value.toString());
+        }
+      });
+    }
+
+    return this.http.get<{ data: StudentsRankingResponse; status: number }>(`${this.apiUrl}/students/ranking`, { params });
+  }
+
+  /**
+   * Upload un justificatif pour une absence
+   */
+  uploadJustificatif(id: number, file: File): Observable<{ message: string; justificatif: string; absence: Absence }> {
+    const formData = new FormData();
+    formData.append('justificatif', file);
+    
+    return this.http.post<{ message: string; justificatif: string; absence: Absence }>(
+      `${this.apiUrl}/${id}/upload-justificatif`,
+      formData
+    );
+  }
+
+  /**
+   * Télécharger un justificatif
+   */
+  downloadJustificatif(id: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/${id}/download-justificatif`, {
+      responseType: 'blob'
+    });
+  }
+
+  /**
+   * Supprimer un justificatif
+   */
+  deleteJustificatif(id: number): Observable<{ message: string; absence: Absence }> {
+    return this.http.delete<{ message: string; absence: Absence }>(`${this.apiUrl}/${id}/justificatif`);
+  }
+}
+
+// Interface pour le classement des étudiants
+export interface StudentRankingItem {
+  rank: number;
+  etudiant_id: number;
+  etudiant: Etudiant | null;
+  total_absences: number;
+  absences_justifiees: number;
+  absences_non_justifiees: number;
+  taux_justification: number;
+}
+
+export interface StudentsRankingResponse {
+  ranking: StudentRankingItem[];
+  total_students: number;
+  filters: {
+    limit?: number;
+    date_debut?: string;
+    date_fin?: string;
+    etablissement_id?: number;
+    promotion_id?: number;
+    sort_by?: string;
+  };
 }
