@@ -248,11 +248,29 @@ class EtudiantController extends Controller
             };
 
             $hourRefWithSec = $normalizeTime($heureReference);
-            $hour2WithSec   = $normalizeTime($heure2);
-
+            
+            // MODIFICATION: Calculer l'heure de fin de la fenêtre de pointage
+            // Au lieu d'utiliser heure2 (fin de l'examen), on utilise heure_debut + tolérance
+            // Cela évite de récupérer les pointages faits après la période de tolérance
+            $toleranceRaw = $examen ? $examen->tolerance : 15;
+            if ($toleranceRaw === null || $toleranceRaw === '') {
+                $toleranceMinutes = 15;
+            } elseif (is_numeric($toleranceRaw)) {
+                $toleranceMinutes = (int) $toleranceRaw;
+            } else {
+                $digits = preg_replace('/[^0-9]/', '', (string) $toleranceRaw);
+                $toleranceMinutes = $digits !== '' ? (int) $digits : 15;
+            }
+            
+            // Calculer l'heure limite: heure_debut_examen + tolérance
+            $heureDebutExamen = $normalizeTime($heure1);
+            $heureLimitePointage = new \DateTime("{$normalizedDate} {$heureDebutExamen}");
+            $heureLimitePointage->modify("+{$toleranceMinutes} minutes");
+            $hourLimitWithSec = $heureLimitePointage->format('H:i:s');
+            
             // Construire la fenêtre datetime côté client avec la date normalisée
             $startClientDt  = new \DateTime("{$normalizedDate} {$hourRefWithSec}");
-            $endClientDt    = new \DateTime("{$normalizedDate} {$hour2WithSec}");
+            $endClientDt    = new \DateTime("{$normalizedDate} {$hourLimitWithSec}"); // MODIFIÉ: utilise heure limite au lieu de heure2
 
             // Le serveur Biostar est décalé de -60 minutes (serveur en retard d'1h)
             $startServerDt = (clone $startClientDt)->modify("{$offsetMinutes} minutes");
@@ -265,6 +283,21 @@ class EtudiantController extends Controller
 
             $startDt = $startServerDt->format('Y-m-d H:i:s');
             $endDt   = $endServerDt->format('Y-m-d H:i:s');
+            
+            \Log::info('Fenêtre de récupération des pointages (CORRIGÉE):', [
+                'heure_debut_pointage' => $heureReference,
+                'heure_debut_examen' => $heure1,
+                'tolerance_minutes' => $toleranceMinutes,
+                'heure_limite_pointage' => $hourLimitWithSec,
+                'fenetre_client' => [
+                    'debut' => $startClientDt->format('Y-m-d H:i:s'),
+                    'fin' => $endClientDt->format('Y-m-d H:i:s')
+                ],
+                'fenetre_serveur' => [
+                    'debut' => $startDt,
+                    'fin' => $endDt
+                ]
+            ]);
 
             // Requête optimisée: fenêtre datetime continue et filtres device
             $sql = "

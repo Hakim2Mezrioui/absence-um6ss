@@ -22,6 +22,7 @@ export interface TrackingResult {
   attendance_mode?: 'normal' | 'bicheck';
   punch_in?: string | null | undefined;
   punch_out?: string | null | undefined;
+  enseignant_name?: string | null | undefined;
 }
 
 export interface TrackingResponse {

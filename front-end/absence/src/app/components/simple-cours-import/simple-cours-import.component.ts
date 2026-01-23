@@ -61,6 +61,7 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
   readonly templateHeaders = [
     'title',
     'date',
+    'hour_debut_poigntage',
     'hour_debut',
     'hour_fin',
     'tolerance',
@@ -169,8 +170,8 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
   downloadTemplate(): void {
     const rows = [
       this.templateHeaders,
-      ['Cours de Mathématiques', '15/01/2024', '08:00', '10:00', '00:15', 'normal', '0', 'Université A', 'Promotion 1', 'Cours Magistral', 'C401, C501', 'Groupe A', 'Casablanca', 'Option 1', 'Ahmed Benali', '2024-2025'],
-      ['Cours de Physique', '16/01/2024', '10:00', '12:00', '00:15', 'bicheck', '15', 'Université B', 'Promotion 2', 'TD', 'C506, A201', 'Groupe B', 'Rabat', 'Option 2', 'Fatima Alaoui', '2024-2025']
+      ['Cours de Mathématiques', '15/01/2024', '07:45', '08:00', '10:00', '00:15', 'normal', '0', 'Université A', 'Promotion 1', 'Cours Magistral', 'C401, C501', 'Groupe A', 'Casablanca', 'Option 1', 'Ahmed Benali', '2024-2025'],
+      ['Cours de Physique', '16/01/2024', '09:45', '10:00', '12:00', '00:15', 'bicheck', '15', 'Université B', 'Promotion 2', 'TD', 'C506, A201', 'Groupe B', 'Rabat', 'Option 2', 'Fatima Alaoui', '2024-2025']
     ];
 
     const worksheet = utils.aoa_to_sheet(rows);
@@ -179,6 +180,7 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
     const colWidths = [
       { wch: 20 }, // title
       { wch: 12 }, // date
+      { wch: 15 }, // hour_debut_poigntage
       { wch: 10 }, // hour_debut
       { wch: 10 }, // hour_fin
       { wch: 10 }, // tolerance
@@ -303,7 +305,7 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
             // Détecter le type de colonne basé sur le nom
             const headerLower = header.toLowerCase();
             const isDateColumn = headerLower.includes('date');
-            const isTimeColumn = headerLower.includes('heure') || headerLower.includes('hour') || headerLower.includes('time');
+            const isTimeColumn = headerLower.includes('heure') || headerLower.includes('hour') || headerLower.includes('time') || headerLower.includes('poigntage');
             
             if (cellValue === null || cellValue === undefined) {
               cellValue = '';
@@ -715,7 +717,8 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
       'title': '480px',
       'date': '220px',
       'hour_debut': '180px',
-      'hour_fin': '180px'
+      'hour_fin': '180px',
+      'hour_debut_poigntage': '200px'
     };
     return minWidths[header] || '140px';
   }
@@ -743,7 +746,8 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
         heure_debut: this.formatTime(row['hour_debut'] || ''),
         heure_fin: this.formatTime(row['hour_fin'] || ''),
         tolerance: this.formatTime(row['tolerance'] || '00:15'),
-        pointage_start_hour: this.formatTime(row['hour_debut'] || ''),
+        // Utiliser hour_debut_poigntage si fourni, sinon utiliser hour_debut comme fallback
+        pointage_start_hour: this.formatTime(row['hour_debut_poigntage'] || row['hour_debut'] || ''),
         attendance_mode: attendanceMode,
         exit_capture_window: attendanceMode === 'bicheck' ? (exitWindowValue || 15) : 0,
         etablissement_name: row['etablissement_name'] || '',

@@ -57,7 +57,7 @@ class StudentTrackingService
                 ->where('etablissement_id', $studentEtablissementId) // Filtrer par établissement de l'étudiant
                 ->with(['salle', 'salles' => function($query) {
                     $query->withoutGlobalScopes();
-                }, 'type_cours', 'promotion', 'etablissement', 'ville'])
+                }, 'type_cours', 'promotion', 'etablissement', 'ville', 'enseignant'])
                 ->get();
 
             $examens = Examen::withoutGlobalScopes()
@@ -254,6 +254,15 @@ class StudentTrackingService
             $salleName = $cours->salle->name;
         }
 
+        // Extraire le nom du professeur
+        $enseignantName = null;
+        if ($cours->enseignant) {
+            $enseignantName = trim($cours->enseignant->first_name . ' ' . $cours->enseignant->last_name);
+            if (empty($enseignantName)) {
+                $enseignantName = null;
+            }
+        }
+
         $result = [
             'type' => 'cours',
             'id' => $cours->id,
@@ -268,7 +277,8 @@ class StudentTrackingService
             'salles' => $sallesList,
             'type_cours' => $cours->type_cours ? $cours->type_cours->name : null,
             'absence' => $absence,
-            'attendance_mode' => $attendanceMode
+            'attendance_mode' => $attendanceMode,
+            'enseignant_name' => $enseignantName
         ];
         
         // Ajouter les données bi-check si disponibles

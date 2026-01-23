@@ -391,61 +391,129 @@ export class TrackerComponent implements OnInit {
 
     const doc = new jsPDF('l', 'mm', 'a4'); // Orientation paysage
     
-    // Couleurs (tuples de 3 éléments)
+    // Couleurs élégantes
+    const primaryColor: [number, number, number] = [30, 64, 175]; // Bleu UM6SS
     const headerColor: [number, number, number] = [52, 73, 94]; // Gris foncé
-    const presentColor: [number, number, number] = [39, 174, 96]; // Vert
-    const absentColor: [number, number, number] = [231, 76, 60]; // Rouge
-    const lateColor: [number, number, number] = [241, 196, 15]; // Jaune
+    const presentColor: [number, number, number] = [34, 197, 94]; // Vert moderne
+    const absentColor: [number, number, number] = [239, 68, 68]; // Rouge moderne
+    const lateColor: [number, number, number] = [234, 179, 8]; // Jaune moderne
+    const lightGray: [number, number, number] = [243, 244, 246]; // Gris clair
+    const borderColor: [number, number, number] = [229, 231, 235]; // Bordure grise
     
-    let startY = 20;
+    let currentY = 10;
     
-    // Titre
-    doc.setFontSize(16);
-    doc.setTextColor(headerColor[0], headerColor[1], headerColor[2]);
-    doc.text('RAPPORT DE TRAÇAGE ÉTUDIANT', 14, startY);
+    // ===== EN-TÊTE ÉLÉGANT AVEC LOGO =====
+    // Note: Le logo sera ajouté de manière synchrone si possible
+    // Pour éviter les problèmes de typage TypeScript, on utilise (doc as any)
+    try {
+      const logoPath = 'assets/logo_um6ss.png';
+      const logoWidth = 25;
+      const logoHeight = 25;
+      const logoX = 14;
+      const logoY = currentY;
+      
+      // Ajouter le logo (si disponible) - utiliser 'as any' pour contourner le typage TypeScript
+      (doc as any).addImage(logoPath, 'PNG', logoX, logoY, logoWidth, logoHeight);
+    } catch (e) {
+      console.warn('Logo non trouvé, continuation sans logo:', e);
+    }
     
-    // Informations de l'étudiant
+    // Titre principal à côté du logo
+    doc.setFontSize(18);
+    (doc as any).setFont('helvetica', 'bold');
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.text('RAPPORT DE TRAÇAGE ÉTUDIANT', 45, currentY + 10);
+    
+    // Sous-titre
     doc.setFontSize(10);
+    (doc as any).setFont('helvetica', 'normal');
+    doc.setTextColor(100, 100, 100);
+    doc.text('Université Mohammed VI des Sciences de la Santé', 45, currentY + 16);
+    
+    // Ligne de séparation élégante
+    (doc as any).setDrawColor(borderColor[0], borderColor[1], borderColor[2]);
+    (doc as any).setLineWidth(0.5);
+    (doc as any).line(14, currentY + 22, 277, currentY + 22);
+    
+    currentY = currentY + 30;
+    
+    // ===== INFORMATIONS DE L'ÉTUDIANT (Style Card) =====
+    (doc as any).setFillColor(lightGray[0], lightGray[1], lightGray[2]);
+    (doc as any).rect(14, currentY, 263, 20, 'F');
+    
+    doc.setFontSize(11);
+    (doc as any).setFont('helvetica', 'bold');
+    doc.setTextColor(headerColor[0], headerColor[1], headerColor[2]);
+    doc.text('INFORMATIONS ÉTUDIANT', 18, currentY + 7);
+    
+    doc.setFontSize(9);
+    (doc as any).setFont('helvetica', 'normal');
     doc.setTextColor(0, 0, 0);
-    let yPos = startY + 10;
     
     const studentInfo = [
-      `Étudiant: ${this.student.first_name} ${this.student.last_name}`,
+      `Nom complet: ${this.student.first_name} ${this.student.last_name}`,
       `Matricule: ${this.student.matricule}`,
       `Email: ${this.student.email || 'N/A'}`,
       `Période: ${this.formatDateOnly(this.fromDate)} - ${this.formatDateOnly(this.toDate)}`
     ];
     
+    let infoX = 18;
+    let infoY = currentY + 12;
     studentInfo.forEach((info, index) => {
-      doc.text(info, 14, yPos + (index * 5));
+      const col = index % 2;
+      const row = Math.floor(index / 2);
+      doc.text(info, infoX + (col * 130), infoY + (row * 5));
     });
     
-    // Statistiques
-    yPos = startY + 35;
+    currentY = currentY + 25;
+    
+    // ===== STATISTIQUES (Style Card) =====
     if (this.summary) {
-      doc.setFontSize(12);
-      doc.setTextColor(headerColor[0], headerColor[1], headerColor[2]);
-      doc.text('STATISTIQUES', 14, yPos);
+      (doc as any).setFillColor(lightGray[0], lightGray[1], lightGray[2]);
+      (doc as any).rect(14, currentY, 263, 18, 'F');
       
-      doc.setFontSize(10);
+      doc.setFontSize(11);
+      (doc as any).setFont('helvetica', 'bold');
+      doc.setTextColor(headerColor[0], headerColor[1], headerColor[2]);
+      doc.text('STATISTIQUES', 18, currentY + 7);
+      
+      doc.setFontSize(9);
+      (doc as any).setFont('helvetica', 'normal');
       doc.setTextColor(0, 0, 0);
+      
+      // Statistiques avec badges colorés
       const stats = [
-        `Total: ${this.summary.total}`,
-        `Présents: ${this.summary.presents}`,
-        `Absents: ${this.summary.absents}`,
-        `En retard: ${this.summary.lates}`
+        { label: 'Total', value: this.summary.total, color: primaryColor },
+        { label: 'Présents', value: this.summary.presents, color: presentColor },
+        { label: 'Absents', value: this.summary.absents, color: absentColor },
+        { label: 'En retard', value: this.summary.lates, color: lateColor }
       ];
       
+      const statWidth = 60;
+      const statStartX = 18;
       stats.forEach((stat, index) => {
-        doc.text(stat, 14, yPos + 8 + (index * 5));
+        const x = statStartX + (index * statWidth);
+        
+        // Badge coloré
+        (doc as any).setFillColor(stat.color[0], stat.color[1], stat.color[2]);
+        (doc as any).rect(x, currentY + 10, 55, 6, 'F');
+        
+        // Texte blanc sur badge
+        doc.setTextColor(255, 255, 255);
+        (doc as any).setFont('helvetica', 'bold');
+        doc.text(`${stat.label}: ${stat.value}`, x + 2, currentY + 14);
       });
       
-      startY = yPos + 35;
+      currentY = currentY + 23;
     }
     
+    // ===== TABLEAU DES RÉSULTATS =====
     // Préparer les données pour le tableau
     const tableData = this.filteredResults.map(result => {
       const statusLabel = this.getStatusLabel(result.status);
+      
+      // Ajouter le nom du professeur uniquement pour les cours
+      const enseignantName = result.type === 'cours' ? (result.enseignant_name || '') : '';
       
       return [
         this.formatDateOnly(result.date),
@@ -454,55 +522,160 @@ export class TrackerComponent implements OnInit {
         this.formatTime(result.heure_debut),
         this.formatTime(result.heure_fin),
         statusLabel,
+        enseignantName, // Colonne professeur
         this.formatPunchTimeSimple(result.punch_time || null),
         result.device || '-',
         result.salle || '-'
       ];
     });
     
-    // Créer le tableau
+    // Créer le tableau avec autoTable
     autoTable(doc, {
-      head: [['Date', 'Type', 'Nom', 'Heure début', 'Heure fin', 'Statut', 'Heure pointage', 'Device', 'Salle']],
+      head: [['Date', 'Type', 'Nom', 'Heure début', 'Heure fin', 'Statut', 'Professeur', 'Heure pointage', 'Device', 'Salle']],
       body: tableData,
-      startY: startY,
-      styles: { fontSize: 8, cellPadding: 2 },
+      startY: currentY,
+      styles: { 
+        fontSize: 7.5, 
+        cellPadding: 2.5,
+        textColor: [0, 0, 0],
+        lineColor: [borderColor[0], borderColor[1], borderColor[2]],
+        lineWidth: 0.3
+      },
       headStyles: { 
-        fillColor: headerColor as [number, number, number],
+        fillColor: [headerColor[0], headerColor[1], headerColor[2]] as [number, number, number],
         textColor: [255, 255, 255] as [number, number, number],
-        fontStyle: 'bold'
+        fontStyle: 'bold',
+        fontSize: 8,
+        cellPadding: 3
+      },
+      alternateRowStyles: {
+        fillColor: [lightGray[0], lightGray[1], lightGray[2]] as [number, number, number]
       },
       columnStyles: {
-        0: { cellWidth: 25 },
-        1: { cellWidth: 20 },
-        2: { cellWidth: 40 },
-        3: { cellWidth: 20 },
-        4: { cellWidth: 20 },
-        5: { cellWidth: 25 },
-        6: { cellWidth: 30 },
-        7: { cellWidth: 30 },
-        8: { cellWidth: 20 }
+        0: { cellWidth: 24, halign: 'center' }, // Date
+        1: { cellWidth: 18, halign: 'center' }, // Type
+        2: { cellWidth: 38, halign: 'left' }, // Nom
+        3: { cellWidth: 18, halign: 'center' }, // Heure début
+        4: { cellWidth: 18, halign: 'center' }, // Heure fin
+        5: { cellWidth: 22, halign: 'center' }, // Statut
+        6: { cellWidth: 28, halign: 'left' }, // Professeur
+        7: { cellWidth: 28, halign: 'center' }, // Heure pointage
+        8: { cellWidth: 28, halign: 'left' }, // Device
+        9: { cellWidth: 20, halign: 'left' }  // Salle
       },
+      margin: { top: currentY, right: 14, bottom: 20, left: 14 },
       didParseCell: (data: any) => {
-        // Colorer les cellules de statut
-        if (data.column.index === 5 && data.row.index > 0) {
-          const result = this.filteredResults[data.row.index - 1];
+        // Vérifier que c'est une ligne de données (pas l'en-tête)
+        // autoTable utilise data.section pour distinguer 'head' et 'body'
+        const isDataRow = data.section === 'body' || (data.section !== 'head' && data.row.index > 0);
+        
+        if (!isDataRow) {
+          return; // C'est l'en-tête, ne rien faire
+        }
+        
+        // Calculer l'index dans filteredResults
+        // Si data.section === 'body', alors data.row.index commence à 0 pour la première ligne de données
+        // Si data.section n'est pas défini, alors data.row.index commence à 1 (0 étant l'en-tête)
+        let dataIndex: number;
+        if (data.section === 'body') {
+          dataIndex = data.row.index; // Pour 'body', l'index commence à 0
+        } else {
+          dataIndex = data.row.index - 1; // Sinon, soustraire 1 car l'index 0 est l'en-tête
+        }
+        
+        // Vérifier que l'index est valide
+        if (dataIndex < 0 || dataIndex >= this.filteredResults.length) {
+          return;
+        }
+        
+        const result = this.filteredResults[dataIndex];
+        if (!result) {
+          return;
+        }
+        
+        // Colorer les cellules de statut (colonne index 5)
+        if (data.column.index === 5) {
           if (result.status === 'present') {
             data.cell.styles.fillColor = presentColor as [number, number, number];
             data.cell.styles.textColor = [255, 255, 255] as [number, number, number];
+            data.cell.styles.fontStyle = 'bold';
           } else if (result.status === 'absent' || result.status === 'pending_exit' || result.status === 'pending_entry') {
-            // pending_exit et pending_entry sont considérés comme absents (bi-check non validé)
             data.cell.styles.fillColor = absentColor as [number, number, number];
             data.cell.styles.textColor = [255, 255, 255] as [number, number, number];
+            data.cell.styles.fontStyle = 'bold';
           } else if (result.status === 'late') {
             data.cell.styles.fillColor = lateColor as [number, number, number];
             data.cell.styles.textColor = [0, 0, 0] as [number, number, number];
+            data.cell.styles.fontStyle = 'bold';
           }
+        }
+        
+        // Style pour la colonne Type (cours/examen) - colonne index 1
+        if (data.column.index === 1) {
+          if (result.type === 'cours') {
+            data.cell.styles.fillColor = [219, 234, 254] as [number, number, number]; // Bleu clair
+            data.cell.styles.textColor = [30, 64, 175] as [number, number, number]; // Bleu foncé
+          } else if (result.type === 'examen') {
+            data.cell.styles.fillColor = [243, 232, 255] as [number, number, number]; // Violet clair
+            data.cell.styles.textColor = [147, 51, 234] as [number, number, number]; // Violet foncé
+          }
+          data.cell.styles.fontStyle = 'bold';
+          data.cell.styles.fontSize = 7;
+        }
+      },
+      didDrawPage: (data: any) => {
+        // Ajouter le numéro de page en bas
+        const pageCount = (doc as any).internal.getNumberOfPages();
+        doc.setFontSize(8);
+        doc.setTextColor(128, 128, 128);
+        doc.text(
+          `Page ${data.pageNumber} sur ${pageCount}`,
+          doc.internal.pageSize.getWidth() / 2,
+          doc.internal.pageSize.getHeight() - 10,
+          { align: 'center' }
+        );
+        
+        // Ajouter un footer avec le logo UM6SS (petit)
+        try {
+          const footerLogoSize = 8;
+          (doc as any).addImage(
+            'assets/logo_um6ss.png',
+            'PNG',
+            doc.internal.pageSize.getWidth() - 30,
+            doc.internal.pageSize.getHeight() - 12,
+            footerLogoSize,
+            footerLogoSize
+          );
+        } catch (e) {
+          // Logo non disponible, continuer sans
         }
       }
     });
     
+    // ===== PIED DE PAGE =====
+    const pageCount = (doc as any).internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      
+      // Ligne de séparation en bas
+      (doc as any).setDrawColor(borderColor[0], borderColor[1], borderColor[2]);
+      (doc as any).setLineWidth(0.5);
+      (doc as any).line(14, doc.internal.pageSize.getHeight() - 15, 277, doc.internal.pageSize.getHeight() - 15);
+      
+      // Texte de copyright
+      doc.setFontSize(7);
+      doc.setTextColor(150, 150, 150);
+      (doc as any).setFont('helvetica', 'italic');
+      doc.text(
+        '© UM6SS - Système de Gestion des Absences - Document généré le ' + new Date().toLocaleDateString('fr-FR'),
+        14,
+        doc.internal.pageSize.getHeight() - 8,
+        { align: 'left' }
+      );
+    }
+    
     // Nom du fichier
-    const fileName = `traqueur_${this.student.matricule}_${this.fromDate}_${this.toDate}.pdf`;
+    const fileName = `rapport_traçage_${this.student.matricule}_${this.fromDate}_${this.toDate}.pdf`;
     
     // Sauvegarder le PDF
     doc.save(fileName);

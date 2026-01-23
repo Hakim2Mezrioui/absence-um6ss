@@ -436,6 +436,11 @@ class CoursService
         $heureDebut = $this->formatTime($data['heure_debut']);
         $heureFin = $this->formatTime($data['heure_fin']);
         $tolerance = $this->formatTime($data['tolerance'] ?? '00:15');
+        
+        // Utiliser pointage_start_hour si fourni, sinon utiliser heure_debut comme fallback
+        $pointageStartHour = !empty($data['pointage_start_hour']) 
+            ? $this->formatTime($data['pointage_start_hour']) 
+            : $heureDebut;
 
         // Parser les salles multiples si salle_name est fourni
         $salleIds = [];
@@ -469,7 +474,7 @@ class CoursService
         $coursData = [
             'name' => $data['name'],
             'date' => $date,
-            'pointage_start_hour' => $heureDebut,
+            'pointage_start_hour' => $pointageStartHour,
             'heure_debut' => $heureDebut,
             'heure_fin' => $heureFin,
             'tolerance' => $tolerance,
