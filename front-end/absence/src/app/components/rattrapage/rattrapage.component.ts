@@ -191,6 +191,7 @@ export class RattrapageComponent implements OnInit, OnDestroy {
       end_hour: ['', [Validators.required, Validators.pattern(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/)]],
       date: ['', [Validators.required]],
       tolerance: [5, [Validators.required, Validators.min(0), Validators.max(60)]],
+      etablissement_id: [null, [Validators.required]],
       ville_id: [null, [Validators.required]],
       salle_ids: [[], [Validators.required, this.atLeastOneSalleValidator]]
     });
@@ -1056,6 +1057,10 @@ export class RattrapageComponent implements OnInit, OnDestroy {
     try {
       console.log('📚 Chargement des rattrapages - Page:', page);
       
+      // Activer l'indicateur de chargement
+      this.isRattrapagesFiltering = true;
+      this.markForCheck();
+      
       const filters = this.getRattrapagesFilters();
       console.log('🔍 Filtres rattrapages:', filters);
       const response = await firstValueFrom(this.rattrapageService.getAllRattrapages(page, this.rattrapagesPerPage, filters));
@@ -1086,7 +1091,10 @@ export class RattrapageComponent implements OnInit, OnDestroy {
         'Impossible de charger les rattrapages.'
       );
     } finally {
+      // Toujours désactiver l'indicateur de chargement, même en cas d'erreur
+      this.isRattrapagesFiltering = false;
       this.markForCheck();
+      console.log('🏁 Chargement terminé - isRattrapagesFiltering:', this.isRattrapagesFiltering);
     }
   }
   
@@ -1142,7 +1150,12 @@ export class RattrapageComponent implements OnInit, OnDestroy {
       if (!this.rattrapagesSortDirection) {
         this.rattrapagesSortDirection = 'desc';
       }
+      // Charger les rattrapages avec indicateur de chargement
       this.loadRattrapages();
+    } else if (tab === 'affectation') {
+      // S'assurer que le chargement est désactivé quand on change d'onglet
+      this.isRattrapagesFiltering = false;
+      this.markForCheck();
     }
   }
 
@@ -1150,6 +1163,9 @@ export class RattrapageComponent implements OnInit, OnDestroy {
     this.activeTabIndex = event.index;
     if (event.index === 0) {
       this.activeTab = 'affectation';
+      // S'assurer que le chargement est désactivé quand on change d'onglet
+      this.isRattrapagesFiltering = false;
+      this.markForCheck();
     } else if (event.index === 1) {
       this.activeTab = 'rattrapages';
       // S'assurer que les valeurs de tri par défaut sont définies
@@ -1159,6 +1175,7 @@ export class RattrapageComponent implements OnInit, OnDestroy {
       if (!this.rattrapagesSortDirection) {
         this.rattrapagesSortDirection = 'desc';
       }
+      // Charger les rattrapages avec indicateur de chargement
       this.loadRattrapages();
     }
   }
@@ -1226,9 +1243,17 @@ export class RattrapageComponent implements OnInit, OnDestroy {
   
   // Méthode pour lancer la recherche manuellement
   async searchRattrapages() {
-    this.isRattrapagesFiltering = true;
-    await this.applyRattrapagesFilters();
-    this.isRattrapagesFiltering = false;
+    try {
+      this.isRattrapagesFiltering = true;
+      this.markForCheck();
+      await this.applyRattrapagesFilters();
+    } catch (error) {
+      console.error('❌ Erreur lors de la recherche:', error);
+    } finally {
+      // S'assurer que l'indicateur est toujours désactivé
+      this.isRattrapagesFiltering = false;
+      this.markForCheck();
+    }
   }
 
   // Méthodes pour gérer l'exclusivité entre date exacte et plage de dates

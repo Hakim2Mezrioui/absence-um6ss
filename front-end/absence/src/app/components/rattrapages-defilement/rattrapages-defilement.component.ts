@@ -1,5 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { RattrapageService, Rattrapage } from '../../services/rattrapage.service';
 import { AuthService } from '../../services/auth.service';
@@ -15,7 +16,7 @@ interface RattrapageWithDuration extends Rattrapage {
 @Component({
   selector: 'app-rattrapages-defilement',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './rattrapages-defilement.component.html',
   styleUrls: ['./rattrapages-defilement.component.css']
 })
@@ -26,6 +27,7 @@ export class RattrapagesDefilementComponent implements OnInit {
   private authService = inject(AuthService);
 
   rattrapages: RattrapageWithDuration[] = [];
+  allRattrapages: RattrapageWithDuration[] = []; // Tous les rattrapages pour le filtrage côté client
   loading = false;
   error = '';
 
@@ -35,6 +37,13 @@ export class RattrapagesDefilementComponent implements OnInit {
   total = 0;
   perPage = 12;
 
+  // Filtres
+  searchValue = '';
+  filterDate = '';
+  filterDateFrom = '';
+  filterDateTo = '';
+  selectedStatus = '';
+
   ngOnInit(): void {
     this.loadRattrapages();
   }
@@ -43,18 +52,40 @@ export class RattrapagesDefilementComponent implements OnInit {
     this.loading = true;
     this.error = '';
 
-    this.rattrapageService.getAllRattrapages(page, this.perPage).subscribe({
+    // Construire les filtres
+    const filters: any = {
+      sort_by: 'created_at', // Trier par date de création
+      sort_direction: 'desc' // Ordre décroissant (du plus récent au plus ancien)
+    };
+    if (this.searchValue.trim()) {
+      filters.search = this.searchValue.trim();
+    }
+    if (this.filterDate) {
+      filters.date = this.filterDate;
+    }
+    if (this.filterDateFrom) {
+      filters.date_from = this.filterDateFrom;
+    }
+    if (this.filterDateTo) {
+      filters.date_to = this.filterDateTo;
+    }
+
+    this.rattrapageService.getAllRattrapages(page, this.perPage, filters).subscribe({
       next: (response) => {
         if (response.success) {
-          this.rattrapages = (response.data || []).map((r: any) => ({
+          this.allRattrapages = (response.data || []).map((r: any) => ({
             ...r,
             duration: this.calculateDuration(r.start_hour, r.end_hour),
             statut_temporel: this.calculateStatutTemporel(r.date, r.start_hour, r.end_hour),
             salles: r.salles || []
           }));
+          
+          // Appliquer le filtre de statut côté client
+          this.applyStatusFilter();
+          
           this.currentPage = response.pagination?.current_page || 1;
           this.totalPages = response.pagination?.last_page || 1;
-          this.total = response.pagination?.total || this.rattrapages.length;
+          this.total = response.pagination?.total || this.allRattrapages.length;
         } else {
           this.error = 'Erreur lors du chargement des rattrapages';
         }
@@ -66,6 +97,56 @@ export class RattrapagesDefilementComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  // Appliquer le filtre de statut côté client
+  private applyStatusFilter(): void {
+    if (!this.selectedStatus) {
+      this.rattrapages = [...this.allRattrapages];
+      this.total = this.allRattrapages.length;
+      // Recalculer le nombre de pages
+      this.totalPages = Math.ceil(this.total / this.perPage);
+      return;
+    }
+
+    this.rattrapages = this.allRattrapages.filter(r => {
+      return r.statut_temporel === this.selectedStatus;
+    });
+    
+    // Mettre à jour le total et les pages
+    this.total = this.rattrapages.length;
+    this.totalPages = Math.ceil(this.total / this.perPage);
+    
+    // Si la page actuelle est supérieure au nombre de pages, revenir à la page 1
+    if (this.currentPage > this.totalPages && this.totalPages > 0) {
+      this.currentPage = 1;
+    }
+  }
+
+  // Méthodes pour gérer les filtres
+  onSearchChange(): void {
+    this.currentPage = 1;
+    this.loadRattrapages(1);
+  }
+
+  onFilterChange(): void {
+    this.currentPage = 1;
+    this.loadRattrapages(1);
+  }
+
+  onStatusFilterChange(event: any): void {
+    this.selectedStatus = event.target.value;
+    this.applyStatusFilter();
+  }
+
+  clearFilters(): void {
+    this.searchValue = '';
+    this.filterDate = '';
+    this.filterDateFrom = '';
+    this.filterDateTo = '';
+    this.selectedStatus = '';
+    this.currentPage = 1;
+    this.loadRattrapages(1);
   }
 
   calculateDuration(start: string, end: string): string {
