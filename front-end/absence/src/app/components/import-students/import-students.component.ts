@@ -228,26 +228,77 @@ export class ImportStudentsComponent implements OnInit, OnDestroy {
    * Télécharger le modèle CSV adapté au mode d'importation
    */
   downloadTemplate(): void {
+    // Utiliser les données réelles de la base de données si disponibles
+    const getFirstValue = (arr: any[] | undefined, field: string = 'name'): string => {
+      if (!arr || arr.length === 0) return 'Exemple';
+      return arr[0][field] || arr[0].title || arr[0].name || 'Exemple';
+    };
+
+    const getFirstId = (arr: any[] | undefined): number | string => {
+      if (!arr || arr.length === 0) return '1';
+      return arr[0].id || '1';
+    };
+
+    const getSecondValue = (arr: any[] | undefined, field: string = 'name'): string => {
+      if (!arr || arr.length < 2) return getFirstValue(arr, field);
+      return arr[1][field] || arr[1].title || arr[1].name || 'Exemple';
+    };
+
+    const getSecondId = (arr: any[] | undefined): number | string => {
+      if (!arr || arr.length < 2) return getFirstId(arr);
+      return arr[1].id || getFirstId(arr);
+    };
+
+    // Obtenir les valeurs réelles
+    const promotion1Name = getFirstValue(this.filterOptions?.promotions);
+    const promotion1Id = getFirstId(this.filterOptions?.promotions);
+    const promotion2Name = getSecondValue(this.filterOptions?.promotions);
+    const promotion2Id = getSecondId(this.filterOptions?.promotions);
+    const etablissement1Name = getFirstValue(this.filterOptions?.etablissements);
+    const etablissement1Id = getFirstId(this.filterOptions?.etablissements);
+    const etablissement2Name = getSecondValue(this.filterOptions?.etablissements);
+    const etablissement2Id = getSecondId(this.filterOptions?.etablissements);
+    const ville1Name = getFirstValue(this.filterOptions?.villes);
+    const ville1Id = getFirstId(this.filterOptions?.villes);
+    const ville2Name = getSecondValue(this.filterOptions?.villes);
+    const ville2Id = getSecondId(this.filterOptions?.villes);
+    const groupe1Name = getFirstValue(this.filterOptions?.groups, 'title');
+    const groupe1Id = getFirstId(this.filterOptions?.groups);
+    const groupe2Name = getSecondValue(this.filterOptions?.groups, 'title');
+    const groupe2Id = getSecondId(this.filterOptions?.groups);
+    const option1Name = getFirstValue(this.filterOptions?.options);
+    const option1Id = getFirstId(this.filterOptions?.options);
+    const option2Name = getSecondValue(this.filterOptions?.options);
+    const option2Id = getSecondId(this.filterOptions?.options);
+
+    // Générer des matricules réalistes basés sur l'année actuelle
+    const currentYear = new Date().getFullYear();
+    const matricule1 = `ETU${currentYear}001`;
+    const matricule2 = `ETU${currentYear}002`;
+    const matricule3 = `ETU${currentYear}003`;
+    const matricule4 = `ETU${currentYear}004`;
+    const matricule5 = `ETU${currentYear}005`;
+
     let csvContent = '';
     let fileName = '';
     
     if (this.importMode === 'complete') {
-      // Modèle complet avec toutes les colonnes
+      // Modèle complet avec toutes les colonnes (utilisant les IDs réels)
       csvContent = 'matricule,first_name,last_name,email,password,promotion_id,etablissement_id,ville_id,group_id,option_id\n' +
-                   'ETU2024001,Jean,Dupont,jean.dupont@email.com,password123,1ere annee,Faculte de Medecine,Casablanca,Groupe A,Pharmacie\n' +
-                   'ETU2024002,Marie,Martin,marie.martin@email.com,password123,2eme annee,Hopital Universitaire,Rabat,Groupe B,Medecine\n' +
-                   'ETU2024003,Pierre,Durand,pierre.durand@email.com,password123,3eme annee,Institut Superieur,Fes,Groupe C,Chirurgie\n' +
-                   'ETU2024004,Sophie,Bernard,sophie.bernard@email.com,password123,4eme annee,Ecole de Sante,Marrakech,Groupe D,\n' +
-                   'ETU2024005,Lucas,Moreau,lucas.moreau@email.com,password123,5eme annee,Centre Medical,Tanger,Groupe E,Biologie';
+                   `${matricule1},Imane,Benali,imane.benali@um6ss.ac.ma,password123,${promotion1Id},${etablissement1Id},${ville1Id},${groupe1Id},${option1Id}\n` +
+                   `${matricule2},Youssef,El Amrani,youssef.elamrani@um6ss.ac.ma,password123,${promotion2Id || promotion1Id},${etablissement2Id || etablissement1Id},${ville2Id || ville1Id},${groupe2Id || groupe1Id},${option2Id || option1Id}\n` +
+                   `${matricule3},Fatima,Alaoui,fatima.alaoui@um6ss.ac.ma,password123,${promotion1Id},${etablissement1Id},${ville1Id},${groupe2Id || groupe1Id},${option1Id}\n` +
+                   `${matricule4},Ahmed,El Fassi,ahmed.elfassi@um6ss.ac.ma,password123,${promotion2Id || promotion1Id},${etablissement2Id || etablissement1Id},${ville2Id || ville1Id},${groupe1Id},${option2Id || option1Id || ''}\n` +
+                   `${matricule5},Sara,Idrissi,sara.idrissi@um6ss.ac.ma,password123,${promotion1Id},${etablissement1Id},${ville1Id},${groupe1Id},${option1Id || ''}`;
       fileName = 'modele_etudiants_complet.csv';
     } else {
       // Modèle minimal pour mode pré-configuré
       csvContent = 'matricule,first_name,last_name,email,password\n' +
-                   'ETU2024001,Jean,Dupont,jean.dupont@email.com,password123\n' +
-                   'ETU2024002,Marie,Martin,marie.martin@email.com,password123\n' +
-                   'ETU2024003,Pierre,Durand,pierre.durand@email.com,password123\n' +
-                   'ETU2024004,Sophie,Bernard,sophie.bernard@email.com,password123\n' +
-                   'ETU2024005,Lucas,Moreau,lucas.moreau@email.com,password123';
+                   `${matricule1},Imane,Benali,imane.benali@um6ss.ac.ma,password123\n` +
+                   `${matricule2},Youssef,El Amrani,youssef.elamrani@um6ss.ac.ma,password123\n` +
+                   `${matricule3},Fatima,Alaoui,fatima.alaoui@um6ss.ac.ma,password123\n` +
+                   `${matricule4},Ahmed,El Fassi,ahmed.elfassi@um6ss.ac.ma,password123\n` +
+                   `${matricule5},Sara,Idrissi,sara.idrissi@um6ss.ac.ma,password123`;
       fileName = 'modele_etudiants_minimal.csv';
     }
     

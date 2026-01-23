@@ -168,10 +168,86 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
   }
 
   downloadTemplate(): void {
+    // Utiliser les données réelles de la base de données si disponibles
+    const getFirstValue = (arr: any[] | undefined, field: string = 'name'): string => {
+      if (!arr || arr.length === 0) return 'Exemple';
+      return arr[0][field] || arr[0].title || arr[0].name || 'Exemple';
+    };
+
+    const getSecondValue = (arr: any[] | undefined, field: string = 'name'): string => {
+      if (!arr || arr.length < 2) return getFirstValue(arr, field);
+      return arr[1][field] || arr[1].title || arr[1].name || 'Exemple';
+    };
+
+    // Obtenir les valeurs réelles ou des valeurs par défaut
+    const etablissement1 = getFirstValue(this.filterOptions?.etablissements);
+    const etablissement2 = getSecondValue(this.filterOptions?.etablissements);
+    const promotion1 = getFirstValue(this.filterOptions?.promotions);
+    const promotion2 = getSecondValue(this.filterOptions?.promotions);
+    const typeCours1 = getFirstValue(this.filterOptions?.types_cours);
+    const typeCours2 = getSecondValue(this.filterOptions?.types_cours);
+    const salle1 = getFirstValue(this.filterOptions?.salles);
+    const salle2 = getSecondValue(this.filterOptions?.salles);
+    const groupe1 = getFirstValue(this.filterOptions?.groups, 'title');
+    const groupe2 = getSecondValue(this.filterOptions?.groups, 'title');
+    const ville1 = getFirstValue(this.filterOptions?.villes);
+    const ville2 = getSecondValue(this.filterOptions?.villes);
+    const option1 = getFirstValue(this.filterOptions?.options);
+    const option2 = getSecondValue(this.filterOptions?.options);
+    const enseignant1 = getFirstValue(this.filterOptions?.enseignants);
+    const enseignant2 = getSecondValue(this.filterOptions?.enseignants);
+
+    // Date du jour + quelques jours pour les exemples
+    const today = new Date();
+    const date1 = new Date(today);
+    date1.setDate(today.getDate() + 1);
+    const date2 = new Date(today);
+    date2.setDate(today.getDate() + 2);
+    
+    // Année universitaire actuelle (format YYYY-YYYY)
+    const currentYear = new Date().getFullYear();
+    const anneeUniv = `${currentYear}-${currentYear + 1}`;
+
     const rows = [
       this.templateHeaders,
-      ['Cours de Mathématiques', '15/01/2024', '07:45', '08:00', '10:00', '00:15', 'normal', '0', 'Université A', 'Promotion 1', 'Cours Magistral', 'C401, C501', 'Groupe A', 'Casablanca', 'Option 1', 'Ahmed Benali', '2024-2025'],
-      ['Cours de Physique', '16/01/2024', '09:45', '10:00', '12:00', '00:15', 'bicheck', '15', 'Université B', 'Promotion 2', 'TD', 'C506, A201', 'Groupe B', 'Rabat', 'Option 2', 'Fatima Alaoui', '2024-2025']
+      [
+        'Chimie Analytique Instrumentale -TP',
+        date1.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+        '07:45',
+        '08:00',
+        '10:00',
+        '00:15',
+        'normal',
+        '0',
+        etablissement1,
+        promotion1,
+        typeCours1,
+        salle1 + (salle2 ? `, ${salle2}` : ''),
+        groupe1,
+        ville1,
+        option1 || '',
+        enseignant1 || '',
+        anneeUniv
+      ],
+      [
+        'Microbiologie - TP',
+        date2.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+        '09:45',
+        '10:00',
+        '12:00',
+        '00:15',
+        'bicheck',
+        '15',
+        etablissement2 || etablissement1,
+        promotion2 || promotion1,
+        typeCours2 || typeCours1,
+        salle2 || salle1,
+        groupe2 || groupe1,
+        ville2 || ville1,
+        option2 || option1 || '',
+        enseignant2 || enseignant1 || '',
+        anneeUniv
+      ]
     ];
 
     const worksheet = utils.aoa_to_sheet(rows);

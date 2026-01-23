@@ -139,11 +139,40 @@ export class SimpleStudentImportComponent implements OnInit, OnDestroy {
   }
 
   downloadTemplate(): void {
+    // Utiliser les données réelles de la base de données si disponibles
+    const getFirstValue = (arr: any[] | undefined, field: string = 'name'): string => {
+      if (!arr || arr.length === 0) return 'Exemple';
+      return arr[0][field] || arr[0].title || arr[0].name || 'Exemple';
+    };
+
+    const getSecondValue = (arr: any[] | undefined, field: string = 'name'): string => {
+      if (!arr || arr.length < 2) return getFirstValue(arr, field);
+      return arr[1][field] || arr[1].title || arr[1].name || 'Exemple';
+    };
+
+    // Obtenir les valeurs réelles
+    const promotion1 = getFirstValue(this.filterOptions?.promotions);
+    const promotion2 = getSecondValue(this.filterOptions?.promotions);
+    const etablissement1 = getFirstValue(this.filterOptions?.etablissements);
+    const etablissement2 = getSecondValue(this.filterOptions?.etablissements);
+    const ville1 = getFirstValue(this.filterOptions?.villes);
+    const ville2 = getSecondValue(this.filterOptions?.villes);
+    const groupe1 = getFirstValue(this.filterOptions?.groups, 'title');
+    const groupe2 = getSecondValue(this.filterOptions?.groups, 'title');
+    const option1 = getFirstValue(this.filterOptions?.options);
+    const option2 = getSecondValue(this.filterOptions?.options);
+
+    // Générer des matricules réalistes basés sur l'année actuelle
+    const currentYear = new Date().getFullYear();
+    const matricule1 = `ETU${currentYear}001`;
+    const matricule2 = `ETU${currentYear}002`;
+    const matricule3 = `ETU${currentYear}003`;
+
     const rows = [
       this.templateHeaders,
-      ['ETU2025001', 'Imane', 'Benali', 'imane.benali@email.com', 'Promotion 1', 'Université A', 'Casablanca', 'Groupe A', 'Option 1'],
-      ['ETU2025002', 'Youssef', 'El Amrani', 'youssef.elamrani@email.com', 'Promotion 2', 'Université B', 'Rabat', 'Groupe B', 'Option 2'],
-      ['ETU2025003', 'Fatima', 'Alaoui', 'fatima.alaoui@email.com', 'Promotion 1', 'Université A', 'Casablanca', 'Groupe B', 'Option 1']
+      [matricule1, 'Imane', 'Benali', `imane.benali@um6ss.ac.ma`, promotion1, etablissement1, ville1, groupe1, option1 || ''],
+      [matricule2, 'Youssef', 'El Amrani', `youssef.elamrani@um6ss.ac.ma`, promotion2 || promotion1, etablissement2 || etablissement1, ville2 || ville1, groupe2 || groupe1, option2 || option1 || ''],
+      [matricule3, 'Fatima', 'Alaoui', `fatima.alaoui@um6ss.ac.ma`, promotion1, etablissement1, ville1, groupe2 || groupe1, option1 || '']
     ];
 
     const worksheet = utils.aoa_to_sheet(rows);

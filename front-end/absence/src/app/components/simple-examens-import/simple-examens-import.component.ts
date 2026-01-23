@@ -137,10 +137,78 @@ export class SimpleExamensImportComponent implements OnInit, OnDestroy {
   }
 
   downloadTemplate(): void {
+    // Utiliser les données réelles de la base de données si disponibles
+    const getFirstValue = (arr: any[] | undefined, field: string = 'name'): string => {
+      if (!arr || arr.length === 0) return 'Exemple';
+      return arr[0][field] || arr[0].title || arr[0].name || 'Exemple';
+    };
+
+    const getSecondValue = (arr: any[] | undefined, field: string = 'name'): string => {
+      if (!arr || arr.length < 2) return getFirstValue(arr, field);
+      return arr[1][field] || arr[1].title || arr[1].name || 'Exemple';
+    };
+
+    // Obtenir les valeurs réelles
+    const etablissement1 = getFirstValue(this.filterOptions?.etablissements);
+    const etablissement2 = getSecondValue(this.filterOptions?.etablissements);
+    const promotion1 = getFirstValue(this.filterOptions?.promotions);
+    const promotion2 = getSecondValue(this.filterOptions?.promotions);
+    const typeExamen1 = getFirstValue(this.filterOptions?.typesExamen);
+    const typeExamen2 = getSecondValue(this.filterOptions?.typesExamen);
+    const salle1 = getFirstValue(this.filterOptions?.salles);
+    const salle2 = getSecondValue(this.filterOptions?.salles);
+    const groupe1 = getFirstValue(this.filterOptions?.groups, 'title');
+    const groupe2 = getSecondValue(this.filterOptions?.groups, 'title');
+    const ville1 = getFirstValue(this.filterOptions?.villes);
+    const ville2 = getSecondValue(this.filterOptions?.villes);
+    const option1 = getFirstValue(this.filterOptions?.options);
+    const option2 = getSecondValue(this.filterOptions?.options);
+
+    // Date du jour + quelques jours
+    const today = new Date();
+    const date1 = new Date(today);
+    date1.setDate(today.getDate() + 1);
+    const date2 = new Date(today);
+    date2.setDate(today.getDate() + 2);
+    
+    // Année universitaire actuelle
+    const currentYear = new Date().getFullYear();
+    const anneeUniv = `${currentYear}-${currentYear + 1}`;
+
     const rows = [
       this.templateHeaders,
-      ['Examen de Math', '15/01/2024', '08:45', '09:00', '11:00', '15', 'Université A', 'Promotion 1', 'Contrôle', 'C401, C501', 'Groupe A, Groupe B', 'Rabat', 'Option 1', '2024-2025'],
-      ['Examen de Physique', '16/01/2024', '13:45', '14:00', '16:00', '10', 'Université B', 'Promotion 2', 'Final', 'C201, C202, C203', 'Groupe B, Groupe C', 'Casablanca', 'Option 2', '2024-2025']
+      [
+        'Examen de ' + typeExamen1,
+        date1.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+        '08:45',
+        '09:00',
+        '11:00',
+        '15',
+        etablissement1,
+        promotion1,
+        typeExamen1,
+        salle1 + (salle2 ? `, ${salle2}` : ''),
+        groupe1 + (groupe2 ? `, ${groupe2}` : ''),
+        ville1,
+        option1 || '',
+        anneeUniv
+      ],
+      [
+        'Examen de ' + (typeExamen2 || typeExamen1),
+        date2.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+        '13:45',
+        '14:00',
+        '16:00',
+        '10',
+        etablissement2 || etablissement1,
+        promotion2 || promotion1,
+        typeExamen2 || typeExamen1,
+        salle2 || salle1,
+        groupe2 || groupe1,
+        ville2 || ville1,
+        option2 || option1 || '',
+        anneeUniv
+      ]
     ];
     const worksheet = utils.aoa_to_sheet(rows);
     
