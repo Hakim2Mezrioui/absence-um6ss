@@ -22,6 +22,7 @@ import { SallesComponent } from './components/salles/salles.component';
 import { RattrapageComponent } from './components/rattrapage/rattrapage.component';
 import { RattrapageStudentsComponent } from './components/rattrapage-students/rattrapage-students.component';
 import { RattrapageAttendanceComponent } from './components/rattrapage-attendance/rattrapage-attendance.component';
+import { RattrapagesDefilementComponent } from './components/rattrapages-defilement/rattrapages-defilement.component';
 import { ProfileComponent } from './components/profile/profile.component';
 import { CoursComponent } from './components/cours/cours.component';
 import { AddCoursComponent } from './components/add-cours/add-cours.component';
@@ -40,6 +41,7 @@ import { ExamensArchivedComponent } from './components/examens-archived/examens-
 import { CoursArchivedComponent } from './components/cours-archived/cours-archived.component';
 import { AbsenceDisplayComponent } from './components/absence-display/absence-display.component';
 import { CoursDisplayComponent } from './components/cours-display/cours-display.component';
+import { RattrapageDisplayComponent } from './components/rattrapage-display/rattrapage-display.component';
 import { DisplayPublicGuard } from './guards/display-public.guard';
 import { AttendanceRapideComponent } from './components/attendance-rapide/attendance-rapide.component';
 import { TrackerComponent } from './components/tracker/tracker.component';
@@ -65,6 +67,13 @@ export const routes: Routes = [
     { 
         path: "cours-display/:id", 
         component: CoursDisplayComponent, 
+        canActivate: [AuthGuard, DisplayPublicGuard] 
+    },
+
+    // Affichage public des rattrapages (SANS layout/sidebar, plein écran)
+    { 
+        path: "rattrapage-display/:id", 
+        component: RattrapageDisplayComponent, 
         canActivate: [AuthGuard, DisplayPublicGuard] 
     },
 
@@ -128,8 +137,11 @@ export const routes: Routes = [
             { path: "salles", component: SallesComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'doyen'] } },
 
             { path: "rattrapages", component: RattrapageComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien'] } },
-            { path: "rattrapages/:id/students", component: RattrapageStudentsComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien'] } },
-            { path: "rattrapages/:id/attendance", component: RattrapageAttendanceComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien'] } },
+            { path: "rattrapages/:id/students", component: RattrapageStudentsComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien', 'defilement', 'défilement'] } },
+            { path: "rattrapages/:id/attendance", component: RattrapageAttendanceComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien', 'defilement', 'défilement'] } },
+            
+            // Rubrique rattrapages pour défilement (lecture seule) - accessible uniquement au rôle defilement
+            { path: "rattrapages-defilement", component: RattrapagesDefilementComponent, canActivate: [RoleGuard], data: { roles: ['defilement', 'défilement'] } },
 
             // Cours: scolarite and enseignant (and admins, super-admin)
             { path: "cours", component: CoursComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'enseignant', 'doyen', 'technicien', 'defilement'] } },

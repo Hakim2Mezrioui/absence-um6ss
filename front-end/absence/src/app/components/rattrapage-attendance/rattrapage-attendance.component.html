@@ -51,6 +51,17 @@
           
           <div class="w-px h-8 bg-white/30"></div>
           
+          <!-- Bouton pour l'affichage défilement -->
+          <button
+            (click)="openRattrapageDisplay()"
+            class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center gap-2"
+            title="Afficher le défilement des absents en plein écran">
+            <span class="material-icons text-sm">slideshow</span>
+            <span class="text-sm hidden md:inline">Défilement</span>
+          </button>
+          
+          <div class="w-px h-8 bg-white/30"></div>
+          
           <!-- Bouton de rafraîchissement -->
           <button 
             (click)="refreshAttendance()"

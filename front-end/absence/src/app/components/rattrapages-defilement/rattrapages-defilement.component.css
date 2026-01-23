@@ -1,0 +1,58 @@
+/* Styles pour le composant rattrapages-defilement */
+
+/* Spinner de chargement */
+.loading-spinner {
+  border: 3px solid #f3f4f6;
+  border-top: 3px solid #2563eb;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Amélioration des cartes */
+.rattrapage-card {
+  transition: all 0.2s ease;
+}
+
+.rattrapage-card:hover {
+  transform: translateY(-2px);
+}
+
+/* Amélioration des boutons d'action */
+.action-button {
+  transition: all 0.2s ease;
+}
+
+.action-button:hover {
+  transform: scale(1.1);
+}
+
+/* Amélioration des badges de statut */
+.status-badge {
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+/* Grille responsive */
+.rattrapages-grid {
+  display: grid;
+}
+
+/* Animation pour les cartes */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rattrapage-card {
+  animation: fadeIn 0.3s ease-out;
+}

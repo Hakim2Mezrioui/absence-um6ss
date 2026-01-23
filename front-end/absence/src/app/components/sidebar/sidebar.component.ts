@@ -131,18 +131,32 @@ export class SidebarComponent implements OnInit {
       const roleId = source.role_id || source.role?.id || null;
       let roleName = source.role?.name || source.role_name || null;
 
-      // Mapper role_id quand rôle absent (ex: 6 => enseignant)
+      // Mapper role_id quand rôle absent (ex: 6 => enseignant, 8 => defilement)
       if (!roleName && roleId) {
         roleName = this.getRoleNameById(roleId);
+        console.log('🔍 Rôle mappé depuis role_id:', roleId, '->', roleName);
       }
 
       // Normaliser en minuscule pour cohérence avec RoleGuard
+      // Gérer les accents (défilement -> defilement)
       if (roleName) {
-        const normalized = String(roleName).toLowerCase();
+        let normalized = String(roleName).toLowerCase().trim();
+        // Normaliser les accents
+        normalized = normalized
+          .replace(/é/g, 'e')
+          .replace(/è/g, 'e')
+          .replace(/ê/g, 'e')
+          .replace(/à/g, 'a')
+          .replace(/â/g, 'a')
+          .replace(/ô/g, 'o')
+          .replace(/ù/g, 'u')
+          .replace(/û/g, 'u');
         localStorage.setItem('userRole', normalized);
+        console.log('🔍 Rôle stocké dans localStorage:', normalized);
       }
       if (roleId) {
         localStorage.setItem('role_id', String(roleId));
+        console.log('🔍 role_id stocké dans localStorage:', roleId);
       }
     } catch (e) {
       console.warn('Impossible de synchroniser le rôle dans le stockage local:', e);
@@ -152,12 +166,18 @@ export class SidebarComponent implements OnInit {
   // Méthode pour filtrer les éléments de sidebar selon le rôle
   private filterSidebarItems(): void {
     const normalizedRole = this.getNormalizedRole();
+    const rawUserRole = localStorage.getItem('userRole');
+    const userDataRole = this.userData.role;
     
+    console.log('🔍 Filtrage sidebar - Rôle brut localStorage:', rawUserRole);
+    console.log('🔍 Filtrage sidebar - Rôle userData:', userDataRole);
     console.log('🔍 Filtrage sidebar - Rôle utilisateur normalisé:', normalizedRole);
     console.log('🔍 Sidebar items totaux:', this.sidebarItems.length);
     
     if (!normalizedRole) {
       console.warn('⚠️ Aucun rôle utilisateur trouvé');
+      console.warn('⚠️ localStorage userRole:', localStorage.getItem('userRole'));
+      console.warn('⚠️ userData.role:', this.userData.role);
       this.filteredSidebarItems = [];
       return;
     }
@@ -168,9 +188,30 @@ export class SidebarComponent implements OnInit {
         return true;
       }
       
-      // Normaliser les rôles de l'item pour comparaison
-      const normalizedItemRoles = item.roles.map(r => r.toLowerCase().trim().replace(/\s+/g, '-'));
+      // Normaliser les rôles de l'item pour comparaison (gérer les accents)
+      const normalizedItemRoles = item.roles.map(r => {
+        let normalized = r.toLowerCase().trim().replace(/\s+/g, '-');
+        // Normaliser les accents pour la comparaison
+        normalized = normalized
+          .replace(/é/g, 'e')
+          .replace(/è/g, 'e')
+          .replace(/ê/g, 'e')
+          .replace(/à/g, 'a')
+          .replace(/â/g, 'a')
+          .replace(/ô/g, 'o')
+          .replace(/ù/g, 'u')
+          .replace(/û/g, 'u');
+        return normalized;
+      });
       const hasAccess = normalizedItemRoles.includes(normalizedRole);
+      
+      // Log spécifique pour Rattrapages
+      if (item.label === 'Rattrapages' && item.route === '/rattrapages-defilement') {
+        console.log('🔍 [Rattrapages - Défilement] Rôles item:', normalizedItemRoles);
+        console.log('🔍 [Rattrapages - Défilement] Rôle user:', normalizedRole);
+        console.log('🔍 [Rattrapages - Défilement] Accès:', hasAccess);
+        console.log('🔍 [Rattrapages - Défilement] Rôles bruts item:', item.roles);
+      }
       
       // Log spécifique pour Traçabilité
       if (item.label === 'Traçabilité') {
@@ -247,11 +288,44 @@ export class SidebarComponent implements OnInit {
   
   // Méthode pour obtenir le rôle normalisé (pour comparaison)
   private getNormalizedRole(): string | null {
-    const userRole = localStorage.getItem('userRole') || this.userData.role?.toLowerCase();
-    if (!userRole) return null;
+    // Essayer d'abord depuis localStorage
+    let userRole = localStorage.getItem('userRole');
+    
+    // Si pas trouvé, essayer depuis userData
+    if (!userRole) {
+      userRole = this.userData.role?.toLowerCase();
+    }
+    
+    // Si toujours pas trouvé, essayer depuis role_id
+    if (!userRole) {
+      const roleId = localStorage.getItem('role_id');
+      if (roleId) {
+        const roleIdNum = parseInt(roleId, 10);
+        if (!isNaN(roleIdNum)) {
+          userRole = this.getRoleNameById(roleIdNum);
+        }
+      }
+    }
+    
+    if (!userRole) {
+      return null;
+    }
     
     // Normaliser : enlever les espaces, mettre en minuscule, remplacer espaces par tirets
-    return userRole.toLowerCase().trim().replace(/\s+/g, '-');
+    // Gérer aussi les accents (défilement -> defilement)
+    let normalized = userRole.toLowerCase().trim().replace(/\s+/g, '-');
+    // Normaliser les accents pour la comparaison
+    normalized = normalized
+      .replace(/é/g, 'e')
+      .replace(/è/g, 'e')
+      .replace(/ê/g, 'e')
+      .replace(/à/g, 'a')
+      .replace(/â/g, 'a')
+      .replace(/ô/g, 'o')
+      .replace(/ù/g, 'u')
+      .replace(/û/g, 'u');
+    
+    return normalized;
   }
 
   // Méthode pour mapper les IDs de rôles vers les noms avec icônes
@@ -447,6 +521,13 @@ export class SidebarComponent implements OnInit {
       route: '/rattrapages',
       tooltip: 'Gestion des rattrapages',
       roles: ['super-admin', 'admin', 'scolarite', 'doyen', 'technicien']
+    },
+    {
+      label: 'Rattrapages',
+      icon: 'slideshow',
+      route: '/rattrapages-defilement',
+      tooltip: 'Défilement des rattrapages (lecture seule)',
+      roles: ['defilement', 'défilement']
     },
     {
       label: 'Gestion des utilisateurs',

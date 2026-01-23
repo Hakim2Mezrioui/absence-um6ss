@@ -814,6 +814,16 @@ export class RattrapageAttendanceComponent implements OnInit, OnDestroy {
     }
   }
   
+  /**
+   * Ouvrir l'écran de défilement public pour ce rattrapage
+   */
+  openRattrapageDisplay(): void {
+    if (!this.rattrapageId) {
+      return;
+    }
+    this.router.navigate(['/rattrapage-display', this.rattrapageId]);
+  }
+  
   goBack() {
     this.router.navigate(['/rattrapages']);
   }
