@@ -10,7 +10,9 @@ interface RattrapageWithDuration extends Rattrapage {
   statut_temporel?: 'passé' | 'en_cours' | 'futur';
   salles?: Array<{ id: number; name: string }>;
   etablissement?: { id: number; name: string };
+  etablissement_id?: number;
   ville?: { id: number; name: string };
+  ville_id?: number;
 }
 
 @Component({
@@ -26,12 +28,13 @@ export class RattrapagesDefilementComponent implements OnInit {
   private router = inject(Router);
   private authService = inject(AuthService);
 
-  rattrapages: RattrapageWithDuration[] = [];
-  allRattrapages: RattrapageWithDuration[] = []; // Tous les rattrapages pour le filtrage côté client
+  rattrapages: RattrapageWithDuration[] = []; // Rattrapages affichés (filtrés et paginés)
+  allRattrapages: RattrapageWithDuration[] = []; // Tous les rattrapages chargés du serveur
+  filteredRattrapages: RattrapageWithDuration[] = []; // Rattrapages après filtrage (avant pagination)
   loading = false;
   error = '';
 
-  // Pagination
+  // Pagination côté client
   currentPage = 1;
   totalPages = 1;
   total = 0;
@@ -43,36 +46,88 @@ export class RattrapagesDefilementComponent implements OnInit {
   filterDateFrom = '';
   filterDateTo = '';
   selectedStatus = '';
+  selectedEtablissement: number | string = '';
+
+  // Options de filtre
+  etablissements: any[] = [];
+  
+  // Établissement de l'utilisateur connecté (fixé automatiquement)
+  userEtablissementId: number | null = null;
+  userEtablissementName: string = '';
 
   ngOnInit(): void {
+    // Récupérer l'établissement de l'utilisateur connecté
+    this.userEtablissementId = this.authService.getUserEtablissementId();
+    console.log('🏢 Établissement utilisateur connecté:', this.userEtablissementId);
+    
+    // Si l'utilisateur a un établissement, l'appliquer automatiquement
+    if (this.userEtablissementId && this.userEtablissementId > 0) {
+      this.selectedEtablissement = this.userEtablissementId;
+    }
+    
+    // Charger les options de filtrage seulement si l'utilisateur n'a pas d'établissement fixe
+    // (pour permettre la sélection manuelle)
+    if (!this.hasFixedEtablissement()) {
+      this.loadFilterOptions();
+    } else {
+      // Si l'utilisateur a un établissement fixe, charger juste le nom de son établissement
+      this.loadFilterOptions();
+    }
+    
     this.loadRattrapages();
   }
 
-  private loadRattrapages(page: number = 1): void {
+  // Charger les options de filtrage
+  private loadFilterOptions(): void {
+    this.rattrapageService.getFilterOptions().subscribe({
+      next: (response) => {
+        if (response) {
+          this.etablissements = response.etablissements || [];
+          console.log('🏢 Établissements chargés:', this.etablissements.length);
+          
+          // Trouver le nom de l'établissement de l'utilisateur
+          if (this.userEtablissementId) {
+            const userEtablissement = this.etablissements.find(e => e.id === this.userEtablissementId);
+            if (userEtablissement) {
+              this.userEtablissementName = userEtablissement.name;
+              console.log('🏢 Nom établissement utilisateur:', this.userEtablissementName);
+            }
+          }
+        }
+      },
+      error: (err) => {
+        console.error('❌ Erreur lors du chargement des options de filtrage:', err);
+        this.etablissements = [];
+      }
+    });
+  }
+
+  // Charger tous les rattrapages une seule fois au démarrage
+  private loadRattrapages(): void {
     this.loading = true;
     this.error = '';
 
-    // Construire les filtres
+    // Construire les filtres pour le chargement initial (seulement établissement si fixe)
     const filters: any = {
-      sort_by: 'created_at', // Trier par date de création
-      sort_direction: 'desc' // Ordre décroissant (du plus récent au plus ancien)
+      sort_by: 'created_at',
+      sort_direction: 'desc',
+      // Charger beaucoup de données (1000 par exemple) pour avoir tout en mémoire
+      size: 1000,
+      page: 1
     };
-    if (this.searchValue.trim()) {
-      filters.search = this.searchValue.trim();
-    }
-    if (this.filterDate) {
-      filters.date = this.filterDate;
-    }
-    if (this.filterDateFrom) {
-      filters.date_from = this.filterDateFrom;
-    }
-    if (this.filterDateTo) {
-      filters.date_to = this.filterDateTo;
+    
+    // Toujours appliquer le filtre par établissement de l'utilisateur connecté
+    if (this.userEtablissementId && this.userEtablissementId > 0) {
+      filters.etablissement_id = this.userEtablissementId;
+      console.log('🔒 Filtre établissement fixé automatiquement:', this.userEtablissementId);
+    } else if (this.selectedEtablissement && this.selectedEtablissement !== '') {
+      filters.etablissement_id = this.selectedEtablissement;
     }
 
-    this.rattrapageService.getAllRattrapages(page, this.perPage, filters).subscribe({
+    this.rattrapageService.getAllRattrapages(1, 1000, filters).subscribe({
       next: (response) => {
         if (response.success) {
+          // Stocker tous les rattrapages avec leurs propriétés calculées
           this.allRattrapages = (response.data || []).map((r: any) => ({
             ...r,
             duration: this.calculateDuration(r.start_hour, r.end_hour),
@@ -80,12 +135,10 @@ export class RattrapagesDefilementComponent implements OnInit {
             salles: r.salles || []
           }));
           
-          // Appliquer le filtre de statut côté client
-          this.applyStatusFilter();
+          console.log('📚 Rattrapages chargés:', this.allRattrapages.length);
           
-          this.currentPage = response.pagination?.current_page || 1;
-          this.totalPages = response.pagination?.last_page || 1;
-          this.total = response.pagination?.total || this.allRattrapages.length;
+          // Appliquer les filtres côté client
+          this.applyAllFilters();
         } else {
           this.error = 'Erreur lors du chargement des rattrapages';
         }
@@ -99,44 +152,114 @@ export class RattrapagesDefilementComponent implements OnInit {
     });
   }
 
-  // Appliquer le filtre de statut côté client
-  private applyStatusFilter(): void {
-    if (!this.selectedStatus) {
-      this.rattrapages = [...this.allRattrapages];
-      this.total = this.allRattrapages.length;
-      // Recalculer le nombre de pages
-      this.totalPages = Math.ceil(this.total / this.perPage);
-      return;
+  // Appliquer tous les filtres côté client
+  private applyAllFilters(): void {
+    let filtered = [...this.allRattrapages];
+
+    // Filtre par recherche (nom)
+    if (this.searchValue.trim()) {
+      const searchTerm = this.searchValue.trim().toLowerCase();
+      filtered = filtered.filter(r => 
+        r.name?.toLowerCase().includes(searchTerm)
+      );
     }
 
-    this.rattrapages = this.allRattrapages.filter(r => {
-      return r.statut_temporel === this.selectedStatus;
+    // Filtre par date exacte
+    if (this.filterDate) {
+      filtered = filtered.filter(r => {
+        if (!r.date) return false;
+        const rattrapageDate = new Date(r.date).toISOString().split('T')[0];
+        return rattrapageDate === this.filterDate;
+      });
+    }
+
+    // Filtre par date de début
+    if (this.filterDateFrom) {
+      filtered = filtered.filter(r => {
+        if (!r.date) return false;
+        const rattrapageDate = new Date(r.date);
+        const fromDate = new Date(this.filterDateFrom);
+        fromDate.setHours(0, 0, 0, 0);
+        rattrapageDate.setHours(0, 0, 0, 0);
+        return rattrapageDate >= fromDate;
+      });
+    }
+
+    // Filtre par date de fin
+    if (this.filterDateTo) {
+      filtered = filtered.filter(r => {
+        if (!r.date) return false;
+        const rattrapageDate = new Date(r.date);
+        const toDate = new Date(this.filterDateTo);
+        toDate.setHours(23, 59, 59, 999);
+        rattrapageDate.setHours(0, 0, 0, 0);
+        return rattrapageDate <= toDate;
+      });
+    }
+
+    // Filtre par établissement (si l'utilisateur n'a pas d'établissement fixe)
+    if (!this.hasFixedEtablissement() && this.selectedEtablissement && this.selectedEtablissement !== '') {
+      const etablissementId = Number(this.selectedEtablissement);
+      filtered = filtered.filter(r => {
+        return r.etablissement_id === etablissementId || 
+               (r.etablissement && r.etablissement.id === etablissementId);
+      });
+    }
+
+    // Filtre par statut temporel
+    if (this.selectedStatus) {
+      filtered = filtered.filter(r => r.statut_temporel === this.selectedStatus);
+    }
+
+    // Trier par date de création (décroissant)
+    filtered.sort((a, b) => {
+      const dateA = new Date(a.created_at || 0).getTime();
+      const dateB = new Date(b.created_at || 0).getTime();
+      return dateB - dateA;
     });
+
+    // Stocker les résultats filtrés
+    this.filteredRattrapages = filtered;
     
     // Mettre à jour le total et les pages
-    this.total = this.rattrapages.length;
+    this.total = this.filteredRattrapages.length;
     this.totalPages = Math.ceil(this.total / this.perPage);
     
     // Si la page actuelle est supérieure au nombre de pages, revenir à la page 1
     if (this.currentPage > this.totalPages && this.totalPages > 0) {
       this.currentPage = 1;
     }
+
+    // Appliquer la pagination côté client
+    this.applyPagination();
   }
 
-  // Méthodes pour gérer les filtres
+  // Appliquer la pagination côté client
+  private applyPagination(): void {
+    const startIndex = (this.currentPage - 1) * this.perPage;
+    const endIndex = startIndex + this.perPage;
+    this.rattrapages = this.filteredRattrapages.slice(startIndex, endIndex);
+  }
+
+  // Méthodes pour gérer les filtres (côté client uniquement)
   onSearchChange(): void {
     this.currentPage = 1;
-    this.loadRattrapages(1);
+    this.applyAllFilters();
   }
 
   onFilterChange(): void {
+    // Si l'utilisateur a un établissement fixe, réinitialiser le filtre sélectionné
+    if (this.userEtablissementId && this.userEtablissementId > 0) {
+      this.selectedEtablissement = this.userEtablissementId;
+    }
     this.currentPage = 1;
-    this.loadRattrapages(1);
+    this.applyAllFilters();
   }
 
   onStatusFilterChange(event: any): void {
     this.selectedStatus = event.target.value;
-    this.applyStatusFilter();
+    this.currentPage = 1;
+    this.applyAllFilters();
   }
 
   clearFilters(): void {
@@ -145,8 +268,15 @@ export class RattrapagesDefilementComponent implements OnInit {
     this.filterDateFrom = '';
     this.filterDateTo = '';
     this.selectedStatus = '';
+    // Ne pas réinitialiser selectedEtablissement si l'utilisateur a un établissement fixe
+    if (!this.userEtablissementId || this.userEtablissementId === 0) {
+      this.selectedEtablissement = '';
+    } else {
+      // Réinitialiser à l'établissement de l'utilisateur
+      this.selectedEtablissement = this.userEtablissementId;
+    }
     this.currentPage = 1;
-    this.loadRattrapages(1);
+    this.applyAllFilters();
   }
 
   calculateDuration(start: string, end: string): string {
@@ -182,10 +312,11 @@ export class RattrapagesDefilementComponent implements OnInit {
     }
   }
 
-  // Pagination
+  // Pagination côté client
   goToPage(page: number): void {
     if (page < 1 || page > this.totalPages || page === this.currentPage) return;
-    this.loadRattrapages(page);
+    this.currentPage = page;
+    this.applyPagination();
   }
 
   prevPage(): void {
@@ -214,6 +345,11 @@ export class RattrapagesDefilementComponent implements OnInit {
     if (!userRole) return false;
     const normalized = userRole.toLowerCase().replace(/[\s-]/g, '');
     return normalized === 'defilement' || normalized === 'défilement';
+  }
+
+  // Vérifier si l'utilisateur a un établissement fixe
+  hasFixedEtablissement(): boolean {
+    return this.userEtablissementId !== null && this.userEtablissementId > 0;
   }
 
   // Calculer le statut temporel
@@ -279,7 +415,7 @@ export class RattrapagesDefilementComponent implements OnInit {
     if (newPerPage !== this.perPage) {
       this.perPage = newPerPage;
       this.currentPage = 1;
-      this.loadRattrapages(1);
+      this.applyAllFilters();
     }
   }
 

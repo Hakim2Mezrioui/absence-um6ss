@@ -134,6 +134,7 @@ export class RattrapageService {
       if (filters.pointage_start_hour) params.pointage_start_hour = filters.pointage_start_hour;
       if (filters.start_hour) params.start_hour = filters.start_hour;
       if (filters.end_hour) params.end_hour = filters.end_hour;
+      if (filters.etablissement_id) params.etablissement_id = filters.etablissement_id;
       if (filters.sort_by) params.sort_by = filters.sort_by;
       if (filters.sort_direction) params.sort_direction = filters.sort_direction;
     }

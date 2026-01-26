@@ -124,6 +124,11 @@ class RattrapageService extends BaseService
             $query->whereTime('end_hour', '<=', $filters['end_hour']);
         }
 
+        // Filtre par établissement
+        if (!empty($filters['etablissement_id'])) {
+            $query->where('etablissement_id', $filters['etablissement_id']);
+        }
+
         // Tri
         $sortBy = $filters['sort_by'] ?? 'date';
         $sortDirection = $filters['sort_direction'] ?? 'desc';

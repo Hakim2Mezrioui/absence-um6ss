@@ -34,6 +34,7 @@ class RattrapageController extends Controller
             'pointage_start_hour' => $request->get('pointage_start_hour', ''),
             'start_hour' => $request->get('start_hour', ''),
             'end_hour' => $request->get('end_hour', ''),
+            'etablissement_id' => $request->get('etablissement_id', ''),
             'sort_by' => $request->get('sort_by', 'date'),
             'sort_direction' => $request->get('sort_direction', 'desc')
         ];
