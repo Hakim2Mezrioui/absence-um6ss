@@ -151,6 +151,9 @@ class RattrapageService extends BaseService
             $query->orderBy($sortBy, $sortDirection);
         }
 
+        // Charger les relations nécessaires
+        $query->with(['salles', 'ville', 'etablissement']);
+
         return $query->paginate($size, ['*'], 'page', $page);
     }
 

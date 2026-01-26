@@ -13,6 +13,7 @@ interface RattrapageWithDuration extends Rattrapage {
   etablissement_id?: number;
   ville?: { id: number; name: string };
   ville_id?: number;
+  salle_id?: number;
 }
 
 @Component({
@@ -64,6 +65,10 @@ export class RattrapagesDefilementComponent implements OnInit {
     if (this.userEtablissementId && this.userEtablissementId > 0) {
       this.selectedEtablissement = this.userEtablissementId;
     }
+    
+    // Initialiser le filtre de date avec la date d'aujourd'hui
+    this.filterDate = this.getTodayDateString();
+    console.log('📅 Date d\'aujourd\'hui initialisée:', this.filterDate);
     
     // Charger les options de filtrage seulement si l'utilisateur n'a pas d'établissement fixe
     // (pour permettre la sélection manuelle)
@@ -128,12 +133,26 @@ export class RattrapagesDefilementComponent implements OnInit {
       next: (response) => {
         if (response.success) {
           // Stocker tous les rattrapages avec leurs propriétés calculées
-          this.allRattrapages = (response.data || []).map((r: any) => ({
-            ...r,
-            duration: this.calculateDuration(r.start_hour, r.end_hour),
-            statut_temporel: this.calculateStatutTemporel(r.date, r.start_hour, r.end_hour),
-            salles: r.salles || []
-          }));
+          this.allRattrapages = (response.data || []).map((r: any) => {
+            // S'assurer que les salles sont bien formatées
+            const salles = Array.isArray(r.salles) ? r.salles : [];
+            
+            // Log pour déboguer
+            if (salles.length > 0) {
+              console.log('🏢 Rattrapage:', r.name, '- Salles:', salles.map((s: any) => s.name || 'N/A'));
+            } else if (r.salle_id) {
+              console.log('⚠️ Rattrapage:', r.name, '- Aucune salle dans salles[], mais salle_id existe:', r.salle_id);
+            }
+            
+            return {
+              ...r,
+              duration: this.calculateDuration(r.start_hour, r.end_hour),
+              statut_temporel: this.calculateStatutTemporel(r.date, r.start_hour, r.end_hour),
+              salles: salles,
+              etablissement: r.etablissement || null,
+              ville: r.ville || null
+            };
+          });
           
           console.log('📚 Rattrapages chargés:', this.allRattrapages.length);
           
@@ -264,7 +283,8 @@ export class RattrapagesDefilementComponent implements OnInit {
 
   clearFilters(): void {
     this.searchValue = '';
-    this.filterDate = '';
+    // Réinitialiser la date à aujourd'hui au lieu de la vider
+    this.filterDate = this.getTodayDateString();
     this.filterDateFrom = '';
     this.filterDateTo = '';
     this.selectedStatus = '';
@@ -352,6 +372,12 @@ export class RattrapagesDefilementComponent implements OnInit {
     return this.userEtablissementId !== null && this.userEtablissementId > 0;
   }
 
+  // Obtenir la date d'aujourd'hui au format YYYY-MM-DD
+  private getTodayDateString(): string {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  }
+
   // Calculer le statut temporel
   calculateStatutTemporel(date: string, startHour: string, endHour: string): 'passé' | 'en_cours' | 'futur' {
     if (!date || !startHour || !endHour) return 'futur';
@@ -391,7 +417,20 @@ export class RattrapagesDefilementComponent implements OnInit {
 
   // Obtenir les salles
   getSalles(rattrapage: RattrapageWithDuration): Array<{ id: number; name: string }> {
-    return rattrapage.salles || [];
+    if (!rattrapage) return [];
+    
+    // Si salles est un tableau, le retourner tel quel
+    if (Array.isArray(rattrapage.salles)) {
+      return rattrapage.salles.filter((s: any) => s && (s.name || s.id));
+    }
+    
+    // Si salles n'existe pas mais qu'il y a une salle unique (ancien format)
+    if (rattrapage.salle_id && !rattrapage.salles) {
+      // Retourner un tableau avec la salle unique si disponible
+      return [];
+    }
+    
+    return [];
   }
 
   // Obtenir le texte du statut
