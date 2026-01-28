@@ -1054,8 +1054,10 @@ export class AttendanceComponent implements OnInit, OnDestroy {
 
   /**
    * Calcule le statut de l'étudiant basé sur l'heure de pointage et la tolérance
-   * RÈGLE IMPORTANTE: Si un étudiant a pointé (face ID), il ne peut PAS être "absent"
-   * Il sera soit "présent" soit "en retard" selon l'heure
+   * RÈGLES:
+   * - Présent : entre examPunchStartTime (pointage_start_hour) et examStartTime (start_hour)
+   * - En retard : entre examStartTime (start_hour) et examStartTime + tolerance
+   * - Absent : avant examPunchStartTime ou après examStartTime + tolerance
    */
   calculateStudentStatus(punchTime: Date): string {
     if (!this.examDate || !this.examStartTime) {
@@ -1105,26 +1107,28 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     console.log('   ⏰ Début examen:', examStartDateTime.toLocaleString());
     console.log('   ⏱️ Limite tolérance:', toleranceDateTime.toLocaleString());
 
-    // LOGIQUE CORRIGÉE: Si l'étudiant a pointé, il ne peut pas être "absent"
-    // Il est soit "présent" (avant le début de l'examen) soit "en retard" (après le début de l'examen)
+    // NOUVELLE LOGIQUE:
+    // Si pas d'heure de pointage définie, utiliser l'heure de début comme référence
+    const pointageStartRef = examPunchStartDateTime || examStartDateTime;
     
-    if (examPunchStartDateTime && punchTime >= examPunchStartDateTime && punchTime < examStartDateTime) {
-      // Pointage entre l'heure de début de pointage et l'heure de début de l'examen
-      console.log('✅ Présent (pointage avant début de l\'examen)');
+    // 1. Présent : entre pointage_start_hour et start_hour
+    if (punchTime >= pointageStartRef && punchTime < examStartDateTime) {
+      console.log('✅ Présent (pointage entre début pointage et début examen)');
       return 'présent';
-    } else if (punchTime >= examStartDateTime) {
-      // Pointage après le début de l'examen = toujours en retard (peu importe la tolérance)
-      // La tolérance peut être utilisée pour des rapports, mais le statut reste "en retard"
-      if (punchTime <= toleranceDateTime) {
-        console.log('⏰ En retard (dans la période de tolérance)');
-      } else {
-        console.log('⏰ En retard (au-delà de la tolérance)');
-      }
+    } 
+    // 2. En retard : entre start_hour et start_hour + tolerance
+    else if (punchTime >= examStartDateTime && punchTime <= toleranceDateTime) {
+      console.log('⏰ En retard (dans la période de tolérance)');
       return 'en retard';
-    } else {
-      // Pointage avant l'heure de début de pointage = considéré comme présent
-      console.log('✅ Présent (pointage anticipé)');
-      return 'présent';
+    } 
+    // 3. Absent : avant pointage_start_hour ou après start_hour + tolerance
+    else {
+      if (punchTime < pointageStartRef) {
+        console.log('❌ Absent (pointage trop tôt)');
+      } else {
+        console.log('❌ Absent (pointage au-delà de la tolérance)');
+      }
+      return 'absent';
     }
   }
 

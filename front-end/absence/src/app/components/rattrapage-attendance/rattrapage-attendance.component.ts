@@ -340,12 +340,32 @@ export class RattrapageAttendanceComponent implements OnInit, OnDestroy {
 
     console.log('🔄 Chargement des données de pointage depuis Biostar pour le rattrapage:', this.rattrapageId, 'Ville ID:', villeId);
     
+    // Calculer l'heure de fin basée sur start_hour + tolerance (cohérent avec la nouvelle logique)
+    const tolerance = this.rattrapage.tolerance || 5;
+    const rattrapageDate = new Date(this.rattrapage.date);
+    const startTime = this.parseTimeString(this.rattrapage.start_hour);
+    const startDateTime = new Date(rattrapageDate);
+    startDateTime.setHours(startTime.getHours(), startTime.getMinutes(), startTime.getSeconds(), 0);
+    
+    const toleranceDateTime = new Date(startDateTime);
+    toleranceDateTime.setMinutes(toleranceDateTime.getMinutes() + tolerance);
+    
+    // Formater l'heure de fin au format HH:MM:SS
+    const endTimeFormatted = `${String(toleranceDateTime.getHours()).padStart(2, '0')}:${String(toleranceDateTime.getMinutes()).padStart(2, '0')}:${String(toleranceDateTime.getSeconds()).padStart(2, '0')}`;
+    
+    console.log('📅 Paramètres de plage horaire:', {
+      date: this.rattrapage.date,
+      start_time: this.rattrapage.pointage_start_hour,
+      end_time: endTimeFormatted, // Utiliser start_hour + tolerance au lieu de end_hour
+      end_time_old: this.rattrapage.end_hour // Ancienne valeur pour référence
+    });
+    
     this.biostarAttendanceService.getAttendanceFromBiostarByVille(
       villeId,
       {
         date: this.rattrapage.date,
         start_time: this.rattrapage.pointage_start_hour,
-        end_time: this.rattrapage.end_hour
+        end_time: endTimeFormatted // Utiliser start_hour + tolerance
       }
     ).pipe(takeUntil(this.destroy$))
     .subscribe({
@@ -525,6 +545,10 @@ export class RattrapageAttendanceComponent implements OnInit, OnDestroy {
 
   /**
    * Calcule le statut de l'étudiant basé sur l'heure de pointage et la tolérance
+   * RÈGLES:
+   * - Présent : entre pointage_start_hour et start_hour
+   * - En retard : entre start_hour et start_hour + tolerance
+   * - Absent : avant pointage_start_hour ou après start_hour + tolerance
    */
   calculateStudentStatus(punchTime: Date): 'present' | 'absent' | 'late' | 'excused' {
     if (!this.rattrapage) {
@@ -555,16 +579,18 @@ export class RattrapageAttendanceComponent implements OnInit, OnDestroy {
     const toleranceDateTime = new Date(startDateTime);
     toleranceDateTime.setMinutes(toleranceDateTime.getMinutes() + tolerance);
 
-    // LOGIQUE: Si l'étudiant a pointé, il ne peut pas être "absent"
+    // NOUVELLE LOGIQUE:
+    // 1. Présent : entre pointage_start_hour et start_hour
     if (punchTime >= pointageStartDateTime && punchTime < startDateTime) {
-      // Pointage entre l'heure de début de pointage et l'heure de début du rattrapage
       return 'present';
-    } else if (punchTime >= startDateTime) {
-      // Pointage après le début du rattrapage = toujours en retard
+    } 
+    // 2. En retard : entre start_hour et start_hour + tolerance
+    else if (punchTime >= startDateTime && punchTime <= toleranceDateTime) {
       return 'late';
-    } else {
-      // Pointage avant l'heure de début de pointage = considéré comme présent
-      return 'present';
+    } 
+    // 3. Absent : avant pointage_start_hour ou après start_hour + tolerance
+    else {
+      return 'absent';
     }
   }
 

@@ -240,12 +240,26 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
       sallesIds.push(this.coursData.cours.salle_id);
     }
     
+    // Calculer l'heure de fin basée sur heure_debut + tolerance (cohérent avec la nouvelle logique)
+    const toleranceMinutes = this.parseToleranceToMinutes(this.coursData.cours.tolerance || '15');
+    const heureDebut = this.parseTimeStringSimple(this.coursData.cours.heure_debut);
+    const coursDate = new Date(this.coursData.cours.date);
+    const heureDebutDateTime = new Date(coursDate);
+    heureDebutDateTime.setHours(heureDebut.getHours(), heureDebut.getMinutes(), heureDebut.getSeconds(), 0);
+    
+    const toleranceDateTime = new Date(heureDebutDateTime);
+    toleranceDateTime.setMinutes(toleranceDateTime.getMinutes() + toleranceMinutes);
+    
+    // Formater l'heure de fin au format HH:MM:SS
+    const endTimeFormatted = `${String(toleranceDateTime.getHours()).padStart(2, '0')}:${String(toleranceDateTime.getMinutes()).padStart(2, '0')}:${String(toleranceDateTime.getSeconds()).padStart(2, '0')}`;
+    
     console.log('🏢 IDs des salles pour filtrer les devices:', sallesIds);
     console.log('📅 Paramètres envoyés à syncCoursAttendanceWithBiostar:', {
       coursId: this.coursId,
       date: this.coursData.cours.date,
       startTime: this.coursData.cours.pointage_start_hour,
-      endTime: this.coursData.cours.heure_fin,
+      endTime: endTimeFormatted, // Utiliser heure_debut + tolerance au lieu de heure_fin
+      endTimeOld: this.coursData.cours.heure_fin, // Ancienne valeur pour référence
       sallesIds: sallesIds,
       salles: this.coursData.cours.salles,
       salle: this.coursData.cours.salle
@@ -255,7 +269,7 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
       this.coursId,
       this.coursData.cours.date,
       this.coursData.cours.pointage_start_hour,
-      this.coursData.cours.heure_fin
+      endTimeFormatted // Utiliser heure_debut + tolerance
     ).pipe(takeUntil(this.destroy$))
     .subscribe({
       next: (response) => {
@@ -848,8 +862,10 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
 
   /**
    * Calcule le statut de l'étudiant basé sur l'heure de pointage et la tolérance
-   * RÈGLE IMPORTANTE: Si un étudiant a pointé (face ID), il ne peut PAS être "absent"
-   * Il sera soit "present" soit "late" selon l'heure
+   * RÈGLES:
+   * - Présent : entre pointage_start_hour et heure_debut
+   * - En retard : entre heure_debut et heure_debut + tolerance
+   * - Absent : avant pointage_start_hour ou après heure_debut + tolerance
    */
   private calculateStudentStatus(punchTime: Date): string {
     if (!this.coursData?.cours) {
@@ -903,26 +919,28 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     console.log('   ⏰ Début cours:', coursStartDateTime.toLocaleString());
     console.log('   ⏱️ Limite tolérance:', toleranceDateTime.toLocaleString());
 
-    // LOGIQUE CORRIGÉE: Si l'étudiant a pointé, il ne peut pas être "absent"
-    // Il est soit "present" (avant le début du cours) soit "late" (après le début du cours)
+    // NOUVELLE LOGIQUE:
+    // Si pas d'heure de pointage définie, utiliser l'heure de début comme référence
+    const pointageStartRef = coursPunchStartDateTime || coursStartDateTime;
     
-    if (coursPunchStartDateTime && punchTime >= coursPunchStartDateTime && punchTime < coursStartDateTime) {
-      // Pointage entre l'heure de début de pointage et l'heure de début du cours
-      console.log('✅ Présent (pointage avant début du cours)');
+    // 1. Présent : entre pointage_start_hour et heure_debut
+    if (punchTime >= pointageStartRef && punchTime < coursStartDateTime) {
+      console.log('✅ Présent (pointage entre début pointage et début cours)');
       return 'present';
-    } else if (punchTime >= coursStartDateTime) {
-      // Pointage après le début du cours = toujours en retard (peu importe la tolérance)
-      // La tolérance peut être utilisée pour des rapports, mais le statut reste "late"
-      if (punchTime <= toleranceDateTime) {
-        console.log('⏰ En retard (dans la période de tolérance)');
-      } else {
-        console.log('⏰ En retard (au-delà de la tolérance)');
-      }
+    } 
+    // 2. En retard : entre heure_debut et heure_debut + tolerance
+    else if (punchTime >= coursStartDateTime && punchTime <= toleranceDateTime) {
+      console.log('⏰ En retard (dans la période de tolérance)');
       return 'late';
-    } else {
-      // Pointage avant l'heure de début de pointage = considéré comme présent
-      console.log('✅ Présent (pointage anticipé)');
-      return 'present';
+    } 
+    // 3. Absent : avant pointage_start_hour ou après heure_debut + tolerance
+    else {
+      if (punchTime < pointageStartRef) {
+        console.log('❌ Absent (pointage trop tôt)');
+      } else {
+        console.log('❌ Absent (pointage au-delà de la tolérance)');
+      }
+      return 'absent';
     }
   }
 
