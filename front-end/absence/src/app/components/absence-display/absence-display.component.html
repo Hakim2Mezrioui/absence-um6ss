@@ -156,14 +156,14 @@
     </div>
 
     <!-- Message aucun absent élégant -->
-    <div *ngIf="!loading && !error && segments.length === 0" class="no-absents-elegant">
+    <div *ngIf="!loading && !error && segments.length === 0 && successMessage" class="no-absents-elegant">
       <div class="success-animation">
         <div class="success-circle">
           <span class="material-icons success-icon">check_circle</span>
         </div>
       </div>
-      <h2 class="success-title">Excellente nouvelle !</h2>
-      <p class="success-text">Tous les étudiants sont présents</p>
+      <h2 class="success-title">{{ successMessage }}</h2>
+      <p class="success-text">Félicitations !</p>
     </div>
 
     <!-- Boutons de navigation -->

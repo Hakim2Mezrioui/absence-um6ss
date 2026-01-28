@@ -92,6 +92,7 @@ export class RattrapageDisplayComponent implements OnInit, AfterViewInit, OnDest
   currentSegment: Segment | null = null;
   loading = true;
   error = '';
+  successMessage = ''; // Message positif quand tous les étudiants sont présents
   
   // Configuration du défilement
   segmentDisplayDuration = 15000; // 15 secondes par page de 20 étudiants
@@ -541,10 +542,12 @@ export class RattrapageDisplayComponent implements OnInit, AfterViewInit, OnDest
     );
     
     if (validStudents.length === 0) {
-      console.log('✅ Aucun étudiant à afficher');
+      console.log('✅ Tous les étudiants sont présents !');
       this.segments = [];
       this.currentSegment = null;
-      this.error = 'Aucun étudiant absent pour ce rattrapage';
+      this.error = '';
+    this.successMessage = ''; // Réinitialiser le message de succès // Pas d'erreur
+      this.successMessage = 'Excellent ! Tous les étudiants sont présents';
       this.loading = false;
       return;
     }
@@ -565,6 +568,7 @@ export class RattrapageDisplayComponent implements OnInit, AfterViewInit, OnDest
       this.segments = newSegments;
       this.currentSegmentIndex = 0;
       this.currentSegment = this.segments[0];
+      this.successMessage = ''; // Réinitialiser le message de succès s'il y a des absents
       this.loading = false; // ← C'est ici qu'on arrête le loading et qu'on affiche
       
       // Initialiser la liste précédente pour le premier chargement
@@ -575,10 +579,12 @@ export class RattrapageDisplayComponent implements OnInit, AfterViewInit, OnDest
         this.startDisplayLoop();
       }, 200);
     } else {
-      console.log('✅ Aucun segment à afficher');
+      console.log('✅ Tous les étudiants sont présents !');
       this.segments = [];
       this.currentSegment = null;
-      this.error = 'Aucun étudiant absent pour ce rattrapage';
+      this.error = '';
+    this.successMessage = ''; // Réinitialiser le message de succès // Pas d'erreur
+      this.successMessage = 'Excellent ! Tous les étudiants sont présents';
       this.loading = false;
     }
   }
@@ -604,6 +610,7 @@ export class RattrapageDisplayComponent implements OnInit, AfterViewInit, OnDest
       this.loading = true;
     }
     this.error = '';
+    this.successMessage = ''; // Réinitialiser le message de succès
     
     // Récupérer les données d'attendance
     this.http.get<AttendanceResponse>(`${environment.apiUrl}/rattrapages/${this.rattrapageId}/attendance`)

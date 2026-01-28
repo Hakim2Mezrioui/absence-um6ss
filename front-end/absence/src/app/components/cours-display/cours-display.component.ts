@@ -28,6 +28,7 @@ export class CoursDisplayComponent implements OnInit, AfterViewInit, OnDestroy {
   currentSegment: Segment | null = null;
   loading = true;
   error = '';
+  successMessage = ''; // Message positif quand tous les étudiants sont présents
   
   // Configuration du défilement
   segmentDisplayDuration = 15000; // 15 secondes par page
@@ -250,10 +251,12 @@ export class CoursDisplayComponent implements OnInit, AfterViewInit, OnDestroy {
               this.previousAbsentStudents = [...absentStudents];
             }
           } else {
+            // Plus d'étudiants absents - tous sont présents !
             this.segments = [];
             this.currentSegment = null;
             if (!isRefresh) {
-              this.error = 'Aucun étudiant absent pour ce cours';
+              this.error = ''; // Pas d'erreur
+              this.successMessage = 'Excellent ! Tous les étudiants sont présents';
               this.loading = false;
             } else {
               this.cdr.detectChanges();

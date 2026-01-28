@@ -30,6 +30,7 @@ export class AbsenceDisplayComponent implements OnInit, AfterViewInit, OnDestroy
   currentSegment: Segment | null = null;
   loading = true;
   error = '';
+  successMessage = ''; // Message positif quand tous les étudiants sont présents
   
   // Configuration du défilement
   segmentDisplayDuration = 15000; // 15 secondes par page de 20 étudiants
@@ -282,11 +283,12 @@ export class AbsenceDisplayComponent implements OnInit, AfterViewInit, OnDestroy
               this.previousAbsentStudents = [...this.allStudents];
             }
           } else {
-            // Plus d'étudiants absents
+            // Plus d'étudiants absents - tous sont présents !
             this.segments = [];
             this.currentSegment = null;
             if (!isRefresh) {
-              this.error = 'Aucun étudiant absent pour cet examen';
+              this.error = ''; // Pas d'erreur
+              this.successMessage = 'Excellent ! Tous les étudiants sont présents';
               this.loading = false;
             } else {
               // Forcer la détection de changement lors du rafraîchissement
