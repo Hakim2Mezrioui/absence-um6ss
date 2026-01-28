@@ -177,6 +177,8 @@ export class RattrapageComponent implements OnInit, OnDestroy {
   
   // Forms
   rattrapageForm: FormGroup;
+  isEditMode: boolean = false;
+  editingRattrapage: RattrapageWithDuration | null = null;
   
   // Search debounce
   private searchSubject = new Subject<string>();
@@ -643,6 +645,10 @@ export class RattrapageComponent implements OnInit, OnDestroy {
   }
   
   openCreateModal() {
+    // Mode création
+    this.isEditMode = false;
+    this.editingRattrapage = null;
+    
     if (this.selectedEtudiants.length === 0) {
       alert('Veuillez sélectionner au moins un étudiant');
       return;
@@ -670,12 +676,74 @@ export class RattrapageComponent implements OnInit, OnDestroy {
     
     this.markForCheck();
   }
+
+  /**
+   * Ouvrir le modal en mode édition pour un rattrapage existant
+   */
+  openEditRattrapageModal(rattrapage: RattrapageWithDuration) {
+    if (!rattrapage.id) {
+      console.warn('ID de rattrapage manquant pour l\'édition');
+      return;
+    }
+
+    this.isEditMode = true;
+    this.editingRattrapage = rattrapage;
+
+    // Ouvrir le modal
+    this.showCreateModal = true;
+
+    // Ne pas charger le cache de création, on part des données du rattrapage
+    this.rattrapageForm.reset();
+
+    // Pré-remplir le formulaire avec les données existantes
+    const sallesFromRelation = Array.isArray((rattrapage as any).salles)
+      ? (rattrapage as any).salles.map((s: any) => s.id).filter((id: any) => !!id)
+      : [];
+
+    const existingSalleId = (rattrapage as any).salle_id ?? null;
+
+    // Si plusieurs salles sont liées au rattrapage, les utiliser,
+    // sinon tomber en retour sur la colonne salle_id (première salle)
+    const initialSalleIds =
+      sallesFromRelation.length > 0
+        ? sallesFromRelation
+        : existingSalleId
+        ? [existingSalleId]
+        : [];
+
+    this.rattrapageForm.patchValue({
+      name: rattrapage.name,
+      date: rattrapage.date,
+      pointage_start_hour: rattrapage.pointage_start_hour,
+      start_hour: rattrapage.start_hour,
+      end_hour: rattrapage.end_hour,
+      tolerance: rattrapage.tolerance ?? 5,
+      etablissement_id: (rattrapage as any).etablissement_id ?? null,
+      ville_id: (rattrapage as any).ville_id ?? null,
+      // Important: pré-remplir les salles pour que le formulaire soit valide
+      salle_ids: initialSalleIds
+    });
+
+    // Réinitialiser la recherche de salles
+    this.salleSearchTerm = '';
+
+    // Si la ville est connue, mettre à jour le filtre et les salles
+    this.selectedVilleForRattrapage = (rattrapage as any).ville_id ?? null;
+    this.filterSalles();
+
+    // Marquer le formulaire comme "touché" pour que les validators se recalculent
+    this.rattrapageForm.markAllAsTouched();
+
+    this.markForCheck();
+  }
   
   closeCreateModal() {
     // Sauvegarder les données dans le cache avant de fermer
     this.saveFormToCache();
     
     this.showCreateModal = false;
+    this.isEditMode = false;
+    this.editingRattrapage = null;
     // Ne pas réinitialiser le formulaire, on garde les données en cache
     // this.rattrapageForm.reset();
     // this.selectedVilleForRattrapage = null;
@@ -1232,6 +1300,16 @@ export class RattrapageComponent implements OnInit, OnDestroy {
     this.rattrapagesCurrentPage = 1; // Reset to first page when applying filters
     await this.loadRattrapages(1);
   }
+
+  /**
+   * Vérifie si l'utilisateur connecté est un compte Défilement
+   * (utilisé pour limiter certaines actions comme la suppression)
+   */
+  public isDefilementRole(): boolean {
+    const userRole = this.authService.getUserRoleName();
+    const normalizedRole = userRole ? userRole.toLowerCase().replace(/[\s-]/g, '') : '';
+    return normalizedRole === 'defilement' || normalizedRole === 'défilement';
+  }
   
   onRattrapagesFilterChange() {
     // Ne fait rien automatiquement, l'utilisateur doit cliquer sur "Rechercher"
@@ -1283,6 +1361,167 @@ export class RattrapageComponent implements OnInit, OnDestroy {
     this.rattrapagesSortBy = 'date';
     this.rattrapagesSortDirection = 'desc';
     this.applyRattrapagesFilters();
+  }
+
+  /**
+   * Supprimer un rattrapage (réservé aux rôles autorisés, pas au rôle défilement)
+   */
+  deleteRattrapage(rattrapage: RattrapageWithDuration): void {
+    // Empêcher la suppression pour les comptes de défilement
+    if (this.isDefilementRole()) {
+      console.warn('Les comptes de défilement ne peuvent pas supprimer des rattrapages');
+      return;
+    }
+
+    if (!rattrapage.id) {
+      console.warn('ID de rattrapage manquant, suppression impossible');
+      return;
+    }
+
+    // Import dynamique pour éviter les problèmes SSR
+    import('sweetalert2').then(({ default: Swal }) => {
+      Swal.fire({
+        title: 'Supprimer ce rattrapage ?',
+        text: `"${rattrapage.name}" sera définitivement supprimé (et ses affectations associées).`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Oui, supprimer',
+        cancelButtonText: 'Annuler',
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6b7280',
+        reverseButtons: true
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          try {
+            const response = await firstValueFrom(
+              this.rattrapageService.deleteRattrapage(rattrapage.id!)
+            );
+
+            if (response?.success !== false) {
+              Swal.fire({
+                title: 'Supprimé',
+                text: 'Rattrapage supprimé avec succès',
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false
+              });
+              // Recharger la liste des rattrapages sur la page courante
+              await this.loadRattrapages(this.rattrapagesCurrentPage);
+            } else {
+              Swal.fire({
+                title: 'Erreur',
+                text: response?.message || 'Erreur lors de la suppression du rattrapage',
+                icon: 'error'
+              });
+            }
+          } catch (error) {
+            console.error('Erreur lors de la suppression du rattrapage:', error);
+            Swal.fire({
+              title: 'Erreur',
+              text: 'Une erreur est survenue lors de la suppression du rattrapage',
+              icon: 'error'
+            });
+          }
+        }
+      });
+    });
+  }
+
+  /**
+   * Point d'entrée unique pour création / mise à jour
+   */
+  async saveRattrapage() {
+    if (this.isEditMode && this.editingRattrapage?.id) {
+      await this.updateRattrapage();
+    } else {
+      await this.createRattrapage();
+    }
+  }
+
+  /**
+   * Mettre à jour un rattrapage existant (sans toucher aux étudiants)
+   */
+  private async updateRattrapage() {
+    if (!this.editingRattrapage?.id) {
+      console.warn('Aucun rattrapage en édition');
+      return;
+    }
+
+    if (this.rattrapageForm.invalid) {
+      this.markFormGroupTouched(this.rattrapageForm);
+      return;
+    }
+
+    // Validate hours
+    const pointageStartHour = this.rattrapageForm.value.pointage_start_hour;
+    const startHour = this.rattrapageForm.value.start_hour;
+    const endHour = this.rattrapageForm.value.end_hour;
+    const date = this.rattrapageForm.value.date;
+
+    if (pointageStartHour >= startHour) {
+      alert('L\'heure de pointage doit être antérieure à l\'heure de début');
+      return;
+    }
+
+    if (startHour >= endHour) {
+      alert('L\'heure de fin doit être supérieure à l\'heure de début');
+      return;
+    }
+
+    // Validate date is not in the past
+    const selectedDate = new Date(date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (selectedDate < today) {
+      alert('La date ne peut pas être dans le passé');
+      return;
+    }
+
+    try {
+      this.loading = true;
+
+      const rattrapageData: any = { ...this.rattrapageForm.value };
+
+      // Gestion des salles comme pour la création
+      if (rattrapageData.salle_ids && Array.isArray(rattrapageData.salle_ids) && rattrapageData.salle_ids.length > 0) {
+        rattrapageData.salles_ids = rattrapageData.salle_ids;
+        rattrapageData.salle_id = rattrapageData.salle_ids[0];
+      } else {
+        throw new Error('Au moins une salle doit être sélectionnée');
+      }
+
+      delete rattrapageData.salle_ids;
+
+      const response = await firstValueFrom(
+        this.rattrapageService.updateRattrapage(this.editingRattrapage.id!, rattrapageData)
+      );
+
+      if (!response?.success) {
+        throw new Error(response?.message || 'Erreur lors de la mise à jour du rattrapage');
+      }
+
+      this.notificationService.success(
+        'Rattrapage mis à jour avec succès!',
+        `Le rattrapage "${rattrapageData.name}" a été modifié.`
+      );
+
+      // Fermer le modal et réinitialiser l'état d'édition
+      this.showCreateModal = false;
+      this.isEditMode = false;
+      this.editingRattrapage = null;
+
+      // Recharger la liste des rattrapages
+      await this.loadRattrapages(this.rattrapagesCurrentPage);
+    } catch (error: any) {
+      console.error('Erreur lors de la mise à jour du rattrapage:', error);
+      this.notificationService.error(
+        'Erreur lors de la mise à jour du rattrapage',
+        error.message || 'Une erreur inattendue s\'est produite.'
+      );
+    } finally {
+      this.loading = false;
+    }
   }
   
   public calculateDuration(startHour: string, endHour: string): string {

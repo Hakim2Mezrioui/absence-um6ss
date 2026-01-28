@@ -5,6 +5,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { RattrapageService, Etudiant, Rattrapage } from '../../services/rattrapage.service';
 import { NotificationService } from '../../services/notification.service';
 import { Subject } from 'rxjs';
+import { AuthService } from '../../services/auth.service';
+import { firstValueFrom } from 'rxjs';
 
 interface ListStudentResponse {
   id: number;
@@ -26,6 +28,7 @@ export class RattrapageStudentsComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private notificationService = inject(NotificationService);
+  public authService = inject(AuthService);
 
   // Data
   rattrapage: Rattrapage | null = null;
@@ -39,10 +42,12 @@ export class RattrapageStudentsComponent implements OnInit, OnDestroy {
   
   // Search
   searchTerm = '';
+  addMatricule = '';
   
   // UI State
   loading = false;
   searchLoading = false;
+  adding = false;
   
   // View modes
   viewMode: 'cards' | 'list' = 'cards';
@@ -134,6 +139,86 @@ export class RattrapageStudentsComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Ajouter un étudiant au rattrapage par matricule
+   * (réservé aux rôles autorisés à éditer)
+   */
+  async addStudentByMatricule() {
+    if (!this.rattrapage?.id) {
+      this.notificationService.error('Erreur', 'Rattrapage introuvable');
+      return;
+    }
+
+    const matricule = (this.addMatricule || '').trim();
+    if (!matricule) {
+      return;
+    }
+
+    if (!this.authService.canEdit()) {
+      this.notificationService.warning(
+        'Action non autorisée',
+        'Votre rôle ne permet pas d\'ajouter des étudiants à un rattrapage.'
+      );
+      return;
+    }
+
+    try {
+      this.adding = true;
+
+      // Rechercher l'étudiant par matricule via l'API des étudiants
+      const filters: any = { searchValue: matricule };
+      const etudiantsResponse = await firstValueFrom(
+        this.rattrapageService.getEtudiants(1, 1, filters)
+      );
+
+      const etudiants = etudiantsResponse?.data || [];
+      if (!etudiants.length) {
+        this.notificationService.warning(
+          'Aucun étudiant trouvé',
+          `Aucun étudiant avec le matricule "${matricule}" n'a été trouvé.`
+        );
+        return;
+      }
+
+      const etudiant = etudiants[0];
+
+      // Vérifier si l'étudiant est déjà dans la liste locale
+      if (this.students.some(s => s.id === etudiant.id)) {
+        this.notificationService.info(
+          'Déjà affecté',
+          `Cet étudiant est déjà affecté à ce rattrapage.`
+        );
+        return;
+      }
+
+      // Assigner l'étudiant au rattrapage
+      const assignResponse = await firstValueFrom(
+        this.rattrapageService.assignStudentToRattrapage(etudiant.id, this.rattrapage.id)
+      );
+
+      if (!assignResponse?.success) {
+        throw new Error(assignResponse?.message || 'Erreur lors de l\'affectation de l\'étudiant');
+      }
+
+      this.notificationService.success(
+        'Étudiant ajouté',
+        `L'étudiant ${etudiant.first_name} ${etudiant.last_name} a été ajouté au rattrapage.`
+      );
+
+      // Réinitialiser le champ et recharger la liste
+      this.addMatricule = '';
+      await this.loadStudents(this.rattrapage.id, this.currentPage);
+    } catch (error: any) {
+      console.error('Erreur lors de l\'ajout de l\'étudiant au rattrapage:', error);
+      this.notificationService.error(
+        'Erreur',
+        error.message || 'Impossible d\'ajouter l\'étudiant à ce rattrapage.'
+      );
+    } finally {
+      this.adding = false;
+    }
+  }
+
   async goToPage(page: number) {
     if (page >= 1 && page <= this.totalPages && this.rattrapage?.id) {
       await this.loadStudents(this.rattrapage.id, page);
@@ -168,8 +253,72 @@ export class RattrapageStudentsComponent implements OnInit, OnDestroy {
     this.viewMode = this.viewMode === 'cards' ? 'list' : 'cards';
   }
 
+  /**
+   * Supprimer un étudiant du rattrapage
+   */
+  removeStudent(student: Etudiant) {
+    if (!this.rattrapage?.id) {
+      this.notificationService.error('Erreur', 'Rattrapage introuvable');
+      return;
+    }
+
+    if (!this.authService.canEdit()) {
+      this.notificationService.warning(
+        'Action non autorisée',
+        'Votre rôle ne permet pas de supprimer des étudiants de ce rattrapage.'
+      );
+      return;
+    }
+
+    // Confirmation avec SweetAlert2
+    import('sweetalert2').then(({ default: Swal }) => {
+      Swal.fire({
+        title: 'Retirer cet étudiant ?',
+        text: `L'étudiant ${student.first_name} ${student.last_name} sera retiré de ce rattrapage.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Oui, retirer',
+        cancelButtonText: 'Annuler',
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6b7280',
+        reverseButtons: true
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          try {
+            const response = await firstValueFrom(
+              this.rattrapageService.removeStudentFromRattrapage(student.id, this.rattrapage!.id!)
+            );
+
+            if (response?.success === false) {
+              throw new Error(response?.message || 'Erreur lors de la suppression de l\'étudiant');
+            }
+
+            Swal.fire({
+              title: 'Retiré',
+              text: 'Étudiant retiré du rattrapage avec succès',
+              icon: 'success',
+              timer: 1500,
+              showConfirmButton: false
+            });
+
+            // Recharger la liste
+            await this.loadStudents(this.rattrapage!.id!, this.currentPage);
+          } catch (error) {
+            console.error('Erreur lors de la suppression de l\'étudiant du rattrapage:', error);
+            Swal.fire({
+              title: 'Erreur',
+              text: 'Une erreur est survenue lors de la suppression de l\'étudiant',
+              icon: 'error'
+            });
+          }
+        }
+      });
+    });
+  }
+
   goBack() {
-    this.router.navigate(['/dashboard/rattrapages']);
+    // Revenir à la liste principale des rattrapages
+    this.router.navigate(['/rattrapages']);
   }
 
   calculateDuration(startHour: string, endHour: string): string {

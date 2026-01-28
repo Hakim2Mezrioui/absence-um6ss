@@ -29,6 +29,9 @@ export interface Rattrapage {
   end_hour: string;
   date: string;
   tolerance?: number;
+  etablissement_id?: number;
+  ville_id?: number;
+  salle_id?: number;
   created_at?: string;
   updated_at?: string;
 }
@@ -243,8 +246,14 @@ export class RattrapageService {
   }
 
   removeStudentFromRattrapage(etudiantId: number, rattrapageId: number): Observable<ApiResponse<void>> {
-    return this.http.delete<ApiResponse<void>>(
-      `${this.apiUrl}/list-students/etudiant/${etudiantId}/rattrapage/${rattrapageId}`
+    // Le backend expose une route POST /list-students/remove-student
+    // avec un body { etudiant_id, rattrapage_id }
+    return this.http.post<ApiResponse<void>>(
+      `${this.apiUrl}/list-students/remove-student`,
+      {
+        etudiant_id: etudiantId,
+        rattrapage_id: rattrapageId
+      }
     );
   }
 }

@@ -730,6 +730,17 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   <div class="flex gap-2">
+                    <!-- Modifier (données du rattrapage) -->
+                    <button
+                      *ngIf="authService.canEdit() && !isDefilementRole()"
+                      type="button"
+                      (click)="openEditRattrapageModal(rattrapage)"
+                      class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg transition-all duration-300 flex items-center gap-1"
+                      title="Modifier ce rattrapage">
+                      <span class="material-icons text-sm">edit</span>
+                      Modifier
+                    </button>
+
                     <button 
                       type="button"
                       (click)="viewRattrapageStudents(rattrapage)"
@@ -746,6 +757,17 @@
                       title="Suivre l'attendance">
                       <span class="material-icons text-sm">assignment_turned_in</span>
                       Attendance
+                    </button>
+
+                    <!-- Suppression réservée aux rôles autorisés (pas au rôle défilement) -->
+                    <button
+                      *ngIf="authService.canEdit() && !isDefilementRole()"
+                      type="button"
+                      (click)="deleteRattrapage(rattrapage)"
+                      class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg transition-all duration-300 flex items-center gap-1"
+                      title="Supprimer ce rattrapage">
+                      <span class="material-icons text-sm">delete</span>
+                      Supprimer
                     </button>
                   </div>
                 </td>
@@ -842,18 +864,24 @@
   </div>
 
 <!-- Create Rattrapage Modal -->
-<div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" *ngIf="showCreateModal" (click)="closeCreateModal()">
-  <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
+<div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" *ngIf="showCreateModal">
+  <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
     <!-- Header -->
     <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-t-2xl">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-            <span class="material-icons text-white text-lg">add</span>
+            <span class="material-icons text-white text-lg">
+              {{ isEditMode ? 'edit' : 'add' }}
+            </span>
           </div>
           <div>
-            <h2 class="text-xl font-semibold">Créer un Rattrapage</h2>
-            <p class="text-purple-100 text-sm">Planifiez une nouvelle session de rattrapage</p>
+            <h2 class="text-xl font-semibold">
+              {{ isEditMode ? 'Modifier un Rattrapage' : 'Créer un Rattrapage' }}
+            </h2>
+            <p class="text-purple-100 text-sm">
+              {{ isEditMode ? 'Mettez à jour les informations du rattrapage' : 'Planifiez une nouvelle session de rattrapage' }}
+            </p>
           </div>
         </div>
         <button type="button" 
@@ -866,8 +894,8 @@
     
     <!-- Body -->
     <div class="p-6">
-      <!-- Résumé des étudiants sélectionnés -->
-      <div class="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-6">
+      <!-- Résumé des étudiants sélectionnés (création uniquement) -->
+      <div class="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-6" *ngIf="!isEditMode">
         <div class="flex items-center gap-3 mb-3">
           <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
             <span class="material-icons text-purple-600 text-sm">people</span>
@@ -887,7 +915,7 @@
       </div>
       
       <!-- Formulaire -->
-      <form [formGroup]="rattrapageForm" (ngSubmit)="createRattrapage()">
+      <form [formGroup]="rattrapageForm" (ngSubmit)="saveRattrapage()">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="md:col-span-2">
             <label for="name" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
@@ -1137,12 +1165,18 @@
         
         <button 
           type="button" 
-          (click)="createRattrapage()" 
+          (click)="saveRattrapage()" 
           class="px-6 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-all duration-300 flex items-center gap-2 disabled:opacity-50 hover:scale-105"
-          [disabled]="rattrapageForm.invalid || loading">
-          <span class="material-icons text-sm" [class.animate-spin]="loading">add</span>
-          <span *ngIf="loading">Création...</span>
-          <span *ngIf="!loading">Créer le rattrapage</span>
+          [disabled]="loading">
+          <span class="material-icons text-sm" [class.animate-spin]="loading">
+            {{ isEditMode ? 'save' : 'add' }}
+          </span>
+          <span *ngIf="loading">
+            {{ isEditMode ? 'Mise à jour...' : 'Création...' }}
+          </span>
+          <span *ngIf="!loading">
+            {{ isEditMode ? 'Modifier le rattrapage' : 'Créer le rattrapage' }}
+          </span>
         </button>
       </div>
     </div>

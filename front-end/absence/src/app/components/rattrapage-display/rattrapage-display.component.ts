@@ -105,7 +105,7 @@ export class RattrapageDisplayComponent implements OnInit, AfterViewInit, OnDest
   private segmentInterval: any;
   private refreshInterval: any;
   private resizeListener?: () => void;
-  private refreshDuration = 30000; // 30 secondes
+  private refreshDuration = 10000; // 10 secondes (rafraîchissement plus fréquent)
   
   // Face ID notification
   previousAbsentStudents: AbsentStudent[] = [];
@@ -505,10 +505,10 @@ export class RattrapageDisplayComponent implements OnInit, AfterViewInit, OnDest
     console.log('🎯 Finalisation de l\'affichage...');
     console.log(`📊 Étudiants avant filtrage final: ${this.allStudents.length}`);
     
-    // S'assurer qu'on n'affiche que les absents et en retard (pas les présents)
-    // Filtrer une dernière fois pour être sûr
+    // S'assurer qu'on n'affiche que les VRAIS absents (ceux sans face ID détecté)
+    // Même si le statut a été recalculé, on ne garde que "absent"
     const validStudents = this.allStudents.filter(s => 
-      s.status === 'absent' || s.status === 'late'
+      s.status === 'absent'
     );
     
     if (validStudents.length === 0) {
@@ -582,100 +582,23 @@ export class RattrapageDisplayComponent implements OnInit, AfterViewInit, OnDest
       .subscribe({
         next: (response) => {
           if (response.success) {
-            // Stocker TOUS les étudiants (absents + en retard) pour les statistiques
-            this.allStudents = (response.students || []).filter((s: StudentAttendance) => 
-              s.status === 'absent' || s.status === 'late'
-            ) as AbsentStudent[];
-            
-            if (isRefresh) {
-              console.log(`📊 Rafraîchissement: ${this.allStudents.length} étudiant(s) trouvé(s)`);
-              
-              // Détecter les étudiants qui ont fait le face ID
-              if (this.previousAbsentStudents.length > 0) {
-                const studentsWhoDidFaceId = this.previousAbsentStudents.filter(prevStudent => {
-                  // Vérifier si l'étudiant n'est plus dans la nouvelle liste
-                  return !this.allStudents.some(newStudent => 
-                    newStudent.id === prevStudent.id || 
-                    newStudent.matricule === prevStudent.matricule
-                  );
-                });
-                
-                if (studentsWhoDidFaceId.length > 0) {
-                  console.log(`✅ ${studentsWhoDidFaceId.length} étudiant(s) ont fait le face ID`);
-                  
-                  // Ajouter à la file d'attente (éviter les doublons)
-                  studentsWhoDidFaceId.forEach(student => {
-                    const alreadyInQueue = this.faceIdStudentsQueue.some(q => 
-                      q.id === student.id || q.matricule === student.matricule
-                    );
-                    if (!alreadyInQueue) {
-                      this.faceIdStudentsQueue.push(student);
-                    }
-                  });
-                  
-                  // Démarrer la boucle si elle n'est pas déjà en cours
-                  if (!this.showFaceIdNotification && this.faceIdStudentsQueue.length > 0) {
-                    this.startFaceIdNotificationLoop();
-                  }
-                }
-              }
-              
-              // Appliquer le filtre actuel aux données
-              const filteredStudents = this.displayFilter === 'absent-only'
-                ? this.allStudents.filter(s => s.status === 'absent')
-                : [...this.allStudents];
-              
-              // Grouper par segments
-              const newSegments = this.groupStudentsBySegments(filteredStudents);
-              
-              if (newSegments.length > 0) {
-                // Rafraîchissement : conserver la page actuelle si possible
-                const oldTotalPages = this.getTotalPages();
-                const oldPageIndex = this.currentPageIndex;
-                
-                // Mettre à jour les segments
-                this.segments = newSegments.map(seg => ({
-                  ...seg,
-                  students: [...seg.students]
-                }));
-                
-                // Mettre à jour le segment actuel
-                if (this.segments.length > 0) {
-                  this.currentSegment = {
-                    ...this.segments[0],
-                    students: [...this.segments[0].students]
-                  };
-                }
-                
-                // Recalculer le nombre d'étudiants par page
-                this.calculateStudentsPerPage();
-                
-                // Ajuster la page si nécessaire
-                const newTotalPages = this.getTotalPages();
-                if (oldTotalPages > 0 && oldPageIndex >= newTotalPages) {
-                  this.currentPageIndex = Math.max(0, newTotalPages - 1);
-                }
-                
-                // Forcer la détection de changement
-                this.cdr.detectChanges();
-              } else {
-                // Plus d'étudiants absents
-                this.segments = [];
-                this.currentSegment = null;
-                this.cdr.detectChanges();
-              }
-              
-              // Mettre à jour la liste précédente lors du rafraîchissement
-              this.previousAbsentStudents = [...this.allStudents];
+            // Toujours repartir de la liste brute fournie par l'API
+            this.allStudents = (response.students || []) as AbsentStudent[];
+
+            // Pour le premier chargement, on déclenche déjà le pipeline complet (Biostar + filtres)
+            // via le callback fourni par loadRattrapageData (autoSelectConfigurationForRattrapage → loadBiostarAttendanceData)
+            if (!isRefresh && callback) {
+              callback();
+              return;
+            }
+
+            // Pour les rafraîchissements automatiques, on réapplique aussi Biostar si on connaît la ville
+            if (isRefresh && this.currentVilleId) {
+              // Le résultat de Biostar réappliquera les filtres et mettra à jour l'affichage
+              this.loadBiostarAttendanceData(this.currentVilleId);
             } else {
-              // Premier chargement : ne pas afficher encore, attendre les données Biostar
-              // Appeler le callback si fourni
-              if (callback) {
-                callback();
-              } else {
-                // Pas de callback, afficher directement
-                this.finalizeDisplay();
-              }
+              // Pas de Biostar configuré : on finalise directement l'affichage avec les données API
+              this.finalizeDisplay();
             }
           } else {
             this.error = response.message || 'Erreur lors du chargement des données';
