@@ -388,12 +388,21 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
             } else if (isDateColumn) {
               // Gérer les dates
               if (cellValue instanceof Date) {
-                cellValue = cellValue.toISOString().split('T')[0]; // YYYY-MM-DD
+                // Utiliser les méthodes locales pour éviter le décalage de timezone
+                const year = cellValue.getFullYear();
+                const month = (cellValue.getMonth() + 1).toString().padStart(2, '0');
+                const day = cellValue.getDate().toString().padStart(2, '0');
+                cellValue = `${year}-${month}-${day}`; // YYYY-MM-DD
               } else if (typeof cellValue === 'number') {
                 // Date Excel en format serial (nombre de jours depuis 1900-01-01)
+                // Excel compte le 1er janvier 1900 comme jour 1, mais il y a un bug Excel (1900 considéré comme bissextile)
                 const excelEpoch = new Date(1899, 11, 30); // 30 décembre 1899
                 const date = new Date(excelEpoch.getTime() + (cellValue - 1) * 86400000);
-                cellValue = date.toISOString().split('T')[0];
+                // Utiliser les méthodes locales pour éviter le décalage de timezone
+                const year = date.getFullYear();
+                const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                const day = date.getDate().toString().padStart(2, '0');
+                cellValue = `${year}-${month}-${day}`;
               } else {
                 // Si c'est déjà une string, utiliser formatDate pour normaliser
                 cellValue = this.formatDate(String(cellValue).trim());
@@ -416,6 +425,23 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
               } else {
                 // Si c'est déjà une string, utiliser formatTime pour normaliser
                 cellValue = this.formatTime(String(cellValue).trim());
+              }
+            } else if (headerLower === 'tolerance') {
+              // Gestion spécifique pour la colonne tolerance
+              if (cellValue instanceof Date) {
+                // Extraire seulement l'heure au format HH:MM (sans secondes)
+                const hours = cellValue.getHours().toString().padStart(2, '0');
+                const minutes = cellValue.getMinutes().toString().padStart(2, '0');
+                cellValue = `${hours}:${minutes}`;
+              } else if (typeof cellValue === 'number') {
+                // Heure Excel en format décimal (0.010416666666666666 = 00:15:00)
+                const totalSeconds = Math.round(cellValue * 86400);
+                const hours = Math.floor(totalSeconds / 3600);
+                const minutes = Math.floor((totalSeconds % 3600) / 60);
+                cellValue = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+              } else {
+                // Si c'est déjà une string, utiliser tel quel (sera formaté par formatTolerance plus tard)
+                cellValue = String(cellValue).trim();
               }
             } else {
               // Autres colonnes : conversion standard
@@ -1439,7 +1465,11 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
       return dateString;
     }
     
-    return date.toISOString().split('T')[0];
+    // Utiliser les méthodes locales pour éviter le décalage de timezone
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   // Formater une heure
