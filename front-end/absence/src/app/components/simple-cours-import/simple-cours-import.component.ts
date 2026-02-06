@@ -434,14 +434,33 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
                 const minutes = cellValue.getMinutes().toString().padStart(2, '0');
                 cellValue = `${hours}:${minutes}`;
               } else if (typeof cellValue === 'number') {
-                // Heure Excel en format décimal (0.010416666666666666 = 00:15:00)
-                const totalSeconds = Math.round(cellValue * 86400);
-                const hours = Math.floor(totalSeconds / 3600);
-                const minutes = Math.floor((totalSeconds % 3600) / 60);
-                cellValue = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                // Détecter si c'est un nombre simple (minutes) ou un format décimal Excel
+                if (cellValue < 1) {
+                  // Format décimal Excel (fraction de jour) : 0.010416666666666666 = 00:15:00
+                  const totalSeconds = Math.round(cellValue * 86400);
+                  const hours = Math.floor(totalSeconds / 3600);
+                  const minutes = Math.floor((totalSeconds % 3600) / 60);
+                  cellValue = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                } else {
+                  // Nombre simple = minutes : 15 = 15 minutes = 00:15
+                  const totalMinutes = Math.floor(cellValue);
+                  const hours = Math.floor(totalMinutes / 60);
+                  const minutes = totalMinutes % 60;
+                  cellValue = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                }
               } else {
-                // Si c'est déjà une string, utiliser tel quel (sera formaté par formatTolerance plus tard)
-                cellValue = String(cellValue).trim();
+                // Si c'est une string, vérifier si c'est un nombre simple
+                const strValue = String(cellValue).trim();
+                // Si c'est un nombre simple (ex: "15"), le convertir en minutes
+                if (/^\d+$/.test(strValue)) {
+                  const totalMinutes = parseInt(strValue, 10);
+                  const hours = Math.floor(totalMinutes / 60);
+                  const minutes = totalMinutes % 60;
+                  cellValue = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                } else {
+                  // Sinon, utiliser tel quel (sera formaté par formatTolerance plus tard)
+                  cellValue = strValue;
+                }
               }
             } else {
               // Autres colonnes : conversion standard
