@@ -11,17 +11,12 @@ class Enseignant extends Model
 {
     protected $fillable = [
         'user_id',
-        'ville_id',
+        'statut',
     ];
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }
-
-    public function ville(): BelongsTo
-    {
-        return $this->belongsTo(Ville::class);
     }
 
     public function cours(): BelongsToMany

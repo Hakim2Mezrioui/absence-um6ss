@@ -203,11 +203,9 @@ export class RattrapageDisplayComponent implements OnInit, AfterViewInit, OnDest
               
               this.currentVilleId = villeId;
               
-              // Ajuster l'offset d'affichage selon la ville (Casablanca => +60 minutes, autres => 0)
-              if (villeName) {
-                const villeNameLower = villeName.trim().toLowerCase();
-                this.biostarTimeOffsetMinutes = villeNameLower === 'casablanca' || villeNameLower === 'casa' ? 60 : 0;
-              }
+              // Toujours appliquer l'offset de +60 minutes car le serveur Biostar est toujours décalé de -60 minutes
+              // (le serveur Biostar enregistre les heures avec un décalage de -60 min par rapport à l'heure locale)
+              this.biostarTimeOffsetMinutes = 60;
               
               // Charger d'abord les étudiants depuis l'API, puis intégrer les données Biostar
               this.loadAbsentStudents(false, () => {
@@ -253,9 +251,9 @@ export class RattrapageDisplayComponent implements OnInit, AfterViewInit, OnDest
           console.log('✅ Configuration trouvée:', response);
           
           if (response.success && response.data) {
-            // Ajuster l'offset d'affichage selon la ville
-            const villeNameLower = villeName.trim().toLowerCase();
-            this.biostarTimeOffsetMinutes = villeNameLower === 'casablanca' || villeNameLower === 'casa' ? 60 : 0;
+            // Toujours appliquer l'offset de +60 minutes car le serveur Biostar est toujours décalé de -60 minutes
+            // (le serveur Biostar enregistre les heures avec un décalage de -60 min par rapport à l'heure locale)
+            this.biostarTimeOffsetMinutes = 60;
             
             // Charger les données de pointage depuis Biostar
             this.loadBiostarAttendanceData(villeId);

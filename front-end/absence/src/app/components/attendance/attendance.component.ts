@@ -198,9 +198,9 @@ export class AttendanceComponent implements OnInit, OnDestroy {
           this.biostarConfigStatus = 'success';
           this.biostarConfigMessage = `Configuration Biostar chargée pour la ville: ${response.data.ville?.name || 'Inconnue'}`;
 
-          // Ajuster l'offset d'affichage selon la ville (Casablanca => +60 minutes, autres => 0)
-          const villeName = (response.data.ville?.name || '').toString().trim().toLowerCase();
-          this.biostarTimeOffsetMinutes = villeName === 'casablanca' || villeName === 'casa' ? 60 : 0;
+          // Toujours appliquer l'offset de +60 minutes car le serveur Biostar est toujours décalé de -60 minutes
+          // (le serveur Biostar enregistre les heures avec un décalage de -60 min par rapport à l'heure locale)
+          this.biostarTimeOffsetMinutes = 60;
           
           // Une seule notification de succès
           this.notificationService.success(
@@ -237,10 +237,24 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     }
 
     console.log('🔄 Chargement des données de pointage depuis Biostar pour l\'examen:', examenId);
+    
+    // Calculer l'heure de fin basée sur examStartTime + tolerance (cohérent avec la nouvelle logique)
+    const examDate = new Date(this.examDate);
+    const examStartTime = this.parseTimeString(this.examStartTime);
+    const examStartDateTime = new Date(examDate);
+    examStartDateTime.setHours(examStartTime.getHours(), examStartTime.getMinutes(), examStartTime.getSeconds(), 0);
+    
+    const toleranceDateTime = new Date(examStartDateTime);
+    toleranceDateTime.setMinutes(toleranceDateTime.getMinutes() + this.examTolerance);
+    
+    // Formater l'heure de fin au format HH:MM:SS
+    const endTimeFormatted = `${String(toleranceDateTime.getHours()).padStart(2, '0')}:${String(toleranceDateTime.getMinutes()).padStart(2, '0')}:${String(toleranceDateTime.getSeconds()).padStart(2, '0')}`;
+    
     console.log('📅 Paramètres de l\'examen:', {
       date: this.examDate,
       heureDebutPointage: this.examPunchStartTime,
-      heureFin: this.examEndTime,
+      endTime: endTimeFormatted, // Utiliser examStartTime + tolerance au lieu de examEndTime
+      endTimeOld: this.examEndTime, // Ancienne valeur pour référence
       examenId: examenId
     });
     
@@ -248,7 +262,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       examenId,
       this.examDate,
       this.examPunchStartTime,
-      this.examEndTime
+      endTimeFormatted // Utiliser examStartTime + tolerance
     ).pipe(takeUntil(this.destroy$))
     .subscribe({
       next: (response) => {
@@ -504,11 +518,9 @@ export class AttendanceComponent implements OnInit, OnDestroy {
           this.examId = response.examen?.id || response.examen_id || null;
           this.examData = response.examen || null;
 
-          // Ajuster l'offset d'affichage selon la ville de l'examen (Casablanca => +60 minutes, autres => 0)
-          const villeName = (this.examData?.ville?.name || '').toString().trim().toLowerCase();
-          if (villeName) {
-            this.biostarTimeOffsetMinutes = villeName === 'casablanca' || villeName === 'casa' ? 60 : 0;
-          }
+          // Toujours appliquer l'offset de +60 minutes car le serveur Biostar est toujours décalé de -60 minutes
+          // (le serveur Biostar enregistre les heures avec un décalage de -60 min par rapport à l'heure locale)
+          this.biostarTimeOffsetMinutes = 60;
           
           // Debug: Vérifier les données de l'examen
           console.log('🔍 Données de l\'examen:', this.examData);

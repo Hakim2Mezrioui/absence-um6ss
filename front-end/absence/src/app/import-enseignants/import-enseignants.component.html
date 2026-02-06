@@ -5,7 +5,7 @@
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 class="text-3xl font-bold text-slate-900 mb-2">Importation des Enseignants</h1>
-          <p class="text-slate-600">Importez des enseignants depuis un fichier CSV</p>
+          <p class="text-slate-600">Importez des enseignants depuis un fichier Excel</p>
         </div>
         <div class="flex gap-3">
           <button 
@@ -23,78 +23,6 @@
     <!-- Formulaire d'importation -->
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
       <form [formGroup]="importForm" (ngSubmit)="importFile()">
-        <!-- Configuration -->
-        <div class="mb-6">
-          <h3 class="text-lg font-semibold text-slate-900 mb-4">Configuration de l'importation</h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-slate-700 mb-2">
-                Ville <span class="text-red-500">*</span>
-              </label>
-              <select 
-                formControlName="ville_id"
-                [class.border-red-500]="isFieldInvalid('ville_id')"
-                class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200">
-                <option value="">Sélectionnez une ville</option>
-                <option *ngFor="let ville of villes" [value]="ville.id">
-                  {{ ville.name || ville.nom || ('Ville #' + ville.id) }}
-                </option>
-              </select>
-              <p *ngIf="isFieldInvalid('ville_id')" class="mt-1 text-sm text-red-600">
-                {{ getErrorMessage('ville_id') }}
-              </p>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-slate-700 mb-2">
-                Rôle <span class="text-red-500">*</span>
-              </label>
-              <select 
-                formControlName="role_id"
-                [class.border-red-500]="isFieldInvalid('role_id')"
-                class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200">
-                <option value="">Sélectionnez un rôle</option>
-                <option *ngFor="let role of roles" [value]="role.id">
-                  {{ role.name }}
-                </option>
-              </select>
-              <p *ngIf="isFieldInvalid('role_id')" class="mt-1 text-sm text-red-600">
-                {{ getErrorMessage('role_id') }}
-              </p>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-slate-700 mb-2">
-                Poste <span class="text-red-500">*</span>
-              </label>
-              <select 
-                formControlName="post_id"
-                [class.border-red-500]="isFieldInvalid('post_id')"
-                class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200">
-                <option value="">Sélectionnez un poste</option>
-                <option *ngFor="let post of posts" [value]="post.id">
-                  {{ post.name || post.title }}
-                </option>
-              </select>
-              <p *ngIf="isFieldInvalid('post_id')" class="mt-1 text-sm text-red-600">
-                {{ getErrorMessage('post_id') }}
-              </p>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-slate-700 mb-2">
-                Mot de passe par défaut <span class="text-red-500">*</span>
-              </label>
-              <input 
-                type="text"
-                formControlName="default_password"
-                [class.border-red-500]="isFieldInvalid('default_password')"
-                class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
-                placeholder="Mot de passe par défaut">
-              <p *ngIf="isFieldInvalid('default_password')" class="mt-1 text-sm text-red-600">
-                {{ getErrorMessage('default_password') }}
-              </p>
-            </div>
-          </div>
-        </div>
-
         <!-- Sélection de fichier -->
         <div class="mb-6">
           <h3 class="text-lg font-semibold text-slate-900 mb-4">Sélection du fichier</h3>
@@ -122,10 +50,10 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                   </svg>
                   Parcourir les fichiers
-                  <input type="file" accept=".csv,.txt" (change)="onFileSelected($event)" class="hidden">
+                  <input type="file" accept=".xlsx,.xls" (change)="onFileSelected($event)" class="hidden">
                 </label>
               </div>
-              <p class="text-sm text-slate-500">Formats supportés: CSV, TXT</p>
+              <p class="text-sm text-slate-500">Formats supportés: Excel (.xlsx, .xls)</p>
             </div>
 
             <div *ngIf="selectedFile" class="space-y-4">
@@ -178,7 +106,7 @@
         <div class="flex flex-col sm:flex-row gap-3">
           <button 
             type="submit"
-            [disabled]="loading || !selectedFile || importForm.invalid"
+            [disabled]="loading || !selectedFile"
             class="flex-1 inline-flex items-center justify-center px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white font-medium rounded-lg transition-colors duration-200 shadow-sm">
             <svg *ngIf="!loading" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>

@@ -7,12 +7,12 @@ import { AuthService } from './auth.service';
 export interface Enseignant {
   id?: number;
   user_id?: number;
-  ville_id: number;
   role_id?: number;
   first_name?: string;
   last_name?: string;
   email?: string;
   phone?: string;
+  statut?: 'vacataire' | 'permanent' | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -48,11 +48,11 @@ export class EnseignantService {
   update(id: number, payload: Partial<Enseignant>): Observable<any> { return this.http.put(`${this.baseUrl}/${id}`, payload, this.getAuthHeaders()); }
   delete(id: number): Observable<any> { return this.http.delete(`${this.baseUrl}/${id}`, this.getAuthHeaders()); }
   assignCours(id: number, cours_ids: number[]): Observable<any> { return this.http.post(`${this.baseUrl}/${id}/assign-cours`, { cours_ids }, this.getAuthHeaders()); }
-  createWithUser(payload: { user: any; enseignant: { ville_id: number } }): Observable<any> {
+  createWithUser(payload: { user: any; enseignant: { statut?: 'vacataire' | 'permanent' | null } }): Observable<any> {
     return this.http.post(`${environment.apiUrl}/enseignants-with-user`, payload, this.getAuthHeaders());
   }
 
-  updateWithUser(id: number, payload: { user: any; enseignant: { ville_id: number } }): Observable<any> {
+  updateWithUser(id: number, payload: { user: any; enseignant: { statut?: 'vacataire' | 'permanent' | null } }): Observable<any> {
     return this.http.put(`${environment.apiUrl}/enseignants-with-user/${id}`, payload, this.getAuthHeaders());
   }
 

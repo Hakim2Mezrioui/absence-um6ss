@@ -634,21 +634,51 @@ class StudentTrackingService
                 }
             }
             
-            // Determine status based on punch time and cours tolerance
-            $status = 'present';
+            // Déterminer le statut en utilisant la même logique que les autres écrans :
+            // - Présent : entre pointage_start_hour et heure_debut
+            // - En retard : entre heure_debut et heure_debut + tolerance
+            // - Absent : avant pointage_start_hour ou après heure_debut + tolerance
+            $status = 'absent';
             
             if ($punchTime) {
                 try {
+                    // Heure de pointage (déjà convertie en heure locale un peu plus haut)
                     $punchDateTime = Carbon::parse($punchTime);
-                    $coursStartDateTime = Carbon::parse($cours->date . ' ' . $cours->heure_debut);
+
+                    // Date du cours au format Y-m-d
+                    $coursDate = $coursDate ?? (
+                        $cours->date instanceof \Carbon\Carbon
+                            ? $cours->date->format('Y-m-d')
+                            : (is_string($cours->date) ? date('Y-m-d', strtotime($cours->date)) : $cours->date)
+                    );
+
+                    // Heure de début de pointage (fallback sur heure_debut)
+                    $pointageStartTimeStr = $this->formatTime($cours->pointage_start_hour ?? $cours->heure_debut);
+                    // Heure de début du cours
+                    $startTimeStr = $this->formatTime($cours->heure_debut);
+                    // Tolérance en minutes (déjà calculée plus haut, mais on sécurise)
                     $toleranceMinutes = $this->parseTolerance($cours->tolerance);
-                    $limitDateTime = $coursStartDateTime->copy()->addMinutes($toleranceMinutes);
+
+                    $pointageStartDateTime = Carbon::parse($coursDate . ' ' . $pointageStartTimeStr);
+                    $startDateTime = Carbon::parse($coursDate . ' ' . $startTimeStr);
+                    $limitDateTime = $startDateTime->copy()->addMinutes($toleranceMinutes);
                     
-                    if ($punchDateTime->gt($limitDateTime)) {
+                    if ($punchDateTime->gte($pointageStartDateTime) && $punchDateTime->lt($startDateTime)) {
+                        // Présent : pointage entre pointage_start_hour et heure_debut
+                        $status = 'present';
+                    } elseif ($punchDateTime->gte($startDateTime) && $punchDateTime->lte($limitDateTime)) {
+                        // En retard : pointage entre heure_debut et heure_debut + tolerance
                         $status = 'late';
+                    } else {
+                        // Absent : avant pointage_start_hour ou après heure_debut + tolerance
+                        $status = 'absent';
                     }
                 } catch (\Exception $e) {
-                    // If parsing fails, keep status as present
+                    // En cas d'erreur de parsing, on garde "absent"
+                    Log::warning('StudentTrackingService: Failed to determine cours status with unified logic', [
+                        'punch_time' => $punchTime,
+                        'error' => $e->getMessage()
+                    ]);
                 }
             }
 
@@ -1175,21 +1205,57 @@ class StudentTrackingService
                 }
             }
             
-            // Determine status based on punch time and examen tolerance
-            $status = 'present';
+            // Déterminer le statut en utilisant la même logique que les autres écrans :
+            // - Présent : entre heure_debut_pointage et heure_debut
+            // - En retard : entre heure_debut et heure_debut + tolerance
+            // - Absent : avant heure_debut_pointage ou après heure_debut + tolerance
+            $status = 'absent';
             
             if ($punchTime) {
                 try {
+                    // Heure de pointage (déjà convertie en heure locale un peu plus haut)
                     $punchDateTime = Carbon::parse($punchTime);
-                    $examenStartDateTime = Carbon::parse($examen->date . ' ' . $examen->heure_debut);
+
+                    // Date de l'examen au format Y-m-d
+                    $examenDate = $examenDate ?? (
+                        $examen->date instanceof \Carbon\Carbon 
+                            ? $examen->date->format('Y-m-d')
+                            : (is_string($examen->date) ? date('Y-m-d', strtotime($examen->date)) : $examen->date)
+                    );
+
+                    // Heure de début de pointage (fallback sur heure_debut)
+                    $pointageStartTimeStr = $this->formatTime($examen->heure_debut_poigntage ?? $examen->heure_debut);
+                    // Heure de début de l'examen
+                    $startTimeStr = $this->formatTime($examen->heure_debut);
+
+                    // Tolérance en minutes (déjà calculée plus haut avec valeur par défaut 15)
                     $toleranceMinutes = $examen->tolerance ?? 15;
-                    $limitDateTime = $examenStartDateTime->copy()->addMinutes($toleranceMinutes);
+                    if (!is_numeric($toleranceMinutes)) {
+                        $toleranceMinutes = $this->parseTolerance($toleranceMinutes);
+                    } else {
+                        $toleranceMinutes = (int)$toleranceMinutes;
+                    }
+
+                    $pointageStartDateTime = Carbon::parse($examenDate . ' ' . $pointageStartTimeStr);
+                    $startDateTime = Carbon::parse($examenDate . ' ' . $startTimeStr);
+                    $limitDateTime = $startDateTime->copy()->addMinutes($toleranceMinutes);
                     
-                    if ($punchDateTime->gt($limitDateTime)) {
+                    if ($punchDateTime->gte($pointageStartDateTime) && $punchDateTime->lt($startDateTime)) {
+                        // Présent : pointage entre heure_debut_pointage et heure_debut
+                        $status = 'present';
+                    } elseif ($punchDateTime->gte($startDateTime) && $punchDateTime->lte($limitDateTime)) {
+                        // En retard : pointage entre heure_debut et heure_debut + tolerance
                         $status = 'late';
+                    } else {
+                        // Absent : avant heure_debut_pointage ou après heure_debut + tolerance
+                        $status = 'absent';
                     }
                 } catch (\Exception $e) {
-                    // If parsing fails, keep status as present
+                    // En cas d'erreur de parsing, on garde "absent"
+                    Log::warning('StudentTrackingService: Failed to determine examen status with unified logic', [
+                        'punch_time' => $punchTime,
+                        'error' => $e->getMessage()
+                    ]);
                 }
             }
 

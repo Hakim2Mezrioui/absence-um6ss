@@ -750,15 +750,32 @@ class CoursController extends Controller
                     $heureReference = $heureDebutPointage ? $heureDebutPointage : $heureDebut;
                     
                     $hourRefWithSec = $normalizeTime($heureReference);
-                    $hourFinWithSec = $normalizeTime($heureFin);
+                    
+                    // MODIFICATION: Calculer l'heure de fin basée sur heure_debut + tolerance (cohérent avec la nouvelle logique)
+                    // Au lieu d'utiliser heure_fin, on utilise heure_debut + tolerance
+                    // Cela évite de récupérer les pointages faits après la période de tolérance
+                    $toleranceRaw = $cours->tolerance ?? '15';
+                    if ($toleranceRaw === null || $toleranceRaw === '') {
+                        $toleranceMinutes = 15;
+                    } elseif (is_numeric($toleranceRaw)) {
+                        $toleranceMinutes = (int) $toleranceRaw;
+                    } else {
+                        $digits = preg_replace('/[^0-9]/', '', (string) $toleranceRaw);
+                        $toleranceMinutes = $digits !== '' ? (int) $digits : 15;
+                    }
+                    
+                    // Calculer l'heure limite: heure_debut + tolerance
+                    $heureDebutCours = $normalizeTime($heureDebut);
+                    $heureLimitePointage = new \DateTime("{$normalizedDate} {$heureDebutCours}");
+                    $heureLimitePointage->modify("+{$toleranceMinutes} minutes");
+                    $hourFinWithSec = $heureLimitePointage->format('H:i:s');
+                    
                     $exitWindowMinutes = (int)($cours->exit_capture_window ?? 0);
                     
                     // Construire la fenêtre datetime côté client avec la date normalisée
                     $startClientDt = new \DateTime("{$normalizedDate} {$hourRefWithSec}");
                     $endClientDt = new \DateTime("{$normalizedDate} {$hourFinWithSec}");
-                    if ($exitWindowMinutes > 0) {
-                        $endClientDt->modify("+{$exitWindowMinutes} minutes");
-                    }
+                    // Note: exitWindowMinutes n'est utilisé que pour le mode bi-check, pas pour la récupération des données
                     
                     // Le serveur Biostar est décalé de -60 minutes (serveur en retard d'1h)
                     $startServerDt = (clone $startClientDt)->modify("{$offsetMinutes} minutes");
@@ -772,12 +789,14 @@ class CoursController extends Controller
                     $startDtFormatted = $startServerDt->format('Y-m-d H:i:s');
                     $endDtFormatted = $endServerDt->format('Y-m-d H:i:s');
                     
-                    \Log::info('CoursController: Paramètres de requête Biostar', [
+                    \Log::info('CoursController: Paramètres de requête Biostar (CORRIGÉ)', [
                         'normalized_date' => $normalizedDate,
                         'heure_reference' => $heureReference,
                         'heure_debut_pointage' => $heureDebutPointage,
                         'heure_debut' => $heureDebut,
-                        'heure_fin' => $heureFin,
+                        'heure_fin_old' => $heureFin, // Ancienne valeur pour référence
+                        'tolerance_minutes' => $toleranceMinutes,
+                        'heure_limite_pointage' => $hourFinWithSec, // Utilise heure_debut + tolerance
                         'hour_ref_with_sec' => $hourRefWithSec,
                         'hour_fin_with_sec' => $hourFinWithSec,
                         'offset_minutes' => $offsetMinutes,

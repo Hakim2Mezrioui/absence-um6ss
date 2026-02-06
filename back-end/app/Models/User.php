@@ -23,8 +23,8 @@ class User extends Authenticatable
         'last_name',
         'email',
         'password',
+        'phone',
         'role_id',
-        'post_id',
         'etablissement_id',
         'ville_id',
     ];
@@ -66,14 +66,6 @@ class User extends Authenticatable
     public function role()
     {
         return $this->belongsTo(Role::class);
-    }
-
-    /**
-     * Get the post that owns the user.
-     */
-    public function post()
-    {
-        return $this->belongsTo(Post::class);
     }
 
     public function etablissement()

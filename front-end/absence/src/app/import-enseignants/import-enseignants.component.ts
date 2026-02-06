@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { Router } from '@angular/router';
 import { EnseignantService, Enseignant } from '../services/enseignant.service';
 import { Subject, takeUntil } from 'rxjs';
+import * as XLSX from 'xlsx';
 
 interface FilePreviewItem {
   row: { [key: string]: string };
@@ -34,12 +35,14 @@ export class ImportEnseignantsComponent implements OnInit, OnDestroy {
   // Fichier sélectionné
   selectedFile: File | null = null;
   filePreview: FilePreviewItem[] = [];
+  allFileRows: any[] = []; // Toutes les lignes du fichier Excel pour l'import
   isDragOver = false;
   
   // Options de formulaire
-  villes: any[] = [];
   roles: any[] = [];
-  posts: any[] = [];
+  
+  // Cache des enseignants existants (email -> enseignant_id)
+  private existingEnseignantsMap: Map<string, number> = new Map();
   
   // Résultats de l'import
   importResults: ImportResults = {
@@ -50,17 +53,17 @@ export class ImportEnseignantsComponent implements OnInit, OnDestroy {
   };
   
   private destroy$ = new Subject<void>();
+  private readonly DEFAULT_PASSWORD = 'UM6SS@2025';
 
   constructor(
     private enseignantService: EnseignantService,
     private fb: FormBuilder,
     private router: Router
   ) {
+    // Le formulaire n'est plus configuré par l'utilisateur, il sert uniquement
+    // à porter des valeurs par défaut déterminées automatiquement.
     this.importForm = this.fb.group({
-      ville_id: ['', Validators.required],
-      role_id: ['', Validators.required],
-      post_id: ['', Validators.required],
-      default_password: ['password123', Validators.required]
+      role_id: ['']
     });
   }
 
@@ -81,12 +84,14 @@ export class ImportEnseignantsComponent implements OnInit, OnDestroy {
         next: (response: any) => {
           // L'API retourne les données dans response.data
           const data = response.data || response;
-          this.villes = data.villes || [];
           this.roles = data.roles || [];
-          this.posts = data.posts || [];
-          console.log('Villes chargées:', this.villes);
-          console.log('Rôles chargés:', this.roles);
-          console.log('Posts chargés:', this.posts);
+
+          // Choisir automatiquement des valeurs par défaut cohérentes
+          const defaultRole = this.roles.find((r: any) => (r.name || '').toLowerCase().includes('enseignant')) || this.roles[0];
+
+          this.importForm.patchValue({
+            role_id: defaultRole?.id || ''
+          });
         },
         error: (err) => {
           console.error('Erreur lors du chargement des options:', err);
@@ -132,7 +137,7 @@ export class ImportEnseignantsComponent implements OnInit, OnDestroy {
         this.previewFile(file);
         this.error = ''; // Clear any previous errors
       } else {
-        this.error = 'Format de fichier non supporté. Utilisez CSV ou TXT';
+        this.error = 'Format de fichier non supporté. Utilisez un fichier Excel (.xlsx ou .xls)';
         this.selectedFile = null;
       }
     }
@@ -140,8 +145,11 @@ export class ImportEnseignantsComponent implements OnInit, OnDestroy {
 
   // Vérifier si le type de fichier est valide
   private isValidFileType(file: File): boolean {
-    const validTypes = ['text/csv', 'text/plain', 'application/csv'];
-    const validExtensions = ['.csv', '.txt'];
+    const validTypes = [
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-excel'
+    ];
+    const validExtensions = ['.xlsx', '.xls'];
     
     return validTypes.includes(file.type) || 
            validExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
@@ -149,36 +157,48 @@ export class ImportEnseignantsComponent implements OnInit, OnDestroy {
 
   // Prévisualiser le fichier
   previewFile(file: File): void {
-    if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
-      this.previewCSV(file);
-    } else if (file.name.endsWith('.txt')) {
-      this.previewCSV(file);
-    } else {
-      this.error = 'Format de fichier non supporté. Utilisez CSV ou TXT';
+    if (!this.isValidFileType(file)) {
+      this.error = 'Format de fichier non supporté. Utilisez un fichier Excel (.xlsx ou .xls)';
       this.selectedFile = null;
+      this.filePreview = [];
+      return;
     }
+
+    this.previewExcel(file);
   }
 
-  // Prévisualiser un fichier CSV
-  previewCSV(file: File): void {
+  // Prévisualiser un fichier Excel
+  previewExcel(file: File): void {
     const reader = new FileReader();
     reader.onload = (e: any) => {
-      const csv = e.target.result;
-      const lines = csv.split('\n');
-      const headers = lines[0].split(',').map((h: string) => h.trim());
-      
-      this.filePreview = lines.slice(1, 6).map((line: string, index: number) => {
-        const values = line.split(',').map((v: string) => v.trim());
-        const row: { [key: string]: string } = {};
-        headers.forEach((header: string, i: number) => {
-          row[header] = values[i] || '';
-        });
-        return { row, lineNumber: index + 2 };
-      }).filter((item: FilePreviewItem) => Object.values(item.row).some(val => val !== ''));
-      
-      this.importResults.total = this.filePreview.length;
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+
+      if (!worksheet) {
+        this.error = 'Le fichier Excel ne contient aucune feuille valide';
+        this.filePreview = [];
+        return;
+      }
+
+      const rows: any[] = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+
+      // Stocker toutes les lignes pour l'import
+      this.allFileRows = rows.filter((row: any) =>
+        Object.values(row).some(val => (val ?? '').toString().trim() !== '')
+      );
+
+      // Prévisualiser les 5 premières lignes de données
+      this.filePreview = this.allFileRows.slice(0, 5).map((row: any, index: number) => ({
+        row,
+        // Les données commencent généralement à la ligne 2 (après les en-têtes)
+        lineNumber: index + 2
+      }));
+
+      this.importResults.total = this.allFileRows.length;
     };
-    reader.readAsText(file);
+    reader.readAsArrayBuffer(file);
   }
 
   // Valider le formulaire et le fichier
@@ -188,9 +208,9 @@ export class ImportEnseignantsComponent implements OnInit, OnDestroy {
       return false;
     }
 
-    if (this.importForm.invalid) {
-      this.error = 'Veuillez remplir tous les champs obligatoires';
-      this.markFormGroupTouched();
+    const formData = this.importForm.value;
+    if (!formData.role_id) {
+      this.error = 'Impossible de déterminer le rôle par défaut pour les enseignants';
       return false;
     }
 
@@ -214,18 +234,38 @@ export class ImportEnseignantsComponent implements OnInit, OnDestroy {
     this.importResults = { total: 0, success: 0, errors: 0, details: [] };
 
     const formData = this.importForm.value;
-    const enseignantsToImport: Partial<Enseignant>[] = [];
+    const enseignantsToImport: any[] = [];
 
-    // Préparer les données d'import
-    this.filePreview.forEach((item: FilePreviewItem, index: number) => {
+    // Préparer les données d'import depuis toutes les lignes
+    this.allFileRows.forEach((row: any, index: number) => {
       try {
-        const enseignant: Partial<Enseignant> = {
-          first_name: item.row['first_name'] || item.row['prenom'] || '',
-          last_name: item.row['last_name'] || item.row['nom'] || '',
-          email: item.row['email'] || '',
-          phone: item.row['phone'] || item.row['telephone'] || '',
-          ville_id: formData.ville_id,
-          role_id: formData.role_id
+        const fullName = (row["Nom et prénom de l'enseignant"] || row['nom_prenom'] || '').toString().trim();
+        let firstName = '';
+        let lastName = '';
+
+        if (fullName) {
+          const parts = fullName.split(/\s+/);
+          if (parts.length === 1) {
+            lastName = parts[0];
+          } else {
+            lastName = parts[0];
+            firstName = parts.slice(1).join(' ');
+          }
+        }
+
+        // Normaliser le statut (vacataire/permanent)
+        const statutRaw = (row["Statut (vacataire / permanent)"] || row['statut'] || '').toString().trim().toLowerCase();
+        let statut: 'vacataire' | 'permanent' | null = null;
+        if (statutRaw === 'vacataire' || statutRaw === 'permanent') {
+          statut = statutRaw as 'vacataire' | 'permanent';
+        }
+
+        const enseignant: any = {
+          first_name: firstName || row['first_name'] || row['prenom'] || '',
+          last_name: lastName || row['last_name'] || row['nom'] || '',
+          email: row['Email'] || row['email'] || '',
+          phone: row['Téléphone'] || row['telephone'] || row['phone'] || '',
+          statut: statut
         };
 
         // Validation des données
@@ -244,9 +284,46 @@ export class ImportEnseignantsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Importer les enseignants un par un
-    this.importResults.total = enseignantsToImport.length;
-    this.importEnseignantsSequentially(enseignantsToImport, 0, formData);
+    // Charger les enseignants existants pour détecter les doublons
+    this.loadExistingEnseignants().then(() => {
+      // Importer les enseignants un par un
+      this.importResults.total = enseignantsToImport.length;
+      this.importEnseignantsSequentially(enseignantsToImport, 0, formData);
+    }).catch((error) => {
+      console.error('Erreur lors du chargement des enseignants existants:', error);
+      this.error = 'Erreur lors du chargement des enseignants existants';
+      this.loading = false;
+    });
+  }
+
+  // Charger tous les enseignants existants pour créer un map email -> ID
+  private loadExistingEnseignants(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.enseignantService.list(1, 10000, '', 'created_at', 'desc')
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (response: any) => {
+            this.existingEnseignantsMap.clear();
+            
+            const enseignants = response.data || response || [];
+            enseignants.forEach((enseignant: any) => {
+              if (enseignant.user?.email) {
+                this.existingEnseignantsMap.set(
+                  enseignant.user.email.toLowerCase().trim(),
+                  enseignant.id
+                );
+              }
+            });
+            
+            console.log(`Chargé ${this.existingEnseignantsMap.size} enseignants existants`);
+            resolve();
+          },
+          error: (error) => {
+            console.error('Erreur lors du chargement des enseignants:', error);
+            reject(error);
+          }
+        });
+    });
   }
 
   // Importer les enseignants séquentiellement
@@ -258,53 +335,101 @@ export class ImportEnseignantsComponent implements OnInit, OnDestroy {
     }
 
     const enseignantItem = enseignants[index];
+    const email = (enseignantItem.email || '').toLowerCase().trim();
     
-    // Créer l'enseignant via le service
-    const payload = {
-      user: {
-        first_name: enseignantItem.first_name || '',
-        last_name: enseignantItem.last_name || '',
-        email: enseignantItem.email || '',
-        phone: enseignantItem.phone || '',
-        password: formData.default_password,
-        role_id: formData.role_id,
-        post_id: formData.post_id,
-        ville_id: formData.ville_id
-      },
-      enseignant: {
-        ville_id: formData.ville_id
-      }
-    };
-
-    this.enseignantService.createWithUser(payload)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
-          this.importResults.success++;
-          this.importResults.details.push(`Ligne ${index + 2}: Importé avec succès`);
-          // Importer le suivant
-          this.importEnseignantsSequentially(enseignants, index + 1, formData);
+    // S'assurer que first_name et last_name ne sont pas vides
+    const safeFirstName = (enseignantItem.first_name && enseignantItem.first_name.trim().length > 0)
+      ? enseignantItem.first_name
+      : (enseignantItem.last_name || '');
+    const safeLastName = (enseignantItem.last_name && enseignantItem.last_name.trim().length > 0)
+      ? enseignantItem.last_name
+      : (enseignantItem.first_name || '');
+    
+    // Vérifier si l'enseignant existe déjà (par email)
+    const existingEnseignantId = this.existingEnseignantsMap.get(email);
+    
+    if (existingEnseignantId) {
+      // Mise à jour de l'enseignant existant (sans mot de passe)
+      const updatePayload = {
+        user: {
+          first_name: safeFirstName,
+          last_name: safeLastName,
+          email: enseignantItem.email || '',
+          phone: enseignantItem.phone || '',
+          role_id: formData.role_id
+          // Pas de password lors de la mise à jour
         },
-        error: (err) => {
-          this.importResults.errors++;
-          this.importResults.details.push(`Ligne ${index + 2}: ${err.error?.message || 'Erreur d\'import'}`);
-          // Continuer avec le suivant
-          this.importEnseignantsSequentially(enseignants, index + 1, formData);
+        enseignant: {
+          statut: enseignantItem.statut || null
         }
-      });
+      };
+      
+      this.enseignantService.updateWithUser(existingEnseignantId, updatePayload)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: () => {
+            this.importResults.success++;
+            this.importResults.details.push(`Ligne ${index + 2}: Mis à jour avec succès (email existant: ${enseignantItem.email})`);
+            // Importer le suivant
+            this.importEnseignantsSequentially(enseignants, index + 1, formData);
+          },
+          error: (err) => {
+            this.importResults.errors++;
+            this.importResults.details.push(`Ligne ${index + 2}: Erreur de mise à jour - ${err.error?.message || 'Erreur inconnue'}`);
+            // Continuer avec le suivant
+            this.importEnseignantsSequentially(enseignants, index + 1, formData);
+          }
+        });
+    } else {
+      // Création d'un nouvel enseignant (avec mot de passe)
+      const createPayload = {
+        user: {
+          first_name: safeFirstName,
+          last_name: safeLastName,
+          email: enseignantItem.email || '',
+          phone: enseignantItem.phone || '',
+          password: this.DEFAULT_PASSWORD,
+          role_id: formData.role_id
+        },
+        enseignant: {
+          statut: enseignantItem.statut || null
+        }
+      };
+      
+      this.enseignantService.createWithUser(createPayload)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (response: any) => {
+            this.importResults.success++;
+            this.importResults.details.push(`Ligne ${index + 2}: Créé avec succès`);
+            
+            // Ajouter le nouvel enseignant au map pour éviter les doublons dans le même import
+            if (response.data?.id && email) {
+              this.existingEnseignantsMap.set(email, response.data.id);
+            }
+            
+            // Importer le suivant
+            this.importEnseignantsSequentially(enseignants, index + 1, formData);
+          },
+          error: (err) => {
+            this.importResults.errors++;
+            this.importResults.details.push(`Ligne ${index + 2}: Erreur de création - ${err.error?.message || 'Erreur inconnue'}`);
+            // Continuer avec le suivant
+            this.importEnseignantsSequentially(enseignants, index + 1, formData);
+          }
+        });
+    }
   }
 
   // Valider les données d'un enseignant
   private validateEnseignantData(enseignant: Partial<Enseignant>, lineNumber: number): boolean {
-    if (!enseignant.first_name || enseignant.first_name.length < 2) {
-      this.importResults.errors++;
-      this.importResults.details.push(`Ligne ${lineNumber}: Prénom invalide (minimum 2 caractères)`);
-      return false;
-    }
+    const firstName = (enseignant.first_name || '').trim();
+    const lastName = (enseignant.last_name || '').trim();
 
-    if (!enseignant.last_name || enseignant.last_name.length < 2) {
+    // On accepte si au moins un des deux (nom ou prénom) a 2 caractères ou plus
+    if (firstName.length < 2 && lastName.length < 2) {
       this.importResults.errors++;
-      this.importResults.details.push(`Ligne ${lineNumber}: Nom invalide (minimum 2 caractères)`);
+      this.importResults.details.push(`Ligne ${lineNumber}: Nom/prénom invalides (au moins un des deux doit avoir 2 caractères ou plus)`);
       return false;
     }
 
@@ -344,35 +469,11 @@ export class ImportEnseignantsComponent implements OnInit, OnDestroy {
     this.importForm.reset();
     this.selectedFile = null;
     this.filePreview = [];
+    this.allFileRows = [];
     this.importResults = { total: 0, success: 0, errors: 0, details: [] };
     this.error = '';
     this.success = '';
     this.isDragOver = false;
-  }
-
-  // Marquer tous les champs comme touchés
-  private markFormGroupTouched(): void {
-    Object.keys(this.importForm.controls).forEach(key => {
-      const control = this.importForm.get(key);
-      control?.markAsTouched();
-    });
-  }
-
-  // Vérifier si un champ est invalide
-  isFieldInvalid(controlName: string): boolean {
-    const control = this.importForm.get(controlName);
-    return !!(control?.invalid && control.touched);
-  }
-
-  // Obtenir le message d'erreur d'un champ
-  getErrorMessage(controlName: string): string {
-    const control = this.importForm.get(controlName);
-    if (control?.errors && control.touched) {
-      if (control.errors['required']) {
-        return 'Ce champ est requis';
-      }
-    }
-    return '';
   }
 
   // Obtenir les en-têtes du fichier pour l'affichage
@@ -383,41 +484,25 @@ export class ImportEnseignantsComponent implements OnInit, OnDestroy {
 
   // Télécharger le modèle CSV
   downloadTemplate(): void {
-    const csvContent = this.generateCSVTemplate();
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    
-    if (link.download !== undefined) {
-      const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', 'modele_enseignants.csv');
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-  }
+    const headers = [[
+      "Nom et prénom de l'enseignant",
+      "Module enseigné",
+      "Statut (vacataire / permanent)",
+      "Téléphone",
+      "Email"
+    ]];
 
-  // Générer le contenu du modèle CSV
-  private generateCSVTemplate(): string {
-    const headers = ['first_name', 'last_name', 'email', 'phone'];
-    const sampleData = [
-      ['Jean', 'Dupont', 'jean.dupont@email.com', '0123456789'],
-      ['Marie', 'Martin', 'marie.martin@email.com', '0987654321'],
-      ['Pierre', 'Durand', 'pierre.durand@email.com', '0555666777']
-    ];
+    const worksheet = XLSX.utils.aoa_to_sheet(headers);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Enseignants');
 
-    let csvContent = headers.join(',') + '\n';
-    sampleData.forEach(row => {
-      csvContent += row.join(',') + '\n';
-    });
-
-    return csvContent;
+    XLSX.writeFile(workbook, 'modele_enseignants.xlsx');
   }
 
   removeFile() {
     this.selectedFile = null;
     this.filePreview = [];
+    this.allFileRows = [];
     this.error = '';
     this.success = '';
   }

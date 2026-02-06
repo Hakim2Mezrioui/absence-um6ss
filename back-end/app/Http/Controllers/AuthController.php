@@ -151,7 +151,6 @@ class AuthController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6',
             'role_id' => 'required|integer|exists:roles,id',
-            'post_id' => 'required|integer|exists:posts,id',
             'etablissement_id' => 'nullable|integer|exists:etablissements,id',
             'ville_id' => 'nullable|integer|exists:villes,id',
         ]);
@@ -169,7 +168,6 @@ class AuthController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role_id' => $request->role_id,
-            'post_id' => $request->post_id,
             'etablissement_id' => $request->etablissement_id,
             'ville_id' => $request->ville_id,
         ]);
@@ -207,7 +205,6 @@ class AuthController extends Controller
             "email" => ["required", "string", "email", "max:255", "unique:users,email"],
             "password" => ["required", "string", "min:6"],
             "role_id" => ["required", "integer", "exists:roles,id"],
-            "post_id" => ["required", "integer", "exists:posts,id"],
             "etablissement_id" => ["nullable", "integer", "exists:etablissements,id"],
             "ville_id" => ["nullable", "integer", "exists:villes,id"],
         ]);
@@ -226,7 +223,6 @@ class AuthController extends Controller
                 "email" => $request->email,
                 "password" => Hash::make($request->password),
                 "role_id" => $request->role_id,
-                "post_id" => $request->post_id,
                 "etablissement_id" => $request->etablissement_id,
                 "ville_id" => $request->ville_id,
             ]);
@@ -409,7 +405,6 @@ class AuthController extends Controller
                 "email" => ["sometimes", "string", "email", "max:255", "unique:users,email," . $id],
                 "password" => ["sometimes", "string", "min:6"],
                 "role_id" => ["sometimes", "integer", "exists:roles,id"],
-                "post_id" => ["sometimes", "integer", "exists:posts,id"],
                 "etablissement_id" => ["sometimes", "nullable", "integer", "exists:etablissements,id"],
                 "ville_id" => ["sometimes", "nullable", "integer", "exists:villes,id"],
             ]);
@@ -423,7 +418,7 @@ class AuthController extends Controller
 
             // Mise à jour des champs fournis
             $updateData = $request->only([
-                'first_name', 'last_name', 'email', 'role_id', 'post_id', 'etablissement_id', 'ville_id'
+                'first_name', 'last_name', 'email', 'role_id', 'etablissement_id', 'ville_id'
             ]);
 
             // Hacher le mot de passe si fourni
@@ -434,7 +429,7 @@ class AuthController extends Controller
             $user->update($updateData);
 
             // Recharger l'utilisateur avec les relations
-            $user->load(['role', 'post', 'etablissement', 'ville']);
+            $user->load(['role', 'etablissement', 'ville']);
 
             return response()->json([
                 "status" => "success",

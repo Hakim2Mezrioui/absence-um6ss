@@ -30,7 +30,6 @@ class EnseignantController extends Controller
     {
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
-            'ville_id' => 'required|exists:villes,id',
         ]);
         return $this->enseignantService->store($validated);
     }
@@ -44,7 +43,6 @@ class EnseignantController extends Controller
     {
         $validated = $request->validate([
             'user_id' => 'sometimes|exists:users,id',
-            'ville_id' => 'sometimes|exists:villes,id',
         ]);
         return $this->enseignantService->update($id, $validated);
     }
@@ -70,9 +68,9 @@ class EnseignantController extends Controller
             'user.last_name' => 'required|string|max:255',
             'user.email' => 'required|email|unique:users,email',
             'user.password' => 'required|string|min:6',
+            'user.phone' => 'nullable|string|max:255',
             'user.role_id' => 'required|exists:roles,id',
-            'user.ville_id' => 'required|exists:villes,id',
-            'enseignant.ville_id' => 'required|exists:villes,id'
+            'enseignant.statut' => 'nullable|in:vacataire,permanent'
         ]);
 
         $userData = $request->input('user');
@@ -95,8 +93,8 @@ class EnseignantController extends Controller
             'user.first_name' => 'required|string|max:255',
             'user.last_name' => 'required|string|max:255',
             'user.email' => 'required|email|unique:users,email,' . $enseignantData->user->id,
-            'user.ville_id' => 'required|exists:villes,id',
-            'enseignant.ville_id' => 'required|exists:villes,id'
+            'user.phone' => 'nullable|string|max:255',
+            'enseignant.statut' => 'nullable|in:vacataire,permanent'
         ];
 
         // Le mot de passe est optionnel lors de la mise à jour

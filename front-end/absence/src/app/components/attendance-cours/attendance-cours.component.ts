@@ -88,6 +88,7 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
   lastRefreshTime: Date | null = null;
   private autoRefreshStarted = false; // Flag pour éviter de démarrer plusieurs fois
   private autoRefreshSub?: Subscription;
+  private biostarDataIntegrated = false; // Flag pour indiquer que les données Biostar ont été intégrées
   
   // Propriétés pour l'état de la configuration Biostar
   biostarConfigStatus: 'loading' | 'success' | 'error' | 'none' = 'loading';
@@ -189,9 +190,9 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
           this.biostarConfigStatus = 'success';
           this.biostarConfigMessage = `Configuration Biostar chargée pour la ville: ${response.data.ville?.name || 'Inconnue'}`;
 
-          // Ajuster l'offset d'affichage selon la ville (Casablanca => +60 minutes, autres => 0)
-          const villeName = (response.data.ville?.name || '').toString().trim().toLowerCase();
-          this.biostarTimeOffsetMinutes = villeName === 'casablanca' || villeName === 'casa' ? 60 : 0;
+          // Toujours appliquer l'offset de +60 minutes car le serveur Biostar est toujours décalé de -60 minutes
+          // (le serveur Biostar enregistre les heures avec un décalage de -60 min par rapport à l'heure locale)
+          this.biostarTimeOffsetMinutes = 60;
           
           // Une seule notification de succès
           this.notificationService.success(
@@ -224,8 +225,18 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
    * Charger les données de pointage depuis Biostar
    */
   loadBiostarAttendanceData(): void {
+    console.log('🚀 loadBiostarAttendanceData appelé', {
+      coursId: this.coursId,
+      hasCoursData: !!this.coursData,
+      hasCours: !!this.coursData?.cours
+    });
+    
     if (!this.coursId || !this.coursData?.cours) {
-      console.warn('⚠️ Impossible de charger les données Biostar: coursId ou coursData manquant');
+      console.warn('⚠️ Impossible de charger les données Biostar: coursId ou coursData manquant', {
+        coursId: this.coursId,
+        hasCoursData: !!this.coursData,
+        hasCours: !!this.coursData?.cours
+      });
       return;
     }
 
@@ -274,8 +285,16 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     .subscribe({
       next: (response) => {
         console.log('✅ Données de pointage Biostar récupérées:', response);
+        console.log('📊 Détails de la réponse:', {
+          success: response.success,
+          hasData: !!response.data,
+          totalPunches: response.data?.total_punches || 0,
+          punchesCount: response.data?.punches?.length || 0,
+          studentsWithPunches: response.data?.students_with_punches || 0
+        });
         
         if (response.success && response.data) {
+          console.log('🔍 Échantillon des pointages reçus:', response.data.punches?.slice(0, 3));
           // Intégrer les données de pointage avec les étudiants
           this.integrateBiostarDataWithStudents(response.data);
           
@@ -287,6 +306,8 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
           //   'Données de pointage chargées', 
           //   `${response.data.total_punches || 0} pointage(s) récupéré(s) depuis Biostar`
           // );
+        } else {
+          console.warn('⚠️ Réponse Biostar invalide ou sans données:', response);
         }
       },
       error: (error) => {
@@ -308,14 +329,22 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     // sinon on risque de contredire les données officielles de l'API.
     if (this.isBiCheckMode) {
       console.log('ℹ️ Mode Bi-check actif → intégration Biostar front ignorée (gérée par le back-end)');
+      this.biostarDataIntegrated = true; // Marquer comme intégré même en mode bi-check
       return;
     }
 
-    if (!biostarData.punches || !this.students) return;
+    if (!biostarData.punches || !this.students) {
+      console.warn('⚠️ Pas de données Biostar ou étudiants à intégrer');
+      return;
+    }
+    
+    // Marquer que l'intégration Biostar est en cours
+    this.biostarDataIntegrated = false;
 
     console.log('🔄 Intégration des données Biostar avec les étudiants');
     console.log('📊 Données Biostar reçues:', biostarData);
     console.log('👥 Étudiants locaux:', this.students.length);
+    console.log('📋 Nombre de pointages Biostar:', biostarData.punches?.length || 0);
 
     // Normalisation simple (trim + uppercase)
     const normalize = (v: any) => (v === null || v === undefined) ? '' : String(v).trim().toUpperCase();
@@ -336,8 +365,18 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     });
 
     console.log('🗺️ Map des pointages créé:', punchMap.size, 'clés avec pointages');
+    console.log('🔑 Clés dans le map:', Array.from(punchMap.keys()).slice(0, 10));
+    console.log('🔑 Matricules des étudiants:', this.students.slice(0, 10).map(s => ({
+      matricule: s.matricule,
+      normalized: normalize(s.matricule),
+      hasMatch: punchMap.has(normalize(s.matricule))
+    })));
+    
+    // Vérifier combien d'étudiants ont des pointages correspondants
+    const studentsWithMatches = this.students.filter(s => punchMap.has(normalize(s.matricule))).length;
+    console.log(`📊 Étudiants avec pointages correspondants: ${studentsWithMatches}/${this.students.length}`);
 
-    // Mettre à jour les étudiants avec leurs données de pointage
+    // Mettre à jour les étudiants avec leurs données de pointage (EXACTEMENT comme dans les examens)
     let matchedStudents = 0;
     this.students.forEach(student => {
       const key = normalize(student.matricule);
@@ -355,28 +394,46 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
 
         // Parser + appliquer offset
         const rawTime: string = lastPunch.punch_time || lastPunch.bsevtdt;
+        console.log(`🔍 Étudiant ${student.matricule} (${student.first_name} ${student.last_name}): Pointage brut = ${rawTime}`);
         const punchTimeDate = this.parseStudentPunchTime(rawTime);
+        console.log(`   📅 Pointage parsé: ${punchTimeDate.toISOString()} (${punchTimeDate.toLocaleString('fr-FR')})`);
 
         student.punch_time = {
           time: punchTimeDate.toISOString(),
           device: lastPunch.devnm || lastPunch.device_name || lastPunch.device || 'Inconnu'
         };
         
-        // Recalculer le statut avec la date ajustée
-        student.status = this.calculateStudentStatus(punchTimeDate);
-        
-        console.log(`✅ Étudiant ${student.matricule} (${student.last_name} ${student.first_name}) - Statut: ${student.status}`);
+        // Recalculer le statut avec la date ajustée (EXACTEMENT comme dans les examens)
+        const oldStatus = student.status;
+        const newStatus = this.calculateStudentStatus(punchTimeDate);
+        student.status = newStatus;
+        console.log(`   ✅ Statut calculé: ${oldStatus || 'undefined'} → ${newStatus}`);
+        console.log(`   📅 Pointage: ${punchTimeDate.toLocaleString('fr-FR')}`);
       } else {
-        console.log(`❌ Aucun pointage trouvé pour l'étudiant ${student.matricule} (${student.last_name} ${student.first_name})`);
+        // Si aucun pointage trouvé, marquer comme absent SEULEMENT si le statut n'est pas déjà défini
+        // (pour éviter d'écraser un statut manuel ou déjà calculé)
+        if (!student.manual_override && (!student.status || student.status === 'absent' || student.status === undefined)) {
+          console.log(`❌ Aucun pointage trouvé pour ${student.matricule} (${student.first_name} ${student.last_name}) → Absent`);
+        student.status = 'absent';
+        } else {
+          console.log(`ℹ️ Aucun pointage trouvé pour ${student.matricule}, mais statut préservé: ${student.status}`);
+        }
       }
     });
 
-    // Recalculer les statistiques
-    this.presents = this.students.filter(s => s.status === 'present' || s.status === 'présent').length;
-    this.absents = this.students.filter(s => s.status === 'absent').length;
-    this.lates = this.students.filter(s => s.status === 'late' || s.status === 'en retard').length;
-    this.excused = this.students.filter(s => s.status === 'excused' || s.status === 'excusé').length;
-    this.totalStudents = this.students.length;
+    // NE PAS appeler applyToleranceLogic() ici car les statuts sont déjà calculés correctement
+    // dans la boucle ci-dessus avec calculateStudentStatus()
+    // Appeler applyToleranceLogic() ici pourrait réinitialiser les statuts correctement calculés
+    console.log('✅ Intégration Biostar terminée - Statuts calculés directement');
+    console.log('📊 Statuts après intégration Biostar:', 
+      this.students.slice(0, 10).map(s => ({ 
+        name: `${s.first_name} ${s.last_name}`, 
+        matricule: s.matricule,
+        status: s.status, 
+        hasPunchTime: !!s.punch_time?.time,
+        punchTime: s.punch_time?.time
+      }))
+    );
 
     // Mettre à jour les étudiants filtrés
     this.filteredStudents = [...this.students];
@@ -386,13 +443,90 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
       this.applySorting();
     }
     
+    // Calculer les statistiques DIRECTEMENT depuis les statuts des étudiants (sans passer par applyToleranceLogic)
+    const finalPresents = this.students.filter(s => {
+      const status = (s.status || '').toLowerCase().trim();
+      return status === 'present' || status === 'présent';
+    }).length;
+    const finalLates = this.students.filter(s => {
+      const status = (s.status || '').toLowerCase().trim();
+      return status === 'late' || status === 'en retard' || status === 'retard';
+    }).length;
+    const finalAbsents = this.students.filter(s => {
+      const status = (s.status || '').toLowerCase().trim();
+      return status === 'absent';
+    }).length;
+    const finalExcused = this.students.filter(s => {
+      const status = (s.status || '').toLowerCase().trim();
+      return status === 'excused' || status === 'excusé';
+    }).length;
+    
+    // Mettre à jour les statistiques IMMÉDIATEMENT avec les valeurs calculées
+    this.presents = finalPresents;
+    this.lates = finalLates;
+    this.absents = finalAbsents;
+    this.excused = finalExcused;
+    this.totalStudents = this.students.length;
+    
+    console.log('📊 Statistiques calculées directement depuis les statuts:', {
+      presents: this.presents,
+      lates: this.lates,
+      absents: this.absents,
+      excused: this.excused,
+      total: this.totalStudents
+    });
+    
     console.log(`✅ Données Biostar intégrées avec succès - ${matchedStudents}/${this.students.length} étudiants correspondants`);
-    console.log('📊 Statistiques finales:', {
+    
+    // Vérification finale - compter tous les statuts pour s'assurer de la cohérence
+    const allStatuses = this.students.map(s => s.status);
+    const statusCounts = {
+      present: allStatuses.filter(s => s === 'present' || s === 'présent').length,
+      late: allStatuses.filter(s => s === 'late' || s === 'en retard' || s === 'retard').length,
+      absent: allStatuses.filter(s => s === 'absent').length,
+      excused: allStatuses.filter(s => s === 'excused' || s === 'excusé').length,
+      other: allStatuses.filter(s => !['present', 'présent', 'late', 'en retard', 'retard', 'absent', 'excused', 'excusé'].includes(s)).length
+    };
+    
+    console.log('🔍 VÉRIFICATION FINALE DES STATUTS:', {
+      totalStudents: this.students.length,
+      statusCounts: statusCounts,
+      sum: statusCounts.present + statusCounts.late + statusCounts.absent + statusCounts.excused + statusCounts.other,
+      statistics: {
+      presents: this.presents,
+        lates: this.lates,
+      absents: this.absents,
+        excused: this.excused
+      }
+    });
+    
+    // Si les statistiques ne correspondent pas, les corriger
+    if (this.presents !== statusCounts.present || 
+        this.lates !== statusCounts.late || 
+        this.absents !== statusCounts.absent) {
+      console.warn('⚠️ Incohérence détectée, correction finale...');
+      this.presents = statusCounts.present;
+      this.lates = statusCounts.late;
+      this.absents = statusCounts.absent;
+      this.excused = statusCounts.excused;
+      console.log('✅ Statistiques corrigées après vérification:', {
+        presents: this.presents,
+      lates: this.lates,
+        absents: this.absents,
+      excused: this.excused
+      });
+    }
+    
+    // Marquer que l'intégration Biostar est terminée
+    this.biostarDataIntegrated = true;
+    
+    console.log('🎯 INTÉGRATION BOSTAR TERMINÉE - Statistiques finales:', {
       total: this.totalStudents,
       presents: this.presents,
-      absents: this.absents,
       lates: this.lates,
-      excused: this.excused
+      absents: this.absents,
+      excused: this.excused,
+      biostarDataIntegrated: this.biostarDataIntegrated
     });
   }
 
@@ -425,17 +559,92 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
             this.exitCaptureWindowMinutes = 0;
           }
           this.coursData = data;
-          this.students = data.students || [];
+          
+          // IMPORTANT: Ne JAMAIS réinitialiser this.students avec les données de l'API
+          // car cela écrase les statuts calculés. On met à jour seulement les propriétés non-calculées.
+          const newStudents = data.students || [];
+          
+          if (this.students.length === 0) {
+            // Première initialisation: copier tous les étudiants avec leurs données (y compris punch_in et punch_out)
+            this.students = newStudents.map((student: any) => ({
+              ...student,
+              punch_in: student.punch_in,
+              punch_out: student.punch_out,
+              punch_in_raw: student.punch_in_raw,
+              punch_out_raw: student.punch_out_raw
+            }));
+          } else {
+            // Mise à jour: mettre à jour les données mais préserver les overrides manuels
+            const existingStudentsMap = new Map(this.students.map(s => [s.id, s]));
+            this.students = newStudents.map((newStudent: any) => {
+              const existingStudent = existingStudentsMap.get(newStudent.id);
+              if (existingStudent && existingStudent.manual_override) {
+                // Préserver le statut manuel mais mettre à jour les pointages
+                return {
+                  ...newStudent,
+                  status: existingStudent.status,
+                  manual_override: true,
+                  punch_in: newStudent.punch_in || existingStudent.punch_in,
+                  punch_out: newStudent.punch_out || existingStudent.punch_out,
+                  punch_in_raw: newStudent.punch_in_raw || existingStudent.punch_in_raw,
+                  punch_out_raw: newStudent.punch_out_raw || existingStudent.punch_out_raw
+                };
+              }
+              // Sinon, utiliser les nouvelles données (le statut sera recalculé)
+              return {
+                ...newStudent,
+                punch_in: newStudent.punch_in,
+                punch_out: newStudent.punch_out,
+                punch_in_raw: newStudent.punch_in_raw,
+                punch_out_raw: newStudent.punch_out_raw
+              };
+            });
+          }
+
+          // Debug: Vérifier les données initiales
+          console.log('📊 Données des étudiants:', {
+            total: this.students.length,
+            avecPunchTime: this.students.filter(s => s.punch_time && s.punch_time.time).length,
+            statuts: {
+              present: this.students.filter(s => s.status === 'present').length,
+              absent: this.students.filter(s => s.status === 'absent').length,
+              late: this.students.filter(s => s.status === 'late').length
+            }
+          });
 
           // Statistiques
           if (this.isBiCheckMode && data.statistics) {
-            // En mode bi-check, utiliser directement les statistiques renvoyées par le back-end
+            // En mode bi-check, mettre à jour les statuts calculés AVANT les statistiques
+            this.updateBiCheckStatuses();
+            // Utiliser directement les statistiques renvoyées par le back-end
             this.updateStatistics(data.statistics);
+            this.biostarDataIntegrated = true; // En mode bi-check, les données viennent déjà du back-end
           } else {
-            // En mode normal, appliquer la logique de tolérance côté frontend
-            this.applyToleranceLogic();
+            // En mode normal, NE PAS appliquer la logique de tolérance ici
+            // car les données Biostar ne sont pas encore chargées
+            // La logique sera appliquée après l'intégration des données Biostar
+            if (!this.biostarDataIntegrated) {
+              // Initialiser seulement le total, pas les autres statistiques
+              // car elles seront recalculées après l'intégration Biostar
+              this.totalStudents = this.students.length;
+              console.log('📊 Initialisation (avant Biostar) - Total étudiants:', this.totalStudents);
+              console.log('   ⏳ Attente de l\'intégration des données Biostar pour calculer les statistiques...');
+            } else {
+              console.log('ℹ️ Données Biostar déjà intégrées, préservation des statistiques existantes:', {
+                presents: this.presents,
+                lates: this.lates,
+                absents: this.absents,
+                excused: this.excused,
+                total: this.totalStudents
+              });
+              // Préserver les statistiques existantes si les données Biostar ont déjà été intégrées
+              // (cas de l'actualisation automatique)
+              // Mais mettre à jour le total si le nombre d'étudiants a changé
+              this.totalStudents = this.students.length;
+            }
           }
           
+          // Appliquer les filtres après la mise à jour des statuts
           this.applyFilters();
           this.updatePromotionOptions();
           if (this.sortConfig.column) {
@@ -600,18 +809,35 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     let absents = 0;
 
     this.students.forEach(student => {
-      const status = this.isBiCheckMode ? this.getDisplayStatus(student) : student.status;
+      const status = this.isBiCheckMode ? this.getDisplayStatus(student) : (student.status || 'absent');
+      
+      // Normaliser le statut pour la comparaison (comme dans les examens)
+      const normalizedStatus = (status || '').toLowerCase().trim();
 
-      if (status === 'present') presents++;
-      else if (status === 'late') lates++;
-      else if (status === 'excused') excused++;
-      else absents++;
+      if (normalizedStatus === 'present' || normalizedStatus === 'présent') {
+        presents++;
+      } else if (normalizedStatus === 'late' || normalizedStatus === 'en retard' || normalizedStatus === 'retard') {
+        lates++;
+      } else if (normalizedStatus === 'excused' || normalizedStatus === 'excusé') {
+        excused++;
+      } else {
+        absents++;
+      }
     });
 
+    // Toujours mettre à jour les statistiques pour garantir la cohérence
     this.presents = presents;
     this.lates = lates;
     this.excused = excused;
     this.absents = absents;
+    
+    console.log('📊 refreshStatsFromCurrentStudents - Statistiques recalculées:', {
+      total: this.totalStudents,
+      presents: this.presents,
+      lates: this.lates,
+      absents: this.absents,
+      excused: this.excused
+    });
   }
 
   /**
@@ -630,6 +856,14 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     }
 
     console.log('🔄 Application de la logique de tolérance pour', this.students.length, 'étudiants');
+    console.log('📊 État avant applyToleranceLogic:', {
+      étudiantsAvecPointage: this.students.filter(s => s.punch_time && s.punch_time.time).length,
+      statutsActuels: {
+        present: this.students.filter(s => s.status === 'present').length,
+        late: this.students.filter(s => s.status === 'late').length,
+        absent: this.students.filter(s => s.status === 'absent').length
+      }
+    });
 
     let presentCount = 0;
     let lateCount = 0;
@@ -674,13 +908,20 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
         
         if (isNaN(punchTime.getTime())) {
           console.log(`❌ Étudiant ${index + 1}: Date invalide - ${student.punch_time.time}`);
+          // NE PAS écraser le statut si c'est déjà calculé, seulement si c'est vraiment invalide
+          if (!student.status || student.status === 'absent' || student.status === undefined) {
           student.status = 'absent';
+          }
           absentCount++;
         } else {
           const oldStatus = student.status;
+          
+          // NE RECALCULER QUE si le statut n'est pas déjà défini correctement
+          // Si le statut est déjà 'present' ou 'late', on le préserve (il a été calculé par integrateBiostarDataWithStudents)
+          if (!oldStatus || oldStatus === 'absent' || oldStatus === undefined) {
           const newStatus = this.calculateStudentStatus(punchTime);
           
-          console.log(`👤 ${student.first_name} ${student.last_name}: ${oldStatus} → ${newStatus}`);
+            console.log(`👤 ${student.first_name} ${student.last_name}: ${oldStatus || 'undefined'} → ${newStatus}`);
           console.log(`   📅 Pointage: ${student.punch_time.time} → ${punchTime.toLocaleString()}`);
           
           student.status = newStatus;
@@ -688,34 +929,58 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
           if (newStatus === 'present') presentCount++;
           else if (newStatus === 'late') lateCount++;
           else absentCount++;
+          } else {
+            // Statut déjà calculé, le préserver
+            console.log(`✅ ${student.first_name} ${student.last_name}: Statut préservé (${oldStatus}) - déjà calculé correctement`);
+            
+            if (oldStatus === 'present') presentCount++;
+            else if (oldStatus === 'late') lateCount++;
+            else absentCount++;
+          }
         }
       } else {
+        // Si pas de pointage, marquer absent SEULEMENT si le statut n'est pas déjà défini manuellement
+        if (!student.manual_override && (!student.status || student.status === 'absent')) {
         student.status = 'absent';
+        }
         absentCount++;
       }
     });
 
-    // Recalculer les statistiques
-    this.refreshStatsFromCurrentStudents();
+    // Calculer les statistiques directement depuis les statuts des étudiants
+    // NE PAS utiliser refreshStatsFromCurrentStudents() ici car elle peut être appelée
+    // plusieurs fois et écraser les bonnes valeurs
+    const actualPresents = this.students.filter(s => {
+      const status = (s.status || '').toLowerCase().trim();
+      return status === 'present' || status === 'présent';
+    }).length;
+    const actualLates = this.students.filter(s => {
+      const status = (s.status || '').toLowerCase().trim();
+      return status === 'late' || status === 'en retard' || status === 'retard';
+    }).length;
+    const actualAbsents = this.students.filter(s => {
+      const status = (s.status || '').toLowerCase().trim();
+      return status === 'absent';
+    }).length;
+    const actualExcused = this.students.filter(s => {
+      const status = (s.status || '').toLowerCase().trim();
+      return status === 'excused' || status === 'excusé';
+    }).length;
     
-    console.log(`\n📊 RÉSULTAT FINAL:`);
+    // Mettre à jour les statistiques avec les valeurs calculées
+    this.presents = actualPresents;
+    this.lates = actualLates;
+    this.absents = actualAbsents;
+    this.excused = actualExcused;
+    this.totalStudents = this.students.length;
+    
+    console.log(`\n📊 RÉSULTAT FINAL (applyToleranceLogic):`);
     console.log(`   Étudiants avec pointage: ${studentsWithPunchTime}/${this.students.length}`);
     console.log(`   Présents: ${this.presents}`);
     console.log(`   En retard: ${this.lates}`);
     console.log(`   Absents: ${this.absents}`);
     console.log(`   Total étudiants: ${this.totalStudents}`);
-    
-    // Vérifier que les statistiques sont cohérentes
-    const actualPresents = this.students.filter(s => s.status === 'present').length;
-    const actualLates = this.students.filter(s => s.status === 'late').length;
-    const actualAbsents = this.students.filter(s => s.status === 'absent').length;
-    const actualExcused = this.students.filter(s => s.status === 'excused').length;
-    
-    console.log(`\n🔍 VÉRIFICATION DES STATISTIQUES:`);
-    console.log(`   Présents calculés: ${actualPresents} (attendu: ${this.presents})`);
-    console.log(`   En retard calculés: ${actualLates} (attendu: ${this.lates})`);
-    console.log(`   Absents calculés: ${actualAbsents} (attendu: ${this.absents})`);
-    console.log(`   Excusés calculés: ${actualExcused} (attendu: ${this.excused})`);
+    console.log(`   Comptage direct - Présents: ${actualPresents}, Lates: ${actualLates}, Absents: ${actualAbsents}, Excusés: ${actualExcused}`);
     
     // Mettre à jour les étudiants filtrés
     this.filteredStudents = [...this.students];
@@ -866,6 +1131,8 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
    * - Présent : entre pointage_start_hour et heure_debut
    * - En retard : entre heure_debut et heure_debut + tolerance
    * - Absent : avant pointage_start_hour ou après heure_debut + tolerance
+   * 
+   * TEMPORAIREMENT: Ignorer le calcul de tolérance - retourner 'present' si pointage existe
    */
   private calculateStudentStatus(punchTime: Date): string {
     if (!this.coursData?.cours) {
@@ -881,67 +1148,59 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
       return 'absent';
     }
 
-    console.log('🔍 DÉTAILS DU CALCUL:');
-    console.log('   📅 Date du cours:', cours.date);
-    console.log('   ⏰ Heure de début:', cours.heure_debut);
-    console.log('   🎯 Heure de pointage:', cours.pointage_start_hour);
-    console.log('   ⏱️ Tolérance:', cours.tolerance);
-    console.log('   📍 Pointage étudiant:', punchTime.toLocaleString());
-
-    // Créer les dates de référence - utiliser la même date que le cours
-    const coursDate = new Date(cours.date);
-    console.log('   📆 Date cours parsée:', coursDate.toLocaleString());
-    
-    // Parser les heures simplement
-    const heureDebut = this.parseTimeStringSimple(cours.heure_debut);
-    const heurePointage = cours.pointage_start_hour ? this.parseTimeStringSimple(cours.pointage_start_hour) : null;
     const toleranceMinutes = this.parseToleranceToMinutes(cours.tolerance);
+    const coursDate = new Date(cours.date);
+    const heureDebut = this.parseTimeString(cours.heure_debut);
+    const heurePointage = cours.pointage_start_hour ? this.parseTimeString(cours.pointage_start_hour) : null;
 
-    console.log('   🕐 Heure début parsée:', heureDebut.toLocaleString());
-    console.log('   🎯 Heure pointage parsée:', heurePointage?.toLocaleString() || 'N/A');
-    console.log('   ⏱️ Tolérance en minutes:', toleranceMinutes);
-
-    // Créer les dates complètes
     const coursStartDateTime = new Date(coursDate);
     coursStartDateTime.setHours(heureDebut.getHours(), heureDebut.getMinutes(), heureDebut.getSeconds(), 0);
-
+    
     const coursPunchStartDateTime = heurePointage ? new Date(coursDate) : null;
     if (coursPunchStartDateTime && heurePointage) {
       coursPunchStartDateTime.setHours(heurePointage.getHours(), heurePointage.getMinutes(), heurePointage.getSeconds(), 0);
     }
-
+    
     const toleranceDateTime = new Date(coursStartDateTime);
     toleranceDateTime.setMinutes(toleranceDateTime.getMinutes() + toleranceMinutes);
 
-    console.log('🕐 CALCUL FINAL:');
-    console.log('   📍 Pointage étudiant:', punchTime.toLocaleString());
-    console.log('   🎯 Début pointage:', coursPunchStartDateTime?.toLocaleString() || 'N/A');
-    console.log('   ⏰ Début cours:', coursStartDateTime.toLocaleString());
-    console.log('   ⏱️ Limite tolérance:', toleranceDateTime.toLocaleString());
-
-    // NOUVELLE LOGIQUE:
-    // Si pas d'heure de pointage définie, utiliser l'heure de début comme référence
-    const pointageStartRef = coursPunchStartDateTime || coursStartDateTime;
+    const punchDateLocal = new Date(punchTime.getFullYear(), punchTime.getMonth(), punchTime.getDate());
+    const coursDateLocal = new Date(coursDate.getFullYear(), coursDate.getMonth(), coursDate.getDate());
     
-    // 1. Présent : entre pointage_start_hour et heure_debut
-    if (punchTime >= pointageStartRef && punchTime < coursStartDateTime) {
-      console.log('✅ Présent (pointage entre début pointage et début cours)');
-      return 'present';
-    } 
-    // 2. En retard : entre heure_debut et heure_debut + tolerance
-    else if (punchTime >= coursStartDateTime && punchTime <= toleranceDateTime) {
-      console.log('⏰ En retard (dans la période de tolérance)');
-      return 'late';
-    } 
-    // 3. Absent : avant pointage_start_hour ou après heure_debut + tolerance
-    else {
-      if (punchTime < pointageStartRef) {
-        console.log('❌ Absent (pointage trop tôt)');
-      } else {
-        console.log('❌ Absent (pointage au-delà de la tolérance)');
-      }
+    if (punchDateLocal.getTime() !== coursDateLocal.getTime()) {
       return 'absent';
     }
+
+    const pointageStartRef = coursPunchStartDateTime || coursStartDateTime;
+    
+    if (punchTime >= pointageStartRef && punchTime < coursStartDateTime) {
+      return 'present';
+    } else if (punchTime >= coursStartDateTime && punchTime <= toleranceDateTime) {
+      return 'late';
+    } else {
+      return 'absent';
+    }
+  }
+
+  /**
+   * Parse une chaîne de temps (HH:MM:SS) en objet Date - EXACTEMENT comme dans les rattrapages
+   * Gère aussi les formats ISO (avec 'T' et 'Z')
+   */
+  private parseTimeString(timeString: string): Date {
+    // Si c'est un timestamp ISO, extraire l'heure en UTC
+    if (timeString.includes('T') && timeString.includes('Z')) {
+      const date = new Date(timeString);
+      // Créer une nouvelle date avec seulement l'heure (sans la date)
+      const result = new Date();
+      result.setHours(date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds(), 0);
+      return result;
+    }
+    
+    // Sinon, parser comme HH:MM:SS (comme dans les rattrapages)
+    const [hours, minutes, seconds] = timeString.split(':').map(Number);
+    const date = new Date();
+    date.setHours(hours, minutes, seconds || 0, 0);
+    return date;
   }
 
   /**
@@ -1580,6 +1839,11 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
           return;
         }
         console.log('⏰ Actualisation automatique déclenchée');
+        // Réinitialiser le flag pour permettre la réintégration des données Biostar
+        // mais préserver temporairement les statuts jusqu'à ce que les nouvelles données soient intégrées
+        const previousBiostarIntegrated = this.biostarDataIntegrated;
+        this.biostarDataIntegrated = false;
+        console.log('🔄 Flag biostarDataIntegrated réinitialisé pour recharger les données Biostar');
         this.loadAttendanceData();
       });
   }
@@ -1672,7 +1936,9 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
       'present': 'Présent',
       'absent': 'Absent',
       'late': 'En retard',
-      'excused': 'Excusé'
+      'excused': 'Excusé',
+      'pending_entry': 'Entrée à valider',
+      'pending_exit': 'Sortie à valider'
     };
     return statusLabels[status] || status;
   }
@@ -1959,8 +2225,10 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
       const matriculeMatch = !this.searchFilters.matricule || 
         student.matricule?.toLowerCase().includes(this.searchFilters.matricule.toLowerCase());
       
+      // En mode bi-check, utiliser getDisplayStatus() pour le filtre de statut
+      const studentStatus = this.isBiCheckMode ? this.getDisplayStatus(student) : student.status;
       const statusMatch = !this.searchFilters.status || 
-        student.status === this.searchFilters.status;
+        studentStatus === this.searchFilters.status;
       
       const promotionMatch = !this.searchFilters.promotion || 
         student.promotion?.name === this.searchFilters.promotion;
@@ -2013,10 +2281,8 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
    */
   sortBy(column: string): void {
     if (this.sortConfig.column === column) {
-      // Inverser la direction si c'est la même colonne
       this.sortConfig.direction = this.sortConfig.direction === 'asc' ? 'desc' : 'asc';
     } else {
-      // Nouvelle colonne, commencer par ascendant
       this.sortConfig.column = column;
       this.sortConfig.direction = 'asc';
     }
@@ -2051,8 +2317,10 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
           valueB = b.email?.toLowerCase() || '';
           break;
         case 'status':
-          valueA = this.getStatusLabel(a.status).toLowerCase();
-          valueB = this.getStatusLabel(b.status).toLowerCase();
+          const statusA = this.isBiCheckMode ? this.getDisplayStatus(a) : (a.status || 'absent');
+          const statusB = this.isBiCheckMode ? this.getDisplayStatus(b) : (b.status || 'absent');
+          valueA = this.getStatusWithIcon(statusA).label.toLowerCase();
+          valueB = this.getStatusWithIcon(statusB).label.toLowerCase();
           break;
         case 'punch_time':
           valueA = a.punch_time?.time ? new Date(a.punch_time.time).getTime() : 0;
@@ -2074,7 +2342,6 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
           return 0;
       }
 
-      // Comparer les valeurs
       let comparison = 0;
       if (valueA < valueB) {
         comparison = -1;
@@ -2082,7 +2349,6 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
         comparison = 1;
       }
 
-      // Inverser si direction descendante
       return this.sortConfig.direction === 'desc' ? -comparison : comparison;
     });
   }
@@ -2242,24 +2508,222 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     return statusConfig[status] || { label: status, icon: 'help', color: 'text-gray-600' };
   }
 
+  /**
+   * Mettre à jour les statuts en mode bi-check après chargement des données
+   */
+  private updateBiCheckStatuses(): void {
+    if (!this.isBiCheckMode || !this.coursData?.cours) {
+      return;
+    }
+    
+    this.students.forEach(student => {
+      if (!student.manual_override) {
+        // Vérifier si punch_in existe (objet avec time ou chaîne)
+        const hasPunchIn = !!(student.punch_in?.time || student.punch_in_raw?.time || 
+                             (typeof student.punch_in === 'string' && student.punch_in) ||
+                             (typeof student.punch_in_raw === 'string' && student.punch_in_raw));
+        // Vérifier si punch_out existe (objet avec time ou chaîne)
+        const hasPunchOut = !!(student.punch_out?.time || student.punch_out_raw?.time ||
+                              (typeof student.punch_out === 'string' && student.punch_out) ||
+                              (typeof student.punch_out_raw === 'string' && student.punch_out_raw));
+        
+        if (!hasPunchIn) {
+          student.status = 'pending_entry';
+        } else if (hasPunchIn && !hasPunchOut) {
+          student.status = 'pending_exit';
+        } else if (hasPunchIn && hasPunchOut) {
+          let punchInTime: Date | null = null;
+          
+          if (student.punch_in) {
+            if (typeof student.punch_in === 'string') {
+              punchInTime = new Date(student.punch_in);
+            } else if (student.punch_in.time) {
+              punchInTime = new Date(student.punch_in.time);
+            }
+          }
+          
+          if ((!punchInTime || isNaN(punchInTime.getTime())) && student.punch_in_raw) {
+            if (typeof student.punch_in_raw === 'string') {
+              punchInTime = this.parseStudentPunchTime(student.punch_in_raw);
+            } else if (student.punch_in_raw.time) {
+              punchInTime = this.parseStudentPunchTime(student.punch_in_raw.time);
+            } else if (student.punch_in_raw.punch_time) {
+              punchInTime = this.parseStudentPunchTime(student.punch_in_raw.punch_time);
+            } else if (student.punch_in_raw.bsevtdt) {
+              punchInTime = this.parseStudentPunchTime(student.punch_in_raw.bsevtdt);
+            }
+          }
+          
+          if (punchInTime && !isNaN(punchInTime.getTime())) {
+            student.status = this.calculateStudentStatus(punchInTime);
+          } else {
+            student.status = 'present';
+          }
+        } else {
+          student.status = 'absent';
+        }
+      }
+    });
+    
+    // Recalculer les statistiques et mettre à jour filteredStudents
+    this.refreshStatsFromCurrentStudents();
+    this.applyFilters();
+  }
+
   getDisplayStatus(student: any): string {
     if (!this.isBiCheckMode) {
-      return student.status;
+      return student.status || 'absent';
     }
 
     if (student.manual_override) {
-      return student.status;
+      return student.status || 'absent';
     }
 
-    if (!student.punch_in) {
+    // En mode bi-check, toujours recalculer le statut selon les pointages
+    // Vérifier si punch_in existe (objet avec time ou chaîne)
+    const hasPunchIn = !!(student.punch_in?.time || student.punch_in_raw?.time || 
+                         (typeof student.punch_in === 'string' && student.punch_in) ||
+                         (typeof student.punch_in_raw === 'string' && student.punch_in_raw));
+    // Vérifier si punch_out existe (objet avec time ou chaîne)
+    const hasPunchOut = !!(student.punch_out?.time || student.punch_out_raw?.time ||
+                          (typeof student.punch_out === 'string' && student.punch_out) ||
+                          (typeof student.punch_out_raw === 'string' && student.punch_out_raw));
+    
+    if (!hasPunchIn) {
       return 'pending_entry';
     }
 
-    if (student.punch_in && !student.punch_out) {
+    if (hasPunchIn && !hasPunchOut) {
       return 'pending_exit';
     }
 
-    return student.status;
+    if (hasPunchIn && hasPunchOut) {
+      let punchInTime: Date | null = null;
+      
+      if (student.punch_in) {
+        if (typeof student.punch_in === 'string') {
+          punchInTime = new Date(student.punch_in);
+        } else if (student.punch_in.time) {
+          punchInTime = new Date(student.punch_in.time);
+        }
+      }
+      
+      if ((!punchInTime || isNaN(punchInTime.getTime())) && student.punch_in_raw) {
+        if (typeof student.punch_in_raw === 'string') {
+          punchInTime = this.parseStudentPunchTime(student.punch_in_raw);
+        } else if (student.punch_in_raw.time) {
+          punchInTime = this.parseStudentPunchTime(student.punch_in_raw.time);
+        } else if (student.punch_in_raw.punch_time) {
+          punchInTime = this.parseStudentPunchTime(student.punch_in_raw.punch_time);
+        } else if (student.punch_in_raw.bsevtdt) {
+          punchInTime = this.parseStudentPunchTime(student.punch_in_raw.bsevtdt);
+        }
+      }
+      
+      if (punchInTime && !isNaN(punchInTime.getTime())) {
+        return this.calculateStudentStatus(punchInTime);
+      }
+      
+      return 'present';
+    }
+
+    return 'absent';
+  }
+
+  /**
+   * Obtenir les classes CSS pour la couleur de l'entrée en mode bi-check
+   * - Jaune si entrée en retard
+   * - Vert si entrée normale (à l'heure)
+   * - Rouge sinon (pas d'entrée ou autre)
+   */
+  getEntryColorClass(student: any): { bg: string, border: string, icon: string, text: string } {
+    const hasPunchIn = !!(student.punch_in?.time || student.punch_in_raw?.time || 
+                         (typeof student.punch_in === 'string' && student.punch_in) ||
+                         (typeof student.punch_in_raw === 'string' && student.punch_in_raw));
+    
+    if (!hasPunchIn) {
+      return {
+        bg: 'bg-red-50',
+        border: 'border-red-200',
+        icon: 'text-red-500',
+        text: 'text-red-500'
+      };
+    }
+
+    // Calculer le statut de l'entrée à partir de punch_in (priorité sur le statut global)
+    let punchInTime: Date | null = null;
+    
+    if (student.punch_in) {
+      if (typeof student.punch_in === 'string') {
+        punchInTime = this.parseStudentPunchTime(student.punch_in);
+      } else if (student.punch_in.time) {
+        // Utiliser parseStudentPunchTime pour gérer tous les formats correctement
+        punchInTime = this.parseStudentPunchTime(student.punch_in.time);
+      }
+    }
+    
+    if ((!punchInTime || isNaN(punchInTime.getTime())) && student.punch_in_raw) {
+      if (typeof student.punch_in_raw === 'string') {
+        punchInTime = this.parseStudentPunchTime(student.punch_in_raw);
+      } else if (student.punch_in_raw.time) {
+        punchInTime = this.parseStudentPunchTime(student.punch_in_raw.time);
+      } else if (student.punch_in_raw.punch_time) {
+        punchInTime = this.parseStudentPunchTime(student.punch_in_raw.punch_time);
+      } else if (student.punch_in_raw.bsevtdt) {
+        punchInTime = this.parseStudentPunchTime(student.punch_in_raw.bsevtdt);
+      }
+    }
+    
+    // Si on a une heure de pointage valide, calculer le statut
+    if (punchInTime && !isNaN(punchInTime.getTime())) {
+      const entryStatus = this.calculateStudentStatus(punchInTime);
+      
+      if (entryStatus === 'late') {
+        // Entrée en retard → jaune
+        return {
+          bg: 'bg-yellow-50',
+          border: 'border-yellow-200',
+          icon: 'text-yellow-600',
+          text: 'text-gray-600'
+        };
+      } else if (entryStatus === 'present') {
+        // Entrée normale → vert
+        return {
+          bg: 'bg-emerald-50',
+          border: 'border-emerald-200',
+          icon: 'text-emerald-600',
+          text: 'text-gray-600'
+        };
+      }
+    }
+    
+    // Vérifier aussi le statut global de l'étudiant comme fallback
+    const displayStatus = this.getDisplayStatus(student);
+    if (displayStatus === 'late') {
+      // Statut global en retard → jaune
+      return {
+        bg: 'bg-yellow-50',
+        border: 'border-yellow-200',
+        icon: 'text-yellow-600',
+        text: 'text-gray-600'
+      };
+    } else if (displayStatus === 'present') {
+      // Statut global présent → vert
+      return {
+        bg: 'bg-emerald-50',
+        border: 'border-emerald-200',
+        icon: 'text-emerald-600',
+        text: 'text-gray-600'
+      };
+    }
+    
+    // Par défaut → rouge
+    return {
+      bg: 'bg-red-50',
+      border: 'border-red-200',
+      icon: 'text-red-500',
+      text: 'text-red-500'
+    };
   }
 
   /**
@@ -2725,3 +3189,4 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     window.open(url, '_blank', 'fullscreen=yes');
   }
 }
+

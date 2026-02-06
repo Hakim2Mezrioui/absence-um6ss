@@ -554,10 +554,27 @@ class RattrapageController extends Controller
             }
 
             // Récupérer les données Biostar pour la date et l'heure du rattrapage
+            // MODIFICATION: Calculer l'heure de fin basée sur start_hour + tolerance (cohérent avec la nouvelle logique)
+            $tolerance = $rattrapage->tolerance ?? 5;
+            $rattrapageDate = new \DateTime($rattrapage->date);
+            $startHour = new \DateTime($rattrapageDate->format('Y-m-d') . ' ' . $rattrapage->start_hour);
+            $toleranceDateTime = (clone $startHour)->modify("+{$tolerance} minutes");
+            $endTimeFormatted = $toleranceDateTime->format('H:i:s');
+            
+            \Log::info('RattrapageController: Paramètres de plage horaire (CORRIGÉ)', [
+                'rattrapage_id' => $rattrapage->id,
+                'date' => $rattrapage->date,
+                'pointage_start_hour' => $rattrapage->pointage_start_hour,
+                'start_hour' => $rattrapage->start_hour,
+                'tolerance' => $tolerance,
+                'end_time' => $endTimeFormatted, // Utilise start_hour + tolerance
+                'end_hour_old' => $rattrapage->end_hour // Ancienne valeur pour référence
+            ]);
+            
             $biostarResults = $this->getBiostarAttendanceData(
                 $rattrapage->date,
                 $rattrapage->pointage_start_hour,
-                $rattrapage->end_hour
+                $endTimeFormatted // Utiliser start_hour + tolerance
             );
 
             // Préparer les matricules des étudiants présents
@@ -754,23 +771,46 @@ class RattrapageController extends Controller
 
     /**
      * Récupérer l'heure de pointage d'un étudiant depuis les données Biostar
+     * Si plusieurs pointages existent, retourne le plus récent (dernier)
      */
     private function getPunchTimeForStudent($matricule, $biostarResults)
     {
+        $studentPunches = [];
         foreach ($biostarResults as $punch) {
             if ($punch['user_id'] == $matricule) {
-                return [
+                $studentPunches[] = [
                     'time' => $punch['devdt'],
                     'device' => $punch['devnm'],
-                    'event_type' => $punch['event_type'] ?? 'punch'
+                    'event_type' => $punch['event_type'] ?? 'punch',
+                    'timestamp' => strtotime($punch['devdt'])
                 ];
             }
         }
-        return null;
+        
+        if (empty($studentPunches)) {
+            return null;
+        }
+        
+        // Trier par timestamp (du plus ancien au plus récent)
+        usort($studentPunches, function($a, $b) {
+            return $a['timestamp'] <=> $b['timestamp'];
+        });
+        
+        // Retourner le dernier pointage (le plus récent)
+        $lastPunch = end($studentPunches);
+        return [
+            'time' => $lastPunch['time'],
+            'device' => $lastPunch['device'],
+            'event_type' => $lastPunch['event_type']
+        ];
     }
 
     /**
      * Déterminer le statut d'attendance d'un étudiant avec tolérance
+     * RÈGLES:
+     * - Présent : entre pointage_start_hour et start_hour
+     * - En retard : entre start_hour et start_hour + tolerance
+     * - Absent : avant pointage_start_hour ou après start_hour + tolerance
      */
     private function determineAttendanceStatus($matricule, $presentStudentMatricules, $punchTime, $pointageStartHour, $startHour, $tolerance = 5)
     {
@@ -786,20 +826,22 @@ class RattrapageController extends Controller
             
             // Heures de référence
             $heureDebutRattrapage = date('H:i:s', strtotime($startHour));
-            $heurePointage = date('H:i:s', strtotime($pointageStartHour));
+            $heurePointage = $pointageStartHour ? date('H:i:s', strtotime($pointageStartHour)) : $heureDebutRattrapage;
             
             // Calculer l'heure limite pour les retards (début + tolérance)
             $heureLimiteRetard = date('H:i:s', strtotime($startHour . ' +' . $tolerance . ' minutes'));
             
-            // Logique de classification
-            if ($punchTimeFormatted <= $heureDebutRattrapage) {
-                // Pointé avant ou à l'heure de début du rattrapage = Présent
+            // NOUVELLE LOGIQUE:
+            // 1. Présent : entre pointage_start_hour et start_hour
+            if ($punchTimeFormatted >= $heurePointage && $punchTimeFormatted < $heureDebutRattrapage) {
                 return 'present';
-            } elseif ($punchTimeFormatted <= $heureLimiteRetard) {
-                // Pointé entre l'heure de début et la limite de tolérance = En retard
+            } 
+            // 2. En retard : entre start_hour et start_hour + tolerance
+            elseif ($punchTimeFormatted >= $heureDebutRattrapage && $punchTimeFormatted <= $heureLimiteRetard) {
                 return 'late';
-            } else {
-                // Pointé après la limite de tolérance = Absent
+            } 
+            // 3. Absent : avant pointage_start_hour ou après start_hour + tolerance
+            else {
                 return 'absent';
             }
         }
@@ -928,10 +970,17 @@ class RattrapageController extends Controller
         }
 
         // Récupérer les données Biostar
+        // MODIFICATION: Calculer l'heure de fin basée sur start_hour + tolerance (cohérent avec la nouvelle logique)
+        $tolerance = $rattrapage->tolerance ?? 5;
+        $rattrapageDate = new \DateTime($rattrapage->date);
+        $startHour = new \DateTime($rattrapageDate->format('Y-m-d') . ' ' . $rattrapage->start_hour);
+        $toleranceDateTime = (clone $startHour)->modify("+{$tolerance} minutes");
+        $endTimeFormatted = $toleranceDateTime->format('H:i:s');
+        
         $biostarResults = $this->getBiostarAttendanceData(
             $rattrapage->date,
             $rattrapage->pointage_start_hour,
-            $rattrapage->end_hour
+            $endTimeFormatted // Utiliser start_hour + tolerance
         );
 
         $presentStudentMatricules = collect($biostarResults)->pluck('user_id')->toArray();

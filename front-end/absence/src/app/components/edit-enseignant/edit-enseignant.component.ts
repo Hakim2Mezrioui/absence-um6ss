@@ -22,13 +22,9 @@ export class EditEnseignantComponent implements OnInit {
     last_name: '', 
     email: '', 
     password: '', 
-    role_id: 6, // Rôle enseignant par défaut (non modifiable)
-    ville_id: null
+    role_id: 6 // Rôle enseignant par défaut (non modifiable)
   };
-  enseignant: any = { ville_id: null };
-  
-  // Options pour les listes déroulantes
-  villes: any[] = [];
+  enseignant: any = {};
   
   // États du formulaire
   isLoading = false;
@@ -38,7 +34,6 @@ export class EditEnseignantComponent implements OnInit {
   currentUser: any = null;
   userContext: any = null;
   isSuperAdmin = false;
-  villeFieldDisabled = false;
   
   // ID de l'enseignant à modifier
   enseignantId: number | null = null;
@@ -71,16 +66,6 @@ export class EditEnseignantComponent implements OnInit {
     if (this.currentUser) {
       // Déterminer le rôle utilisateur
       this.isSuperAdmin = this.currentUser.role_id === 1; // Super Admin
-      
-      // Pour les non-super-admin, pré-remplir la ville
-      if (!this.isSuperAdmin) {
-        const villeId = this.userContext?.ville_id || this.currentUser.ville_id;
-        if (villeId) {
-          this.user.ville_id = villeId;
-          this.enseignant.ville_id = villeId;
-          this.villeFieldDisabled = true;
-        }
-      }
     }
   }
 
@@ -111,23 +96,13 @@ export class EditEnseignantComponent implements OnInit {
             last_name: enseignantData.user?.last_name || '',
             email: enseignantData.user?.email || '',
             password: '', // Ne pas pré-remplir le mot de passe
-            role_id: enseignantData.user?.role_id || 6,
-            ville_id: enseignantData.user?.ville_id || null
+            role_id: enseignantData.user?.role_id || 6
           };
           
           // Remplir les données enseignant
           this.enseignant = {
-            ville_id: enseignantData.ville_id || null
+            statut: enseignantData.statut || null
           };
-          
-          // Si ce n'est pas un super-admin, utiliser la ville de l'utilisateur connecté
-          if (!this.isSuperAdmin) {
-            const villeId = this.userContext?.ville_id || this.currentUser.ville_id;
-            if (villeId) {
-              this.user.ville_id = villeId;
-              this.enseignant.ville_id = villeId;
-            }
-          }
         }
         
         this.isLoading = false;
@@ -141,23 +116,7 @@ export class EditEnseignantComponent implements OnInit {
   }
 
   loadOptions(): void {
-    this.isLoading = true;
-    
-    // Charger seulement les villes
-    this.loadVilles().finally(() => {
-      this.isLoading = false;
-    });
-  }
-
-  private loadVilles(): Promise<void> {
-    return this.http.get<any>(`${this.apiBase}/villes`).toPromise()
-      .then(res => {
-        this.villes = res?.villes || [];
-      })
-      .catch((error) => {
-        console.error('Error loading villes:', error);
-        this.villes = [];
-      }) as Promise<void>;
+    // Plus besoin de charger les villes
   }
 
   submit(): void {
@@ -167,21 +126,17 @@ export class EditEnseignantComponent implements OnInit {
 
     this.isSubmitting = true;
 
-    // Utiliser la même ville pour l'utilisateur et l'enseignant
-    this.enseignant.ville_id = this.user.ville_id;
-
     // Préparer les données pour la mise à jour
     const updateData = {
       user: {
         first_name: this.user.first_name,
         last_name: this.user.last_name,
         email: this.user.email,
-        ville_id: this.user.ville_id,
         // Ne mettre à jour le mot de passe que s'il est fourni
         ...(this.user.password && { password: this.user.password })
       },
       enseignant: {
-        ville_id: this.enseignant.ville_id
+        statut: this.enseignant.statut || null
       }
     };
 
@@ -214,10 +169,6 @@ export class EditEnseignantComponent implements OnInit {
     }
     if (!this.user.email?.trim()) {
       this.toastr.warning('L\'email est requis', 'Validation');
-      return false;
-    }
-    if (!this.user.ville_id) {
-      this.toastr.warning('La ville est requise', 'Validation');
       return false;
     }
     return true;

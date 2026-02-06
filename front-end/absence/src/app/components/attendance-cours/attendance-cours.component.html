@@ -727,7 +727,7 @@
                 <div class="flex items-center gap-2">
                   <!-- Badge de pointage -->
                   <span 
-                    *ngIf="student.punch_in"
+                    *ngIf="student.punch_in || student.punch_in_raw"
                     class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700 border border-indigo-200"
                     title="Étudiant a pointé (Face ID)"
                   >
@@ -735,7 +735,12 @@
                     Pointé
                   </span>
                   
-                  <span class="material-icons text-sm" [ngClass]="getStatusWithIcon(getDisplayStatus(student)).color">
+                  <!-- Afficher le statut seulement si pas en mode bi-check (les couleurs des cartes donnent l'info) -->
+                  <span 
+                    *ngIf="!isBiCheckMode"
+                    class="material-icons text-sm" 
+                    [ngClass]="getStatusWithIcon(getDisplayStatus(student)).color"
+                  >
                     {{ getStatusWithIcon(getDisplayStatus(student)).icon }}
                   </span>
                   
@@ -753,8 +758,8 @@
                     <option value="excused" class="text-blue-600">ℹ️ Excusé</option>
                   </select>
                   
-                  <!-- Affichage normal quand pas en mode édition -->
-                  <div *ngIf="!editMode" class="flex flex-col">
+                  <!-- Affichage normal quand pas en mode édition (seulement si pas en mode bi-check) -->
+                  <div *ngIf="!editMode && !isBiCheckMode" class="flex flex-col">
                     <span class="text-sm font-semibold" [ngClass]="getStatusWithIcon(getDisplayStatus(student)).color">
                       {{ getStatusWithIcon(getDisplayStatus(student)).label }}
                     </span>
@@ -764,13 +769,13 @@
                   </div>
                 </div>
                 <div *ngIf="isBiCheckMode" class="mt-3 space-y-2">
-                  <div class="flex items-center gap-3 p-2 rounded-xl border" [ngClass]="(student.punch_in || student.punch_in_raw) ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'">
-                    <span class="material-icons text-base" [ngClass]="(student.punch_in || student.punch_in_raw) ? 'text-emerald-600' : 'text-red-500'">
+                  <div class="flex items-center gap-3 p-2 rounded-xl border" [ngClass]="getEntryColorClass(student).bg + ' ' + getEntryColorClass(student).border">
+                    <span class="material-icons text-base" [ngClass]="getEntryColorClass(student).icon">
                       {{ (student.punch_in || student.punch_in_raw) ? 'login' : 'highlight_off' }}
                     </span>
                     <div class="text-xs">
                       <p class="font-semibold text-gray-700">Entrée</p>
-                      <p [ngClass]="(student.punch_in || student.punch_in_raw) ? 'text-gray-600' : 'text-red-500'">
+                      <p [ngClass]="getEntryColorClass(student).text">
                         {{ (student.punch_in || student.punch_in_raw) ? formatPunchForDisplay((student.punch_in || student.punch_in_raw)?.time || '') : 'Non validée' }}
                       </p>
                       <p class="text-[11px]" [ngClass]="(student.punch_in || student.punch_in_raw) ? 'text-gray-500' : 'text-red-400'">

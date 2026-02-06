@@ -22,13 +22,9 @@ export class AddEnseignantComponent implements OnInit {
     last_name: '', 
     email: '', 
     password: '', 
-    role_id: 6, // Rôle enseignant par défaut (non modifiable)
-    ville_id: null
+    role_id: 6 // Rôle enseignant par défaut (non modifiable)
   };
-  enseignant: any = { ville_id: null };
-  
-  // Options pour les listes déroulantes
-  villes: any[] = [];
+  enseignant: any = {};
   
   // États du formulaire
   isLoading = false;
@@ -38,7 +34,6 @@ export class AddEnseignantComponent implements OnInit {
   currentUser: any = null;
   userContext: any = null;
   isSuperAdmin = false;
-  villeFieldDisabled = false;
   
   private apiBase = environment.apiUrl;
 
@@ -66,37 +61,11 @@ export class AddEnseignantComponent implements OnInit {
     if (this.currentUser) {
       // Déterminer le rôle utilisateur
       this.isSuperAdmin = this.currentUser.role_id === 1; // Super Admin
-      
-      // Pour les non-super-admin, pré-remplir la ville
-      if (!this.isSuperAdmin) {
-        const villeId = this.userContext?.ville_id || this.currentUser.ville_id;
-        if (villeId) {
-          this.user.ville_id = villeId;
-          this.enseignant.ville_id = villeId;
-          this.villeFieldDisabled = true;
-        }
-      }
     }
   }
 
   loadOptions(): void {
-    this.isLoading = true;
-    
-    // Charger seulement les villes
-    this.loadVilles().finally(() => {
-      this.isLoading = false;
-    });
-  }
-
-  private loadVilles(): Promise<void> {
-    return this.http.get<any>(`${this.apiBase}/villes`).toPromise()
-      .then(res => {
-        this.villes = res?.villes || [];
-      })
-      .catch((error) => {
-        console.error('Error loading villes:', error);
-        this.villes = [];
-      }) as Promise<void>;
+    // Plus besoin de charger les villes
   }
 
   submit(): void {
@@ -105,9 +74,6 @@ export class AddEnseignantComponent implements OnInit {
     }
 
     this.isSubmitting = true;
-
-    // Utiliser la même ville pour l'utilisateur et l'enseignant
-    this.enseignant.ville_id = this.user.ville_id;
 
     this.service.createWithUser({ user: this.user, enseignant: this.enseignant }).subscribe({
       next: (response) => {
@@ -144,10 +110,6 @@ export class AddEnseignantComponent implements OnInit {
       this.toastr.warning('Le mot de passe est requis', 'Validation');
       return false;
     }
-    if (!this.user.ville_id) {
-      this.toastr.warning('La ville est requise', 'Validation');
-      return false;
-    }
     return true;
   }
 
@@ -161,23 +123,10 @@ export class AddEnseignantComponent implements OnInit {
       last_name: '', 
       email: '', 
       password: '', 
-      role_id: 6, // Rôle enseignant par défaut
-      ville_id: null
+      role_id: 6 // Rôle enseignant par défaut
     };
-    this.enseignant = { ville_id: null };
-    
-    // Réappliquer le contexte utilisateur pour la ville
-    this.initializeUserContext();
+    this.enseignant = {};
     
     this.toastr.info('Formulaire réinitialisé', 'Information');
-    
-    // Réinitialiser la ville selon le contexte utilisateur
-    if (!this.isSuperAdmin && this.currentUser) {
-      const villeId = this.userContext?.ville_id || this.currentUser.ville_id;
-      if (villeId) {
-        this.user.ville_id = villeId;
-        this.enseignant.ville_id = villeId;
-      }
-    }
   }
 }

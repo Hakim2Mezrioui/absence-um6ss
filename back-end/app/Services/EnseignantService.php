@@ -22,7 +22,7 @@ class EnseignantService extends BaseService
     {
         // Pour l'optimisation frontend, nous retournons tous les enseignants
         // Le filtrage, tri et pagination sont gérés côté client
-        $query = Enseignant::with(['user', 'ville'])
+        $query = Enseignant::with(['user'])
             ->select('enseignants.*')
             ->leftJoin('users', 'users.id', '=', 'enseignants.user_id')
             ->orderBy('enseignants.created_at', 'desc');
@@ -38,7 +38,7 @@ class EnseignantService extends BaseService
             DB::beginTransaction();
             $enseignant = Enseignant::create($data);
             DB::commit();
-            return $this->successResponse($enseignant->load(['user', 'ville']), 'Enseignant créé');
+            return $this->successResponse($enseignant->load(['user']), 'Enseignant créé');
         } catch (\Throwable $e) {
             DB::rollBack();
             return $this->errorResponse($e->getMessage(), 500);
@@ -59,7 +59,7 @@ class EnseignantService extends BaseService
             $enseignant = Enseignant::create($enseignantData);
 
             DB::commit();
-            return $this->successResponse($enseignant->load(['user', 'ville']), 'Utilisateur et enseignant créés');
+            return $this->successResponse($enseignant->load(['user']), 'Utilisateur et enseignant créés');
         } catch (\Throwable $e) {
             DB::rollBack();
             return $this->errorResponse($e->getMessage(), 500);
@@ -68,7 +68,7 @@ class EnseignantService extends BaseService
 
     public function show(int $id)
     {
-        $enseignant = Enseignant::with(['user', 'ville', 'cours'])->find($id);
+        $enseignant = Enseignant::with(['user', 'cours'])->find($id);
         if (!$enseignant) {
             return $this->errorResponse('Enseignant non trouvé', 404);
         }
@@ -82,7 +82,7 @@ class EnseignantService extends BaseService
             return $this->errorResponse('Enseignant non trouvé', 404);
         }
         $enseignant->update($data);
-        return $this->successResponse($enseignant->fresh(['user', 'ville']), 'Enseignant mis à jour');
+        return $this->successResponse($enseignant->fresh(['user']), 'Enseignant mis à jour');
     }
 
     /**
@@ -108,7 +108,7 @@ class EnseignantService extends BaseService
             $enseignant->update($enseignantData);
 
             DB::commit();
-            return $this->successResponse($enseignant->fresh(['user', 'ville']), 'Utilisateur et enseignant mis à jour');
+            return $this->successResponse($enseignant->fresh(['user']), 'Utilisateur et enseignant mis à jour');
         } catch (\Throwable $e) {
             DB::rollBack();
             return $this->errorResponse($e->getMessage(), 500);
