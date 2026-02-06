@@ -490,16 +490,30 @@ class CoursService
 
         // Rechercher l'enseignant par nom ou email depuis la table enseignant
         if (!empty($data['enseignant_name']) || !empty($data['enseignant_email'])) {
-            $searchValue = $data['enseignant_name'] ?? $data['enseignant_email'];
+            $searchValue = trim($data['enseignant_name'] ?? $data['enseignant_email']);
             
-            // Rechercher dans la table enseignant avec relation user
-            $enseignant = \App\Models\Enseignant::with('user')
+            if (empty($searchValue)) {
+                // Pas d'enseignant à rechercher, continuer sans enseignant_id
+                // (enseignant_id peut être null dans la base de données)
+            } else {
+            
+            // IMPORTANT: Supprimer le scope de filtrage pour permettre la recherche de tous les enseignants
+            // lors de l'import, peu importe le rôle de l'utilisateur
+            $enseignant = \App\Models\Enseignant::withoutGlobalScope(\App\Scopes\EnseignantUserContextScope::class)
+                ->with('user')
                 ->whereHas('user', function($query) use ($searchValue) {
                     $query->where(function($q) use ($searchValue) {
-                        $q->whereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$searchValue}%"])
-                          ->orWhere('email', 'LIKE', "%{$searchValue}%")
-                          ->orWhere('first_name', 'LIKE', "%{$searchValue}%")
-                          ->orWhere('last_name', 'LIKE', "%{$searchValue}%");
+                        // Nettoyer les espaces multiples dans la recherche
+                        $normalizedSearch = preg_replace('/\s+/', ' ', trim($searchValue));
+                        
+                        // Recherche exacte d'abord (nom complet, insensible à la casse)
+                        $q->whereRaw("LOWER(TRIM(CONCAT(first_name, ' ', last_name))) = LOWER(?)", [$normalizedSearch])
+                          ->orWhereRaw("LOWER(email) = LOWER(?)", [$searchValue])
+                          // Puis recherche partielle (insensible à la casse)
+                          ->orWhereRaw("LOWER(TRIM(CONCAT(first_name, ' ', last_name))) LIKE LOWER(?)", ["%{$normalizedSearch}%"])
+                          ->orWhereRaw("LOWER(email) LIKE LOWER(?)", ["%{$searchValue}%"])
+                          ->orWhereRaw("LOWER(first_name) LIKE LOWER(?)", ["%{$searchValue}%"])
+                          ->orWhereRaw("LOWER(last_name) LIKE LOWER(?)", ["%{$searchValue}%"]);
                     });
                 })
                 ->first();
@@ -507,7 +521,16 @@ class CoursService
             if ($enseignant && $enseignant->user) {
                 $coursData['enseignant_id'] = $enseignant->user->id; // Utiliser user_id car enseignant_id pointe vers User
             } else {
+                // Log pour déboguer
+                \Log::warning('Enseignant non trouvé lors de l\'import', [
+                    'search_value' => $searchValue,
+                    'enseignant_name' => $data['enseignant_name'] ?? null,
+                    'enseignant_email' => $data['enseignant_email'] ?? null,
+                    'user_id' => \Illuminate\Support\Facades\Auth::id(),
+                    'user_role' => \Illuminate\Support\Facades\Auth::user()?->role_id
+                ]);
                 throw new \Exception("Enseignant non trouvé dans la table enseignant: {$searchValue}");
+            }
             }
         }
 
