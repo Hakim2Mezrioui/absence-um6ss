@@ -462,6 +462,39 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
                   cellValue = strValue;
                 }
               }
+            } else if (headerLower === 'exit_capture_window') {
+              // Gestion spécifique pour la colonne exit_capture_window (nombre de minutes)
+              if (cellValue instanceof Date) {
+                // Si Excel a converti en Date, extraire les minutes depuis l'heure
+                // Ex: Date avec 00:15:00 = 15 minutes
+                const totalMinutes = cellValue.getHours() * 60 + cellValue.getMinutes();
+                cellValue = totalMinutes.toString();
+              } else if (typeof cellValue === 'number') {
+                // Si c'est un nombre, garder tel quel (déjà en minutes)
+                // Mais s'assurer que c'est un entier valide (0-120)
+                const minutes = Math.max(0, Math.min(120, Math.floor(cellValue)));
+                cellValue = minutes.toString();
+              } else {
+                // Si c'est une string, parser comme nombre de minutes
+                const strValue = String(cellValue).trim();
+                // Si c'est un nombre simple (ex: "15"), garder tel quel
+                if (/^\d+$/.test(strValue)) {
+                  const minutes = parseInt(strValue, 10);
+                  // Valider la plage (0-120 minutes)
+                  const validMinutes = Math.max(0, Math.min(120, minutes));
+                  cellValue = validMinutes.toString();
+                } else {
+                  // Sinon, essayer d'extraire les chiffres
+                  const digits = strValue.replace(/\D/g, '');
+                  if (digits) {
+                    const minutes = parseInt(digits, 10);
+                    const validMinutes = Math.max(0, Math.min(120, minutes));
+                    cellValue = validMinutes.toString();
+                  } else {
+                    cellValue = '0'; // Valeur par défaut
+                  }
+                }
+              }
             } else {
               // Autres colonnes : conversion standard
               if (typeof cellValue === 'number') {
@@ -804,7 +837,9 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
   }
 
   hasRowSuggestions(rowIndex: number): boolean {
-    return this.tableHeaders.some(header => 
+    // Comportement standard : une ligne a des suggestions si au moins une cellule
+    // possède des suggestions ET est marquée invalide.
+    return this.tableHeaders.some(header =>
       this.getSuggestions(rowIndex, header).length > 0 && this.isCellInvalid(rowIndex, header)
     );
   }
@@ -1133,6 +1168,13 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
   private loadReferenceData(): void {
     this.coursService.getFilterOptions().subscribe({
       next: (options) => {
+        console.log('🔍 Réponse complète de getFilterOptions:', {
+          hasEnseignants: !!options.enseignants,
+          enseignantsType: Array.isArray(options.enseignants) ? 'array' : typeof options.enseignants,
+          enseignantsLength: Array.isArray(options.enseignants) ? options.enseignants.length : 'N/A',
+          enseignantsSample: Array.isArray(options.enseignants) ? options.enseignants.slice(0, 3) : options.enseignants,
+          allKeys: Object.keys(options)
+        });
         this.filterOptions = options;
         this.prepareReferenceData(options);
         if (this.tableRows.length) {
@@ -1147,36 +1189,72 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
   }
 
   private prepareReferenceData(options: FilterOptions): void {
-    // Filtrer les salles selon le rôle et l'établissement
-    let filteredSalles = options.salles || [];
-    if (!this.isSuperAdmin && this.currentUser) {
-      filteredSalles = filteredSalles.filter((salle: any) => {
-        return salle.etablissement_id === this.currentUser!.etablissement_id && 
-               salle.ville_id === this.currentUser!.ville_id;
-      });
-      
-      console.log('🔒 Filtrage des salles pour l\'import cours:', {
-        etablissementId: this.currentUser.etablissement_id,
-        villeId: this.currentUser.ville_id,
-        sallesOriginales: (options.salles || []).length,
-        sallesFiltrees: filteredSalles.length
-      });
-    }
+    // Log pour déboguer les options reçues
+    console.log('📥 Options reçues dans prepareReferenceData:', {
+      hasEnseignants: !!options.enseignants,
+      enseignantsCount: options.enseignants?.length || 0,
+      enseignantsSample: options.enseignants?.slice(0, 3) || [],
+      allKeys: Object.keys(options)
+    });
+    
+    // IMPORTANT : pour les suggestions, on ne filtre PLUS les salles par rôle / contexte.
+    // On utilise toutes les salles renvoyées par l'API, afin que les propositions fonctionnent
+    // de la même manière pour super-admin, scolarité et admin établissement.
+    const allSalles = options.salles || [];
 
     this.referenceData = {
       etablissement_name: (options.etablissements || []).map((e) => this.toReferenceEntry(e.name, e.id)),
       promotion_name: (options.promotions || []).map((p) => this.toReferenceEntry(p.name, p.id)),
       type_cours_name: (options.types_cours || []).map((t) => this.toReferenceEntry(t.name, t.id)),
-      salle_name: filteredSalles.map((s) => this.toReferenceEntry(s.name, s.id)),
+      salle_name: allSalles.map((s) => {
+        const entry = this.toReferenceEntry(s.name, s.id);
+        if (!entry) {
+          console.warn('⚠️ Salle invalide ignorée:', s);
+        }
+        return entry;
+      }).filter(entry => entry !== null && entry !== undefined),
       group_title: (options.groups || []).map((g) => this.toReferenceEntry(g.title || g.name, g.id)),
       ville_name: (options.villes || []).map((v) => this.toReferenceEntry(v.name, v.id)),
       option_name: (options.options || []).map((o) => this.toReferenceEntry(o.name, o.id)),
-      enseignant_name: (options.enseignants || []).map((e) => {
-        // Créer une entrée avec nom complet pour recherche flexible
-        // La recherche pourra se faire par nom ou email
-        return this.toReferenceEntry(e.name, e.id);
-      })
+      enseignant_name: (options.enseignants || []).flatMap((e) => {
+        // Vérifier que l'enseignant a les propriétés nécessaires
+        if (!e || !e.name || !e.id) {
+          console.warn('⚠️ Enseignant invalide ignoré:', e);
+          return [];
+        }
+        // Créer plusieurs entrées pour recherche flexible : une pour le nom, une pour l'email
+        const nameEntry = this.toReferenceEntry(e.name, e.id);
+        const entries = nameEntry ? [nameEntry] : [];
+        // Ajouter aussi l'email comme entrée séparée pour permettre la recherche par email
+        if (e.email) {
+          const emailEntry = this.toReferenceEntry(e.email, e.id);
+          if (emailEntry) {
+            entries.push(emailEntry);
+          }
+        }
+        return entries;
+      }).filter(entry => entry !== null && entry !== undefined)
     };
+    
+    // Log pour déboguer les enseignants et salles
+    const enseignantsArray = options.enseignants || [];
+    const enseignantsRefArray = this.referenceData['enseignant_name'] || [];
+    const sallesRefArray = this.referenceData['salle_name'] || [];
+    console.log('📚 Données de référence chargées:', {
+      role_id: this.currentUser?.role_id,
+      isScolarite: this.currentUser?.role_id === 4,
+      enseignants: {
+        total: enseignantsArray.length,
+        referenceEntries: enseignantsRefArray.length,
+        sample: enseignantsRefArray.slice(0, 3).map(e => e?.label)
+      },
+      salles: {
+        total: allSalles.length,
+        referenceEntries: sallesRefArray.length,
+        sample: sallesRefArray.slice(0, 3).map(e => e?.label)
+      },
+      allReferenceDataKeys: Object.keys(this.referenceData)
+    });
   }
 
   private validateRows(): void {
@@ -1214,9 +1292,28 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const referenceEntries = this.referenceData[header];
+    // Utiliser la notation bracket pour enseignant_name (TypeScript requirement)
+    const referenceEntries = header === 'enseignant_name' 
+      ? this.referenceData['enseignant_name']
+      : this.referenceData[header];
 
     if (!referenceEntries || referenceEntries.length === 0) {
+      // Log spécial pour enseignant_name et salle_name si pas de données
+      if (header === 'enseignant_name' || header === 'salle_name') {
+        console.warn(`⚠️ Pas de données de référence pour ${header} [ligne ${rowIndex + 1}]:`, {
+          header,
+          role_id: this.currentUser?.role_id,
+          isScolarite: this.currentUser?.role_id === 4,
+          referenceDataKeys: Object.keys(this.referenceData),
+          hasKey: header in this.referenceData,
+          referenceDataLength: this.referenceData[header]?.length || 0,
+          referenceDataType: typeof this.referenceData[header],
+          isArray: Array.isArray(this.referenceData[header]),
+          filterOptionsCount: header === 'enseignant_name' 
+            ? (this.filterOptions?.enseignants?.length || 0)
+            : (this.filterOptions?.salles?.length || 0)
+        });
+      }
       this.suggestionsByCell[rowIndex][header] = [];
       this.invalidCells[rowIndex][header] = false;
       return;
@@ -1282,6 +1379,19 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
       const { isValid, suggestions } = this.computeSuggestions(referenceEntries, value);
       this.suggestionsByCell[rowIndex][header] = suggestions;
       this.invalidCells[rowIndex][header] = !isValid;
+      
+      // Log de débogage pour enseignant_name et salle_name
+      if (header === 'enseignant_name' || header === 'salle_name') {
+        console.log(`🔍 Validation ${header} [ligne ${rowIndex + 1}]:`, {
+          value,
+          isValid,
+          suggestionsCount: suggestions.length,
+          referenceEntriesCount: referenceEntries.length,
+          suggestions: suggestions.slice(0, 3).map(s => s.label),
+          role_id: this.currentUser?.role_id,
+          isScolarite: this.currentUser?.role_id === 4
+        });
+      }
     }
   }
 

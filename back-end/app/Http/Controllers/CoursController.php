@@ -609,23 +609,38 @@ class CoursController extends Controller
                 ->get();
 
             // Récupérer les enseignants depuis la table enseignant avec relation user
-            $enseignants = \App\Models\Enseignant::with('user')
+            // IMPORTANT : on supprime complètement la contrainte de scope pour que
+            // tous les rôles (y compris scolarité) voient la liste complète des enseignants
+            $user = \Illuminate\Support\Facades\Auth::user();
+            $enseignants = \App\Models\Enseignant::withoutGlobalScope(\App\Scopes\EnseignantUserContextScope::class)
+                ->with('user')
                 ->get()
                 ->map(function ($enseignant) {
                     $user = $enseignant->user;
                     if (!$user) {
                         return null; // Ignorer les enseignants sans user associé
                     }
+                    $name = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? ''));
+                    if (empty($name)) {
+                        return null; // Ignorer les enseignants sans nom
+                    }
                     return [
                         'id' => $user->id, // Utiliser user_id car enseignant_id dans cours pointe vers User
-                        'name' => $user->first_name . ' ' . $user->last_name,
-                        'email' => $user->email
+                        'name' => $name,
+                        'email' => $user->email ?? null
                     ];
                 })
                 ->filter() // Retirer les null
                 ->values() // Réindexer
                 ->sortBy('name') // Trier par nom
                 ->values(); // Réindexer après tri
+
+            // Log pour déboguer (à retirer en production)
+            \Log::info('Enseignants retournés pour filter-options', [
+                'user_role_id' => $user->role_id ?? null,
+                'enseignants_count' => $enseignants->count(),
+                'sample' => $enseignants->take(3)->toArray()
+            ]);
 
             return response()->json([
                 'etablissements' => $etablissements,
