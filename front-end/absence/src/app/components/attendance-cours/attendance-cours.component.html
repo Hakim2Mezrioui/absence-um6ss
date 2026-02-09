@@ -783,19 +783,25 @@
                       </p>
                     </div>
                   </div>
-                  <div class="flex items-center gap-3 p-2 rounded-xl border" [ngClass]="(student.punch_out || student.punch_out_raw) ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'">
-                    <span class="material-icons text-base" [ngClass]="(student.punch_out || student.punch_out_raw) ? 'text-emerald-600' : 'text-red-500'">
-                      {{ (student.punch_out || student.punch_out_raw) ? 'logout' : 'highlight_off' }}
+                  <div
+                    class="flex items-center gap-3 p-2 rounded-xl border"
+                    [ngClass]="isBiCheckExitValid(student) ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'"
+                  >
+                    <span
+                      class="material-icons text-base"
+                      [ngClass]="isBiCheckExitValid(student) ? 'text-emerald-600' : 'text-red-500'"
+                    >
+                      {{ isBiCheckExitValid(student) ? 'logout' : 'highlight_off' }}
                     </span>
                     <div class="text-xs">
                       <p class="font-semibold text-gray-700">Sortie</p>
-                      <p [ngClass]="(student.punch_out || student.punch_out_raw) ? 'text-gray-600' : 'text-red-500'">
+                      <p [ngClass]="isBiCheckExitValid(student) ? 'text-gray-600' : 'text-red-500'">
                         <ng-container *ngIf="student.punch_out || student.punch_out_raw; else noExitData">
                           {{ formatPunchForDisplay((student.punch_out || student.punch_out_raw)?.time || '') }}
                         </ng-container>
                         <ng-template #noExitData>Non validée</ng-template>
                       </p>
-                      <p class="text-[11px]" [ngClass]="(student.punch_out || student.punch_out_raw) ? 'text-gray-500' : 'text-red-400'">
+                      <p class="text-[11px]" [ngClass]="isBiCheckExitValid(student) ? 'text-gray-500' : 'text-red-400'">
                         {{ (student.punch_out || student.punch_out_raw)?.device || 'Aucun appareil détecté' }}
                       </p>
                     </div>

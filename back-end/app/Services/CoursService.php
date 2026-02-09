@@ -239,6 +239,10 @@ class CoursService
                     // Extraire salle_ids avant la création/mise à jour
                     $salleIds = $coursData['_salle_ids'] ?? [];
                     unset($coursData['_salle_ids']); // Retirer de l'array pour l'insertion
+
+                    // Extraire group_ids avant la création/mise à jour
+                    $groupIds = $coursData['group_ids'] ?? [];
+                    unset($coursData['group_ids']); // Retirer de l'array pour l'insertion
                     
                     // Vérifier si le cours existe déjà
                     $existingCours = Cours::where('name', $coursData['name'])
@@ -254,6 +258,10 @@ class CoursService
                         if (!empty($salleIds)) {
                             $existingCours->salles()->sync($salleIds);
                         }
+                        // Synchroniser les groupes si fournis
+                        if (!empty($groupIds)) {
+                            $existingCours->groups()->sync($groupIds);
+                        }
                         $results['updated']++;
                     } else {
                         // Créer un nouveau cours
@@ -261,6 +269,10 @@ class CoursService
                         // Attacher toutes les salles via la relation many-to-many
                         if (!empty($salleIds)) {
                             $cours->salles()->sync($salleIds);
+                        }
+                        // Attacher les groupes si fournis
+                        if (!empty($groupIds)) {
+                            $cours->groups()->sync($groupIds);
                         }
                         $results['created']++;
                     }
@@ -362,6 +374,10 @@ class CoursService
                     // Extraire salle_ids avant la création/mise à jour
                     $salleIds = $coursData['_salle_ids'] ?? [];
                     unset($coursData['_salle_ids']); // Retirer de l'array pour l'insertion
+
+                    // Extraire group_ids avant la création/mise à jour
+                    $groupIds = $coursData['group_ids'] ?? [];
+                    unset($coursData['group_ids']); // Retirer de l'array pour l'insertion
                     
                     // Vérifier si le cours existe déjà
                     $existingCours = Cours::where('name', $coursData['name'])
@@ -377,6 +393,10 @@ class CoursService
                         if (!empty($salleIds)) {
                             $existingCours->salles()->sync($salleIds);
                         }
+                        // Synchroniser les groupes si fournis
+                        if (!empty($groupIds)) {
+                            $existingCours->groups()->sync($groupIds);
+                        }
                         $results['updated']++;
                     } else {
                         // Créer un nouveau cours
@@ -384,6 +404,10 @@ class CoursService
                         // Attacher toutes les salles via la relation many-to-many
                         if (!empty($salleIds)) {
                             $cours->salles()->sync($salleIds);
+                        }
+                        // Attacher les groupes si fournis
+                        if (!empty($groupIds)) {
+                            $cours->groups()->sync($groupIds);
                         }
                         $results['created']++;
                     }
@@ -437,6 +461,16 @@ class CoursService
         $heureFin = $this->formatTime($data['heure_fin']);
         $tolerance = $this->formatTime($data['tolerance'] ?? '00:15');
 
+        // Heure de début de pointage :
+        // - si le frontend envoie une valeur dédiée (pointage_start_hour),
+        //   on l'utilise après normalisation
+        // - sinon, on retombe sur l'heure de début du cours
+        if (!empty($data['pointage_start_hour'])) {
+            $pointageStartHour = $this->formatTime($data['pointage_start_hour']);
+        } else {
+            $pointageStartHour = $heureDebut;
+        }
+
         // Parser les salles multiples si salle_name est fourni
         $salleIds = [];
         if (!empty($data['salle_name'])) {
@@ -469,7 +503,7 @@ class CoursService
         $coursData = [
             'name' => $data['name'],
             'date' => $date,
-            'pointage_start_hour' => $heureDebut,
+            'pointage_start_hour' => $pointageStartHour,
             'heure_debut' => $heureDebut,
             'heure_fin' => $heureFin,
             'tolerance' => $tolerance,
@@ -482,6 +516,14 @@ class CoursService
             'ville_id' => $data['ville_id'],
             'annee_universitaire' => $data['annee_universitaire'] ?? '2024-2025'
         ];
+
+        // Groupes (relation many-to-many)
+        // Priorité à group_ids si fourni, sinon fabriquer depuis group_id
+        if (!empty($data['group_ids']) && is_array($data['group_ids'])) {
+            $coursData['group_ids'] = array_map('intval', $data['group_ids']);
+        } elseif (!empty($data['group_id'])) {
+            $coursData['group_ids'] = [(int)$data['group_id']];
+        }
 
         // Option (optionnel)
         if (!empty($data['option_id'])) {

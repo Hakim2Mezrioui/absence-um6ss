@@ -1035,7 +1035,23 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
           }
         });
         
-        const group = findGroup(cours.group_title);
+        // Parser les groupes à partir de group_title (ex: "Groupe A, Groupe B")
+        const rawGroupTitle = cours.group_title || '';
+        let groupIds: number[] = [];
+
+        // Cas spécial : "Tous" = tous les groupes (on ne force pas group_ids)
+        if (this.normalize(rawGroupTitle) !== 'tous') {
+          const titles = this.parseGroupTitles(rawGroupTitle);
+          const effectiveTitles = titles.length > 0 ? titles : (rawGroupTitle ? [rawGroupTitle] : []);
+
+          effectiveTitles.forEach(title => {
+            const g = findGroup(title);
+            if (g && typeof g.id === 'number') {
+              groupIds.push(g.id);
+            }
+          });
+        }
+
         const ville = findVille(cours.ville_name);
         const option = findOption(cours.option_name);
         const enseignant = findEnseignant(cours.enseignant_name);
@@ -1059,9 +1075,13 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
           // Ne pas inclure salle_ids dans les données JSON (le backend va parser salle_name)
           // Le backend va parser salle_name et créer salle_ids automatiquement
         }
-        
-        if (group) {
-          cours.group_id = group.id as any;
+
+        // Gérer les groupes (multi-groupes)
+        if (groupIds.length > 0) {
+          // Compatibilité : un group_id principal
+          (cours as any).group_id = groupIds[0];
+          // Et la version many-to-many pour le back-end
+          (cours as any).group_ids = groupIds;
         }
         
         if (ville) {

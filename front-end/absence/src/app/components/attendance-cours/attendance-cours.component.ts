@@ -2631,6 +2631,22 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Déterminer si la sortie est valide en mode bi-check.
+   * - En mode bi-check, une sortie n'est considérée comme valide
+   *   que si le statut global est "present" ou "late".
+   * - Pour les autres statuts (pending_entry, pending_exit, absent),
+   *   on considère la sortie comme non validée (rouge).
+   */
+  isBiCheckExitValid(student: any): boolean {
+    if (!this.isBiCheckMode) {
+      return !!(student.punch_out || student.punch_out_raw);
+    }
+
+    const status = this.getDisplayStatus(student);
+    return status === 'present' || status === 'late';
+  }
+
+  /**
    * Obtenir les classes CSS pour la couleur de l'entrée en mode bi-check
    * - Jaune si entrée en retard
    * - Vert si entrée normale (à l'heure)
