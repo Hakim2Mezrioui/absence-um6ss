@@ -1075,7 +1075,7 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
           // Ne pas inclure salle_ids dans les données JSON (le backend va parser salle_name)
           // Le backend va parser salle_name et créer salle_ids automatiquement
         }
-
+        
         // Gérer les groupes (multi-groupes)
         if (groupIds.length > 0) {
           // Compatibilité : un group_id principal

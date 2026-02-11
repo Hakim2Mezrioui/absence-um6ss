@@ -239,7 +239,7 @@ class CoursService
                     // Extraire salle_ids avant la création/mise à jour
                     $salleIds = $coursData['_salle_ids'] ?? [];
                     unset($coursData['_salle_ids']); // Retirer de l'array pour l'insertion
-
+                    
                     // Extraire group_ids avant la création/mise à jour
                     $groupIds = $coursData['group_ids'] ?? [];
                     unset($coursData['group_ids']); // Retirer de l'array pour l'insertion

@@ -553,6 +553,10 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
             data.cours.statut_temporel = this.coursService.calculateStatutTemporel(data.cours);
             this.isBiCheckMode = (data.cours.attendance_mode || 'normal') === 'bicheck';
             this.exitCaptureWindowMinutes = data.cours.exit_capture_window ?? 0;
+            // En bi-check, offset Biostar -60 min: on utilise 60 par défaut si config pas encore chargée
+            if (this.isBiCheckMode && this.biostarTimeOffsetMinutes === 0) {
+              this.biostarTimeOffsetMinutes = 60;
+            }
           }
           else {
             this.isBiCheckMode = false;
@@ -2632,18 +2636,55 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
 
   /**
    * Déterminer si la sortie est valide en mode bi-check.
-   * - En mode bi-check, une sortie n'est considérée comme valide
-   *   que si le statut global est "present" ou "late".
-   * - Pour les autres statuts (pending_entry, pending_exit, absent),
-   *   on considère la sortie comme non validée (rouge).
+   * RÈGLES SORTIE :
+   * - Vert : pointage >= heure_fin ET <= heure_fin + 15 min (ou exit_capture_window)
+   * - Rouge : sinon
+   * BioStar stocke -60 min → on applique +60 via parseStudentPunchTime.
    */
   isBiCheckExitValid(student: any): boolean {
     if (!this.isBiCheckMode) {
       return !!(student.punch_out || student.punch_out_raw);
     }
 
-    const status = this.getDisplayStatus(student);
-    return status === 'present' || status === 'late';
+    const src = student.punch_out || student.punch_out_raw;
+    if (!src) return false;
+
+    const rawTime = typeof src === 'string' ? src : (src?.time ?? src?.punch_time ?? src?.bsevtdt);
+    if (!rawTime) return false;
+
+    const punchOut = this.parseStudentPunchTime(rawTime);
+    if (!punchOut || isNaN(punchOut.getTime())) return false;
+
+    const cours = this.coursData?.cours;
+    if (!cours) return true;
+
+    const heureFin = this.buildCoursDateTime(cours.date, cours.heure_fin);
+    const exitWindowMin = Number(this.exitCaptureWindowMinutes) || 15;
+    const heureFinPlusWindow = new Date(heureFin);
+    heureFinPlusWindow.setMinutes(heureFinPlusWindow.getMinutes() + exitWindowMin);
+
+    // Vert si : >= heure_fin ET <= heure_fin + 15 min
+    return punchOut.getTime() >= heureFin.getTime() && punchOut.getTime() <= heureFinPlusWindow.getTime();
+  }
+
+  /**
+   * Construire une Date locale à partir de la date du cours et d'une heure (ISO ou HH:MM:SS).
+   * Évite les décalages de fuseau en parsant la date littéralement.
+   */
+  private buildCoursDateTime(dateStr: string, timeStr: string): Date {
+    const m = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    const y = m ? parseInt(m[1], 10) : 0;
+    const mo = m ? parseInt(m[2], 10) - 1 : 0;
+    const day = m ? parseInt(m[3], 10) : 1;
+    let h = 0, min = 0, sec = 0;
+    if (timeStr.includes('T') && timeStr.includes('Z')) {
+      const t = new Date(timeStr);
+      h = t.getUTCHours(); min = t.getUTCMinutes(); sec = t.getUTCSeconds();
+    } else {
+      const parts = String(timeStr).split(':');
+      h = parseInt(parts[0], 10) || 0; min = parseInt(parts[1], 10) || 0; sec = parseInt(parts[2], 10) || 0;
+    }
+    return new Date(y, mo, day, h, min, sec, 0);
   }
 
   /**

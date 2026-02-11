@@ -779,18 +779,27 @@ class CoursController extends Controller
                         $toleranceMinutes = $digits !== '' ? (int) $digits : 15;
                     }
                     
-                    // Calculer l'heure limite: heure_debut + tolerance
+                    // Calculer l'heure limite: heure_debut + tolerance (ou heure_fin + exit_window en bi-check)
                     $heureDebutCours = $normalizeTime($heureDebut);
                     $heureLimitePointage = new \DateTime("{$normalizedDate} {$heureDebutCours}");
                     $heureLimitePointage->modify("+{$toleranceMinutes} minutes");
                     $hourFinWithSec = $heureLimitePointage->format('H:i:s');
                     
                     $exitWindowMinutes = (int)($cours->exit_capture_window ?? 0);
+                    $attendanceMode = $cours->attendance_mode ?? 'normal';
                     
                     // Construire la fenêtre datetime côté client avec la date normalisée
                     $startClientDt = new \DateTime("{$normalizedDate} {$hourRefWithSec}");
-                    $endClientDt = new \DateTime("{$normalizedDate} {$hourFinWithSec}");
-                    // Note: exitWindowMinutes n'est utilisé que pour le mode bi-check, pas pour la récupération des données
+                    // En mode bi-check: inclure heure_fin + exit_window pour récupérer les pointages de sortie
+                    if ($attendanceMode === 'bicheck') {
+                        $heureFinNormalized = $normalizeTime($heureFin);
+                        $endClientDt = new \DateTime("{$normalizedDate} {$heureFinNormalized}");
+                        if ($exitWindowMinutes > 0) {
+                            $endClientDt->modify("+{$exitWindowMinutes} minutes");
+                        }
+                    } else {
+                        $endClientDt = new \DateTime("{$normalizedDate} {$hourFinWithSec}");
+                    }
                     
                     // Le serveur Biostar est décalé de -60 minutes (serveur en retard d'1h)
                     $startServerDt = (clone $startClientDt)->modify("{$offsetMinutes} minutes");
@@ -809,11 +818,10 @@ class CoursController extends Controller
                         'heure_reference' => $heureReference,
                         'heure_debut_pointage' => $heureDebutPointage,
                         'heure_debut' => $heureDebut,
-                        'heure_fin_old' => $heureFin, // Ancienne valeur pour référence
+                        'heure_fin' => $heureFin,
+                        'attendance_mode' => $attendanceMode,
                         'tolerance_minutes' => $toleranceMinutes,
-                        'heure_limite_pointage' => $hourFinWithSec, // Utilise heure_debut + tolerance
-                        'hour_ref_with_sec' => $hourRefWithSec,
-                        'hour_fin_with_sec' => $hourFinWithSec,
+                        'heure_limite_pointage' => $hourFinWithSec,
                         'offset_minutes' => $offsetMinutes,
                         'start_client_dt' => $startClientDt->format('Y-m-d H:i:s'),
                         'end_client_dt' => $endClientDt->format('Y-m-d H:i:s'),
@@ -1205,25 +1213,56 @@ class CoursController extends Controller
                         }
                         
                         // Déterminer le statut
-                        if ($punchIn && $punchOut) {
-                            // Les deux pointages sont présents
-                            // Appliquer l'offset pour comparer avec l'heure de début du cours
-                            $punchInTimestamp = strtotime($punchIn['time']) + $biostarOffsetSeconds;
-                            $status = $punchInTimestamp <= $heureDebutCours ? 'present' : 'late';
-                            // On considère la sortie comme pointage principal (plus récent)
-                            $punchTime = $punchOut;
-                        } elseif ($punchIn && !$punchOut) {
-                            // Pointage entrée mais pas de sortie
-                            $status = 'pending_exit';
+                        // Initialiser le statut par défaut
+                        $status = 'absent';
                             $punchTime = null;
-                        } elseif (!$punchIn && !empty($punches)) {
-                            // Pointage détecté mais hors fenêtre d'entrée
+                        
+                        // ORDRE IMPORTANT : Chaque condition a son poids, vérifier dans cet ordre précis
+                        // 1. Absent (aucun punch) - priorité la plus basse
+                        // 2. Pending_entry (entrée non valide) - même s'il y a des punches
+                        // 3. Pending_exit (entrée valide mais pas de sortie)
+                        // 4. Present/late (les deux valides) - priorité la plus haute
+                        if (empty($punches)) {
+                            // Cas 1 : Absent - Aucun pointage détecté pour cet étudiant
+                            $status = 'absent';
+                            $punchTime = null;
+                        } elseif (!$punchIn) {
+                            // Cas 2 : Pending_entry - L'entrée n'est PAS valide (hors fenêtre d'entrée)
+                            // Même si l'étudiant a fait un Face ID dans la fenêtre de sortie,
+                            // si l'entrée n'est pas valide, le statut reste "Entrée à valider"
+                            // Exemple : Punch à 09:17 avec fenêtre d'entrée [08:30, 09:15] → pending_entry
                             $status = 'pending_entry';
                             $punchTime = null;
+                            // Note : $punchInRaw garde le premier punch brut pour affichage (ligne 1090)
+                        } elseif ($punchIn && !$punchOut) {
+                            // Cas 3 : Vérification explicite que l'entrée est dans la plage d'entrée
+                            // Avant de donner "Sortie à valider", on doit s'assurer que l'entrée est valide
+                            // $punchIn n'est assigné QUE si le punch est dans [pointage_start_hour, heure_debut + tolérance]
+                            // Mais on fait une double vérification pour être sûr
+                            $punchInTimestamp = strtotime($punchIn['time']) + $biostarOffsetSeconds;
+                            $isEntryInWindow = ($punchInTimestamp >= $heureDebutPointageTimestamp && $punchInTimestamp <= $heureLimiteEntree);
+                            
+                            if (!$isEntryInWindow) {
+                                // L'entrée n'est PAS dans la plage d'entrée → "Entrée à valider"
+                                $status = 'pending_entry';
+                                $punchTime = null;
+                            } else {
+                                // L'entrée EST dans la plage d'entrée mais pas de sortie → "Sortie à valider"
+                                $status = 'pending_exit';
+                            $punchTime = null;
+                            }
+                        } elseif ($punchIn && $punchOut) {
+                            // Cas 4 : Present/Late - Les deux pointages sont présents et valides
+                            $punchInTimestamp = strtotime($punchIn['time']) + $biostarOffsetSeconds;
+                            $status = $punchInTimestamp <= $heureDebutCours ? 'present' : 'late';
+                            $punchTime = $punchOut;
                         }
                     } else {
+                        // Aucun punch détecté pour cet étudiant
                         $punchInRaw = null;
                         $punchOutRaw = null;
+                        $status = 'absent';
+                        $punchTime = null;
                     }
                 } else {
                     // Mode normal: logique existante
