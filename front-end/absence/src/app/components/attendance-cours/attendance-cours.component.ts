@@ -2784,6 +2784,48 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Obtenir les classes CSS pour la couleur de la sortie en mode bi-check
+   * - Vert si sortie valide (entre heure_fin et heure_fin + 15 min)
+   * - Rouge sinon (manquante ou hors fenêtre)
+   */
+  getExitColorClass(student: any): { bg: string, border: string, icon: string, text: string } {
+    if (this.isBiCheckExitValid(student)) {
+      return {
+        bg: 'bg-emerald-50',
+        border: 'border-emerald-200',
+        icon: 'text-emerald-600',
+        text: 'text-gray-600'
+      };
+    }
+    return {
+      bg: 'bg-red-50',
+      border: 'border-red-200',
+      icon: 'text-red-500',
+      text: 'text-red-500'
+    };
+  }
+
+  /**
+   * Obtenir le texte d'affichage pour l'entrée d'un étudiant (heure ou Manquant)
+   */
+  getEntryDisplayText(student: any): string {
+    const src = student.punch_in || student.punch_in_raw;
+    if (!src) return 'Manquant';
+    const t = typeof src === 'string' ? src : (src?.time ?? src?.punch_time ?? src?.bsevtdt);
+    return t ? this.formatPunchForDisplay(t) : 'Manquant';
+  }
+
+  /**
+   * Obtenir le texte d'affichage pour la sortie d'un étudiant (heure ou Manquant)
+   */
+  getExitDisplayText(student: any): string {
+    const src = student.punch_out || student.punch_out_raw;
+    if (!src) return 'Manquant';
+    const t = typeof src === 'string' ? src : (src?.time ?? src?.punch_time ?? src?.bsevtdt);
+    return t ? this.formatPunchForDisplay(t) : 'Manquant';
+  }
+
+  /**
    * Basculer le mode édition
    */
   toggleEditMode() {

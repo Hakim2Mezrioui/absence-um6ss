@@ -808,8 +808,35 @@
                   </div>
                 </div>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {{ student.punch_time ? formatPunchForDisplay(student.punch_time.time) : 'N/A' }}
+              <td class="px-6 py-4 text-sm">
+                <!-- Mode NORMAL : un seul bloc (premier pointage) -->
+                <ng-container *ngIf="!isBiCheckMode">
+                  <div *ngIf="student.punch_time" class="text-gray-900">
+                    {{ formatPunchForDisplay(student.punch_time.time) }}
+                  </div>
+                  <div *ngIf="!student.punch_time" class="text-red-500 italic">
+                    N/A
+                  </div>
+                </ng-container>
+                <!-- Mode BICHECK : deux blocs (Entrée + Sortie) -->
+                <div *ngIf="isBiCheckMode" class="flex flex-col gap-2">
+                  <div
+                    class="flex items-center gap-2 px-2 py-1.5 rounded-lg border text-xs"
+                    [ngClass]="getEntryColorClass(student).bg + ' ' + getEntryColorClass(student).border + ' ' + getEntryColorClass(student).text"
+                  >
+                    <span class="material-icons text-sm" [ngClass]="getEntryColorClass(student).icon">login</span>
+                    <span class="font-medium">E:</span>
+                    <span>{{ getEntryDisplayText(student) }}</span>
+                  </div>
+                  <div
+                    class="flex items-center gap-2 px-2 py-1.5 rounded-lg border text-xs"
+                    [ngClass]="getExitColorClass(student).bg + ' ' + getExitColorClass(student).border + ' ' + getExitColorClass(student).text"
+                  >
+                    <span class="material-icons text-sm" [ngClass]="getExitColorClass(student).icon">logout</span>
+                    <span class="font-medium">S:</span>
+                    <span>{{ getExitDisplayText(student) }}</span>
+                  </div>
+                </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <div *ngIf="student.punch_time && student.punch_time.device" class="flex items-center gap-2">
