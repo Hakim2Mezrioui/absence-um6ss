@@ -1361,17 +1361,18 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Préparer les données pour l'export (dynamique selon mode NORMAL ou BICHECK)
+   * Préparer les données pour l'export (tous les étudiants : Présents, Retards, Absents).
+   * Colonnes : Étudiant, Heure Entrée, Statut Entrée, [Heure Sortie, Statut Sortie si Bicheck], Résultat Final.
    */
   private prepareExportData(): any[] {
     return this.filteredStudents.map(student => {
+      const heureEntree = this.getHeureEntreeForExport(student);
+      const statutEntree = this.getStatutEntreeForExport(student);
       const base = {
-        nom: student.last_name,
-        prenom: student.first_name,
-        matricule: student.matricule,
-        email: student.email,
-        heure_entree: this.getHeureEntreeForExport(student),
-        statut_entree: this.getEntryStatusLabelForExport(student),
+        etudiant: `${student.last_name || ''} ${student.first_name || ''}`.trim(),
+        matricule: student.matricule || student.id?.toString() || 'N/A',
+        heure_entree: heureEntree,
+        statut_entree: statutEntree,
         etat_final: this.getExportEtatFinal(student),
         promotion: student.promotion?.name || 'N/A',
         groupe: student.group?.title || 'N/A',
@@ -1381,10 +1382,24 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
       };
       if (this.isBiCheckMode) {
         (base as any).heure_sortie = this.getHeureSortieForExport(student);
-        (base as any).statut_sortie = this.getExitStatusLabelForExport(student);
+        (base as any).statut_sortie = this.getStatutSortieForExport(student);
       }
       return base;
     });
+  }
+
+  /** Statut d'entrée pour export : Présent | Retard | Absent */
+  private getStatutEntreeForExport(student: any): string {
+    const c = this.getEntryStatusLabelForExport(student);
+    if (c === 'Vert') return 'Présent';
+    if (c === 'Jaune') return 'Retard';
+    return 'Absent';
+  }
+
+  /** Statut de sortie pour export : Valide | Non valide (N/A en mode NORMAL) */
+  private getStatutSortieForExport(student: any): string {
+    if (!this.isBiCheckMode) return 'N/A';
+    return this.isBiCheckExitValid(student) ? 'Valide' : 'Non valide';
   }
 
   private getHeureEntreeForExport(student: any): string {
@@ -1408,8 +1423,8 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     if (data.length === 0) return '';
 
     const headers = this.isBiCheckMode
-      ? ['Nom', 'Prénom', 'Matricule', 'Email', 'Heure Entrée', 'Statut Entrée', 'Heure Sortie', 'Statut Sortie', 'État Final', 'Promotion', 'Groupe', 'Option', 'Établissement', 'Ville']
-      : ['Nom', 'Prénom', 'Matricule', 'Email', 'Heure Entrée', 'Statut Entrée', 'État Final', 'Promotion', 'Groupe', 'Option', 'Établissement', 'Ville'];
+      ? ['Étudiant', 'Matricule', 'Heure Entrée', 'Statut Entrée', 'Heure Sortie', 'Statut Sortie', 'Résultat Final', 'Promotion', 'Groupe', 'Option', 'Établissement', 'Ville']
+      : ['Étudiant', 'Matricule', 'Heure Entrée', 'Statut Entrée', 'Résultat Final', 'Promotion', 'Groupe', 'Option', 'Établissement', 'Ville'];
 
     // Informations du cours
     const coursInfo = this.coursData ? [
@@ -1444,10 +1459,8 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     // Ajouter les données
     data.forEach(row => {
       const baseValues = [
-        `"${row.nom}"`,
-        `"${row.prenom}"`,
+        `"${row.etudiant}"`,
         `"${row.matricule}"`,
-        `"${row.email}"`,
         `"${row.heure_entree}"`,
         `"${row.statut_entree}"`
       ];
@@ -1549,11 +1562,11 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
    */
   private addStudentsDataSheet(wb: XLSX.WorkBook, data: any[]): void {
     const headers = this.isBiCheckMode
-      ? ['Nom', 'Prénom', 'Matricule', 'Email', 'Heure Entrée', 'Statut Entrée', 'Heure Sortie', 'Statut Sortie', 'État Final', 'Promotion', 'Groupe', 'Option', 'Établissement', 'Ville']
-      : ['Nom', 'Prénom', 'Matricule', 'Email', 'Heure Entrée', 'Statut Entrée', 'État Final', 'Promotion', 'Groupe', 'Option', 'Établissement', 'Ville'];
+      ? ['Étudiant', 'Matricule', 'Heure Entrée', 'Statut Entrée', 'Heure Sortie', 'Statut Sortie', 'Résultat Final', 'Promotion', 'Groupe', 'Option', 'Établissement', 'Ville']
+      : ['Étudiant', 'Matricule', 'Heure Entrée', 'Statut Entrée', 'Résultat Final', 'Promotion', 'Groupe', 'Option', 'Établissement', 'Ville'];
 
     const sheetData = [headers, ...data.map(row => {
-      const base = [row.nom, row.prenom, row.matricule, row.email, row.heure_entree, row.statut_entree];
+      const base = [row.etudiant, row.matricule, row.heure_entree, row.statut_entree];
       const biCheck = this.isBiCheckMode ? [row.heure_sortie, row.statut_sortie] : [];
       const end = [row.etat_final, row.promotion, row.groupe, row.option, row.etablissement, row.ville];
       return [...base, ...biCheck, ...end];
@@ -1713,11 +1726,11 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     
     // Préparer les données pour le tableau (colonnes dynamiques selon mode)
     const pdfHeaders = this.isBiCheckMode
-      ? ['Nom', 'Prénom', 'Matricule', 'Heure Entrée', 'Statut Entrée', 'Heure Sortie', 'Statut Sortie', 'État Final', 'Promotion', 'Groupe']
-      : ['Nom', 'Prénom', 'Matricule', 'Heure Entrée', 'Statut Entrée', 'État Final', 'Promotion', 'Groupe'];
+      ? ['Étudiant', 'Matricule', 'Heure Entrée', 'Statut Entrée', 'Heure Sortie', 'Statut Sortie', 'Résultat Final', 'Promotion', 'Groupe']
+      : ['Étudiant', 'Matricule', 'Heure Entrée', 'Statut Entrée', 'Résultat Final', 'Promotion', 'Groupe'];
     
     const tableData = data.map(student => {
-      const base = [student.nom || '', student.prenom || '', student.matricule || '', student.heure_entree || 'N/A', student.statut_entree || ''];
+      const base = [student.etudiant || '', student.matricule || '', student.heure_entree || 'N/A', student.statut_entree || ''];
       const biCheck = this.isBiCheckMode ? [student.heure_sortie || 'N/A', student.statut_sortie || ''] : [];
       const end = [student.etat_final || '', student.promotion || 'N/A', student.groupe || 'N/A'];
       return [...base, ...biCheck, ...end];
@@ -1740,10 +1753,10 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
         cellPadding: 2
       },
       columnStyles: this.isBiCheckMode
-        ? { 0: { cellWidth: 25 }, 1: { cellWidth: 25 }, 2: { cellWidth: 22 }, 3: { cellWidth: 22 }, 4: { cellWidth: 18 }, 5: { cellWidth: 22 }, 6: { cellWidth: 18 }, 7: { cellWidth: 20 }, 8: { cellWidth: 22 }, 9: { cellWidth: 20 } }
-        : { 0: { cellWidth: 28 }, 1: { cellWidth: 28 }, 2: { cellWidth: 25 }, 3: { cellWidth: 28 }, 4: { cellWidth: 20 }, 5: { cellWidth: 22 }, 6: { cellWidth: 28 }, 7: { cellWidth: 22 } },
+        ? { 0: { cellWidth: 30 }, 1: { cellWidth: 18 }, 2: { cellWidth: 22 }, 3: { cellWidth: 18 }, 4: { cellWidth: 22 }, 5: { cellWidth: 18 }, 6: { cellWidth: 20 }, 7: { cellWidth: 22 }, 8: { cellWidth: 20 } }
+        : { 0: { cellWidth: 32 }, 1: { cellWidth: 18 }, 2: { cellWidth: 24 }, 3: { cellWidth: 18 }, 4: { cellWidth: 22 }, 5: { cellWidth: 24 }, 6: { cellWidth: 20 } },
       didParseCell: (data: any) => {
-        const etatFinalCol = this.isBiCheckMode ? 7 : 5;
+        const etatFinalCol = this.isBiCheckMode ? 6 : 4;
         if (data.column.index === etatFinalCol && data.row.index >= 0) {
           const status = data.cell.text[0];
           if (status === 'Présent') {
@@ -3068,17 +3081,15 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Prépare les données pour l'export des absences (structure dynamique selon mode)
+   * Prépare les données pour l'export des absences (même structure que prepareExportData)
    */
   private prepareAbsencesExportData(absentStudents: any[]): any[] {
     return absentStudents.map(student => {
       const base = {
-        nom: student.last_name,
-        prenom: student.first_name,
-        matricule: student.matricule,
-        email: student.email,
+        etudiant: `${student.last_name || ''} ${student.first_name || ''}`.trim(),
+        matricule: student.matricule || student.id?.toString() || 'N/A',
         heure_entree: this.getHeureEntreeForExport(student),
-        statut_entree: this.getEntryStatusLabelForExport(student),
+        statut_entree: this.getStatutEntreeForExport(student),
         etat_final: this.getExportEtatFinal(student),
         promotion: student.promotion?.name || 'N/A',
         groupe: student.group?.title || 'N/A',
@@ -3088,7 +3099,7 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
       };
       if (this.isBiCheckMode) {
         (base as any).heure_sortie = this.getHeureSortieForExport(student);
-        (base as any).statut_sortie = this.getExitStatusLabelForExport(student);
+        (base as any).statut_sortie = this.getStatutSortieForExport(student);
       }
       return base;
     });
@@ -3101,8 +3112,8 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     if (data.length === 0) return '';
 
     const headers = this.isBiCheckMode
-      ? ['Nom', 'Prénom', 'Matricule', 'Email', 'Heure Entrée', 'Statut Entrée', 'Heure Sortie', 'Statut Sortie', 'État Final', 'Promotion', 'Groupe', 'Option', 'Établissement', 'Ville']
-      : ['Nom', 'Prénom', 'Matricule', 'Email', 'Heure Entrée', 'Statut Entrée', 'État Final', 'Promotion', 'Groupe', 'Option', 'Établissement', 'Ville'];
+      ? ['Étudiant', 'Matricule', 'Heure Entrée', 'Statut Entrée', 'Heure Sortie', 'Statut Sortie', 'Résultat Final', 'Promotion', 'Groupe', 'Option', 'Établissement', 'Ville']
+      : ['Étudiant', 'Matricule', 'Heure Entrée', 'Statut Entrée', 'Résultat Final', 'Promotion', 'Groupe', 'Option', 'Établissement', 'Ville'];
 
     // Informations du cours
     const coursDetails = [
@@ -3141,10 +3152,8 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     // Ajouter les données
     data.forEach(row => {
       const baseValues = [
-        `"${row.nom}"`,
-        `"${row.prenom}"`,
+        `"${row.etudiant}"`,
         `"${row.matricule}"`,
-        `"${row.email}"`,
         `"${row.heure_entree}"`,
         `"${row.statut_entree}"`
       ];
@@ -3200,11 +3209,11 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
    */
   private addAbsencesDataSheet(wb: XLSX.WorkBook, data: any[]): void {
     const headers = this.isBiCheckMode
-      ? ['Nom', 'Prénom', 'Matricule', 'Email', 'Heure Entrée', 'Statut Entrée', 'Heure Sortie', 'Statut Sortie', 'État Final', 'Promotion', 'Groupe', 'Option', 'Établissement', 'Ville']
-      : ['Nom', 'Prénom', 'Matricule', 'Email', 'Heure Entrée', 'Statut Entrée', 'État Final', 'Promotion', 'Groupe', 'Option', 'Établissement', 'Ville'];
+      ? ['Étudiant', 'Matricule', 'Heure Entrée', 'Statut Entrée', 'Heure Sortie', 'Statut Sortie', 'Résultat Final', 'Promotion', 'Groupe', 'Option', 'Établissement', 'Ville']
+      : ['Étudiant', 'Matricule', 'Heure Entrée', 'Statut Entrée', 'Résultat Final', 'Promotion', 'Groupe', 'Option', 'Établissement', 'Ville'];
 
     const sheetData = [headers, ...data.map(row => {
-      const base = [row.nom, row.prenom, row.matricule, row.email, row.heure_entree, row.statut_entree];
+      const base = [row.etudiant, row.matricule, row.heure_entree, row.statut_entree];
       const biCheck = this.isBiCheckMode ? [row.heure_sortie, row.statut_sortie] : [];
       const end = [row.etat_final, row.promotion, row.groupe, row.option, row.etablissement, row.ville];
       return [...base, ...biCheck, ...end];
