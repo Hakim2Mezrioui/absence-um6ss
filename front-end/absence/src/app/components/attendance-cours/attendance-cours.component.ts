@@ -2628,10 +2628,14 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
     return 'absent';
   }
 
+  /** Anticipation autorisée (sortie jusqu'à 30 min avant la fin du cours) */
+  private readonly EXIT_ANTICIPATION_MINUTES = 30;
+
   /**
    * Déterminer si la sortie est valide en mode bi-check.
    * RÈGLES SORTIE :
-   * - Vert : pointage >= heure_fin ET <= heure_fin + 15 min (ou exit_capture_window)
+   * - Vert : pointage entre (heure_fin - 30 min) et (heure_fin + 15 min)
+   *   Ex. cours à 10:00 → plage valide 09:30 à 10:15
    * - Rouge : sinon
    * BioStar stocke -60 min → on applique +60 via parseStudentPunchTime.
    */
@@ -2654,11 +2658,14 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
 
     const heureFin = this.buildCoursDateTime(cours.date, cours.heure_fin);
     const exitWindowMin = Number(this.exitCaptureWindowMinutes) || 15;
+
+    const heureFinMinusAnticipation = new Date(heureFin);
+    heureFinMinusAnticipation.setMinutes(heureFinMinusAnticipation.getMinutes() - this.EXIT_ANTICIPATION_MINUTES);
     const heureFinPlusWindow = new Date(heureFin);
     heureFinPlusWindow.setMinutes(heureFinPlusWindow.getMinutes() + exitWindowMin);
 
-    // Vert si : >= heure_fin ET <= heure_fin + 15 min
-    return punchOut.getTime() >= heureFin.getTime() && punchOut.getTime() <= heureFinPlusWindow.getTime();
+    // Vert si : >= (heure_fin - 30 min) ET <= (heure_fin + 15 min)
+    return punchOut.getTime() >= heureFinMinusAnticipation.getTime() && punchOut.getTime() <= heureFinPlusWindow.getTime();
   }
 
   /**
@@ -2779,7 +2786,7 @@ export class AttendanceCoursComponent implements OnInit, OnDestroy {
 
   /**
    * Obtenir les classes CSS pour la couleur de la sortie en mode bi-check
-   * - Vert si sortie valide (entre heure_fin et heure_fin + 15 min)
+   * - Vert si sortie valide (entre heure_fin - 30 min et heure_fin + 15 min)
    * - Rouge sinon (manquante ou hors fenêtre)
    */
   getExitColorClass(student: any): { bg: string, border: string, icon: string, text: string } {

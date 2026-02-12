@@ -1136,8 +1136,10 @@ class CoursController extends Controller
                         $toleranceMinutes = (int)$toleranceParts[0] * 60 + (int)$toleranceParts[1];
                         $heureLimiteEntree = $heureDebutCours + ($toleranceMinutes * 60);
                         
-                        // Fenêtre de capture sortie (en secondes)
+                        // Fenêtre de capture sortie : [heure_fin - 30 min, heure_fin + exit_window]
+                        $exitAnticipationSeconds = 30 * 60; // Anticipation autorisée (sortie 30 min avant la fin)
                         $exitWindowSeconds = $exitCaptureWindow * 60;
+                        $heureDebutSortie = $heureFinCours - $exitAnticipationSeconds;
                         $heureLimiteSortie = $heureFinCours + $exitWindowSeconds;
                         
                         // Offset Biostar: le serveur Biostar est décalé de -60 minutes (sauf Rabat)
@@ -1160,7 +1162,7 @@ class CoursController extends Controller
                                 'fin' => date('Y-m-d H:i:s', $heureLimiteEntree)
                             ],
                             'fenetre_sortie' => [
-                                'debut' => date('Y-m-d H:i:s', $heureFinCours),
+                                'debut' => date('Y-m-d H:i:s', $heureDebutSortie),
                                 'fin' => date('Y-m-d H:i:s', $heureLimiteSortie)
                             ],
                             'punches_count' => count($punches),
@@ -1191,9 +1193,9 @@ class CoursController extends Controller
                             $punchInRaw = $punchIn;
                         }
 
-                        // Sortie : conserver le DERNIER punch dans la fenêtre de sortie
-                        $exitCandidates = array_values(array_filter($punchesWithTs, function($p) use ($heureFinCours, $heureLimiteSortie) {
-                            return $p['timestamp'] >= $heureFinCours && $p['timestamp'] <= $heureLimiteSortie;
+                        // Sortie : conserver le DERNIER punch dans la fenêtre de sortie [heure_fin - 30 min, heure_fin + exit_window]
+                        $exitCandidates = array_values(array_filter($punchesWithTs, function($p) use ($heureDebutSortie, $heureLimiteSortie) {
+                            return $p['timestamp'] >= $heureDebutSortie && $p['timestamp'] <= $heureLimiteSortie;
                         }));
                         if (!empty($exitCandidates)) {
                             usort($exitCandidates, function($a, $b) { return $a['timestamp'] <=> $b['timestamp']; });

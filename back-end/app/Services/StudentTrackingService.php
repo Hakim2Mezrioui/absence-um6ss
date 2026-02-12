@@ -718,6 +718,8 @@ class StudentTrackingService
             $heureFinCours = Carbon::parse($coursDate . ' ' . $heureFin);
             $heureDebutPointage = Carbon::parse($coursDate . ' ' . $heurePointage);
             $heureLimiteEntree = $heureDebutCours->copy()->addMinutes($toleranceMinutes);
+            // Plage sortie : [heure_fin - 30 min, heure_fin + exit_window] (anticipation autorisée)
+            $heureDebutSortie = $heureFinCours->copy()->subMinutes(30);
             $heureLimiteSortie = $heureFinCours->copy()->addMinutes($exitCaptureWindow);
             
             // Offset Biostar (serveur décalé de -60 min)
@@ -748,7 +750,7 @@ class StudentTrackingService
                     'fin' => $heureLimiteEntree->format('Y-m-d H:i:s')
                 ],
                 'fenetre_sortie' => [
-                    'debut' => $heureFinCours->format('Y-m-d H:i:s'),
+                    'debut' => $heureDebutSortie->format('Y-m-d H:i:s'),
                     'fin' => $heureLimiteSortie->format('Y-m-d H:i:s')
                 ],
                 'punches_count' => count($punches)
@@ -814,7 +816,7 @@ class StudentTrackingService
             $punchOut = null;
             $punchOutTime = null;
             foreach (array_reverse($punchesWithTs) as $p) {
-                if ($p['datetime']->gte($heureFinCours) && $p['datetime']->lte($heureLimiteSortie)) {
+                if ($p['datetime']->gte($heureDebutSortie) && $p['datetime']->lte($heureLimiteSortie)) {
                     $punchOut = $p['punch'];
                     $punchOutTime = $p['datetime'];
                     break;
