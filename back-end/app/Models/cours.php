@@ -39,6 +39,7 @@ class Cours extends Model
         'option_id',
         'ville_id',
         'enseignant_id',
+        'enseignant_name',
         'archived_at'
     ];
 

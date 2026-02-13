@@ -536,43 +536,34 @@ class CoursService
             
             if (empty($searchValue)) {
                 // Pas d'enseignant à rechercher, continuer sans enseignant_id
-                // (enseignant_id peut être null dans la base de données)
             } else {
-            
-            // IMPORTANT: Supprimer le scope de filtrage pour permettre la recherche de tous les enseignants
-            // lors de l'import, peu importe le rôle de l'utilisateur
-            $enseignant = \App\Models\Enseignant::withoutGlobalScope(\App\Scopes\EnseignantUserContextScope::class)
-                ->with('user')
-                ->whereHas('user', function($query) use ($searchValue) {
-                    $query->where(function($q) use ($searchValue) {
-                        // Nettoyer les espaces multiples dans la recherche
-                        $normalizedSearch = preg_replace('/\s+/', ' ', trim($searchValue));
-                        
-                        // Recherche exacte d'abord (nom complet, insensible à la casse)
-                        $q->whereRaw("LOWER(TRIM(CONCAT(first_name, ' ', last_name))) = LOWER(?)", [$normalizedSearch])
-                          ->orWhereRaw("LOWER(email) = LOWER(?)", [$searchValue])
-                          // Puis recherche partielle (insensible à la casse)
-                          ->orWhereRaw("LOWER(TRIM(CONCAT(first_name, ' ', last_name))) LIKE LOWER(?)", ["%{$normalizedSearch}%"])
-                          ->orWhereRaw("LOWER(email) LIKE LOWER(?)", ["%{$searchValue}%"])
-                          ->orWhereRaw("LOWER(first_name) LIKE LOWER(?)", ["%{$searchValue}%"])
-                          ->orWhereRaw("LOWER(last_name) LIKE LOWER(?)", ["%{$searchValue}%"]);
-                    });
-                })
-                ->first();
-            
-            if ($enseignant && $enseignant->user) {
-                $coursData['enseignant_id'] = $enseignant->user->id; // Utiliser user_id car enseignant_id pointe vers User
-            } else {
-                // Log pour déboguer
-                \Log::warning('Enseignant non trouvé lors de l\'import', [
-                    'search_value' => $searchValue,
-                    'enseignant_name' => $data['enseignant_name'] ?? null,
-                    'enseignant_email' => $data['enseignant_email'] ?? null,
-                    'user_id' => \Illuminate\Support\Facades\Auth::id(),
-                    'user_role' => \Illuminate\Support\Facades\Auth::user()?->role_id
-                ]);
-                throw new \Exception("Enseignant non trouvé dans la table enseignant: {$searchValue}");
-            }
+                // Toujours stocker le nom saisi (accepte n'importe quelle valeur)
+                $coursData['enseignant_name'] = $searchValue;
+
+                // IMPORTANT: Supprimer le scope de filtrage pour permettre la recherche de tous les enseignants
+                $enseignant = \App\Models\Enseignant::withoutGlobalScope(\App\Scopes\EnseignantUserContextScope::class)
+                    ->with('user')
+                    ->whereHas('user', function($query) use ($searchValue) {
+                        $query->where(function($q) use ($searchValue) {
+                            $normalizedSearch = preg_replace('/\s+/', ' ', trim($searchValue));
+                            $q->whereRaw("LOWER(TRIM(CONCAT(first_name, ' ', last_name))) = LOWER(?)", [$normalizedSearch])
+                              ->orWhereRaw("LOWER(email) = LOWER(?)", [$searchValue])
+                              ->orWhereRaw("LOWER(TRIM(CONCAT(first_name, ' ', last_name))) LIKE LOWER(?)", ["%{$normalizedSearch}%"])
+                              ->orWhereRaw("LOWER(email) LIKE LOWER(?)", ["%{$searchValue}%"])
+                              ->orWhereRaw("LOWER(first_name) LIKE LOWER(?)", ["%{$searchValue}%"])
+                              ->orWhereRaw("LOWER(last_name) LIKE LOWER(?)", ["%{$searchValue}%"]);
+                        });
+                    })
+                    ->first();
+
+                if ($enseignant && $enseignant->user) {
+                    $coursData['enseignant_id'] = $enseignant->user->id;
+                } else {
+                    // Accepter le nom tel quel sans vérification : enseignant_id reste null
+                    \Log::info('Enseignant non trouvé - cours importé avec enseignant_name', [
+                        'enseignant_name' => $searchValue
+                    ]);
+                }
             }
         }
 

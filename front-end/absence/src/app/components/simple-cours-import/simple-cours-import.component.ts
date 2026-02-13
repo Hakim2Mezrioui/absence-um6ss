@@ -1312,6 +1312,13 @@ export class SimpleCoursImportComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Cas spécial pour enseignant_name : accepter tout nom saisi sans vérification DB
+    if (header === 'enseignant_name') {
+      this.suggestionsByCell[rowIndex][header] = [];
+      this.invalidCells[rowIndex][header] = false;
+      return;
+    }
+
     // Utiliser la notation bracket pour enseignant_name (TypeScript requirement)
     const referenceEntries = header === 'enseignant_name' 
       ? this.referenceData['enseignant_name']

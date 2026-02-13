@@ -452,6 +452,7 @@ export class AddCoursComponent implements OnInit, OnDestroy {
       option_id: this.cours.option_id ? Number(this.cours.option_id) : undefined,
       ville_id: Number(this.cours.ville_id),
       enseignant_id: this.cours.enseignant_id ? Number(this.cours.enseignant_id) : null,
+      enseignant_name: this.cours.enseignant_name || null,
       tolerance: this.formatToleranceToTime(this.toleranceMinutes),
       attendance_mode: (this.isBiCheckMode ? 'bicheck' : 'normal') as 'normal' | 'bicheck',
       exit_capture_window: this.isBiCheckMode ? Number(this.exitCaptureWindow) : 0,
@@ -732,15 +733,18 @@ export class AddCoursComponent implements OnInit, OnDestroy {
 
   clearEnseignant(): void {
     this.cours.enseignant_id = null;
+    this.cours.enseignant_name = null;
     this.enseignantDropdownOpen = false;
     this.enseignantSearchTerm = '';
     this.updateFilteredEnseignants();
   }
 
   getSelectedEnseignantName(): string {
-    if (!this.cours.enseignant_id) return '';
-    const enseignant = this.enseignants.find(e => e.id === this.cours.enseignant_id);
-    return enseignant ? enseignant.name : '';
+    if (this.cours.enseignant_id) {
+      const enseignant = this.enseignants.find(e => e.id === this.cours.enseignant_id);
+      return enseignant ? enseignant.name : '';
+    }
+    return this.cours.enseignant_name || '';
   }
 
   toggleEnseignantDropdown(): void {

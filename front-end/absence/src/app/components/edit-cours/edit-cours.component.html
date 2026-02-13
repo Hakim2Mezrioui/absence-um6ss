@@ -575,8 +575,8 @@
                   class="w-full px-4 py-3 pl-12 text-left border-2 border-gray-300 rounded-xl shadow-sm bg-white hover:border-indigo-400 transition-all duration-200"
                 >
                   <span class="material-icons absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">person</span>
-                  <span *ngIf="!cours.enseignant_id" class="text-gray-700">Sélectionner un enseignant</span>
-                  <span *ngIf="cours.enseignant_id" class="text-gray-900">{{ getSelectedEnseignantName() }}</span>
+                  <span *ngIf="!cours.enseignant_id && !cours.enseignant_name" class="text-gray-700">Sélectionner un enseignant</span>
+                  <span *ngIf="cours.enseignant_id || cours.enseignant_name" class="text-gray-900">{{ getSelectedEnseignantName() }}</span>
                   <span class="material-icons absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">arrow_drop_down</span>
                 </button>
 
@@ -602,10 +602,10 @@
                       type="button" 
                       (click)="clearEnseignant()" 
                       class="w-full text-left px-4 py-2 hover:bg-indigo-50 flex items-center gap-3 border-b border-gray-100"
-                      [class.bg-indigo-50]="!cours.enseignant_id"
+                      [class.bg-indigo-50]="!cours.enseignant_id && !cours.enseignant_name"
                     >
-                      <span class="material-icons" [class.text-indigo-600]="!cours.enseignant_id" [class.text-gray-400]="cours.enseignant_id">
-                        {{ !cours.enseignant_id ? 'check_circle' : 'radio_button_unchecked' }}
+                      <span class="material-icons" [class.text-indigo-600]="!cours.enseignant_id && !cours.enseignant_name" [class.text-gray-400]="cours.enseignant_id || cours.enseignant_name">
+                        {{ !cours.enseignant_id && !cours.enseignant_name ? 'check_circle' : 'radio_button_unchecked' }}
                       </span>
                       <span class="text-gray-700">Aucun enseignant</span>
                     </button>

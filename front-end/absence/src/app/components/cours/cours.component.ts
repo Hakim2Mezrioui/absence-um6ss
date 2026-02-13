@@ -439,6 +439,18 @@ export class CoursComponent implements OnInit {
   }
 
   /**
+   * Obtient le nom de l'enseignant (relation ou colonne enseignant_name)
+   */
+  getEnseignantDisplay(coursItem: Cours): string {
+    if (!coursItem) return 'N/A';
+    const name = coursItem.enseignant?.name
+      || (coursItem.enseignant?.first_name && coursItem.enseignant?.last_name
+        ? `${coursItem.enseignant.first_name} ${coursItem.enseignant.last_name}`.trim()
+        : null);
+    return name || coursItem.enseignant_name || 'N/A';
+  }
+
+  /**
    * Ouvrir l'affichage public des absences pour un cours
    */
   openPublicDisplay(cours: Cours): void {

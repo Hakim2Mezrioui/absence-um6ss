@@ -24,6 +24,7 @@ export interface Cours {
   option_id?: number;
   ville_id?: number;
   enseignant_id?: number | null;
+  enseignant_name?: string | null;
   group_ids?: number[];
   annee_universitaire: string;
   statut_temporel?: 'passé' | 'en_cours' | 'futur'; // Calculé côté frontend

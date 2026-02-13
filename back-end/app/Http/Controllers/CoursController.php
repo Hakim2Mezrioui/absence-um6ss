@@ -187,6 +187,7 @@ class CoursController extends Controller
             'group_ids.*' => 'exists:groups,id',
             'ville_id' => 'required|exists:villes,id',
             'enseignant_id' => 'nullable|exists:users,id',
+            'enseignant_name' => 'nullable|string|max:255',
             'annee_universitaire' => 'required|string|max:9'
         ]);
         
@@ -305,6 +306,7 @@ class CoursController extends Controller
             'group_ids.*' => 'exists:groups,id',
             'ville_id' => 'sometimes|exists:villes,id',
             'enseignant_id' => 'nullable|exists:users,id',
+            'enseignant_name' => 'nullable|string|max:255',
             'annee_universitaire' => 'sometimes|string|max:9'
         ]);
 
