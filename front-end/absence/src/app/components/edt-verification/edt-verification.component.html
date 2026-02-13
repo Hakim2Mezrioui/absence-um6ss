@@ -1,0 +1,192 @@
+<div class="min-h-screen flex flex-col bg-slate-50 overflow-hidden">
+  <!-- Header -->
+  <div class="flex-shrink-0 bg-white border-b border-slate-200 shadow-sm">
+    <div class="max-w-full px-6 py-4">
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+          <button type="button"
+                  (click)="goBack()"
+                  class="p-2 rounded-lg hover:bg-slate-100 transition-colors">
+            <span class="material-icons text-slate-600">arrow_back</span>
+          </button>
+          <div>
+            <h1 class="text-2xl font-semibold text-slate-900">Vérification EDT avant importation</h1>
+            <p class="text-sm text-slate-600 mt-0.5">Importez un fichier EDT complexe, vérifiez et corrigez les données avant l'import</p>
+          </div>
+          <span *ngIf="tableRows.length" class="text-sm text-slate-600 bg-slate-100 px-3 py-1 rounded-full">
+            {{ tableRows.length }} ligne(s)
+          </span>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <label class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-300 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer">
+            <span class="material-icons text-base">upload_file</span>
+            Charger EDT
+            <input type="file" accept=".xlsx,.xls" class="hidden" (change)="onFileSelected($event)" />
+          </label>
+        </div>
+      </div>
+
+      <!-- Statut -->
+      <div *ngIf="tableRows.length" class="mt-3 flex items-center gap-6 text-sm">
+        <div class="flex items-center gap-2">
+          <div class="w-3 h-3 rounded-full" [class.bg-green-500]="!hasInvalidRows()" [class.bg-red-500]="hasInvalidRows()"></div>
+          <span [class.text-green-600]="!hasInvalidRows()" [class.text-red-600]="hasInvalidRows()">
+            {{ hasInvalidRows() ? getInvalidCount() + ' ligne(s) incomplète(s)' : 'Toutes les lignes sont valides' }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div *ngIf="errorMessage || successMessage || isProcessing" class="flex-shrink-0 px-6 py-2 bg-white border-b border-slate-200">
+    <div *ngIf="errorMessage" class="flex items-center gap-2 text-sm text-red-700 bg-red-50 px-3 py-2 rounded">
+      <span class="material-icons text-base">error_outline</span>
+      <span>{{ errorMessage }}</span>
+    </div>
+    <div *ngIf="successMessage" class="flex items-center gap-2 text-sm text-green-700 bg-green-50 px-3 py-2 rounded">
+      <span class="material-icons text-base">check_circle_outline</span>
+      <span>{{ successMessage }}</span>
+    </div>
+    <div *ngIf="isProcessing" class="flex items-center gap-2 text-sm text-blue-700 bg-blue-50 px-3 py-2 rounded">
+      <span class="material-icons text-base animate-spin">sync</span>
+      <span>Analyse du fichier EDT en cours...</span>
+    </div>
+  </div>
+
+  <!-- Zone vide -->
+  <div *ngIf="!tableRows.length && !isProcessing" class="flex-1 flex items-center justify-center px-6">
+    <div
+      class="w-full max-w-3xl rounded-2xl border-2 border-dashed transition-all p-10 bg-white cursor-pointer"
+      [class.border-indigo-500]="isDragging"
+      [class.bg-indigo-50]="isDragging"
+      (dragover)="onDragOver($event); $event.preventDefault()"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onDrop($event)"
+      (click)="onZoneClick(fileInput)"
+    >
+      <div class="flex flex-col items-center gap-4 text-center text-slate-600">
+        <span class="material-icons text-5xl text-indigo-500">calendar_view_month</span>
+        <div class="text-lg font-semibold text-slate-900">Glissez-déposez votre fichier EDT Excel ici</div>
+        <p class="text-sm text-slate-500">ou cliquez pour sélectionner un fichier .xlsx/.xls (cellules fusionnées supportées)</p>
+        <input #fileInput type="file" accept=".xlsx,.xls" class="hidden" (change)="onFileSelected($event)" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Tableau éditable -->
+  <div *ngIf="tableRows.length" class="flex-1 overflow-hidden">
+    <div class="h-full overflow-auto table-scroll">
+      <table class="w-full border-collapse">
+        <thead class="sticky top-0 z-20 bg-slate-100 border-b-2 border-slate-300">
+          <tr>
+            <th class="px-3 py-2 text-left text-xs font-bold text-slate-700 uppercase border-r border-slate-300" style="min-width: 50px;">#</th>
+            <th *ngFor="let header of templateHeaders; trackBy: trackByHeader"
+                class="px-3 py-2 text-left text-xs font-bold text-slate-700 uppercase border-r border-slate-300"
+                style="min-width: 120px; white-space: nowrap;">
+              {{ getHeaderLabel(header) }}
+            </th>
+            <th class="px-3 py-2 text-left text-xs font-bold text-slate-700 uppercase border-r border-slate-300" style="min-width: 180px;">
+              Validation
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of tableRows; trackBy: trackByIndex; let i = index"
+              class="bg-white border-b border-slate-200 hover:bg-slate-50"
+              [class.bg-red-50]="isRowInvalid(i)"
+              [class.border-l-4]="isRowInvalid(i)"
+              [class.border-red-500]="isRowInvalid(i)">
+            <td class="px-3 py-2 text-center font-semibold text-slate-600 border-r border-slate-200 bg-slate-50" style="min-width: 50px;">
+              {{ i + 1 }}
+            </td>
+            <td *ngFor="let header of templateHeaders; trackBy: trackByHeader"
+                class="px-3 py-2 border-r border-slate-200">
+              <ng-container [ngSwitch]="header">
+                <select *ngSwitchCase="'attendance_mode'"
+                        [value]="row[header] || 'bicheck'"
+                        (change)="updateCell(i, header, $any($event.target).value)"
+                        class="w-full px-2 py-1.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 border-slate-300">
+                  <option value="bicheck">BICHECK</option>
+                  <option value="normal">NORMAL</option>
+                </select>
+                <input *ngSwitchDefault
+                       type="text"
+                       [value]="row[header]"
+                       (input)="updateCell(i, header, $any($event.target).value)"
+                       class="w-full px-2 py-1.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 border-slate-300">
+              </ng-container>
+            </td>
+            <td class="px-3 py-2 border-r border-slate-200">
+              <div *ngIf="isRowInvalid(i)" class="flex flex-col gap-1">
+                <span class="text-xs font-medium text-red-600 flex items-center gap-1">
+                  <span class="material-icons" style="font-size: 14px;">warning</span>
+                  Ligne incomplète
+                </span>
+                <ul class="text-xs text-red-700 list-disc list-inside">
+                  <li *ngFor="let msg of getRowValidationMessages(i)">{{ msg }}</li>
+                </ul>
+              </div>
+              <div *ngIf="!isRowInvalid(i)" class="flex items-center gap-1 text-xs text-green-600">
+                <span class="material-icons" style="font-size: 14px;">check_circle</span>
+                Valide
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Barre d'actions -->
+  <div *ngIf="tableRows.length" class="flex-shrink-0 border-t border-slate-200 bg-white px-6 py-4 flex items-center justify-between">
+    <div class="text-sm text-slate-600">
+      {{ hasInvalidRows() ? (getInvalidCount() + ' ligne(s) à corriger') : 'Données prêtes à être importées' }}
+    </div>
+    <div class="flex items-center gap-3">
+      <button type="button"
+              (click)="downloadModeleCorrige()"
+              class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-300 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+        <span class="material-icons text-base">download</span>
+        Modèle Corrigé
+      </button>
+      <button type="button"
+              (click)="clearTable()"
+              class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-300 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+        <span class="material-icons text-base">refresh</span>
+        Réinitialiser
+      </button>
+      <button type="button"
+              (click)="finaliserImportation()"
+              [disabled]="isImporting || hasInvalidRows()"
+              class="inline-flex items-center gap-2 px-5 py-2 rounded-lg text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              [class.bg-indigo-600]="!hasInvalidRows()"
+              [class.hover:bg-indigo-700]="!hasInvalidRows()"
+              [class.bg-slate-400]="hasInvalidRows()">
+        <span class="material-icons text-base" *ngIf="!isImporting">cloud_upload</span>
+        <span class="material-icons text-base animate-spin" *ngIf="isImporting">sync</span>
+        {{ isImporting ? 'Import...' : (hasInvalidRows() ? 'Corrigez les erreurs' : 'Finaliser l\'Importation') }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Résultat import -->
+  <div *ngIf="importResult" class="flex-shrink-0 border-t border-slate-200 bg-white px-6 py-4">
+    <div class="flex items-start gap-3">
+      <span class="material-icons text-lg" [class.text-green-500]="importResult.success" [class.text-red-500]="!importResult.success">
+        {{ importResult.success ? 'check_circle' : 'error' }}
+      </span>
+      <div class="flex-1">
+        <p class="font-medium" [class.text-green-700]="importResult.success" [class.text-red-700]="!importResult.success">
+          {{ importResult.message }}
+        </p>
+        <div *ngIf="importResult.details" class="mt-2 flex gap-4 text-sm">
+          <span class="text-slate-600">Total: {{ importResult.details.total_processed || 0 }}</span>
+          <span class="text-green-600">Créés: {{ importResult.details.created || 0 }}</span>
+          <span class="text-blue-600">Mis à jour: {{ importResult.details.updated || 0 }}</span>
+          <span class="text-red-600">Erreurs: {{ importResult.details.errors || 0 }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

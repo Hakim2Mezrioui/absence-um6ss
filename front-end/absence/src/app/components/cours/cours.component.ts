@@ -214,6 +214,10 @@ export class CoursComponent implements OnInit {
     this.router.navigate(['/import-cours-simple']);
   }
 
+  edtVerification() {
+    this.router.navigate(['/edt-verification']);
+  }
+
   editCours(cours: Cours) {
     this.router.navigate(['/edit-cours', cours.id]);
   }

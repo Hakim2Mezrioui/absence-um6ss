@@ -16,7 +16,15 @@
             <span class="material-icons">archive</span>
             Cours archivés
           </button>
-          <div>
+          <div class="flex gap-2">
+            <button 
+              *ngIf="authService.canEdit() && !isDefilementRole()"
+              class="bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center gap-2"
+              (click)="edtVerification()"
+            >
+              <span class="material-icons">fact_check</span>
+              Vérifier EDT
+            </button>
             <button 
               *ngIf="authService.canEdit() && !isDefilementRole()"
               class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center gap-2"

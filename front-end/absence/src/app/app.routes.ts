@@ -34,6 +34,7 @@ import { EnseignantsComponent } from './components/enseignants/enseignants.compo
 import { ImportEnseignantsComponent } from './import-enseignants/import-enseignants.component';
 import { SimpleStudentImportComponent } from './components/simple-import/simple-import.component';
 import { SimpleCoursImportComponent } from './components/simple-cours-import/simple-cours-import.component';
+import { EdtVerificationComponent } from './components/edt-verification/edt-verification.component';
 import { SimpleExamensImportComponent } from './components/simple-examens-import/simple-examens-import.component';
 import { GroupsComponent } from './components/groups/groups.component';
 import { UserManagementComponent } from './components/user-management/user-management.component';
@@ -150,6 +151,7 @@ export const routes: Routes = [
             { path: "edit-cours/:id", component: EditCoursComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen'] } },
             { path: "import-cours", component: ImportCoursComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen'] } },
             { path: "import-cours-simple", component: SimpleCoursImportComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen'] } },
+            { path: "edt-verification", component: EdtVerificationComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'doyen'] } },
             { path: "cours/:id/attendance", component: AttendanceCoursComponent, canActivate: [RoleGuard], data: { roles: ['super-admin', 'admin', 'scolarite', 'enseignant', 'technicien'] } },
 
             // Configuration: super-admin only
